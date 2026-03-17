@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>XP ARENA | MASTER COMMAND</title>
+    <title>XP ARENA - Master Command Center</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Outfit:wght@600;800&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
@@ -159,6 +159,15 @@
         </section>
 
         <section style="margin-top: 2rem;">
+            <div class="admin-nav">
+                <label class="form-label">Neural Conversion Funnel</label>
+            </div>
+            <div id="funnelSteps" class="glass-card" style="padding: 1.5rem; background: rgba(0,0,0,0.2);">
+                <!-- Funnel steps injected here -->
+            </div>
+        </section>
+
+        <section style="margin-top: 2rem;">
             <label class="form-label">Real-time Activity Stream</label>
             <div id="liveFeed" class="glass-card" style="padding: 0.5rem; min-height: 100px; max-height: 200px; overflow-y: hidden; background: rgba(0,0,0,0.2);">
                 <div style="text-align: center; opacity: 0.2; padding: 2rem; font-size: 0.6rem;">WAITING_FOR_UPLINK...</div>
@@ -166,9 +175,21 @@
         </section>
 
         <section style="margin-top: 2rem;">
-            <label class="form-label">Authorized Providers</label>
-            <div id="vendorList">
-                <div style="text-align: center; opacity: 0.3; padding: 2rem;">INITIALIZING_DATA_STREAM...</div>
+            <label class="form-label">Authorized Creators & Performance</label>
+            <div class="glass-card" style="padding: 0; overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 0.75rem;">
+                    <thead>
+                        <tr style="text-align: left; border-bottom: 1px solid var(--border-light);">
+                            <th style="padding: 1rem;">CREATOR</th>
+                            <th style="padding: 1rem;">KEYS</th>
+                            <th style="padding: 1rem;">CLICKS</th>
+                            <th style="padding: 1rem;">ACTIONS</th>
+                        </tr>
+                    </thead>
+                    <tbody id="vendorList">
+                        <tr><td colspan="4" style="text-align: center; opacity: 0.3; padding: 2rem;">INITIALIZING_DATA_STREAM...</td></tr>
+                    </tbody>
+                </table>
             </div>
         </section>
 
@@ -286,25 +307,63 @@
 
         async function loadDashboard() {
             try {
+                // 1. Core Stats
                 const stats = await api('/api/vault/admin/stats');
                 document.getElementById('totalVendors').textContent = stats.vendors;
                 document.getElementById('totalUsage').textContent = stats.usage_total;
                 document.getElementById('globalAccuracy').textContent = stats.global_accuracy ? (stats.global_accuracy * 20).toFixed(1) + '%' : '100%';
 
+                // 2. Funnel Data
+                const orgStats = await api('/api/vault/org/stats');
+                const funnel = document.getElementById('funnelSteps');
+                
+                if (orgStats.funnel && orgStats.funnel.length > 0) {
+                    const maxVal = orgStats.funnel[0].val || 1;
+                    funnel.innerHTML = orgStats.funnel.map(step => {
+                        const pct = Math.round((step.val / maxVal) * 100);
+                        return `
+                            <div style="margin-bottom: 1rem;">
+                                <div style="display:flex; justify-content:space-between; font-size: 0.65rem; margin-bottom: 0.3rem;">
+                                    <span style="font-weight:800;">${step.label}</span>
+                                    <span style="color:var(--accent-primary)">${step.val} (${pct}%)</span>
+                                </div>
+                                <div style="height: 6px; background: rgba(255,255,255,0.05); border-radius: 3px; overflow:hidden;">
+                                    <div style="width:${pct}%; height:100%; background:var(--accent-primary); box-shadow: 0 0 10px var(--accent-primary-glow);"></div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                } else {
+                    funnel.innerHTML = '<div style="text-align:center; opacity:0.3; padding:1rem; font-size:0.6rem;">NO_TRAFFIC_DATA</div>';
+                }
+
+                // 3. Creator List
+                const creators = await api('/api/vault/org/creators');
                 const vendors = await api('/api/vault/admin/vendors');
-                document.getElementById('vendorList').innerHTML = vendors.map(v => `
-                    <div class="vendor-card">
-                        <div>
-                            <div style="font-weight: 800; font-size: 0.9rem;">${v.vendor_id}</div>
-                            <div class="vendor-meta">${v.access_key}</div>
-                        </div>
-                        <div class="btn-stack">
-                            <button class="mini-btn" onclick="showAnalytics('${v.vendor_id}', ${v.total_codes}, ${v.total_usage})">LOGS</button>
-                            <button class="mini-btn danger" onclick="deleteVendor('${v.vendor_id}')">X</button>
-                        </div>
-                    </div>
-                `).join('');
-            } catch (e) {}
+                
+                const list = document.getElementById('vendorList');
+                list.innerHTML = vendors.map(v => {
+                    const cData = creators.find(c => c.name === v.vendor_id) || { keys: 0, clicks: 0 };
+                    return `
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.02);">
+                            <td style="padding: 1rem;">
+                                <div style="font-weight: 800;">${v.vendor_id}</div>
+                                <div style="font-size: 0.6rem; color: var(--text-muted); font-family:var(--font-mono);">${v.access_key}</div>
+                            </td>
+                            <td style="padding: 1rem;">${cData.keys}</td>
+                            <td style="padding: 1rem;">${cData.clicks}</td>
+                            <td style="padding: 1rem;">
+                                <div class="btn-stack">
+                                    <button class="mini-btn" onclick="showAnalytics('${v.vendor_id}', ${v.total_codes}, ${v.total_usage})">LOGS</button>
+                                    <button class="mini-btn danger" onclick="deleteVendor('${v.vendor_id}')">ERASE</button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (e) {
+                console.error('DASH_LOAD_ERR:', e);
+            }
         }
 
         async function addVendor() {

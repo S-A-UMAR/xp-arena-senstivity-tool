@@ -53,6 +53,9 @@
           <div class="user-meta">Vendor: <span id="vendorStatus">ACTIVE</span></div>
           <div id="vendorLinks" style="margin-top:0.5rem;"></div>
         </footer>
+        <div style="margin-top: 2rem;">
+            <button onclick="returnToHub()" class="secondary-btn" style="width: 100%; font-size: 0.7rem;">← RETURN TO NEURAL HUB</button>
+        </div>
       </div>
     </section>
   </main>
@@ -82,11 +85,17 @@
           links.innerHTML = yt + ig;
         }
       } else {
-        document.getElementById('statusText').textContent = data.error || 'Not found';
+        document.getElementById('statusText').textContent = data.error || 'INVALID_CODE_FRAGMENT';
+        document.getElementById('codeStatus').style.color = '#ff4444';
+        document.getElementById('codeStatus').textContent = 'VOID';
       }
     } catch (e) {
-      document.getElementById('statusText').textContent = 'Network error';
+      document.getElementById('statusText').textContent = 'NETWORK_ENCRYPTION_FAIL';
     }
+  }
+
+  function returnToHub() {
+    window.location.href = 'index.html';
   }
   document.addEventListener('DOMContentLoaded', init);
 </script>

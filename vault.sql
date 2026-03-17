@@ -67,6 +67,8 @@ CREATE TABLE IF NOT EXISTS code_activity (
     user_ign VARCHAR(100),
     user_region VARCHAR(50),
     used_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    feedback_rating INT DEFAULT NULL,
+    feedback_comment TEXT DEFAULT NULL,
     INDEX (entry_code)
 );
 

@@ -22,7 +22,7 @@ self.addEventListener('install', (event) => {
 
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
-  if (url.pathname.includes('/vendor_panel.html') || url.pathname.includes('/vendor_dashboard.html') || url.pathname.startsWith('/api/')) {
+  if (url.pathname.includes('/admin.html') || url.pathname.includes('/vendor_dashboard.html') || url.pathname.startsWith('/api/')) {
     event.respondWith(fetch(event.request));
     return;
   }

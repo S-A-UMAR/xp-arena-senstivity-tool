@@ -167,10 +167,21 @@ const UI = {
             if (window.SFX) window.SFX.play('ping');
 
             setTimeout(() => {
+                if (data.redirect) {
+                    if (data.type === 'user') {
+                        localStorage.setItem('xp_sensitivity_profile_last_result', JSON.stringify(data.results));
+                        localStorage.setItem('xp_last_entry_code', code);
+                    }
+                    if (data.branding) {
+                        localStorage.setItem('xp_last_branding', JSON.stringify(data.branding));
+                    }
+                    window.location.href = data.redirect;
+                    return;
+                }
+
                 this.elements.vaultOverlay.classList.add('hidden');
                 this.elements.appContainer.classList.remove('hidden');
                 
-                // Store branding if provided
                 if (data.branding) {
                     localStorage.setItem('xp_last_branding', JSON.stringify(data.branding));
                     this.applyBranding(data.branding);
@@ -276,14 +287,19 @@ const UI = {
     },
 
     async handleCalculate() {
-        if (!state.brand || !state.model) {
+        if (!state.manualMode && (!state.brand || !state.model)) {
             this.notify("INCOMPLETE PROFILE: SELECT BRAND AND MODEL", "error");
             return;
         }
 
+        if (state.manualMode && (!state.manualSens || isNaN(parseFloat(state.manualSens)))) {
+            this.notify("MANUAL MASTERING: ENTER A VALID BASE VALUE", "error");
+            return;
+        }
+
         if (window.SFX) window.SFX.play('calculate');
+        if (window.SaaSAnalytics) window.SaaSAnalytics.track('calibration_start');
         
-        // 10/10 Logic: Neural Mastering via SSNE (Server-Side)
         this.notify("NEURAL CALIBRATION IN PROGRESS...", "success");
         
         try {
@@ -292,14 +308,17 @@ const UI = {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(state)
             });
-            const results = await res.json();
+            const data = await res.json();
             
-            localStorage.setItem('xp_sensitivity_profile_last_result', JSON.stringify(results));
-            localStorage.setItem('xp_sensitivity_profile', JSON.stringify(state));
+            if (data.results) {
+                localStorage.setItem('xp_sensitivity_profile_last_result', JSON.stringify(data.results));
+                localStorage.setItem('xp_sensitivity_profile', JSON.stringify(state));
+                localStorage.setItem('xp_last_entry_code', data.entry_code); // 🚀 Store for Result Page
 
-            setTimeout(() => {
-                window.location.href = 'result.html';
-            }, 1500);
+                setTimeout(() => {
+                    window.location.href = 'result.html';
+                }, 1500);
+            }
         } catch (e) {
             this.notify("NEURAL ENGINE UNREACHABLE", "error");
         }
@@ -326,6 +345,27 @@ const UI = {
         if (this.elements.sensInput) {
             this.elements.sensInput.value = state.neuralScale;
             this.elements.sensLabel.textContent = state.neuralScale.toFixed(1);
+        }
+    },
+
+    toggleManualMode(active) {
+        const standard = document.getElementById('standardMastering');
+        const manual = document.getElementById('manualMastering');
+        const hardwareSection = document.getElementById('hardwareSection');
+        
+        if (active) {
+            standard.style.display = 'none';
+            manual.style.display = 'block';
+            hardwareSection.style.opacity = '0.3';
+            hardwareSection.style.pointerEvents = 'none';
+            state.manualMode = true;
+            if (window.SFX) window.SFX.play('click');
+        } else {
+            standard.style.display = 'block';
+            manual.style.display = 'none';
+            hardwareSection.style.opacity = '1';
+            hardwareSection.style.pointerEvents = 'auto';
+            state.manualMode = false;
         }
     },
 

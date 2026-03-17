@@ -129,11 +129,31 @@
             </section>
 
             <section id="generatedOutput" class="hidden">
-                <div class="code-result-box">
-                    <span class="form-label">PROVISIONED CODE</span>
+                <div class="code-result-box" style="border-style: solid; background: rgba(var(--accent-primary-rgb), 0.05);">
+                    <span class="form-label" style="color: var(--accent-primary);">PROVISIONING SUCCESSFUL</span>
                     <div class="code-value" id="shareCode">000000</div>
-                    <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
-                        <button class="action-btn" style="margin: 0; background: var(--accent-secondary);" onclick="copyCode()">COPY</button>
+                    
+                    <div id="resultsPreview" style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border-light); display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; font-size: 0.7rem; text-align: left;">
+                        <div class="metric-mini">
+                            <div style="opacity: 0.5; font-size: 0.5rem;">GENERAL</div>
+                            <div id="prevGeneral" style="font-weight: 800;">--</div>
+                        </div>
+                        <div class="metric-mini">
+                            <div style="opacity: 0.5; font-size: 0.5rem;">DPI</div>
+                            <div id="prevDPI" style="font-weight: 800;">--</div>
+                        </div>
+                        <div class="metric-mini">
+                            <div style="opacity: 0.5; font-size: 0.5rem;">RED DOT</div>
+                            <div id="prevRedDot" style="font-weight: 800;">--</div>
+                        </div>
+                        <div class="metric-mini">
+                            <div style="opacity: 0.5; font-size: 0.5rem;">FIRE BTN</div>
+                            <div id="prevFire" style="font-weight: 800;">--</div>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 0.5rem; margin-top: 1.5rem;">
+                        <button class="action-btn" style="margin: 0; background: var(--accent-secondary);" onclick="copyCode()">COPY CODE</button>
                         <button class="action-btn" style="margin: 0;" onclick="shareWhatsApp()">WHATSAPP</button>
                     </div>
                 </div>

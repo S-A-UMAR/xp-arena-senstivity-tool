@@ -77,6 +77,13 @@ async function generateCode() {
     
     if (data && data.success) {
         document.getElementById('shareCode').textContent = data.entry_code;
+        
+        // Populate Preview
+        document.getElementById('prevGeneral').textContent = results.general;
+        document.getElementById('prevDPI').textContent = results.dpi;
+        document.getElementById('prevRedDot').textContent = results.redDot;
+        document.getElementById('prevFire').textContent = results.fireButton;
+        
         document.getElementById('generatedOutput').classList.remove('hidden');
         window.notify(`CODE PROVISIONED: ${data.entry_code}`, 'success');
     }
@@ -133,13 +140,69 @@ function handleLogout() {
     window.location.href = 'index.html';
 }
 
+// --- Neural Device Engine (Consolidated Logic) ---
+function initDeviceSelection() {
+    const brandSel = document.getElementById('brandSelect');
+    const seriesSel = document.getElementById('seriesSelect');
+    const modelSel = document.getElementById('modelSelect');
+
+    if (!window.DEVICES) return console.warn('DEVICES_DATA_MISSING');
+
+    // Populate Brands
+    brandSel.innerHTML = '<option value="">BRAND</option>' + window.DEVICES.map(b => `<option value="${b.brand}">${b.brand}</option>`).join('');
+
+    brandSel.onchange = () => {
+        const brand = brandSel.value;
+        const brandData = window.DEVICES.find(b => b.brand === brand);
+        if (brandData) {
+            seriesSel.innerHTML = '<option value="">SERIES</option>' + brandData.series.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
+            seriesSel.disabled = false;
+        } else {
+            seriesSel.innerHTML = '<option value="">SERIES</option>';
+            seriesSel.disabled = true;
+        }
+        modelSel.innerHTML = '<option value="">MODEL</option>';
+        modelSel.disabled = true;
+    };
+
+    seriesSel.onchange = () => {
+        const brand = brandSel.value;
+        const seriesName = seriesSel.value;
+        const brandData = window.DEVICES.find(b => b.brand === brand);
+        const seriesData = brandData?.series.find(s => s.name === seriesName);
+        if (seriesData) {
+            modelSel.innerHTML = '<option value="">MODEL</option>' + seriesData.models.map(m => `<option value="${m}">${m}</option>`).join('');
+            modelSel.disabled = false;
+        } else {
+            modelSel.innerHTML = '<option value="">MODEL</option>';
+            modelSel.disabled = true;
+        }
+    };
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     switchTab('codes');
+    initDeviceSelection();
     const branding = JSON.parse(localStorage.getItem('xp_last_branding') || '{}');
     if (branding.colors && branding.colors.primary) {
-        document.getElementById('p_color').value = branding.colors.primary;
+        const pColor = document.getElementById('p_color');
+        if (pColor) pColor.value = branding.colors.primary;
         document.documentElement.style.setProperty('--accent-primary', branding.colors.primary);
     }
     const savedWebhook = localStorage.getItem('xp_last_webhook');
-    if (savedWebhook) document.getElementById('p_webhook').value = savedWebhook;
+    if (savedWebhook && document.getElementById('p_webhook')) {
+        document.getElementById('p_webhook').value = savedWebhook;
+    }
 });
+
+async function copyCode() {
+    const code = document.getElementById('shareCode').textContent;
+    await navigator.clipboard.writeText(code);
+    window.notify('ACCESS CODE COPIED', 'success');
+}
+
+function shareWhatsApp() {
+    const code = document.getElementById('shareCode').textContent;
+    const text = `🚀 *XP ARENA PRO CALIBRATION*\n\nYour neural sensitivity settings are ready!\n\nAccess Code: *${code}*\nEnter it at: https://xp-arena.pro\n\n_Powered by Neural Core V4_`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`);
+}
