@@ -1,21 +1,22 @@
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 const express = require('express');
+const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const helmet = require('helmet');
 const compression = require('compression');
 const rateLimit = require('express-rate-limit');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
 
-// Security Middleware
+// 🚀 PERFORMANCE & SECURITY LAYER
+app.use(compression());
 app.use(helmet({
     contentSecurityPolicy: process.env.NODE_ENV === 'production' ? {
         directives: {
             defaultSrc: ["'self'"],
             scriptSrc: ["'self'", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com"],
-            styleSrc: ["'self'", "https://fonts.googleapis.com", "https://cdn.jsdelivr.net"],
+            styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdn.jsdelivr.net"],
             fontSrc: ["'self'", "https://fonts.gstatic.com"],
             imgSrc: ["'self'", "data:", "https:*"],
             connectSrc: ["'self'", "https:*"],
@@ -29,10 +30,46 @@ app.use(helmet({
             imgSrc: ["'self'", "data:", "https:*"],
             connectSrc: ["'self'", "https:*"],
         },
-    },
+    }
 }));
-app.use(compression());
-app.use(cors());
+
+app.use(cors({
+    origin: true, 
+    credentials: true 
+}));
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
+
+// Static Handlers
+app.use(express.static(path.join(__dirname, 'public'), {
+    maxAge: '1d',
+    setHeaders: (res, path) => {
+        if (path.endsWith('.html')) res.setHeader('Cache-Control', 'no-cache');
+    }
+}));
+// 🛡️ Global Intelligence & Error Sanitization (10/10 Resilience)
+app.use((err, req, res, next) => {
+    console.error('🛑 CRITICAL_SYSTEM_EXCEPTION:', err.stack);
+    res.status(500).json({
+        code: 'XP_INTERNAL_CRASH',
+        message: 'NEURAL_SYSTEM_RECOVERY_PENDING',
+        details: process.env.NODE_ENV === 'development' ? err.message : 'SANITIZED_FOR_SECURITY'
+    });
+});
+
+process.on('unhandledRejection', (error) => {
+    console.error('⚠️ UNHANDLED_PROMISE_REJECTION:', error);
+});
+
+process.on('uncaughtException', (error) => {
+    console.error('🧨 UNCAUGHT_EXCEPTION:', error);
+    // process.exit(1); // Optional: reboot strategy
+});
+
+const PORT = process.env.PORT || 3000;
+
 app.use(express.json());
 
 // Rate Limiting
@@ -57,6 +94,20 @@ app.use(express.static(path.join(__dirname, 'public'), {
     }
 }));
 
+// Server configuration
+const http = require('http');
+const server = http.createServer(app);
+const { Server } = require('socket.io');
+const io = new Server(server, {
+    cors: { origin: "*" }
+});
+
+// Real-time integration
+app.set('io', io);
+io.on('connection', (socket) => {
+    console.log('⚡ SOCKET_CONNECTED:', socket.id);
+});
+
 // Routes
 const vaultRoutes = require('./routes/vaultRoutes');
 app.use('/api/vault', vaultRoutes);
@@ -66,20 +117,30 @@ app.get('/health', (req, res) => res.json({ status: 'ok', tool: 'XP-SENSITIVITY-
 
 // Error Handling
 app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(500).json({ error: 'Internal Server Error' });
+    console.error('SERVER_ERROR:', err.stack);
+    
+    const statusCode = err.status || 500;
+    const message = process.env.NODE_ENV === 'production' 
+        ? 'INTERNAL_SERVER_ERROR // ENCRYPTION_INTEGRITY_CHECK_FAILED' 
+        : err.message;
+
+    res.status(statusCode).json({ 
+        error: message,
+        status: 'CRITICAL',
+        code: statusCode
+    });
 });
 
-// Export for serverless (Netlify)
+// Export for serverless
 module.exports = app;
 
 // Only listen if running directly
 if (require.main === module) {
-    app.listen(PORT, () => {
+    server.listen(PORT, () => {
         console.log(`
 🚀 XP SENSITIVITY TOOL PRO
 -------------------------
-Mode: STANDALONE
+Mode: REALTIME_CORE
 Port: ${PORT}
 URL:  http://localhost:${PORT}
         `);

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'xp-arena-v2';
+const CACHE_NAME = 'xp-arena-v3';
 const ASSETS = [
   '/',
   '/index.html',
@@ -9,7 +9,9 @@ const ASSETS = [
   '/devices.js',
   '/translations.js',
   '/audio.js',
-  '/manifest.json'
+  '/manifest.json',
+  '/icons/icon-192.png',
+  '/icons/icon-512.png'
 ];
 
 self.addEventListener('install', (event) => {

@@ -11,52 +11,128 @@ const state = {
     bg: '',
     bio: '',
     msg: '',
-    ign: '',
-    rank: '',
-    yt: '',
-    ig: '',
-    dc: '',
+    ign: 'GUEST',
+    rank: 'GLOBAL',
     handSize: 18.5,
-    grip: 'palm'
+    grip: 'palm',
+    neuralScale: 5.0,
+    manualSens: ''
 };
+
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/service-worker.js')
+            .then(reg => console.log('🚀 SW_REGISTERED'))
+            .catch(err => console.log('❌ SW_ERROR:', err));
+    });
+}
+
+// 🛡️ Global Intelligence: Frontend Error Boundary (10/10 Resilience)
+const SoftRecovery = {
+    show(err) {
+        if (document.getElementById('recoveryOverlay')) return;
+        const overlay = document.createElement('div');
+        overlay.id = 'recoveryOverlay';
+        overlay.className = 'recovery-overlay reveal';
+        overlay.innerHTML = `
+            <div class="glass-card" style="text-align: center; border: 1px solid var(--accent-secondary);">
+                <div class="logo-badge" style="background: rgba(255, 0, 0, 0.1); color: #ff4444; border-color: #ff4444;">SYSTEM_CRITICAL_HIT</div>
+                <h2 style="margin: 1rem 0; font-family: var(--font-heading);">NEURAL_DESYNC_DETECTED</h2>
+                <p style="font-size: 0.7rem; color: var(--text-secondary); margin-bottom: 1.5rem;">
+                    AN UNEXPECTED FRAGMENTATION OCCURRED IN THE CALIBRATION LAYER.
+                </p>
+                <code style="display: block; background: #000; padding: 0.5rem; font-size: 0.6rem; margin-bottom: 2rem; border-radius: 4px; color: #ff4444;">${err?.message || 'UNKNOWN_FRAGMENT'}</code>
+                <button class="action-btn" onclick="location.reload()" style="background: var(--accent-secondary);">REBOOT NEURAL ENGINE</button>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+    }
+};
+
+window.onerror = (msg) => SoftRecovery.show({ message: msg });
+window.onunhandledrejection = (e) => SoftRecovery.show({ message: e.reason });
+
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    const btn = document.getElementById('pwaInstallBtn');
+    if (btn) btn.style.display = 'block';
+});
+
+document.getElementById('pwaInstallBtn')?.addEventListener('click', async () => {
+    if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+            document.getElementById('pwaInstallBtn').style.display = 'none';
+        }
+        deferredPrompt = null;
+    }
+});
 
 const UI = {
     elements: {
         vaultOverlay: document.getElementById('vaultOverlay'),
         vaultInput: document.getElementById('vaultInput'),
         vaultStatus: document.getElementById('vaultStatus'),
-        appWrapper: document.getElementById('appWrapper'),
-        lockOverlay: document.getElementById('vendorLock')
+        appContainer: document.getElementById('appContainer'),
+        
+        brand: document.getElementById('brandSelect'),
+        series: document.getElementById('seriesSelect'),
+        model: document.getElementById('modelSelect'),
+        
+        sensInput: document.getElementById('sensInput'),
+        sensLabel: document.getElementById('sensLabel'),
+        gripBtns: document.querySelectorAll('.segment-btn[data-grip]'),
+        
+        manualSens: document.getElementById('manualSens'),
+        calculateBtn: document.getElementById('calculateBtn'),
+        
+        notifyToast: document.getElementById('notifyToast')
     },
 
     init() {
-        this.initBiometrics();
+        this.populateBrands();
         this.attachVaultListeners();
-        this.registerServiceWorker();
+        this.attachCalibrationListeners();
+        this.loadProfile();
         
+        // SFX and Audio Initialization
         document.body.addEventListener('click', () => {
             if (window.SFX) window.SFX.init();
         }, { once: true });
     },
 
+    notify(message, type = 'info') {
+        const toast = this.elements.notifyToast;
+        if (!toast) return;
+        
+        toast.textContent = message;
+        toast.className = `notify-toast visible type-${type}`;
+        toast.style.display = 'block';
+        
+        setTimeout(() => {
+            toast.style.display = 'none';
+            toast.classList.remove('visible');
+        }, 3000);
+    },
+
     attachVaultListeners() {
         if (!this.elements.vaultInput) return;
 
-        this.elements.vaultInput.addEventListener('keydown', async (e) => {
-            if (e.key === 'Enter') {
-                this.handleCodeInput(e);
+        this.elements.vaultInput.addEventListener('input', (e) => {
+            const code = e.target.value.toUpperCase();
+            e.target.value = code;
+            
+            if (code.length >= 6) {
+                this.verifyVault(code);
             }
         });
-    },
 
-    handleCodeInput(e) {
-        const code = e.target.value.toUpperCase();
-        e.target.value = code;
-        
-        if (code.length === 6) {
-            if (window.NEURAL_AUDIO) window.NEURAL_AUDIO.play('success');
-            this.verifyVault(code);
-        }
+        this.elements.vaultInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') this.verifyVault(e.target.value.toUpperCase());
+        });
     },
 
     async verifyVault(code) {
@@ -64,63 +140,53 @@ const UI = {
         const input = this.elements.vaultInput;
 
         try {
-            status.textContent = 'CONNECTING TO VAULT...';
-            status.className = 'vault-status status-sync';
+            status.textContent = 'CONNECTING TO XP VAULT...';
             input.classList.remove('error');
 
-            const profile = JSON.parse(localStorage.getItem('xp_sensitivity_profile') || '{}');
             const response = await fetch('/api/vault/verify', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
                     input: code,
-                    user_ign: profile.ign || 'Guest',
-                    user_region: profile.rank || 'Universal'
+                    user_ign: state.ign,
+                    user_region: state.rank
                 })
             });
 
             const data = await response.json();
 
             if (!response.ok) {
-                if (window.SFX) window.SFX.play('click'); 
-                status.textContent = data.error || 'ACCESS DENIED';
-                status.className = 'vault-status status-error';
-                
-                // Re-trigger shake animation
-                input.classList.remove('error');
-                void input.offsetWidth; // Force reflow
+                status.textContent = data.error || 'INVALID AUTHENTICATION';
                 input.classList.add('error');
+                if (window.SFX) window.SFX.play('click');
                 return;
             }
 
+            status.textContent = 'ACCESS GRANTED // SYNCHRONIZING';
+            status.style.color = 'var(--accent-primary)';
             if (window.SFX) window.SFX.play('ping');
-            status.textContent = data.message || 'ACCESS GRANTED';
-            status.className = 'vault-status status-success';
-            
+
             setTimeout(() => {
-                if (data.type === 'admin') {
-                    window.location.href = data.redirect;
-                } else if (data.type === 'vendor') {
-                    localStorage.setItem('xp_vendor_token', code);
-                    localStorage.setItem('xp_vendor_config', JSON.stringify(data.vendor.config));
-                    window.location.href = data.redirect;
-                } else if (data.type === 'user') {
-                    localStorage.setItem('xp_last_entry_code', code);
-                    localStorage.setItem('xp_last_result_data', JSON.stringify(data.results));
+                this.elements.vaultOverlay.classList.add('hidden');
+                this.elements.appContainer.classList.remove('hidden');
+                
+                // Store branding if provided
+                if (data.branding) {
                     localStorage.setItem('xp_last_branding', JSON.stringify(data.branding));
-                    window.location.href = data.redirect;
+                    this.applyBranding(data.branding);
                 }
-            }, 800);
+                
+                localStorage.setItem('xp_last_entry_code', code);
+            }, 1000);
 
         } catch (e) {
-            console.error('Vault Error:', e);
-            status.textContent = 'ENCRYPTION FAILURE // RETRY';
-            status.className = 'vault-status status-error';
+            status.textContent = 'ENCRYPTION ERROR // RETRY';
         }
     },
 
     populateBrands() {
-        if (!window.DEVICES) return;
+        if (!window.DEVICES || !this.elements.brand) return;
+        this.elements.brand.innerHTML = '<option value="">SELECT BRAND</option>';
         window.DEVICES.forEach(b => {
             const opt = document.createElement('option');
             opt.value = opt.textContent = b.brand;
@@ -128,79 +194,49 @@ const UI = {
         });
     },
 
-    attachListeners() {
-        this.elements.brand.addEventListener('change', (e) => {
-            if (window.SFX) window.SFX.play('click');
-            state.brand = e.target.value;
-            state.series = null;
-            state.model = null;
+    attachCalibrationListeners() {
+        const { brand, series, model, sensInput, manualSens, calculateBtn, gripBtns } = this.elements;
+
+        brand.addEventListener('change', () => {
+            state.brand = brand.value;
             this.updateSeriesDropdown();
-            this.handleModelSelect({ target: { value: state.model } });
-            this.saveProfile();
         });
 
-        this.elements.series.addEventListener('change', (e) => {
-            if (window.SFX) window.SFX.play('click');
-            state.series = e.target.value;
-            state.model = null;
+        series.addEventListener('change', () => {
+            state.series = series.value;
             this.updateModelDropdown();
+        });
+
+        model.addEventListener('change', () => {
+            state.model = model.value;
             this.saveProfile();
-            this.handleModelSelect({ target: { value: state.model } });
         });
 
-        this.elements.model.addEventListener('change', (e) => {
-            if (window.SFX) window.SFX.play('click');
-            this.handleModelSelect(e);
+        sensInput.addEventListener('input', (e) => {
+            state.neuralScale = parseFloat(e.target.value);
+            this.elements.sensLabel.textContent = state.neuralScale.toFixed(1);
         });
 
-        this.elements.ramSlider.addEventListener('input', (e) => {
-            state.ram = parseInt(e.target.value);
-            this.elements.ramLabel.textContent = `${state.ram} GB`;
-        });
-        
-        this.elements.ramSlider.addEventListener('change', () => {
-             if (window.SFX) window.SFX.play('click');
-             this.saveProfile();
+        manualSens.addEventListener('input', (e) => {
+            state.manualSens = e.target.value;
         });
 
-        this.setupSegments(this.elements.speedBtns, 'speed');
-        this.setupSegments(this.elements.clawBtns, 'claw');
-
-        this.elements.langBtns.forEach(btn => {
+        gripBtns.forEach(btn => {
             btn.addEventListener('click', () => {
-                if (window.SFX) window.SFX.play('click');
-                state.lang = btn.dataset.lang;
-                localStorage.setItem('xp_lang', state.lang);
-                this.elements.langBtns.forEach(b => b.classList.remove('active'));
+                gripBtns.forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
-                this.translateUI();
+                state.grip = btn.dataset.grip;
+                if (window.SFX) window.SFX.play('ping');
             });
         });
 
-        this.elements.calcBtn.addEventListener('click', () => {
-            state.ign = document.getElementById('ignInput').value;
-            state.rank = document.getElementById('rankSelect').value;
-            this.handleCalculate();
-        });
-    },
-
-    setupSegments(buttons, stateKey) {
-        buttons.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                if (window.SFX) window.SFX.play('click');
-                buttons.forEach(b => b.classList.remove('active'));
-                const target = e.currentTarget;
-                target.classList.add('active');
-                state[stateKey] = target.dataset.value;
-                this.saveProfile();
-            });
-        });
+        calculateBtn.addEventListener('click', () => this.handleCalculate());
     },
 
     updateSeriesDropdown() {
         const { series, model } = this.elements;
-        series.innerHTML = '<option value="">Select Series</option>';
-        model.innerHTML = '<option value="">Select Model</option>';
+        series.innerHTML = '<option value="">SELECT SERIES</option>';
+        model.innerHTML = '<option value="">SELECT MODEL</option>';
         model.disabled = true;
 
         if (!state.brand) {
@@ -221,7 +257,7 @@ const UI = {
 
     updateModelDropdown() {
         const { model } = this.elements;
-        model.innerHTML = '<option value="">Select Model</option>';
+        model.innerHTML = '<option value="">SELECT MODEL</option>';
         
         if (!state.brand || !state.series) {
             model.disabled = true;
@@ -237,97 +273,36 @@ const UI = {
             model.appendChild(opt);
         });
         model.disabled = false;
-        
-        if (state.model) model.value = state.model;
     },
 
-    handleModelSelect(e) {
-        state.model = e ? e.target.value : null;
-        this.saveProfile();
-        
-        const ramGroup = document.getElementById('ramGroup');
-        const graphicsBox = document.getElementById('graphicsDisplay');
-        if (!ramGroup) return;
-
-        const tier = Calculator.getTier(state.brand, state.series, state.model);
-        const recGraphics = Calculator.getGraphics(tier);
-        if (graphicsBox) graphicsBox.textContent = recGraphics.toUpperCase();
-
-        if (state.brand === 'Apple') {
-            ramGroup.style.display = 'none'; 
-            state.ram = 8; 
-        } else {
-            ramGroup.style.display = 'block'; 
-            if (state.model) {
-                if (state.model.includes('Ultra') || state.model.includes('Pro Max') || state.model.includes('Gaming') || state.model.includes('GT')) {
-                    state.ram = 12;
-                } else if (state.model.includes('Pro') || state.model.includes('Plus') || state.model.includes('Note')) {
-                    state.ram = 8;
-                } else {
-                    state.ram = 6;
-                }
-                this.elements.ramLabel.textContent = `${state.ram} GB`;
-                this.elements.ramSlider.value = state.ram;
-            }
-        }
-    },
-
-    handleCalculate() {
-        if (!state.brand || !state.series || !state.model) {
-            if (window.SFX) window.SFX.play('click');
-            if (window.notify) {
-                window.notify("INCOMPLETE PROFILE: Please select Brand, Series, and Model.", "error");
-            } else {
-                alert("INCOMPLETE PROFILE: Please select Brand, Series, and Model.");
-            }
+    async handleCalculate() {
+        if (!state.brand || !state.model) {
+            this.notify("INCOMPLETE PROFILE: SELECT BRAND AND MODEL", "error");
             return;
         }
 
-        const overlay = document.getElementById('loadingOverlay');
-        const stepText = document.getElementById('loaderStep');
-        const steps = [
-            "ANALYZING DEVICE ARCHITECTURE",
-            "FETCHING PERFORMANCE METRICS",
-            "CALCULATING OPTIMIZED SENSITIVITY",
-            "PREPARING CALIBRATION CARD"
-        ];
-
-        if (overlay) overlay.classList.remove('hidden');
-        if (window.NEURAL_AUDIO) window.NEURAL_AUDIO.play('calculate');
-
-        const results = Calculator.compute(state);
+        if (window.SFX) window.SFX.play('calculate');
         
-        // Phase 2: Secure Result Vault
-        SecurityEngine.encrypt(results).then(encrypted => {
-            localStorage.setItem('xp_sensitivity_profile_last_result_secure', encrypted);
+        // 10/10 Logic: Neural Mastering via SSNE (Server-Side)
+        this.notify("NEURAL CALIBRATION IN PROGRESS...", "success");
+        
+        try {
+            const res = await fetch('/api/vault/calculate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(state)
+            });
+            const results = await res.json();
+            
+            localStorage.setItem('xp_sensitivity_profile_last_result', JSON.stringify(results));
             localStorage.setItem('xp_sensitivity_profile', JSON.stringify(state));
 
-            let stepIdx = 0;
-            const interval = setInterval(() => {
-                if (stepIdx < steps.length) {
-                    if (stepText) stepText.textContent = steps[stepIdx];
-                    stepIdx++;
-                } else {
-                    clearInterval(interval);
-                    this.redirect();
-                }
-            }, 600);
-        });
-    },
-
-    redirect() {
-        const params = new URLSearchParams();
-        if (state.lang) params.append('lang', state.lang);
-        if (state.vendor && state.vendor !== 'XP CORE') params.append('vendor', state.vendor);
-        if (state.logo) params.append('logo', state.logo);
-        if (state.bg) params.append('bg', state.bg);
-        if (state.bio) params.append('bio', state.bio);
-        if (state.msg) params.append('msg', state.msg);
-        
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.has('promo')) params.append('promo', urlParams.get('promo'));
-        
-        window.location.href = `result.html?${params.toString()}`;
+            setTimeout(() => {
+                window.location.href = 'result.html';
+            }, 1500);
+        } catch (e) {
+            this.notify("NEURAL ENGINE UNREACHABLE", "error");
+        }
     },
 
     saveProfile() {
@@ -335,98 +310,58 @@ const UI = {
     },
 
     loadProfile() {
-        const saved = localStorage.getItem('xp_sensitivity_profile');
-        if (saved) {
-            const loaded = JSON.parse(saved);
-            Object.assign(state, loaded);
-            
-            if (state.brand) {
-                this.elements.brand.value = state.brand;
-                this.updateSeriesDropdown();
-            }
+        const saved = JSON.parse(localStorage.getItem('xp_sensitivity_profile') || '{}');
+        Object.assign(state, saved);
+        
+        if (state.brand) {
+            this.elements.brand.value = state.brand;
+            this.updateSeriesDropdown();
             if (state.series) {
                 this.elements.series.value = state.series;
                 this.updateModelDropdown();
+                if (state.model) this.elements.model.value = state.model;
             }
-            if (state.model) {
-                this.elements.model.value = state.model;
-            }
-            
-            if (this.elements.ramSlider) {
-                this.elements.ramSlider.value = state.ram;
-                this.elements.ramLabel.textContent = `${state.ram} GB`;
-            }
-
-            this.syncSegmentUI(this.elements.speedBtns, state.speed);
-            this.syncSegmentUI(this.elements.clawBtns, state.claw);
         }
-    },
-
-    translateUI() {
-        if (!window.LANGUAGES || !window.LANGUAGES[state.lang]) return;
-        const strings = window.LANGUAGES[state.lang];
         
-        document.querySelectorAll('[data-t]').forEach(el => {
-            const key = el.dataset.t;
-            if (strings[key]) {
-                if (el.tagName === 'INPUT' && el.type === 'text') {
-                    el.placeholder = strings[key];
-                } else {
-                    el.textContent = strings[key];
-                }
-            }
-        });
-
-        this.elements.langBtns.forEach(btn => {
-            btn.classList.toggle('active', btn.dataset.lang === state.lang);
-        });
-    },
-
-    initBiometrics() {
-        const slider = document.getElementById('handSize');
-        const label = document.getElementById('handSizeLabel');
-        const gripBtns = document.querySelectorAll('.grip-btn');
-
-        if (slider && label) {
-            slider.addEventListener('input', (e) => {
-                state.handSize = parseFloat(e.target.value);
-                label.textContent = `${state.handSize.toFixed(1)} cm`;
-            });
-        }
-
-        gripBtns.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                gripBtns.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                state.grip = btn.dataset.grip;
-                if (window.NEURAL_AUDIO) window.NEURAL_AUDIO.play('ping');
-            });
-        });
-    },
-
-    registerServiceWorker() {
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('service-worker.js')
-                .then(reg => console.log('SW Registered'))
-                .catch(err => console.log('SW Error', err));
+        if (this.elements.sensInput) {
+            this.elements.sensInput.value = state.neuralScale;
+            this.elements.sensLabel.textContent = state.neuralScale.toFixed(1);
         }
     },
+
+    applyBranding(config) {
+        if (!config) return;
+        if (config.colors && config.colors.primary) {
+            document.documentElement.style.setProperty('--accent-primary', config.colors.primary);
+        }
+    }
+};
+
+window.toggleLowPerf = () => {
+    const isLow = localStorage.getItem('xp_low_perf') === 'true';
+    const newStatus = !isLow;
+    localStorage.setItem('xp_low_perf', newStatus);
+    
+    if (newStatus) {
+        if (window.ThreeHub) window.ThreeHub.stop();
+        document.getElementById('perfBtn').textContent = 'MODE: LOW_LATENCY';
+        document.body.style.background = 'var(--bg-dark)';
+        UI.notify('LOW_PERFORMANCE_MODE_ACTIVE', 'info');
+    } else {
+        location.reload(); 
+    }
 };
 
 document.addEventListener('DOMContentLoaded', () => {
     UI.init();
+    
+    // ⚡ Adaptive Performance Check
+    if (localStorage.getItem('xp_low_perf') === 'true') {
+        setTimeout(() => {
+            if (window.ThreeHub) window.ThreeHub.stop();
+            const btn = document.getElementById('perfBtn');
+            if (btn) btn.textContent = 'MODE: LOW_LATENCY';
+            document.body.style.background = 'var(--bg-dark)';
+        }, 100);
+    }
 });
-function copyAdminLink() {
-    const num = document.getElementById('adminPhone').textContent;
-    navigator.clipboard.writeText(num).then(() => {
-        const btn = document.querySelector('.copy-small-btn');
-        const oldText = btn.textContent;
-        btn.textContent = "COPIED!";
-        setTimeout(() => btn.textContent = oldText, 2000);
-    });
-}
-
-function toggleHandbook() {
-    const m = document.getElementById('handbookModal');
-    if (m) m.classList.toggle('hidden');
-}

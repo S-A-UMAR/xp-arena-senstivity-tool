@@ -86,6 +86,15 @@ const ThreeHub = {
         this.camera.lookAt(this.scene.position);
 
         this.renderer.render(this.scene, this.camera);
+    },
+
+    stop() {
+        if (this.renderer) {
+            this.renderer.dispose();
+            const container = document.getElementById('three-canvas-container');
+            if (container) container.innerHTML = '';
+            this.renderer = null;
+        }
     }
 };
 

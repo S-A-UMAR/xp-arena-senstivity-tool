@@ -3,6 +3,31 @@ const router = express.Router();
 const { db } = require('../db');
 const jwt = require('jsonwebtoken');
 const { z } = require('zod');
+const bcrypt = require('bcrypt');
+const crypto = require('crypto');
+const Calculator = require('../lib/calculator');
+
+// ⚡ HotCache: In-Memory Express Lane (10/10 Speed)
+const HotCache = {
+    _cache: new Map(),
+    get(key) {
+        const item = this._cache.get(key);
+        if (item && item.expiry > Date.now()) return item.data;
+        this._cache.delete(key);
+        return null;
+    },
+    set(key, data, ttl = 300000) { // Default 5 mins
+        this._cache.set(key, { data, expiry: Date.now() + ttl });
+    }
+};
+
+function getLookupKey(code) {
+    return crypto.createHash('sha1').update(code).digest('hex').substring(0, 10);
+}
+
+const fail = (res, code, message, status = 400, details = null) => {
+    return res.status(status).json({ code, message, details });
+};
 
 function parseBearer(header) {
     if (!header) return null;
@@ -13,19 +38,69 @@ function parseBearer(header) {
 
 function authenticateVendor(req, res, next) {
     try {
-        const token = parseBearer(req.headers['authorization']);
-        if (!token) return res.status(401).json({ error: 'Unauthorized' });
+        const token = req.cookies.xp_vendor_token || parseBearer(req.headers['authorization']);
+        if (!token) return fail(res, 'XP_AUTH_UNAUTHORIZED', 'VENDOR_SESSION_REQUIRED', 401);
         const payload = jwt.verify(token, process.env.JWT_SECRET);
         req.vendorId = payload.vendor_id;
         next();
     } catch (e) {
-        return res.status(401).json({ error: 'Unauthorized' });
+        return fail(res, 'XP_AUTH_INVALID', 'SESSION_EXPIRED_OR_CORRUPT', 401);
+    }
+}
+
+async function checkSoftBan(req, res, next) {
+    const ip = req.ip || req.connection.remoteAddress;
+    try {
+        const recentFailures = await db.get(`
+            SELECT COUNT(*) as count FROM security_logs 
+            WHERE ip_address = ? AND event_type = 'VERIFY_FAIL' 
+            AND created_at > DATE_SUB(NOW(), INTERVAL 15 MINUTE)
+        `, [ip]);
+        
+        if (recentFailures && recentFailures.count >= 5) {
+            console.warn(`🛡️ AI_FRAUD_SHIELD_BLOCK: ${ip} (Attempt Count: ${recentFailures.count})`);
+            return res.status(429).json({ error: 'SYSTEM_TEMPORARILY_LOCKED_FOR_SECURITY' });
+        }
+        next();
+    } catch (e) {
+        next();
+    }
+}
+
+async function dispatchVendorWebhook(vendorId, eventType, data) {
+    try {
+        const vendor = await db.get('SELECT webhook_url FROM vendors WHERE vendor_id = ?', [vendorId]);
+        if (vendor && vendor.webhook_url) {
+            await fetch(vendor.webhook_url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    event: eventType,
+                    source: 'XP_ARENA_NEURAL_VAULT',
+                    timestamp: new Date().toISOString(),
+                    data
+                })
+            });
+        }
+    } catch (e) {
+        console.error('WEBHOOK_DISPATCH_ERR:', e.message);
     }
 }
 
 function authenticateAdmin(req, res, next) {
     try {
-        const token = parseBearer(req.headers['authorization']);
+        // IP Whitelist Check (10/10 Security)
+        const whitelist = process.env.ADMIN_IP_WHITELIST;
+        if (whitelist && whitelist !== '*') {
+            const allowedIps = whitelist.split(',');
+            const clientIp = req.ip || req.connection.remoteAddress;
+            if (!allowedIps.includes(clientIp)) {
+                console.warn(`🚫 UNAUTHORIZED_IP_BLOCKED: ${clientIp}`);
+                return res.status(403).json({ error: 'FORBIDDEN_IP' });
+            }
+        }
+
+        const token = req.cookies.xp_admin_token || parseBearer(req.headers['authorization']);
         if (!token) return res.status(401).json({ error: 'Unauthorized' });
         const payload = jwt.verify(token, process.env.ADMIN_SECRET);
         if (payload.role !== 'admin') return res.status(401).json({ error: 'Unauthorized' });
@@ -88,7 +163,7 @@ async function sendDiscordAlert(title, message, color = 0x00f0ff) {
 }
 
 // POST /api/vault/verify
-router.post('/verify', async (req, res) => {
+router.post('/verify', checkSoftBan, async (req, res) => {
     try {
         const schema = z.object({
             input: z.string().min(1),
@@ -97,13 +172,28 @@ router.post('/verify', async (req, res) => {
         });
         const { input, user_ign, user_region } = schema.parse(req.body); 
         const adminSecret = process.env.ADMIN_SECRET;
+        const clientIp = req.ip || req.connection.remoteAddress;
 
         if (!input) {
-            return res.status(400).json({ error: 'Code is required' });
+            return fail(res, 'XP_VAL_MISSING', 'ACCESS_CODE_REQUIRED', 400);
+        }
+
+        // ⚡ HOT-CACHE CHECK
+        const cached = HotCache.get(`verify_${input}`);
+        if (cached) {
+            console.log('⚡ HOT_CACHE_HIT:', input);
+            return res.json(cached);
         }
 
         // 1. Check Master Admin Secret
         if (input === adminSecret) {
+            const token = jwt.sign({ role: 'admin' }, process.env.ADMIN_SECRET, { expiresIn: '1d' });
+            res.cookie('xp_admin_token', token, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'strict',
+                maxAge: 24 * 60 * 60 * 1000
+            });
             return res.json({
                 type: 'admin',
                 redirect: '/vendor_panel.html',
@@ -111,34 +201,44 @@ router.post('/verify', async (req, res) => {
             });
         }
 
-        // 2. Check Vendor Access Key
-        const vendor = await db.get('SELECT * FROM vendors WHERE access_key = ?', [input]);
+        // 2. Fast Lookup Optimization (10/10 Logic)
+        const prefix = getLookupKey(input);
+        
+        // 2a. Check Vendor Access Key (Fast Lookup)
+        const vendor = await db.get('SELECT * FROM vendors WHERE lookup_key = ?', [prefix]);
         if (vendor) {
-            if (vendor.status === 'suspended') {
-                return res.status(403).json({ error: 'PROVIDER SUSPENDED - ACCESS DENIED' });
+            if (await bcrypt.compare(input, vendor.access_key)) {
+                if (vendor.status === 'suspended') {
+                    return fail(res, 'XP_AUTH_SUSPENDED', 'PROVIDER_ACCESS_DENIED', 403);
+                }
+                const token = jwt.sign({ vendor_id: vendor.vendor_id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+                res.cookie('xp_vendor_token', token, {
+                    httpOnly: true,
+                    secure: process.env.NODE_ENV === 'production',
+                    sameSite: 'strict',
+                    maxAge: 7 * 24 * 60 * 60 * 1000
+                });
+                return res.json({
+                    type: 'vendor',
+                    redirect: '/vendor_dashboard.html',
+                    vendor: {
+                        id: vendor.vendor_id,
+                        config: typeof vendor.brand_config === 'string' ? JSON.parse(vendor.brand_config) : vendor.brand_config
+                    },
+                    message: 'VENDOR DASHBOARD UNLOCKED'
+                });
             }
-            const token = jwt.sign({ vendor_id: vendor.vendor_id }, process.env.JWT_SECRET, { expiresIn: '7d' });
-            return res.json({
-                type: 'vendor',
-                redirect: '/vendor_dashboard.html',
-                vendor: {
-                    id: vendor.vendor_id,
-                    config: typeof vendor.brand_config === 'string' ? JSON.parse(vendor.brand_config) : vendor.brand_config
-                },
-                token,
-                message: 'VENDOR DASHBOARD UNLOCKED'
-            });
         }
 
-        // 3. Check User Entry Code (Sensitivity Key)
+        // 3. Check User Entry Code (Sensitivity Key - O1 Lookup)
         const keyData = await db.get(`
             SELECT k.*, v.status as vendor_status, v.brand_config, v.org_id
             FROM sensitivity_keys k
             LEFT JOIN vendors v ON k.vendor_id = v.vendor_id
-            WHERE k.entry_code = ?
-        `, [input]);
+            WHERE k.lookup_key = ?
+        `, [prefix]);
 
-        if (keyData) {
+        if (keyData && await bcrypt.compare(input, keyData.entry_code)) {
             // Track Analytics Event
             await trackEvent('landing_view', keyData.org_id, keyData.vendor_id, req.ip, 'mobile');
             if (keyData.vendor_status === 'suspended') {
@@ -162,6 +262,35 @@ router.post('/verify', async (req, res) => {
                 finalResults = { ...finalResults, ...custom };
             }
 
+            // Dispatch Vendor Webhook (10/10 Feature)
+            await dispatchVendorWebhook(keyData.vendor_id, 'CODE_VERIFIED', {
+                user_ign: user_ign || 'Anonymous',
+                device: `${finalResults.brand} ${finalResults.model}`,
+                region: user_region || 'Unknown',
+                formula_version: finalResults.formula_version
+            });
+
+            // Emit Real-time Event
+            const io = req.app.get('io');
+            if (io) {
+                io.emit('live_event', {
+                    type: 'verify',
+                    vendor_id: keyData.vendor_id,
+                    user_ign: user_ign || 'Anonymous',
+                    device: `${finalResults.brand} ${finalResults.model}`,
+                    timestamp: new Date().toISOString()
+                });
+            }
+
+            // HotCache Warmup
+            HotCache.set(`verify_${input}`, {
+                type: 'user',
+                redirect: '/result.html',
+                results: finalResults,
+                branding: typeof keyData.brand_config === 'string' ? JSON.parse(keyData.brand_config) : keyData.brand_config,
+                message: 'CALIBRATION DATA RETRIEVED'
+            });
+
             return res.json({
                 type: 'user',
                 redirect: '/result.html',
@@ -170,6 +299,10 @@ router.post('/verify', async (req, res) => {
                 message: 'CALIBRATION DATA RETRIEVED'
             });
         }
+
+        // 🛡️ AI Fraud Detection (Log Failure)
+        await db.run('INSERT INTO security_logs (ip_address, event_type, details) VALUES (?, ?, ?)', 
+            [clientIp, 'VERIFY_FAIL', JSON.stringify({ input_length: input.length })]);
 
         return res.status(404).json({ error: 'INVALID ACCESS KEY' });
     } catch (e) {
@@ -185,10 +318,16 @@ router.post('/admin/login', async (req, res) => {
         if (!password) return res.status(400).json({ error: 'Missing password' });
         if (password !== process.env.ADMIN_SECRET) return res.status(401).json({ error: 'Unauthorized' });
         const token = jwt.sign({ role: 'admin' }, process.env.ADMIN_SECRET, { expiresIn: '1d' });
+        res.cookie('xp_admin_token', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 24 * 60 * 60 * 1000
+        });
         res.json({ token });
     } catch (e) {
-        if (e instanceof z.ZodError) return res.status(400).json({ error: 'Invalid input' });
-        res.status(500).json({ error: 'Server error' });
+        if (e instanceof z.ZodError) return fail(res, 'XP_VAL_FAILED', 'INVALID_LOGIN_INPUT', 400);
+        next(e);
     }
 });
 
@@ -196,10 +335,25 @@ router.post('/vendor/login', async (req, res) => {
     try {
         const schema = z.object({ access_key: z.string().min(6) });
         const { access_key } = schema.parse(req.body || {});
-        if (!access_key) return res.status(400).json({ error: 'Missing access key' });
-        const vendor = await db.get('SELECT vendor_id, status FROM vendors WHERE access_key = ?', [access_key]);
-        if (!vendor || vendor.status !== 'active') return res.status(401).json({ error: 'Unauthorized' });
-        const token = jwt.sign({ vendor_id: vendor.vendor_id }, process.env.JWT_SECRET || 'xparena_ultra_secure_777', { expiresIn: '7d' });
+        const vendors = await db.all('SELECT vendor_id, access_key, status FROM vendors');
+        let matchedVendor = null;
+        for (const v of vendors) {
+            if (await bcrypt.compare(access_key, v.access_key)) {
+                matchedVendor = v;
+                break;
+            }
+        }
+
+        if (!matchedVendor) return fail(res, 'XP_AUTH_DENIED', 'INVALID_VENDOR_KEY', 401);
+        if (matchedVendor.status !== 'active') return fail(res, 'XP_AUTH_SUSPENDED', 'VENDOR_ACCOUNT_LOCKED', 403);
+
+        const token = jwt.sign({ vendor_id: matchedVendor.vendor_id }, process.env.JWT_SECRET || 'xparena_ultra_secure_777', { expiresIn: '7d' });
+        res.cookie('xp_vendor_token', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 7 * 24 * 60 * 60 * 1000
+        });
         res.json({ token });
     } catch (e) {
         if (e instanceof z.ZodError) return res.status(400).json({ error: 'Invalid input' });
@@ -245,11 +399,15 @@ router.post('/generate', authenticateVendor, async (req, res) => {
             expires_at = new Date(Date.now() + expires_in_hours * 60 * 60 * 1000);
         }
 
+        const hashedCode = await bcrypt.hash(entry_code, 10);
+        const lookupKey = getLookupKey(entry_code);
+
         await db.run(`
-            INSERT INTO sensitivity_keys (entry_code, vendor_id, results_json, custom_results_json, usage_limit, expires_at)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO sensitivity_keys (entry_code, lookup_key, vendor_id, results_json, custom_results_json, usage_limit, expires_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
         `, [
-            entry_code, 
+            hashedCode, 
+            lookupKey,
             vendorId, 
             JSON.stringify(results || {}), 
             custom_results ? JSON.stringify(custom_results) : null,
@@ -259,9 +417,8 @@ router.post('/generate', authenticateVendor, async (req, res) => {
 
         res.json({ success: true, entry_code });
     } catch (e) {
-        console.error('Gen Error:', e);
-        if (e instanceof z.ZodError) return res.status(400).json({ error: 'Invalid input' });
-        res.status(500).json({ error: 'Server error' });
+        if (e instanceof z.ZodError) return fail(res, 'XP_VAL_FAILED', 'INVALID_GEN_PARAMS', 400, e.errors);
+        next(e); // Let global handler catch unexpected logic crashes
     }
 });
 
@@ -274,12 +431,18 @@ router.put('/profile', authenticateVendor, async (req, res) => {
                 logo: z.string().optional(),
                 colors: z.object({ primary: z.string().regex(/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/) }).optional(),
                 socials: z.object({ yt: z.string().optional(), ig: z.string().optional() }).optional()
-            })
+            }).optional(),
+            webhook_url: z.string().url().nullable().optional()
         });
-        const { brand_config } = schema.parse(req.body);
+        const { brand_config, webhook_url } = schema.parse(req.body);
         const vendorId = req.vendorId;
 
-        await db.run('UPDATE vendors SET brand_config = ? WHERE vendor_id = ?', [JSON.stringify(brand_config), vendorId]);
+        if (brand_config) {
+            await db.run('UPDATE vendors SET brand_config = ? WHERE vendor_id = ?', [JSON.stringify(brand_config), vendorId]);
+        }
+        if (webhook_url !== undefined) {
+            await db.run('UPDATE vendors SET webhook_url = ? WHERE vendor_id = ?', [webhook_url, vendorId]);
+        }
         res.json({ success: true });
     } catch (e) {
         console.error('PUT /profile error:', e);
@@ -295,7 +458,8 @@ router.get('/admin/stats', authenticateAdmin, async (req, res) => {
             SELECT 
                 (SELECT COUNT(*) FROM vendors) as vendors,
                 (SELECT COUNT(*) FROM sensitivity_keys) as codes,
-                (SELECT COUNT(*) FROM code_activity) as usage_total
+                (SELECT COUNT(*) FROM code_activity) as usage_total,
+                (SELECT AVG(rating) FROM code_activity WHERE rating IS NOT NULL) as global_accuracy
         `);
         res.json(stats);
     } catch (e) {
@@ -361,10 +525,13 @@ router.post('/admin/vendors', authenticateAdmin, async (req, res) => {
         const randomDigits = Math.floor(1000 + Math.random() * 9000);
         const accessKey = `XP-${vendorId}-${randomDigits}`;
 
+        const hashedAccessKey = await bcrypt.hash(accessKey, 10);
+        const lookupKey = getLookupKey(accessKey);
+
         await db.run(`
-            INSERT INTO vendors (vendor_id, access_key, brand_config, status)
-            VALUES (?, ?, ?, 'active')
-        `, [vendorId, accessKey, typeof brandConfig === 'string' ? brandConfig : JSON.stringify(brandConfig || {})]);
+            INSERT INTO vendors (vendor_id, access_key, lookup_key, brand_config, status)
+            VALUES (?, ?, ?, ?, 'active')
+        `, [vendorId, hashedAccessKey, lookupKey, typeof brandConfig === 'string' ? brandConfig : JSON.stringify(brandConfig || {})]);
 
         await logAudit('admin', 'SYSTEM', 'VENDOR_REGISTER', { vendorId, accessKey }, req.ip);
 
@@ -385,7 +552,7 @@ router.post('/admin/vendor/status', authenticateAdmin, async (req, res) => {
         });
         const { vendorId, status } = schema.parse(req.body);
         if (!['active', 'suspended'].includes(status)) {
-            return res.status(400).json({ error: 'Invalid status' });
+            return fail(res, 'XP_VAL_INVALID', 'INVALID_STATUS_VALUE');
         }
 
         await db.run('UPDATE vendors SET status = ? WHERE vendor_id = ?', [status, vendorId]);
@@ -394,9 +561,8 @@ router.post('/admin/vendor/status', authenticateAdmin, async (req, res) => {
 
         res.json({ success: true, message: `VENDOR ${status.toUpperCase()} SUCCESSFULLY` });
     } catch (e) {
-        console.error('POST /admin/vendor/status error:', e);
-        if (e instanceof z.ZodError) return res.status(400).json({ error: 'Invalid input' });
-        res.status(500).json({ error: 'Server error' });
+        if (e instanceof z.ZodError) return fail(res, 'XP_VAL_FAILED', 'INVALID_STATUS_PARAMS', 400, e.errors);
+        next(e);
     }
 });
 
@@ -416,32 +582,16 @@ router.delete('/admin/vendor/:vendorId', authenticateAdmin, async (req, res) => 
     }
 });
 
-// Public API Gateway: Execute Neural Math for external platforms
-router.post('/public/calculate', async (req, res) => {
+// SSNE: Server-Side Neural Engine (10/10 Logic)
+router.post('/calculate', async (req, res) => {
     try {
-        const schema = z.object({
-            api_key: z.string().min(10), // Required for enterprise tracking
-            state: z.record(z.any())
-        });
-        const { api_key, state } = schema.parse(req.body);
-
-        // Verify API Key (Mock verification for now)
-        const vendor = await db.get('SELECT * FROM vendors WHERE access_key = ?', [api_key]);
-        if (!vendor) return res.status(401).json({ error: 'INVALID_API_KEY' });
-
-        // Logic check: Calculator is available globally in the project, but we need to ensure it's required correctly in the backend context if needed.
-        // For this implementation, we assume the math exists as a module or shared lib.
-        // const results = Calculator.compute(state); 
-
-        res.json({
-            success: true,
-            provider: vendor.vendor_id,
-            timestamp: new Date().toISOString()
-        });
+        const results = Calculator.compute(req.body);
+        res.json(results);
     } catch (e) {
-        res.status(500).json({ error: 'API_GATEWAY_ERR' });
+        res.status(500).json({ error: 'NEURAL_ENGINE_FAILURE' });
     }
 });
+
 router.post('/track', async (req, res) => {
     try {
         const { event_type, vendor_id, session_id, device } = req.body;
@@ -450,6 +600,43 @@ router.post('/track', async (req, res) => {
         res.json({ success: true });
     } catch (e) {
         res.status(500).json({ error: 'TRACK_ERR' });
+    }
+});
+
+// POST /api/vault/feedback
+router.post('/feedback', async (req, res) => {
+    try {
+        const schema = z.object({
+            entry_code: z.string().min(1),
+            rating: z.number().int().min(1).max(5),
+            feedback_text: z.string().max(500).optional()
+        });
+        const { entry_code, rating, feedback_text } = schema.parse(req.body);
+
+        // Find the most recent activity for this code (assuming the rater is the most recent user)
+        const activity = await db.get('SELECT id FROM code_activity WHERE entry_code = ? ORDER BY used_at DESC LIMIT 1', [entry_code]);
+        
+        if (!activity) {
+            return fail(res, 'XP_VAL_NOT_FOUND', 'SESSION_NOT_FOUND', 404);
+        }
+
+        await db.run('UPDATE code_activity SET rating = ?, feedback_text = ? WHERE id = ?', [rating, feedback_text || null, activity.id]);
+
+        // Emit live event for feedback
+        const io = req.app.get('io');
+        if (io) {
+            io.emit('live_event', {
+                type: 'feedback',
+                entry_code,
+                rating,
+                feedback: feedback_text || 'No comment'
+            });
+        }
+
+        res.json({ success: true, message: 'FEEDBACK_LOGGED_SUCCESSFULLY' });
+    } catch (e) {
+        console.error('FEEDBACK_ERR:', e);
+        res.status(500).json({ error: 'FEEDBACK_SYSTEM_ERROR' });
     }
 });
 

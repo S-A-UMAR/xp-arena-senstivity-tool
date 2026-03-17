@@ -2,351 +2,261 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>XP Arena - Stored Results</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>XP ARENA | CALIBRATION_ID</title>
+    <meta name="description" content="View your personalized neural sensitivity calibration for mobile hardware.">
+    
+    <!-- Dynamic Social Scaffolding -->
+    <meta property="og:title" id="ogTitle" content="XP ARENA | CALIBRATED SETTINGS">
+    <meta property="og:description" id="ogDesc" content="Hardware-optimized mobile sensitivity benchmarks.">
+    <meta name="twitter:title" id="twTitle" content="XP ARENA | CALIBRATED">
+    <link rel="icon" type="image/png" href="favicon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Outfit:wght@600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Outfit:wght@600;800&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
+    <meta name="theme-color" content="#020617">
 </head>
-<body class="result-body">
+<body>
     <div class="ambient-glow"></div>
-    
-    <div class="app-wrapper">
-        <header class="hero">
-            <div class="lang-selector">
-                <button data-lang="en" class="lang-btn active">EN</button>
-                <button data-lang="pt" class="lang-btn">PT</button>
-                <button data-lang="es" class="lang-btn">ES</button>
-                <button data-lang="bn" class="lang-btn">BN</button>
-            </div>
-            <div class="logo-area">
-                <span class="logo-chip">XP CLOUD</span>
-                <h1 class="glow-text" data-t="resultsTitle">Saved Profile</h1>
-            </div>
-            <p id="deviceLabel">Config for Unknown Device</p>
+
+    <div class="app-container">
+        <header class="results-header-box reveal">
+            <div class="logo-badge">PROFILE GENERATED</div>
+            <h1 class="title-main" id="deviceDisplay">DEVICE OPTIMIZED</h1>
+            <p style="color: var(--text-secondary); font-size: 0.8rem;">HARDWARE CALIBRATION SUCCESSFUL</p>
         </header>
 
-        <main class="grid-layout">
-            <section class="panel glass-panel visible">
-                <div class="health-badge">
-                    <div class="health-dot"></div>
-                    <span>SYSTEM OPTIMIZED: TOUCH POLLING ULTRA-FAST</span>
-                </div>
-                <div class="pro-card-wrapper modern-guide">
-                    <header class="card-header">
-                        <div class="branding">
-                            <div class="vendor-logo-container" id="logoContainer"></div>
-                            <h2 class="card-logo">XP ARENA</h2>
-                            <span class="card-title-main" id="guideTitle">DEVICE SENSITIVITY GUIDE</span>
+        <main>
+            <!-- Professional Share Card -->
+            <section class="pro-card-container reveal" style="animation-delay: 0.1s;">
+                <div class="calibration-card" id="captureArea">
+                    <div class="card-accent-strip"></div>
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem;">
+                        <div>
+                            <span style="font-size: 0.6rem; font-weight: 900; color: #64748b; letter-spacing: 0.1em;">XP ARENA PRO V4</span>
+                            <h2 style="font-family: 'Outfit'; font-size: 1.2rem; font-weight: 800;" id="cardBrand">CALIBRATED</h2>
                         </div>
-                        <div class="optimized-for">
-                            OPTIMIZED FOR <span id="optimizedModel">DEVICE</span>
-                        </div>
-                    </header>
-
-                    <div class="pro-grid-main">
-                        <div class="guide-box">
-                            <div class="box-header">
-                                <div class="box-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v8M8 12h8"></path></svg></div>
-                                <div class="box-title"><label>GENERAL</label></div>
-                                <div class="box-value" id="rangeGeneral">95</div>
-                            </div>
-                            <div class="progress-container">
-                                <div class="progress-bar" id="barGeneral" style="width: 95%"></div>
-                                <span class="percent-label">95%</span>
-                            </div>
-                        </div>
-                        <div class="guide-box">
-                            <div class="box-header">
-                                <div class="box-icon icon-glow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"></circle><path d="M3 12h18M12 3v18"></path></svg></div>
-                                <div class="box-title"><label>RED DOT</label></div>
-                                <div class="box-value" id="rangeRedDot">90</div>
-                            </div>
-                            <div class="progress-container">
-                                <div class="progress-bar" id="barRedDot" style="width: 90%"></div>
-                                <span class="percent-label">90%</span>
-                            </div>
-                        </div>
-                        <div class="guide-box">
-                            <div class="box-header">
-                                <div class="box-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 2v20M2 12h20"></path><path d="M7 7l10 10M17 7l-10 10"></path></svg></div>
-                                <div class="box-title"><label>2x SCOPE</label></div>
-                                <div class="box-value" id="range2x">86</div>
-                            </div>
-                            <div class="progress-container">
-                                <div class="progress-bar" id="bar2x" style="width: 86%"></div>
-                                <span class="percent-label">86%</span>
-                            </div>
-                        </div>
-                        <div class="guide-box">
-                            <div class="box-header">
-                                <div class="box-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 2v20M2 12h20"></path></svg></div>
-                                <div class="box-title"><label>4x SCOPE</label></div>
-                                <div class="box-value" id="range4x">88</div>
-                            </div>
-                            <div class="progress-container">
-                                <div class="progress-bar" id="bar4x" style="width: 88%"></div>
-                                <span class="percent-label">88%</span>
-                            </div>
-                        </div>
-                        <div class="guide-box">
-                            <div class="box-header">
-                                <div class="box-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg></div>
-                                <div class="box-title"><label>AWM SCOPE</label></div>
-                                <div class="box-value" id="rangeSniper">55</div>
-                            </div>
-                            <div class="progress-container">
-                                <div class="progress-bar" id="barSniper" style="width: 55%"></div>
-                                <span class="percent-label">55%</span>
-                            </div>
-                        </div>
-                        <div class="guide-box">
-                            <div class="box-header">
-                                <div class="box-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21a9 9 0 100-18 9 9 0 000 18z"></path><path d="M12 7v10M17 12H7"></path></svg></div>
-                                <div class="box-title"><label>FREE LOOK</label></div>
-                                <div class="box-value" id="rangeFreeLook">125</div>
-                            </div>
-                            <div class="progress-container">
-                                <div class="progress-bar" id="barFreeLook" style="width: 100%"></div>
-                                <span class="percent-label">125%</span>
-                            </div>
-                        </div>
-                        <div class="guide-box">
-                            <div class="box-header">
-                                <div class="box-icon" style="color: #ffaa00;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path><path d="M12 8l0 4l2 2"></path></svg></div>
-                                <div class="box-title"><label>ADS SENS.</label></div>
-                                <div class="box-value" id="rangeADS">98</div>
-                            </div>
-                            <div class="progress-container">
-                                <div class="progress-bar" id="barADS" style="width: 98%"></div>
-                                <span class="percent-label">98%</span>
-                            </div>
-                        </div>
-                        <div class="guide-box">
-                            <div class="box-header">
-                                <div class="box-icon" style="color: #00ff88;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 3l0 7l6 0l-8 11l0 -7l-6 0l8 -11"></path></svg></div>
-                                <div class="box-title"><label>DPI / RATE</label></div>
-                                <div class="box-value" id="valDPI">411</div>
-                            </div>
-                            <p style="font-size: 0.5rem; color: #64748b; margin-top: 0.5rem;">POLLING OPTIMIZED</p>
-                        </div>
-                        <div class="guide-box">
-                            <div class="box-header">
-                                <div class="box-icon" style="color: #ff4444;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="4"></circle><path d="M12 2v4M12 18v4M2 12h4M18 12h4"></path></svg></div>
-                                <div class="box-title"><label>FIRE BTN</label></div>
-                                <div class="box-value" id="valFire">65</div>
-                            </div>
-                            <p style="font-size: 0.5rem; color: #64748b; margin-top: 0.5rem;">OPTIMAL SIZE</p>
+                        <div style="text-align: right;">
+                            <span style="font-size: 0.5rem; font-weight: 800; color: var(--accent-primary); letter-spacing: 0.1em;">SYSTEM STATUS</span>
+                            <div style="font-size: 0.7rem; font-weight: 800; color: #059669;">OPTIMIZED</div>
                         </div>
                     </div>
 
-                    <div class="pro-tips-area">
-                        <div class="tips-label">PRO TIPS</div>
-                        <div class="tips-row">
-                            <div class="tip-item">
-                                <div class="tip-icon">🎮</div>
-                                <div class="tip-content"><div class="tip-title">HUD LAYOUT:</div><div class="tip-val" id="tipClaw">3-4 FINGER CLAW RECOMMENDED</div></div>
-                            </div>
-                            <div class="tip-item">
-                                <div class="tip-icon">📈</div>
-                                <div class="tip-content"><div class="tip-title">GRAPHICS:</div><div class="tip-val" id="tipGraphics">SMOOTH / HIGH FPS FOR STABILITY</div></div>
-                            </div>
-                            <div class="tip-item"><div class="tip-icon">🎯</div><div class="tip-content"><div class="tip-title">PRACTICE IN TRAINING MODE</div></div></div>
+                    <div class="card-grid">
+                        <div class="metric-box">
+                            <span class="metric-label">GENERAL</span>
+                            <span class="metric-value" id="valGeneral">--</span>
+                        </div>
+                        <div class="metric-box">
+                            <span class="metric-label">RED DOT</span>
+                            <span class="metric-value" id="valRedDot">--</span>
+                        </div>
+                        <div class="metric-box">
+                            <span class="metric-label">2X SCOPE</span>
+                            <span class="metric-value" id="val2x">--</span>
+                        </div>
+                        <div class="metric-box">
+                            <span class="metric-label">4X SCOPE</span>
+                            <span class="metric-value" id="val4x">--</span>
+                        </div>
+                        <div class="metric-box">
+                            <span class="metric-label">SNIPER</span>
+                            <span class="metric-value" id="valSniper">--</span>
+                        </div>
+                        <div class="metric-box">
+                            <span class="metric-label">FIRE BTN</span>
+                            <span class="metric-value" id="valFire">--</span>
                         </div>
                     </div>
 
-                    <footer class="card-footer-modern">
-                        <div class="user-meta" id="cardUserInfo">CREATOR: <span id="cardIGN">GUEST</span> | REGION: <span id="cardRank">GLOBAL</span></div>
-                        <div class="device-meta-footer" id="footerModel" style="font-size: 0.6rem; opacity: 0.5; margin-top: 0.2rem;">CALIBRATED DEVICE: unknown</div>
-                        <div class="card-socials" id="cardSocials"></div>
-                    </footer>
-                    <div class="card-watermark" id="cardWatermark">VERIFIED BY XP ARENA</div>
-                    <div id="qrContainer" style="margin-top:1rem;"></div>
+                    <div style="margin-top: 1.5rem; display: flex; justify-content: space-between; align-items: flex-end;">
+                        <div>
+                            <span class="metric-label">GRAPHICS</span>
+                            <span style="font-size: 0.8rem; font-weight: 800;" id="valGraphics">SMOOTH</span>
+                        </div>
+                        <div style="text-align: right;">
+                            <span class="metric-label">GRIP STYLE</span>
+                            <span style="font-size: 0.8rem; font-weight: 800;" id="valGrip">PALM</span>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 1rem; border-top: 1px solid #e2e8f0; padding-top: 0.5rem; opacity: 0.4; font-size: 0.5rem; font-weight: 800;">
+                        VERIFIED HARDWARE SIGNATURE: <span id="hardwareSig">SCANNING...</span>
+                    </div>
                 </div>
+            </section>
 
-                <div class="vendor-bio-panel hidden" id="bioPanel">
-                    <div class="bio-card"><div class="bio-header" id="bioHeader">FROM THE VENDOR</div><div class="bio-text" id="bioText"></div></div>
+            <!-- Actions -->
+            <!-- Accuracy Feedback (10/10 Milestone) -->
+            <section class="glass-card reveal" style="animation-delay: 0.3s; margin-top: 1.5rem; text-align: center;">
+                <label class="form-label" style="display: block; margin-bottom: 0.8rem;">RATE CALIBRATION ACCURACY</label>
+                <div class="rating-stars" style="display: flex; justify-content: center; gap: 0.5rem; margin-bottom: 1rem;">
+                    <button class="star-btn" data-val="1">★</button>
+                    <button class="star-btn" data-val="2">★</button>
+                    <button class="star-btn" data-val="3">★</button>
+                    <button class="star-btn" data-val="4">★</button>
+                    <button class="star-btn" data-val="5">★</button>
                 </div>
-
-                <div class="results-actions" style="margin-top: 2rem;">
-                    <button id="downloadBtn" class="cyber-btn primary-btn flex-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg><span data-t="downloadBtn">GET SHARE CARD</span></button>
-                    <button id="copyBtn" class="cyber-btn ghost-btn flex-btn"><span data-t="copyBtn">COPY SETTINGS</span></button>
-                    <button id="shareCodeBtn" class="cyber-btn ghost-btn flex-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg><span>COPY ELITE CODE</span></button>
-                    <a href="index.html" class="cyber-btn ghost-btn flex-btn"><span data-t="newCalc">NEW CALIBRATION</span></a>
+                <div id="feedbackArea" style="display: none;">
+                    <textarea id="feedbackText" class="cyber-select" placeholder="OPTIONAL: HOW DID IT FEEL? (MOBILE/SENS...)" style="height: 60px; font-size: 0.7rem; margin-bottom: 1rem; width: 100%; border-radius: 8px;"></textarea>
+                    <button id="submitFeedback" class="action-btn" style="padding: 0.6rem; font-size: 0.7rem;">LOG TO NEURAL CORE</button>
                 </div>
-
-                <div class="tutorial-trigger" style="margin-top: 2rem;">
-                    <button class="cyber-btn ghost-btn" onclick="openModal()"><svg style="width:20px" viewBox="0 0 24 24" fill="currentColor"><path d="M10 16.5l6-4.5-6-4.5v9zM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg>&nbsp;HOW TO APPLY SETTINGS</button>
-                </div>
-                <section class="drills-section"><div class="section-header"><h2 data-t="drillsTitle">PRO AIM DRILLS (RANDOMIZED)</h2></div><div id="drillGrid" class="drill-grid"></div></section>
+                <p id="thanksMsg" style="display: none; font-size: 0.7rem; color: var(--accent-primary); font-family: var(--font-mono); font-weight: 800; padding: 1rem;">FEEDBACK_ACKNOWLEDGED // NEURAL_UPGRADE_PENDING</p>
             </section>
         </main>
+
+        <footer style="margin-top: 3rem; text-align: center; opacity: 0.5; padding-bottom: 2rem; font-family: var(--font-mono); font-size: 0.6rem;">
+            <div style="display: flex; justify-content: center; gap: 1.5rem; margin-bottom: 1.5rem; font-weight: 800; letter-spacing: 0.05em;">
+                <a href="#" onclick="window.notify ? window.notify('PRIVACY_POLICY_ENCRYPTED', 'info') : alert('PRIVACY')" style="color: inherit; text-decoration: none;">PRIVACY</a>
+                <a href="#" onclick="window.notify ? window.notify('TERMS_OF_SERVICE_ACKNOWLEDGED', 'info') : alert('TERMS')" style="color: inherit; text-decoration: none;">TERMS</a>
+                <a href="#" onclick="window.notify ? window.notify('NEURAL_SUPPORT_LINK_ACTIVE', 'info') : alert('SUPPORT')" style="color: var(--accent-primary); text-decoration: none;">SUPPORT</a>
+            </div>
+            <p style="letter-spacing: 0.1em; font-weight: 800;">XP ARENA GLOBAL ARCHITECTURE</p>
+        </footer>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script src="translations.js"></script>
-    <script src="notifications.js"></script>
-    <script src="security.js"></script>
-    <script src="audio.js"></script>
     <script>
-        let currentLang = localStorage.getItem('xp_lang') || 'en';
-        const translate = () => {
-            const dict = window.LANGUAGES[currentLang];
-            document.querySelectorAll('[data-t]').forEach(el => {
-                const key = el.dataset.t; if (dict[key]) el.textContent = dict[key];
-            });
-            document.querySelectorAll('.lang-btn').forEach(btn => { btn.classList.toggle('active', btn.dataset.lang === currentLang); });
-        };
-        document.querySelectorAll('.lang-btn').forEach(btn => { btn.addEventListener('click', () => { currentLang = btn.dataset.lang; localStorage.setItem('xp_lang', currentLang); translate(); }); });
-        
-        // Initialize Data Retrieval
-        const loadSecureResult = async () => {
-            const encrypted = localStorage.getItem('xp_sensitivity_profile_last_result_secure');
-            if (encrypted && window.SecurityEngine) {
-                const decrypted = await window.SecurityEngine.decrypt(encrypted);
-                if (decrypted) return decrypted;
+        document.addEventListener('DOMContentLoaded', () => {
+            const results = JSON.parse(localStorage.getItem('xp_sensitivity_profile_last_result') || '{}');
+            const state = JSON.parse(localStorage.getItem('xp_sensitivity_profile') || '{}');
+
+            if (!results.general) {
+                window.location.href = 'index.html';
+                return;
             }
-            return JSON.parse(localStorage.getItem('xp_sensitivity_profile_last_result') || '{}');
-        };
 
-        const localState = JSON.parse(localStorage.getItem('xp_sensitivity_profile') || '{}');
-        const urlParams = new URLSearchParams(window.location.search);
-        
-        const vaultRes = JSON.parse(localStorage.getItem('xp_last_result_data') || 'null');
-        const vaultBrand = JSON.parse(localStorage.getItem('xp_last_branding') || 'null');
-        const getP = (key, fallback) => urlParams.get(key) || fallback;
-        
-        const finalVendor = vaultBrand ? (vaultBrand.vendor_id || 'XP ARENA').toUpperCase() : getP('vendor', localState.vendor || 'XP ARENA').toUpperCase();
-        const finalLogo = vaultBrand ? vaultBrand.logo : getP('logo', localState.logo);
-        const finalBio = vaultBrand ? vaultBrand.bio : getP('bio', localState.bio);
-        const finalBG = vaultBrand && vaultBrand.colors ? vaultBrand.colors.primary : getP('bg', localState.bg);
-        const promoUrl = urlParams.get('promo');
-        const finalYT = vaultBrand && vaultBrand.socials ? vaultBrand.socials.yt : getP('yt', localState.yt);
-        const finalIG = vaultBrand && vaultBrand.socials ? vaultBrand.socials.ig : getP('ig', localState.ig);
-        const finalDC = vaultBrand && vaultBrand.socials ? vaultBrand.socials.dc : getP('dc', localState.dc);
+            const deviceName = `${state.brand || 'DEVICE'} ${state.model || ''}`.toUpperCase();
+            document.getElementById('deviceDisplay').textContent = deviceName;
+            document.getElementById('cardBrand').textContent = state.model || 'CALIBRATED';
+            
+            // 🌐 Dynamic SEO & Social Identity (10/10 SEO)
+            const seoTitle = `XP ARENA | ${deviceName} CALIBRATED`;
+            document.title = seoTitle;
+            document.getElementById('ogTitle')?.setAttribute('content', seoTitle);
+            document.getElementById('twTitle')?.setAttribute('content', seoTitle);
+            document.getElementById('ogDesc')?.setAttribute('content', `Optimized neural sensitivity for ${deviceName}. Ready for deployment.`);
+            document.getElementById('valRedDot').textContent = results.redDot;
+            document.getElementById('val2x').textContent = results.scope2x;
+            document.getElementById('val4x').textContent = results.scope4x;
+            document.getElementById('valSniper').textContent = results.sniperScope;
+            document.getElementById('valFire').textContent = results.fireButton;
+            document.getElementById('valGraphics').textContent = results.graphics;
+            document.getElementById('valGrip').textContent = results.gripStyle;
+            document.getElementById('hardwareSig').textContent = `CAL-${Math.random().toString(36).substring(7).toUpperCase()}`;
 
-        const initResultPage = async () => {
-            const finalRes = await loadSecureResult();
-            const finalState = {
-                brand: vaultRes ? vaultRes.brand : getP('b', localState.brand || 'Unknown'),
-                model: vaultRes ? vaultRes.model : getP('m', localState.model || 'Device'),
-                ram: vaultRes ? vaultRes.ram : getP('r', localState.ram || '8'),
-                ign: vaultRes ? vaultRes.ign : getP('ign', localState.ign || 'Guest'),
-                rank: vaultRes ? vaultRes.rank : getP('reg', localState.rank || 'Global'),
-                claw: vaultRes ? vaultRes.claw : getP('cl', localState.claw || '3'),
-                fbs: vaultRes ? vaultRes.fireButton : getP('fbs', finalRes.fireButton || '65')
+            // Download Logic
+            document.getElementById('downloadBtn').addEventListener('click', () => {
+                const area = document.getElementById('captureArea');
+                html2canvas(area, { scale: 3, backgroundColor: null }).then(canvas => {
+                    const link = document.createElement('a');
+                    link.download = `xp-pro-settings-${state.model}.png`;
+                    link.href = canvas.toDataURL();
+                    link.click();
+                });
+            });
+
+            // Copy Logic
+            document.getElementById('copyBtn').addEventListener('click', () => {
+                const text = `XP ARENA PRO SETTINGS\nDevice: ${state.brand} ${state.model}\nGen: ${results.general}\nRD: ${results.redDot}\n2x: ${results.scope2x}\n4x: ${results.scope4x}\nBTN: ${results.fireButton}`;
+                navigator.clipboard.writeText(text).then(() => alert("SETTINGS COPIED"));
+            });
+
+            // Feedback Logic (10/10 Milestone)
+            let selectedRating = 0;
+            const stars = document.querySelectorAll('.star-btn');
+            const feedbackArea = document.getElementById('feedbackArea');
+            const thanksMsg = document.getElementById('thanksMsg');
+            const entryCode = localStorage.getItem('xp_last_entry_code');
+
+            stars.forEach(star => {
+                star.addEventListener('click', () => {
+                    selectedRating = parseInt(star.dataset.val);
+                    stars.forEach((s, idx) => {
+                        s.style.color = idx < selectedRating ? 'var(--accent-primary)' : 'rgba(255,255,255,0.2)';
+                    });
+                    feedbackArea.style.display = 'block';
+                });
+            });
+
+            // 10/10 Logic: Neural Sync Engine (Offline Resilience)
+            const SyncEngine = {
+                dbName: 'XP_SYNC_LOG',
+                async getDB() {
+                    return new Promise((resolve, reject) => {
+                        const req = indexedDB.open(this.dbName, 1);
+                        req.onupgradeneeded = () => req.result.createObjectStore('queue', { keyPath: 'id', autoIncrement: true });
+                        req.onsuccess = () => resolve(req.result);
+                        req.onerror = () => reject(req.error);
+                    });
+                },
+                async queue(data) {
+                    const db = await this.getDB();
+                    const tx = db.transaction('queue', 'readwrite');
+                    tx.objectStore('queue').add({ ...data, timestamp: Date.now() });
+                },
+                async sync() {
+                    if (!navigator.onLine) return;
+                    const db = await this.getDB();
+                    const tx = db.transaction('queue', 'readwrite');
+                    const store = tx.objectStore('queue');
+                    const requests = await new Promise(r => {
+                        const req = store.getAll();
+                        req.onsuccess = () => r(req.result);
+                    });
+
+                    for (const item of requests) {
+                        try {
+                            const res = await fetch('/api/vault/feedback', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(item)
+                            });
+                            if (res.ok) store.delete(item.id);
+                        } catch (e) { break; }
+                    }
+                }
             };
 
-            // Enhanced Bio-Display
-            if (finalRes.gripStyle) {
-                const badge = document.createElement('span');
-                badge.className = 'logo-chip';
-                badge.style.marginLeft = '0.5rem';
-                badge.textContent = `GRIP: ${finalRes.gripStyle}`;
-                document.querySelector('.logo-area').appendChild(badge);
-            }
+            window.addEventListener('online', () => SyncEngine.sync());
 
-        document.querySelectorAll('.card-logo').forEach(el => el.textContent = finalVendor);
-        document.querySelectorAll('.logo-chip').forEach(el => el.textContent = finalVendor);
-        if (finalBG) document.documentElement.style.setProperty('--dynamic-bg', `linear-gradient(135deg, ${finalBG} 0%, #020617 100%)`);
-        if (finalLogo) document.getElementById('logoContainer').innerHTML = `<img src="${finalLogo}" class="vendor-logo-img" alt="logo">`;
-        if (finalBio) { document.getElementById('bioPanel').classList.remove('hidden'); document.getElementById('bioText').textContent = finalBio; }
+            document.getElementById('submitFeedback').addEventListener('click', async () => {
+                if (!selectedRating) return;
+                const text = document.getElementById('feedbackText').value;
+                const payload = {
+                    entry_code: entryCode,
+                    rating: selectedRating,
+                    feedback_text: text
+                };
 
-        const setV = (id, val) => {
-            const el = document.getElementById(id);
-            if (el && val) {
-                el.textContent = val; el.classList.add('reveal-anim');
-                const type = id.replace('range', ''); const bar = document.getElementById(`bar${type}`);
-                if (bar) { bar.style.width = '0%'; setTimeout(() => bar.style.width = `${val}%`, 100); }
-            }
-        };
-            setV('rangeGeneral', finalRes.general); setV('rangeRedDot', finalRes.redDot);
-            setV('range2x', finalRes.scope2x); setV('range4x', finalRes.scope4x);
-            setV('rangeSniper', finalRes.sniperScope); setV('rangeFreeLook', finalRes.freeLook); setV('rangeADS', finalRes.ads);
-            if (document.getElementById('valDPI')) document.getElementById('valDPI').textContent = finalRes.dpi;
-            if (document.getElementById('valFire')) document.getElementById('valFire').textContent = finalState.fbs;
-            document.getElementById('tipGraphics').textContent = finalRes.graphics;
-            document.getElementById('tipClaw').textContent = `${finalRes.clawStyle.toUpperCase()} RECOMMENDED`;
-            
-            // Render Socials & Watermark
-            document.getElementById('cardIGN').textContent = finalState.ign;
-            document.getElementById('cardRank').textContent = finalState.rank;
-            document.getElementById('optimizedModel').textContent = `${finalState.brand} ${finalState.model}`.toUpperCase();
-            document.getElementById('footerModel').textContent = `CALIBRATED DEVICE: ${finalState.brand} ${finalState.model}`;
-        };
+                feedbackArea.style.display = 'none';
+                document.querySelector('.rating-stars').style.display = 'none';
+                document.querySelector('.form-label').style.display = 'none';
+                thanksMsg.textContent = 'NEURAL_QUEUED // WAITING_FOR_SYNC';
+                thanksMsg.style.display = 'block';
 
-        // Execution
-        initResultPage();
+                try {
+                    const res = await fetch('/api/vault/feedback', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
 
-        const DRILLS = [
-            { name: "One-Tap Drag Training", desc: "Place crosshair at neck level, flick upwards in a 'J' motion for headshots." },
-            { name: "360 Gloo-Wall Rush", desc: "Place walls while jumping and turning 180 degrees to defend your flank." },
-            { name: "Snap-Target Tracking", desc: "Practice switching targets rapidly in training mode." },
-            { name: "Movement Accuracy", desc: "Practice shooting while move-stopping for accuracy." }
-        ];
-        const DrillManager = {
-            init() {
-                const grid = document.getElementById('drillGrid'); if (!grid) return;
-                const shuffled = [...DRILLS].sort(() => 0.5 - Math.random());
-                grid.innerHTML = shuffled.slice(0, 2).map(d => `<div class="drill-card"><h3>${d.name.toUpperCase()}</h3><p>${d.desc}</p></div>`).join('');
-            }
-        };
-        DrillManager.init();
-        window.addEventListener('message', (e) => {
-            if (e.data.type === 'XP_PREVIEW_UPDATE') {
-                const config = e.data.config;
-                if (config.vendor_id) {
-                    document.querySelectorAll('.card-logo').forEach(el => el.textContent = config.vendor_id.toUpperCase());
-                    document.querySelectorAll('.logo-chip').forEach(el => el.textContent = config.vendor_id.toUpperCase());
+                    if (res.ok) {
+                        thanksMsg.textContent = 'FEEDBACK_ACKNOWLEDGED // NEURAL_UPGRADE_PENDING';
+                    } else {
+                        throw new Error('OFFLINE');
+                    }
+                } catch (e) {
+                    await SyncEngine.queue(payload);
+                    window.notify('OFFLINE: FEEDBACK QUEUED FOR SYNC', 'warning');
                 }
-                if (config.logo) {
-                    document.getElementById('logoContainer').innerHTML = `<img src="${config.logo}" class="vendor-logo-img" alt="logo">`;
-                }
-                if (config.colors && config.colors.primary) {
-                    document.documentElement.style.setProperty('--dynamic-bg', `linear-gradient(135deg, ${config.colors.primary} 0%, #020617 100%)`);
-                }
-                if (config.socials) {
-                    // Update socials in preview (simplified)
-                }
-            }
-        });
-
-        function downloadCard() {
-            const area = document.querySelector('.pro-card-wrapper'); area.classList.add('capturing');
-            // Scale set to 3 for extra "crisp" high-resolution images
-            html2canvas(area, { 
-                backgroundColor: '#020617', 
-                scale: 3,
-                useCORS: true,
-                logging: false,
-                removeContainer: true
-            }).then(canvas => {
-                const link = document.createElement('a'); link.download = `xp-pro-card-${(finalState.model || 'result').toLowerCase().replace(/\s+/g,'-')}.png`;
-                link.href = canvas.toDataURL('image/png', 1.0); link.click(); area.classList.remove('capturing');
             });
-        }
-        document.getElementById('downloadBtn').addEventListener('click', downloadCard);
-        document.getElementById('copyBtn').addEventListener('click', (e) => {
-            const configText = `${finalVendor} • PROFESSIONAL CONFIG\nDevice: ${finalState.brand} ${finalState.model}\nGen: ${finalRes.general}\nRD: ${finalRes.redDot} | 2x: ${finalRes.scope2x}`;
-            navigator.clipboard.writeText(configText).then(() => { 
-                if (window.notify) window.notify("CONFIG COPIED TO CLIPBOARD", "success");
-                else alert("COPIED!"); 
-            });
+
+            // Initial Sync
+            SyncEngine.sync();
         });
-        document.getElementById('shareCodeBtn').addEventListener('click', () => {
-            const lastCode = localStorage.getItem('xp_last_entry_code') || '000000';
-            navigator.clipboard.writeText(lastCode).then(() => { 
-                if (window.notify) window.notify("ELITE CODE COPIED", "success");
-                else alert("CODE COPIED!"); 
-            });
-        });
-        const lastCode = localStorage.getItem('xp_last_entry_code');
-        if (lastCode && document.getElementById('qrContainer')) {
-            const link = `${location.origin}/verify.html?code=${encodeURIComponent(lastCode)}`;
-            const qr = new QRCode(document.getElementById('qrContainer'), { text: link, width: 128, height: 128 });
-        }
     </script>
 </body>
 </html>

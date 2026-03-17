@@ -1,68 +1,76 @@
-/**
- * XP ARENA - Professional Notification System
- * Replaces browser-default alert() and confirm()
- */
-
-const XP_NOTIFY = {
-    init() {
-        if (document.getElementById('xpNotifyContainer')) return;
-        const container = document.createElement('div');
-        container.id = 'xpNotifyContainer';
-        container.className = 'xp-notify-container';
-        document.body.appendChild(container);
-    },
-
-    /**
-     * Show a toast notification
-     * @param {string} message 
-     * @param {'info'|'success'|'error'|'warning'} type 
-     * @param {number} duration 
-     */
-    show(message, type = 'info', duration = 3000) {
-        this.init();
-        const container = document.getElementById('xpNotifyContainer');
-        
-        const toast = document.createElement('div');
-        toast.className = `xp-toast xp-toast-${type}`;
-        
-        const icon = this.getIcon(type);
-        
-        toast.innerHTML = `
-            <div class="xp-toast-content">
-                <span class="xp-toast-icon">${icon}</span>
-                <span class="xp-toast-message">${message}</span>
-            </div>
-            <div class="xp-toast-progress"></div>
+window.notify = function(message, type = 'info', duration = 3000) {
+    let container = document.getElementById('notify-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'notify-container';
+        container.style.cssText = `
+            position: fixed;
+            top: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            pointer-events: none;
+            width: 90%;
+            max-width: 400px;
         `;
-        
-        container.appendChild(toast);
-
-        // Play sound if available
-        if (window.SFX) {
-            if (type === 'error') window.SFX.play('click');
-            else window.SFX.play('ping');
-        }
-
-        // Trigger animation
-        setTimeout(() => toast.classList.add('px-toast-visible'), 10);
-
-        // Remove after duration
-        setTimeout(() => {
-            toast.classList.remove('px-toast-visible');
-            toast.classList.add('px-toast-exit');
-            setTimeout(() => toast.remove(), 400);
-        }, duration);
-    },
-
-    getIcon(type) {
-        switch(type) {
-            case 'success': return '✓';
-            case 'error': return '✕';
-            case 'warning': return '⚠';
-            default: return 'ℹ';
-        }
+        document.body.appendChild(container);
     }
+
+    const toast = document.createElement('div');
+    const colors = {
+        success: '#00f0ff',
+        error: '#ff4444',
+        warning: '#ffaa00',
+        info: '#ffffff'
+    };
+    
+    const color = colors[type] || colors.info;
+    
+    toast.style.cssText = `
+        background: rgba(15, 23, 42, 0.9);
+        backdrop-filter: blur(10px);
+        border: 1px solid ${color}44;
+        border-left: 4px solid ${color};
+        padding: 1rem 1.5rem;
+        border-radius: 12px;
+        color: #fff;
+        font-family: 'Inter', sans-serif;
+        font-weight: 700;
+        font-size: 0.85rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        pointer-events: auto;
+        animation: toastSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    `;
+
+    toast.innerHTML = `
+        <span>${message.toUpperCase()}</span>
+        <div style="font-size: 0.6rem; opacity: 0.5; font-family: 'JetBrains Mono'; margin-left: 1rem;">SECURE_MSG</div>
+    `;
+
+    container.appendChild(toast);
+
+    setTimeout(() => {
+        toast.style.animation = 'toastSlideOut 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards';
+        setTimeout(() => toast.remove(), 400);
+    }, duration);
 };
 
-// Global helper for easy access
-window.notify = (msg, type, dur) => XP_NOTIFY.show(msg, type, dur);
+// Add animations to document
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes toastSlideIn {
+        from { opacity: 0; transform: translateY(-20px) scale(0.95); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @keyframes toastSlideOut {
+        from { opacity: 1; transform: translateY(0) scale(1); }
+        to { opacity: 0; transform: translateY(-20px) scale(0.95); }
+    }
+`;
+document.head.appendChild(style);
