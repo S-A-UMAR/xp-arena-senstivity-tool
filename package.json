@@ -2,7 +2,7 @@
   "name": "xp-sensitivity-tool-pro",
   "version": "1.0.0",
   "engines": {
-    "node": "24.x"
+    "node": "20.x"
   },
   "main": "server.js",
   "scripts": {
