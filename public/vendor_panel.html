@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XP ARENA - Master Admin Center</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Outfit:wght@800&display=swap" rel="stylesheet">
+    <style>
+        :root { 
+            --bg: #020617; 
+            --accent: #00f0ff; 
+            --accent-glow: rgba(0, 240, 255, 0.4);
+            --card: rgba(15, 23, 42, 0.6); 
+            --text: #f1f5f9; 
+            --mono: 'JetBrains Mono', 'Roboto Mono', monospace;
+        }
+        
+        * { box-sizing: border-box; }
+        body { 
+            background: var(--bg); 
+            color: var(--text); 
+            font-family: 'Inter', sans-serif; 
+            margin: 0; 
+            padding: 2rem; 
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .ambient-glow {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 50% 50%, rgba(0, 240, 255, 0.05) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .glass-card { 
+            background: var(--card); 
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 240, 255, 0.1); 
+            padding: 2rem; 
+            border-radius: 1.5rem; 
+            width: 100%;
+            max-width: 900px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5); 
+        }
+
+        h1, h2, h3 { font-family: 'Outfit', sans-serif; text-transform: uppercase; letter-spacing: 2px; color: #fff; margin: 0; }
+        h1 { font-size: 1.5rem; color: var(--accent); }
+        
+        .section-label { 
+            font-family: var(--mono); 
+            font-size: 0.7rem; 
+            color: var(--accent); 
+            opacity: 0.8;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .stats-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); 
+            gap: 1rem; 
+            margin: 2rem 0; 
+        }
+        
+        .stat-card {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 1.5rem;
+            border-radius: 1rem;
+            text-align: center;
+            transition: transform 0.3s;
+        }
+        .stat-card:hover { transform: translateY(-5px); border-color: var(--accent); }
+        .stat-val { font-size: 1.8rem; font-weight: 800; color: var(--accent); display: block; }
+        .stat-label { font-size: 0.6rem; color: #64748b; text-transform: uppercase; margin-top: 0.5rem; display: block; }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .input-group { display: flex; flex-direction: column; gap: 0.5rem; }
+        label { font-size: 0.65rem; font-weight: 700; color: #64748b; text-transform: uppercase; }
+        
+        input, textarea { 
+            background: rgba(0, 0, 0, 0.4); 
+            border: 1px solid rgba(255, 255, 255, 0.1); 
+            color: white; 
+            padding: 1rem; 
+            border-radius: 0.8rem; 
+            outline: none; 
+            font-family: var(--mono);
+            transition: all 0.3s; 
+        }
+        input:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 15px var(--accent-glow); }
+
+        .admin-btn { 
+            background: var(--accent); 
+            color: black; 
+            border: none; 
+            padding: 1rem 2rem; 
+            border-radius: 0.8rem; 
+            font-weight: 800; 
+            cursor: pointer; 
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s;
+        }
+        .admin-btn:hover { box-shadow: 0 0 20px var(--accent-glow); transform: scale(1.02); }
+
+        .vendor-list { margin-top: 2rem; display: flex; flex-direction: column; gap: 0.8rem; }
+        .vendor-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 1.2rem;
+            border-radius: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s;
+        }
+        .vendor-item:hover { background: rgba(0, 240, 255, 0.02); border-color: rgba(0, 240, 255, 0.2); }
+        
+        .vendor-info h4 { margin: 0; font-size: 1rem; letter-spacing: 1px; }
+        .vendor-info p { margin: 0.2rem 0 0; font-size: 0.7rem; color: #64748b; font-family: var(--mono); }
+        
+        .badge {
+            padding: 0.3rem 0.6rem;
+            border-radius: 0.4rem;
+            font-size: 0.6rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            margin-left: 0.5rem;
+        }
+        .badge-active { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
+        .badge-suspended { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+
+        .action-btns { display: flex; gap: 0.5rem; }
+        .action-btn { 
+            background: rgba(255, 255, 255, 0.05); 
+            border: 1px solid rgba(255, 255, 255, 0.1); 
+            color: #fff; 
+            padding: 0.5rem 0.8rem; 
+            border-radius: 0.5rem; 
+            cursor: pointer; 
+            font-size: 0.7rem;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        .action-btn:hover { background: var(--accent); color: #000; border-color: var(--accent); }
+        .action-btn.danger:hover { background: #ef4444; border-color: #ef4444; color: #fff; }
+
+        /* Modal */
+        .modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: none; align-items: center; justify-content: center;
+            z-index: 1000; padding: 2rem;
+        }
+        .modal-content {
+            background: var(--bg);
+            border: 1px solid var(--accent);
+            border-radius: 2rem;
+            padding: 2rem;
+            width: 100%;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+        }
+        .close-modal { position: absolute; top: 1.5rem; right: 1.5rem; color: #fff; cursor: pointer; font-size: 1.5rem; }
+
+        .activity-table { width: 100%; border-collapse: collapse; margin-top: 1.5rem; font-size: 0.8rem; }
+        .activity-table th { text-align: left; padding: 1rem; border-bottom: 2px solid rgba(0, 240, 255, 0.1); color: var(--accent); text-transform: uppercase; font-size: 0.7rem; }
+        .activity-table td { padding: 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.05); color: #94a3b8; }
+
+        .hidden { display: none !important; }
+        
+        .logo-chip {
+            background: rgba(0, 240, 255, 0.1);
+            color: var(--accent);
+            padding: 0.4rem 1rem;
+            border-radius: 2rem;
+            font-size: 0.6rem;
+            font-weight: 800;
+            border: 1px solid var(--accent);
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <div class="ambient-glow"></div>
+
+    <div id="privateGate" class="glass-card" style="max-width: 520px; text-align: center; margin: 0 auto;">
+        <span class="logo-chip">SYSTEM SECURITY</span>
+        <h1 style="margin: 1.5rem 0 0.5rem;">MASTER GATE</h1>
+        <p style="color: #64748b; font-size: 0.95rem; margin-bottom: 2rem;">AUTHORIZATION REQUIRED // LEVEL 1</p>
+        <input type="password" id="adminPass" placeholder="ENTER MASTER PASSWORD" style="text-align: center; width: 100%; margin-bottom: 1rem; padding: 0.9rem;">
+        <button class="admin-btn" onclick="checkPass()" style="width: 100%;">ACCESS COMMAND CENTER</button>
+    </div>
+
+    <div id="mainPanel" class="glass-card hidden">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2rem;">
+            <div>
+                <span class="logo-chip">MASTER ADMIN</span>
+                <h1 style="margin-top: 1rem;">COMMAND_CENTER.EXE</h1>
+            </div>
+            <div style="text-align:right;">
+                <span id="systemStatus" class="badge badge-active" style="display: inline-block; margin-bottom: 0.5rem;">CORE: ONLINE</span>
+                <p style="margin:0; font-family: var(--mono); font-size: 0.6rem; color: #64748b;">VERSION 2.4.9-STABLE</p>
+                <div style="margin-top:0.5rem;"><button class="admin-btn" onclick="logoutAdmin()">LOG OUT</button></div>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <span class="stat-val" id="totalVendors">0</span>
+                <span class="stat-label">REGISTERED VENDORS</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-val" id="totalCodes">0</span>
+                <span class="stat-label">SENSITIVITY KEYS</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-val" id="totalUsage">0</span>
+                <span class="stat-label">TOTAL ENGINE SESSIONS</span>
+            </div>
+        </div>
+
+        <section style="margin-bottom: 3rem;">
+            <h3 class="section-label">VENDOR.REGISTRATION()</h3>
+            <div class="form-grid">
+                <div class="input-group">
+                    <label>Vendor Identifier (IGN/Name)</label>
+                    <input type="text" id="vendorId" placeholder="e.g. SKY-GAMING" style="padding: 0.9rem;">
+                </div>
+                <div class="input-group">
+                    <label>Master Branding (JSON)</label>
+                    <textarea id="brandConfig" placeholder='{"logo": "...", "colors": {"primary": "#00f0ff"}}' style="height: 80px; resize: none; padding: 0.9rem;"></textarea>
+                </div>
+            </div>
+            <button class="admin-btn" onclick="addVendor()" style="width: 100%;">COMMIT_NEW_VENDOR.SH</button>
+        </section>
+
+        <section>
+            <h3 class="section-label">ACTIVE_DATABASE.VENDORS</h3>
+            <div style="display:flex; gap:0.5rem; align-items:center; margin-bottom:0.5rem;">
+                <input type="text" id="v_search" placeholder="Search Vendor/Key" style="flex:1; padding:0.8rem;">
+                <button class="admin-btn" onclick="exportVendorsCSV()">EXPORT CSV</button>
+            </div>
+            <div id="vendorList" class="vendor-list">
+                <!-- Populated via JS -->
+                <div style="text-align: center; color: #64748b; padding: 2rem;">SYNCING_ENCRYPTED_LIST...</div>
+            </div>
+        </section>
+    </div>
+
+    <div id="analyticsModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal()">×</span>
+            <span class="logo-chip">DEEP_LOGS</span>
+            <h2 id="modalTitle" style="margin-top: 1rem;">VENDOR ACTIVITY</h2>
+            <div class="stats-grid" style="margin: 1.5rem 0;">
+                <div class="stat-card"><span class="stat-val" id="vCodes">0</span><span class="stat-label">Gens</span></div>
+                <div class="stat-card"><span class="stat-val" id="vUsage">0</span><span class="stat-label">Hits</span></div>
+            </div>
+            <table class="activity-table">
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>User</th>
+                        <th>Region</th>
+                        <th>Device config</th>
+                    </tr>
+                </thead>
+                <tbody id="activityBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="notifications.js"></script>
+    <script>
+        let ADMIN_KEY = '';
+
+        async function api(path, method = 'GET', body = null) {
+            const options = {
+                method,
+                headers: { 
+                    'Authorization': `Bearer ${ADMIN_KEY}`,
+                    'Content-Type': 'application/json'
+                }
+            };
+            if (body) options.body = JSON.stringify(body);
+            
+            const res = await fetch(path, options);
+            if (!res.ok) {
+                const err = await res.json();
+                throw new Error(err.error || 'API ERROR');
+            }
+            return res.json();
+        }
+
+        async function checkPass() {
+            const pass = document.getElementById('adminPass').value;
+            try {
+                const res = await fetch('/api/vault/admin/login', { 
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: pass })
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    ADMIN_KEY = data.token;
+                    document.getElementById('privateGate').classList.add('hidden');
+                    document.getElementById('mainPanel').classList.remove('hidden');
+                    loadDashboard();
+                } else {
+                    if (window.notify) window.notify("INCORRECT_KEY // ACCESS_DENIED", "error");
+                    else alert("INCORRECT_KEY // ACCESS_DENIED");
+                }
+            } catch (e) {
+                if (window.notify) window.notify("NETWORK_FAILURE // RETRY", "error");
+                else alert("NETWORK_FAILURE // RETRY");
+            }
+        }
+        function logoutAdmin() {
+            ADMIN_KEY = '';
+            document.getElementById('mainPanel').classList.add('hidden');
+            document.getElementById('privateGate').classList.remove('hidden');
+            document.getElementById('adminPass').value = '';
+        }
+
+        async function loadDashboard() {
+            try {
+                const stats = await api('/api/vault/admin/stats');
+                document.getElementById('totalVendors').textContent = stats.vendors;
+                document.getElementById('totalCodes').textContent = stats.codes;
+                document.getElementById('totalUsage').textContent = stats.usage_total;
+
+                const vendors = await api('/api/vault/admin/vendors');
+                const list = document.getElementById('vendorList');
+                const q = (document.getElementById('v_search').value || '').toLowerCase();
+                const filtered = vendors.filter(v => {
+                    return v.vendor_id.toLowerCase().includes(q) || (v.access_key || '').toLowerCase().includes(q);
+                });
+                list.innerHTML = filtered.map(v => `
+                    <div class="vendor-item">
+                        <div class="vendor-info">
+                            <h4>${v.vendor_id} <span class="badge badge-${v.status}">${v.status}</span></h4>
+                            <p>KEY: ${v.access_key} | ${v.total_codes} Codes | ${v.total_usage} Hits</p>
+                        </div>
+                        <div class="action-btns">
+                            <button class="action-btn" onclick="showAnalytics('${v.vendor_id}', ${v.total_codes}, ${v.total_usage})">ANALYTICS</button>
+                            ${v.status === 'active' 
+                                ? `<button class="action-btn danger" onclick="updateStatus('${v.vendor_id}', 'suspended')">SUSPEND</button>`
+                                : `<button class="action-btn" style="border-color:#22c55e; color:#22c55e;" onclick="updateStatus('${v.vendor_id}', 'active')">ACTIVATE</button>`
+                            }
+                            <button class="action-btn danger" onclick="deleteVendor('${v.vendor_id}')">DELETE</button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (e) {
+                console.error(e);
+            }
+        }
+        function exportVendorsCSV() {
+            const items = Array.from(document.querySelectorAll('#vendorList .vendor-item'));
+            const rows = [['Vendor', 'Status', 'Access Key', 'Codes', 'Usage']];
+            items.forEach(it => {
+                const name = it.querySelector('.vendor-info h4').childNodes[0].nodeValue.trim();
+                const status = it.querySelector('.badge').textContent.trim();
+                const p = it.querySelector('.vendor-info p').textContent;
+                const keyMatch = p.match(/KEY:\s([^|]+)/);
+                const codesMatch = p.match(/\|\s(\d+)\sCodes/);
+                const usageMatch = p.match(/\|\s(\d+)\sHits/);
+                rows.push([name, status, keyMatch ? keyMatch[1].trim() : '', codesMatch ? codesMatch[1] : '', usageMatch ? usageMatch[1] : '']);
+            });
+            const csv = rows.map(r => r.map(v => `"${v.replace(/"/g,'""')}"`).join(',')).join('\n');
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'vendors.csv';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+        document.getElementById('v_search').addEventListener('input', () => loadDashboard());
+
+        async function deleteVendor(vendorId) {
+            if (!confirm(`ARE YOU SURE? THIS WILL PERMANENTLY ERASE VENDOR: ${vendorId}`)) return;
+            try {
+                await api(`/api/vault/admin/vendor/${vendorId}`, 'DELETE');
+                loadDashboard();
+                if (window.notify) window.notify("VENDOR DELETED SUCCESSFULLY", "success");
+            } catch (e) {
+                if (window.notify) window.notify(e.message, "error");
+                else alert(e.message);
+            }
+        }
+
+        async function addVendor() {
+            const vid = document.getElementById('vendorId').value;
+            const configText = document.getElementById('brandConfig').value;
+            
+            if (!vid) {
+                if (window.notify) return window.notify("MISSING_IDENTITY", "warning");
+                return alert("MISSING_IDENTITY");
+            }
+            
+            try {
+                let config = {};
+                if (configText) config = JSON.parse(configText);
+                
+                const res = await api('/api/vault/admin/vendors', 'POST', { 
+                    vendorId: vid, 
+                    brandConfig: config 
+                });
+                
+                if (window.notify) window.notify(`VENDOR REGISTERED\nNEW KEY: ${res.accessKey}`, "success", 6000);
+                else alert(`VENDOR REGISTERED\nNEW KEY: ${res.accessKey}`);
+                document.getElementById('vendorId').value = '';
+                loadDashboard();
+            } catch (e) {
+                alert(e.message);
+            }
+        }
+
+        async function updateStatus(vendorId, status) {
+            try {
+                await api('/api/vault/admin/vendor/status', 'POST', { vendorId, status });
+                loadDashboard();
+                if (window.notify) window.notify(`VENDOR ${status.toUpperCase()} SUCCESSFULLY`, "success");
+            } catch (e) {
+                if (window.notify) window.notify(e.message, "error");
+                else alert(e.message);
+            }
+        }
+
+        async function showAnalytics(vendorId, codes, usage) {
+            const modal = document.getElementById('analyticsModal');
+            const body = document.getElementById('activityBody');
+            document.getElementById('modalTitle').textContent = `LOGS: ${vendorId}`;
+            document.getElementById('vCodes').textContent = codes;
+            document.getElementById('vUsage').textContent = usage;
+            
+            body.innerHTML = '<tr><td colspan="4" style="text-align:center;">DECRYPTING_LOGS...</td></tr>';
+            modal.style.display = 'flex';
+
+            try {
+                const logs = await api(`/api/vault/admin/vendor/${vendorId}/analytics`);
+                body.innerHTML = logs.map(l => {
+                    const res = typeof l.results_json === 'string' ? JSON.parse(l.results_json) : l.results_json;
+                    return `
+                        <tr>
+                            <td>${new Date(l.used_at).toLocaleTimeString()}</td>
+                            <td>${l.user_ign}</td>
+                            <td>${l.user_region}</td>
+                            <td style="font-family:var(--mono); font-size:0.6rem;">${res.brand} ${res.model}</td>
+                        </tr>
+                    `;
+                }).join('');
+                if (logs.length === 0) body.innerHTML = '<tr><td colspan="4" style="text-align:center;">NO_ACTIVITY_FOUND</td></tr>';
+            } catch (e) {
+                body.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#ef4444;">${e.message}</td></tr>`;
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('analyticsModal').style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('analyticsModal');
+            if (event.target == modal) closeModal();
+        }
+    </script>
+</body>
+</html>

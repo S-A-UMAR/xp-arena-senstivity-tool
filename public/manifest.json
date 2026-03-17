@@ -1,0 +1,21 @@
+{
+  "name": "XP ARENA",
+  "short_name": "XP ARENA",
+  "description": "Professional Mobile Sensitivity Guide",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#020617",
+  "theme_color": "#020617",
+  "icons": [
+    {
+      "src": "https://placehold.co/192x192/020617/00ffff?text=XP",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://placehold.co/512x512/020617/00ffff?text=XP",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

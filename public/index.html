@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XP Arena Sensitivity Tool</title>
+    <!-- PWA & SEO -->
+    <meta name="description" content="Ultimate professional sensitivity guide for mobile shooters. Get optimized settings for your specific device.">
+    <meta property="og:title" content="XP ARENA | PRO SENSITIVITY">
+    <meta property="og:description" content="Unlock your true potential with hardware-optimized sensitivity guides.">
+    <meta property="og:type" content="website">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#020617">
+    
+    <!-- Modern Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+    <!-- Main Styles -->
+    <link rel="stylesheet" href="styles.css">
+    <!-- html2canvas for Image Generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+<body class="main-body">
+    <div id="loadingOverlay" class="loading-overlay hidden">
+        <div class="loader-content">
+            <div class="loader-circle"></div>
+            <div class="loader-text">INITIALIZING ENGINE...</div>
+            <div class="loader-subtext" id="loaderStep">ANALYZING HARDWARE</div>
+        </div>
+    </div>
+
+    <div class="ambient-glow"></div>
+    
+    <div class="news-marquee">
+        <div class="news-track">
+            <span>🔴 LIVE: Global Sensitivity Updates for Season 42 Active...</span>
+            <span>💎 NEW: iPhone 17 Optimized...</span>
+            <span>⚡️ FAST: Low-Latency Touch Response Calibrated...</span>
+            <span>🎯 PRO: 10,000+ Device Library Sync Complete...</span>
+        </div>
+    </div>
+
+    <button class="info-trigger" onclick="toggleHandbook()">
+        <svg fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+    </button>
+
+    <div id="vaultOverlay" class="vault-overlay">
+        <div class="vault-brand">
+            <span class="logo-chip">XP SECURE</span>
+            <h1>The Vault</h1>
+        </div>
+
+        <div class="vault-input-container">
+            <input type="text" id="vaultInput" placeholder="ENTER ACCESS CODE" class="vault-input" maxlength="20" autofocus>
+            <div id="vaultStatus" class="vault-status"></div>
+        </div>
+
+        <div class="glitch-hint">
+            ENCRYPTED ACCESS ONLY // SYSTEM_LEVEL_9
+        </div>
+    </div>
+
+    <!-- Enhancement: Device Signature -->
+    <div id="deviceSignature" class="device-signature">
+        <div class="sig-pulse"></div>
+        <span class="sig-text" id="sigModel">SCANNING HARDWARE...</span>
+    </div>
+
+    <!-- Enhancement: Live Pulse -->
+    <div class="pulse-ticker">
+        <div class="ticker-content" id="pulseTicker">
+            <!-- Dynamically populated -->
+        </div>
+    </div>
+
+    <div id="appWrapper" class="app-wrapper main-content-wrapper hidden"></div>
+
+    <div id="vendorLock" class="lock-overlay hidden">
+        <div class="lock-content">
+            <span class="logo-chip">XP SECURE</span>
+            <h2>ACCESS DENIED</h2>
+            <p>This tool is available exclusively through authorized vendor links.</p>
+            <div class="lock-hint">
+                To get your personal access link, contact the Administrator:
+                <div class="contact-box">
+                    <span id="adminPhone">09082625708</span>
+                    <button class="copy-small-btn" onclick="copyAdminLink()">COPY</button>
+                    <!-- Phase 2: Biometric Intelligence -->
+            <div class="form-group bio-intelligence" style="margin-top: 1.5rem; padding: 1.5rem; background: rgba(0, 240, 255, 0.03); border: 1px solid rgba(0, 240, 255, 0.1); border-radius: 1rem;">
+                <span class="logo-chip" style="margin-bottom: 0.5rem;">BIO_METRIC_INPUT</span>
+                
+                <div class="bio-row" style="margin-bottom: 1.2rem;">
+                    <label class="section-label" style="display: flex; justify-content: space-between;">
+                        HAND SIZE <span id="handSizeLabel" style="color: var(--accent-cyan);">18.5 cm</span>
+                    </label>
+                    <input type="range" id="handSize" min="15" max="23" step="0.1" value="18.5" class="cyber-glow-slider" style="width: 100%;">
+                </div>
+
+                <div class="bio-row">
+                    <label class="section-label">GRIP STYLE ARCHITECTURE</label>
+                    <div class="grip-selector" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; margin-top: 0.5rem;">
+                        <button class="grip-btn active" data-grip="palm">PALM</button>
+                        <button class="grip-btn" data-grip="claw">CLAW</button>
+                        <button class="grip-btn" data-grip="tip">TIP</button>
+                    </div>
+                </div>
+            </div>
+
+            <button class="cyber-btn primary-btn pulse-glow" id="calculateBtn" style="margin-top: 2rem;">CALIBRATE NEURAL ENGINE</button>
+                    <a href="https://wa.me/2349082625708?text=I%20want%20to%20buy%20XP%20Arena%20Access" target="_blank" class="wa-btn">WhatsApp</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="handbookModal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>USER HANDBOOK</h3>
+                <button onclick="toggleHandbook()">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="guide-step">
+                    <h4>💎 WHY XP ARENA?</h4>
+                    <p>Every phone is different. We calculate your sensitivity based on your device's RAM, Touch Polling Rate, and Performance Tier.</p>
+                </div>
+                <div class="guide-step">
+                    <h4>🚀 HOW TO UNLOCK?</h4>
+                    <p>You need a unique <b>Vendor link</b> from a creator. Once you enter via their link, the tool is unlocked for you forever.</p>
+                </div>
+                <div class="guide-step">
+                    <h4>📲 APP INSTALLATION</h4>
+                    <p>Click "Add to Home Screen" in your browser menu to use this as a real application. It works offline!</p>
+                </div>
+
+                <div class="recoil-preview-container">
+                    <h4>🎯 XP PRECISION PREVIEW</h4>
+                    <div class="recoil-comparison">
+                        <div class="spread-box">
+                            <h5>STANDARD</h5>
+                            <div class="target-aim" id="standardSpread"></div>
+                        </div>
+                        <div class="spread-box xp-optimized">
+                            <h5>XP OPTIMIZED</h5>
+                            <div class="target-aim" id="xpSpread"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <a href="vendor_panel.html" class="master-portal-icon" title="Admin Portal">
+        <svg fill="currentColor" viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
+    </a>
+
+    <script src="devices.js"></script>
+    <script src="translations.js"></script>
+    <script src="audio.js"></script>
+    <div id="three-canvas-container"></div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="three_hub.js"></script>
+    <script src="notifications.js"></script>
+    <script src="sfx.js"></script>
+    <script src="security.js"></script>
+    <script src="analytics.js"></script>
+    <script src="enhancements.js"></script>
+    <script src="calculator.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vendor Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Outfit:wght@600;900&display=swap" rel="stylesheet">
+    <style>
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+        .stat-card { background: var(--glass-bg); border: 1px solid var(--glass-border); padding: 1rem; border-radius: 1rem; text-align: center; }
+        .stat-val { font-size: 1.6rem; font-weight: 900; color: var(--accent-cyan); display: block; }
+        .stat-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; }
+        .code-table-wrapper { overflow-x: auto; margin-top: 1.5rem; background: var(--glass-bg); border-radius: 1rem; border: 1px solid var(--glass-border); }
+        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        th { text-align: left; padding: 0.9rem 1rem; border-bottom: 1px solid var(--glass-border); color: var(--text-muted); text-transform: uppercase; font-size: 0.75rem; }
+        td { padding: 0.9rem 1rem; border-bottom: 1px solid rgba(255,255,255,0.05); color: #cbd5e1; }
+        .status-badge { padding: 0.2rem 0.6rem; border-radius: 2rem; font-size: 0.7rem; font-weight: 800; }
+        .status-active { background: rgba(34, 197, 94, 0.12); color: #22c55e; border: 1px solid rgba(34, 197, 94, 0.4); }
+        .status-expired { background: rgba(239, 68, 68, 0.12); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.4); }
+        .custom-override-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); gap: 0.75rem; margin-top: 1rem; }
+        .tab-group { display: flex; gap: 0.75rem; margin-bottom: 1.5rem; border-bottom: 1px solid var(--glass-border); flex-wrap: wrap; }
+        .tab-btn { background: none; border: none; color: var(--text-muted); padding: 0.8rem 0.6rem; cursor: pointer; font-weight: 800; text-transform: uppercase; font-size: 0.8rem; }
+        .tab-btn.active { color: var(--accent-cyan); border-bottom: 2px solid var(--accent-cyan); }
+    </style>
+</head>
+<body class="main-body">
+    <div class="ambient-glow"></div>
+    
+    <div class="app-wrapper">
+        <header class="hero">
+            <div class="logo-area">
+                <span class="logo-chip">Vendor Dashboard</span>
+                <h1 class="glow-text" id="vendorDisplay">Dashboard</h1>
+            </div>
+            <div style="display:flex; gap:0.5rem; justify-content:center; margin-top:0.75rem;">
+                <button class="cyber-btn ghost-btn" onclick="toggleTheme()">Theme</button>
+                <button class="cyber-btn danger" onclick="vendorLogout()">Logout</button>
+            </div>
+            <p class="hero-subtitle">Manage codes, analytics, and branding</p>
+        </header>
+
+        <div class="tab-group">
+            <button class="tab-btn active" onclick="switchTab('codes')">Codes</button>
+            <button class="tab-btn" onclick="switchTab('analytics')">Analytics</button>
+            <button class="tab-btn" onclick="switchTab('profile')">Branding</button>
+        </div>
+
+        <div class="command-center">
+            <div class="dashboard-controls">
+                <main id="tab_codes">
+                    <section class="panel glass-card">
+                        <h3 class="section-label">Generate Smart Code</h3>
+                        <div class="form-group">
+                            <label class="section-label">Client IGN</label>
+                            <input type="text" id="c_ign" class="cyber-glow-input" placeholder="e.g. ProGamer123">
+                        </div>
+                        <div class="form-group">
+                            <label class="section-label">Campaign Tag</label>
+                            <input type="text" id="c_tag" class="cyber-glow-input" placeholder="e.g. IG-APRIL">
+                        </div>
+                        <div class="form-group">
+                            <select id="brandSelect" class="cyber-glow-input"><option value="">Select Brand</option></select>
+                        </div>
+                        <div class="form-group">
+                            <select id="seriesSelect" class="cyber-glow-input" disabled><option value="">Select Series</option></select>
+                        </div>
+                        <div class="form-group">
+                            <select id="modelSelect" class="cyber-glow-input" disabled><option value="">Select Model</option></select>
+                        </div>
+                        <div class="form-grid" style="grid-template-columns: 1fr 1fr; margin-bottom: 0;">
+                            <div class="form-group">
+                                <label class="section-label">Finger Style</label>
+                                <select id="v_claw" class="cyber-glow-input">
+                                    <option value="2">2 Finger</option>
+                                    <option value="3">3 Finger</option>
+                                    <option value="4">4 Finger</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="section-label">Play Speed</label>
+                                <select id="v_speed" class="cyber-glow-input">
+                                    <option value="slow">Precision</option>
+                                    <option value="medium" selected>Balanced</option>
+                                    <option value="fast">High Speed</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button class="cyber-btn primary-btn" onclick="generateCode('smart')">Generate Smart Code</button>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:0.5rem; margin-top:0.5rem;">
+                            <button class="cyber-btn ghost-btn" onclick="copyVerifyLink()">Copy Verify Link</button>
+                            <button class="cyber-btn ghost-btn" onclick="shareWhatsApp()">Share via WhatsApp</button>
+                        </div>
+                    </section>
+
+                    <section class="panel glass-card" style="margin-top: 2rem;">
+                        <h3 class="section-label">Generated Code</h3>
+                        <div id="generatedOutput" class="generated-box hidden" style="margin-top:0.5rem; background: rgba(0,0,0,0.5); padding: 1rem; border-radius: 10px; border: 1px dashed var(--neon-cyan);">
+                            <div class="code-display" id="shareCode" style="font-size: 2rem; color: var(--neon-cyan); letter-spacing: 5px; text-shadow: 0 0 15px var(--neon-cyan-glow);">000000</div>
+                            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:0.5rem; margin-top:0.5rem;">
+                                <button class="cyber-btn ghost-btn" onclick="copyCode()">Copy Code</button>
+                                <button class="cyber-btn ghost-btn" onclick="copyVerifyLink()">Copy Verify Link</button>
+                            </div>
+                        </div>
+                    </section>
+                </main>
+
+                <main id="tab_analytics" class="hidden">
+                    <div class="glass-card" style="padding:1rem; margin-bottom:1rem;">
+                        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap:0.5rem;">
+                            <select id="f_status" class="cyber-glow-input">
+                                <option value="">All Status</option>
+                                <option value="active">Active</option>
+                                <option value="limit">Limit Reached</option>
+                                <option value="expired">Expired</option>
+                            </select>
+                            <input type="text" id="f_search" class="cyber-glow-input" placeholder="Search Code/IGN">
+                            <button class="cyber-btn primary-btn" onclick="loadAnalytics()">Apply Filters</button>
+                        </div>
+                        <div style="display:flex; gap:0.5rem; align-items:center; margin-top:0.8rem;">
+                            <label class="section-label">Page Size</label>
+                            <select id="pageSize" class="cyber-glow-input" style="max-width:120px;">
+                                <option>10</option>
+                                <option>25</option>
+                                <option>50</option>
+                            </select>
+                            <div style="display:flex; gap:0.5rem; margin-left:auto;">
+                                <button class="cyber-btn ghost-btn" onclick="presetToday()">Today</button>
+                                <button class="cyber-btn ghost-btn" onclick="preset7()">7 Days</button>
+                                <button class="cyber-btn ghost-btn" onclick="preset30()">30 Days</button>
+                                <button class="cyber-btn ghost-btn" onclick="presetAll()">All</button>
+                            </div>
+                            <button class="cyber-btn ghost-btn" onclick="prevPage()">Prev</button>
+                            <button class="cyber-btn ghost-btn" onclick="nextPage()">Next</button>
+                            <span id="pageInfo" style="font-size:0.7rem; color:#94a3b8; margin-left:0.5rem;"></span>
+                        </div>
+                    </div>
+                    <div class="summary-bar">
+                        <div class="summary-item">
+                            <span class="label">Total Codes</span>
+                            <span class="value" id="statTotal">0</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="label">Active Users</span>
+                            <span class="value" id="statActive">0</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="label">Limit Hits</span>
+                            <span class="value" id="statLimit">0</span>
+                        </div>
+                    </div>
+
+                    <div class="code-table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Code</th>
+                                    <th>Target</th>
+                                    <th>Status</th>
+                                    <th>Usage</th>
+                                    <th>Expires</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="analyticsBody"></tbody>
+                        </table>
+                        <div style="margin-top:0.5rem; text-align:right;">
+                            <button class="cyber-btn ghost-btn" onclick="exportCSV()">Export CSV</button>
+                        </div>
+                    </div>
+                </main>
+
+                <main id="tab_profile" class="hidden">
+                    <section class="panel glass-card">
+                        <h3 class="section-label">Brand Identity</h3>
+                        <div class="form-group">
+                            <label class="section-label">Brand Name</label>
+                            <input type="text" id="p_name" class="cyber-glow-input" oninput="updatePreview()">
+                        </div>
+                        <div class="form-group">
+                            <label class="section-label">Logo URL</label>
+                            <input type="text" id="p_logo" class="cyber-glow-input" oninput="updatePreview()">
+                        </div>
+                        <div class="form-group">
+                            <label class="section-label">Theme Color</label>
+                            <input type="color" id="p_color" class="cyber-glow-input" style="height:50px;" oninput="updatePreview()">
+                        </div>
+                        <div class="form-group">
+                            <label class="section-label">Social Handles (YT / IG)</label>
+                            <div style="display:flex; gap:0.5rem;">
+                                <input type="text" id="p_yt" class="cyber-glow-input" placeholder="YouTube" oninput="updatePreview()">
+                                <input type="text" id="p_ig" class="cyber-glow-input" placeholder="Instagram" oninput="updatePreview()">
+                            </div>
+                        </div>
+                        <button class="cyber-btn primary-btn" onclick="updateProfile()">Save Changes</button>
+                    </section>
+                </main>
+            </div>
+
+            <aside class="live-preview-container">
+                <div class="preview-browser-header">
+                    <div class="dot red"></div>
+                    <div class="dot yellow"></div>
+                    <div class="dot green"></div>
+                </div>
+                <span class="logo-chip">Live Preview</span>
+                <iframe id="previewFrame" src="result.html?preview=true"></iframe>
+            </aside>
+        </div>
+    </div>
+
+    <div id="toastBox" style="position:fixed; bottom:1rem; left:50%; transform:translateX(-50%); z-index:9999;"></div>
+    <div id="helpModal" class="modal" style="display:none;">
+      <div class="modal-content">
+        <span class="close-modal" onclick="closeHelp()">×</span>
+        <span class="logo-chip">HELP</span>
+        <h2 style="margin-top:1rem;">How to use the dashboard</h2>
+        <ul style="color:#94a3b8; margin-top:0.8rem;">
+          <li>Generate smart or custom codes</li>
+          <li>Use campaign tags to track promotions</li>
+          <li>Analytics includes filters, pagination, actions</li>
+          <li>Branding configures identity and socials</li>
+        </ul>
+      </div>
+    </div>
+  <div id="wizardModal" class="modal hidden" style="display:none;">
+    <div class="modal-content">
+      <span class="close-modal" onclick="closeWizard()">×</span>
+      <span class="logo-chip">IDENTITY WIZARD</span>
+      <h2 style="margin-top: 1rem;">Configure Brand Identity</h2>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="section-label">Brand Name</label>
+          <input type="text" id="w_name" class="cyber-glow-input">
+        </div>
+        <div class="form-group">
+          <label class="section-label">Logo URL</label>
+          <input type="text" id="w_logo" class="cyber-glow-input">
+        </div>
+        <div class="form-group">
+          <label class="section-label">Theme Color</label>
+          <input type="color" id="w_color" class="cyber-glow-input" style="height:50px;">
+        </div>
+        <div class="form-group">
+          <label class="section-label">Socials</label>
+          <div style="display:flex; gap:0.5rem;">
+            <input type="text" id="w_yt" class="cyber-glow-input" placeholder="YouTube">
+            <input type="text" id="w_ig" class="cyber-glow-input" placeholder="Instagram">
+          </div>
+        </div>
+      </div>
+      <button class="cyber-btn primary-btn" onclick="commitWizard()">Save Identity</button>
+    </div>
+  </div>
+
+    <script src="devices.js"></script>
+    <script src="calculator.js"></script>
+    <script src="app.js"></script>
+    <script src="notifications.js"></script>
+    <script src="vendor_dashboard.js"></script>
+</body>
+</html>

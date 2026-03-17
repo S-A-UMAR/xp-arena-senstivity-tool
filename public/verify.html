@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>XP Arena - Code Verification</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body class="result-body">
+<div class="ambient-glow"></div>
+<div class="app-wrapper">
+  <header class="hero">
+    <span class="logo-chip">XP VERIFY</span>
+    <h1 class="glow-text">Code Status</h1>
+    <p id="statusText" style="color:#94a3b8;"></p>
+  </header>
+  <main class="grid-layout">
+    <section class="panel glass-panel visible">
+      <div class="pro-card-wrapper modern-guide">
+        <header class="card-header">
+          <div class="branding">
+            <h2 class="card-logo" id="vendorId">XP ARENA</h2>
+            <span class="card-title-main">Verification</span>
+          </div>
+        </header>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+          <div class="guide-box">
+            <div class="box-header">
+              <div class="box-title"><label>Entry Code</label></div>
+              <div class="box-value" id="codeVal">------</div>
+            </div>
+          </div>
+          <div class="guide-box">
+            <div class="box-header">
+              <div class="box-title"><label>Status</label></div>
+              <div class="box-value" id="codeStatus">UNKNOWN</div>
+            </div>
+          </div>
+          <div class="guide-box">
+            <div class="box-header">
+              <div class="box-title"><label>Usage</label></div>
+              <div class="box-value" id="codeUsage">0 / ∞</div>
+            </div>
+          </div>
+          <div class="guide-box">
+            <div class="box-header">
+              <div class="box-title"><label>Expires</label></div>
+              <div class="box-value" id="codeExp">PERMANENT</div>
+            </div>
+          </div>
+        </div>
+        <footer class="card-footer-modern">
+          <div class="user-meta">Vendor: <span id="vendorStatus">ACTIVE</span></div>
+          <div id="vendorLinks" style="margin-top:0.5rem;"></div>
+        </footer>
+      </div>
+    </section>
+  </main>
+</div>
+<script>
+  async function init() {
+    const p = new URLSearchParams(window.location.search);
+    const code = p.get('code');
+    if (!code) { document.getElementById('statusText').textContent = 'Missing code parameter'; return; }
+    try {
+      const res = await fetch('/api/vault/code/' + encodeURIComponent(code) + '/status');
+      const data = await res.json();
+      if (res.ok) {
+        document.getElementById('codeVal').textContent = data.entry_code;
+        document.getElementById('vendorId').textContent = (data.vendor_id || 'XP ARENA').toUpperCase();
+        document.getElementById('codeStatus').textContent = data.status.toUpperCase();
+        const limit = data.usage_limit || '∞';
+        document.getElementById('codeUsage').textContent = `${data.current_usage} / ${limit}`;
+        document.getElementById('codeExp').textContent = data.expires_at ? new Date(data.expires_at).toLocaleString() : 'PERMANENT';
+        document.getElementById('vendorStatus').textContent = (data.vendor_status || 'unknown').toUpperCase();
+        document.getElementById('statusText').textContent = 'This code is issued by the vendor and current status is shown below.';
+        const links = document.getElementById('vendorLinks');
+        const socials = data.branding && data.branding.socials ? data.branding.socials : null;
+        if (socials && links) {
+          const yt = socials.yt ? `<a href="${socials.yt}" target="_blank" class="cyber-btn ghost-btn" style="margin-right:0.5rem;">YouTube</a>` : '';
+          const ig = socials.ig ? `<a href="${socials.ig}" target="_blank" class="cyber-btn ghost-btn">Instagram</a>` : '';
+          links.innerHTML = yt + ig;
+        }
+      } else {
+        document.getElementById('statusText').textContent = data.error || 'Not found';
+      }
+    } catch (e) {
+      document.getElementById('statusText').textContent = 'Network error';
+    }
+  }
+  document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
