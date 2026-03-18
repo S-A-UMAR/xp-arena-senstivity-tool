@@ -205,8 +205,17 @@
 
             // Copy Logic with "Haptic" Toast
             document.getElementById('copyBtn').onclick = () => {
-                const text = `XP ARENA ACCESS PROFILE\nDEVICE: ${state.brand} ${state.model}\nGENERAL: ${results.general-3}-${results.general+3}\nRED DOT: ${results.redDot-3}-${results.redDot+3}\nCODE: ${code}`;
+                const text = `XP ARENA ACCESS PROFILE\nDEVICE: ${state.brand || 'UNKNOWN'} ${state.model || 'DEVICE'}\nGENERAL: ${(results.general || 0)-3}-${(results.general || 0)+3}\nRED DOT: ${(results.redDot || 0)-3}-${(results.redDot || 0)+3}\nCODE: ${code}`;
                 navigator.clipboard.writeText(text).then(() => {
+                    // Track Conversion Ping
+                    try {
+                        fetch('/api/vault/action', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ action: 'copy_text', code: code })
+                        });
+                    } catch (e) {}
+
                     if (window.notify) {
                         window.notify('PROFILE_COPIED_TO_CLIPBOARD', 'haptic');
                     }

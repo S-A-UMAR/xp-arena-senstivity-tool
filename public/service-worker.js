@@ -1,48 +1,49 @@
-const CACHE_NAME = 'xp-arena-v4';
+const CACHE_NAME = 'xp-arena-v1';
 const ASSETS = [
-  '/',
-  '/index.html',
-  '/result.html',
-  '/verify.html',
-  '/styles.css',
-  '/app.js',
-  '/devices.js',
-  '/translations.js',
-  '/audio.js',
-  '/manifest.json',
-  '/icons/icon-192.png',
-  '/icons/icon-512.png'
+    '/',
+    '/index.html',
+    '/styles.css',
+    '/app.js',
+    '/devices.js',
+    '/calculator.js',
+    '/manifest.json'
 ];
 
-self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
-  );
+self.addEventListener('install', (e) => {
+    e.waitUntil(
+        caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
+    );
 });
 
-self.addEventListener('activate', (event) => {
-  event.waitUntil((async () => {
-    const keys = await caches.keys();
-    await Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)));
-    await self.clients.claim();
-  })());
+self.addEventListener('activate', (e) => {
+    e.waitUntil(
+        caches.keys().then(keys => {
+            return Promise.all(
+                keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))
+            );
+        })
+    );
 });
 
-self.addEventListener('fetch', (event) => {
-  const url = new URL(event.request.url);
-  if (url.pathname.includes('/admin.html') || url.pathname.includes('/vendor_dashboard.html') || url.pathname.startsWith('/api/')) {
-    event.respondWith(fetch(event.request));
-    return;
-  }
-  event.respondWith((async () => {
-    const cached = await caches.match(event.request);
-    const network = fetch(event.request).then(async resp => {
-      if (resp && resp.status === 200 && resp.type === 'basic') {
-        const cache = await caches.open(CACHE_NAME);
-        await cache.put(event.request, resp.clone());
-      }
-      return resp;
-    }).catch(() => cached);
-    return cached || network;
-  })());
+self.addEventListener('fetch', (e) => {
+    // Only cache GET requests going to our origin
+    if (e.request.method !== 'GET' || !e.request.url.startsWith(self.location.origin)) {
+        return;
+    }
+    
+    // API calls bypass cache
+    if (e.request.url.includes('/api/')) {
+        return;
+    }
+
+    e.respondWith(
+        caches.match(e.request).then(res => {
+            return res || fetch(e.request).catch(() => {
+                // If offline and request fails, try serving the index.html explicitly
+                if (e.request.destination === 'document') {
+                    return caches.match('/index.html');
+                }
+            });
+        })
+    );
 });

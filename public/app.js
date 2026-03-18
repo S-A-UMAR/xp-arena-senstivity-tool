@@ -106,21 +106,19 @@ const UI = {
     },
 
     notify(message, type = 'info') {
-        const toast = this.elements.notifyToast;
-        if (!toast) return;
-        
-        toast.textContent = message;
-        toast.className = `notify-toast visible type-${type}`;
-        toast.style.display = 'block';
-        
-        setTimeout(() => {
-            toast.style.display = 'none';
-            toast.classList.remove('visible');
-        }, 3000);
+        if (window.notify) {
+            window.notify(message, type);
+        }
     },
 
     attachVaultListeners() {
         if (!this.elements.vaultInput) return;
+
+        // 🧠 Auto-Remember Functionality
+        const savedCode = localStorage.getItem('xp_last_entry_code');
+        if (savedCode) {
+            this.elements.vaultInput.value = savedCode;
+        }
 
         this.elements.vaultInput.addEventListener('input', (e) => {
             const code = e.target.value.toUpperCase();
@@ -238,6 +236,18 @@ const UI = {
             opt.value = opt.textContent = b.brand;
             this.elements.brand.appendChild(opt);
         });
+
+        // 📱 Device Auto-Detection
+        const ua = navigator.userAgent.toLowerCase();
+        if (ua.includes('iphone') || ua.includes('ipad')) {
+            this.elements.brand.value = 'Apple';
+            state.brand = 'Apple';
+            this.updateSeriesDropdown();
+        } else if (ua.includes('samsung')) {
+            this.elements.brand.value = 'Samsung';
+            state.brand = 'Samsung';
+            this.updateSeriesDropdown();
+        }
     },
 
     attachCalibrationListeners() {

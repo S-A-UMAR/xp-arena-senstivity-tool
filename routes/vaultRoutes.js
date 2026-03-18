@@ -184,6 +184,25 @@ async function getGlobalOffset() {
     }
 }
 
+// POST /api/vault/action (Conversion Tracking)
+router.post('/action', async (req, res) => {
+    try {
+        const schema = z.object({
+            action: z.string(),
+            code: z.string().optional()
+        });
+        const { action, code } = schema.parse(req.body);
+        if (code) {
+            console.log(`[CONVERSION TRACKING] Action: ${action} | Code: ${code}`);
+            // Here you could update a `metrics` table:
+            // await db.run('UPDATE vendor_analytics SET usages = usages + 1 WHERE lookup_key = ?', [getLookupKey(code)]);
+        }
+        res.json({ ok: 1 });
+    } catch (e) {
+        res.status(400).json({ error: 'invalid_event' });
+    }
+});
+
 // POST /api/vault/verify
 router.post('/verify', async (req, res) => {
     try {

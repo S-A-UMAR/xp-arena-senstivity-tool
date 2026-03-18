@@ -206,6 +206,15 @@ CLOUD</p>
         setInterval(updateTerminal, 1000);
         updateTerminal();
 
+        // ✨ Ambient Glow Parallax
+        document.addEventListener('mousemove', (e) => {
+            const glow = document.querySelector('.ambient-glow');
+            if (!glow) return;
+            const x = (e.clientX / window.innerWidth - 0.5) * 20; // max 10px move
+            const y = (e.clientY / window.innerHeight - 0.5) * 20;
+            glow.style.transform = `translate(${x}px, ${y}px)`;
+        });
+
         // 🛰️ Mock IP Fetch
         fetch('https://api.ipify.org?format=json')
             .then(res => res.json())
