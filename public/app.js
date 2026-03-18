@@ -157,12 +157,14 @@ const UI = {
                     user_region: state.rank
                 })
             });
-
-            let data;
-            try {
+            const contentType = response.headers.get('content-type');
+            let data = {};
+            if (contentType && contentType.includes('application/json')) {
                 data = await response.json();
-            } catch (err) {
-                throw new Error('SERVER_RESPONSE_MALFORMED');
+            } else {
+                const text = await response.text();
+                console.warn('NON_JSON_OVERRIDE:', text.substring(0, 100));
+                data = { error: 'SERVER_OFFLINE // DB_SYNC_REQUIRED' };
             }
 
             if (!response.ok) {
