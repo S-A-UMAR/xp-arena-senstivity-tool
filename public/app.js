@@ -123,10 +123,6 @@ const UI = {
         this.elements.vaultInput.addEventListener('input', (e) => {
             const code = e.target.value.toUpperCase();
             e.target.value = code;
-            
-            if (code.length >= 6) {
-                this.verifyVault(code);
-            }
         });
 
         this.elements.vaultInput.addEventListener('keydown', (e) => {
@@ -155,12 +151,18 @@ const UI = {
                 })
             });
 
-            const data = await response.json();
+            let data;
+            try {
+                data = await response.json();
+            } catch (err) {
+                throw new Error('SERVER_RESPONSE_MALFORMED');
+            }
 
             if (!response.ok) {
-                status.textContent = data.error || 'INVALID AUTHENTICATION';
+                status.textContent = data?.error || 'INVALID AUTHENTICATION';
                 input.classList.add('error');
                 if (window.SFX) window.SFX.play('click');
+                this.verifying = false;
                 return;
             }
 
