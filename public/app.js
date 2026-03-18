@@ -76,6 +76,8 @@ const UI = {
         vaultOverlay: document.getElementById('vaultOverlay'),
         vaultInput: document.getElementById('vaultInput'),
         vaultStatus: document.getElementById('vaultStatus'),
+        vaultAuthBtn: document.getElementById('vaultAuthBtn'),
+        scannerOverlay: document.getElementById('scannerOverlay'),
         appContainer: document.getElementById('appContainer'),
         
         brand: document.getElementById('brandSelect'),
@@ -121,9 +123,14 @@ const UI = {
         }
 
         this.elements.vaultInput.addEventListener('input', (e) => {
-            const code = e.target.value.toUpperCase();
-            e.target.value = code;
+            e.target.value = e.target.value.toUpperCase();
         });
+
+        if (this.elements.vaultAuthBtn) {
+            this.elements.vaultAuthBtn.onclick = () => {
+                this.verifyVault(this.elements.vaultInput.value);
+            };
+        }
 
         this.elements.vaultInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') this.verifyVault(e.target.value.toUpperCase());
@@ -159,7 +166,7 @@ const UI = {
             }
 
             if (!response.ok) {
-                status.textContent = data?.error || 'INVALID AUTHENTICATION';
+                status.textContent = data.error || 'INVALID AUTHENTICATION';
                 input.classList.add('error');
                 if (window.SFX) window.SFX.play('click');
                 this.verifying = false;
@@ -227,6 +234,7 @@ const UI = {
         } catch (e) {
             this.verifying = false;
             status.textContent = 'ENCRYPTION ERROR // RETRY';
+            console.error('VAULT_ERR:', e);
         }
     },
 

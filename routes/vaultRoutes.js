@@ -362,7 +362,15 @@ router.post('/verify', async (req, res) => {
         return res.status(404).json({ error: 'INVALID ACCESS KEY' });
     } catch (e) {
         console.error('Vault Verification Error:', e);
-        res.status(500).json({ error: 'VAULT SYSTEM ERROR' });
+        let errorMsg = 'VAULT SYSTEM ERROR';
+        if (e.message.includes('ECONNREFUSED') || e.message.includes('Access denied') || e.message.includes('connect')) {
+            errorMsg = 'DATABASE DISCONNECTED: Please configure remote Database Environment Variables in Vercel.';
+        } else if (e.message.includes('Table')) {
+            errorMsg = 'DATABASE MIGRATION REQUIRED: Tables do not exist in the remote database.';
+        } else {
+            errorMsg = \`VAULT SYSTEM ERROR: \${e.message}\`;
+        }
+        res.status(500).json({ error: errorMsg });
     }
 });
 
