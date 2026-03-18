@@ -627,14 +627,15 @@ router.get('/org/creators', async (req, res) => {
     try {
         const creators = await db.all(`
             SELECT v.vendor_id as name, 
-            (SELECT COUNT(*) FROM sensitivity_keys WHERE vendor_id = v.vendor_id) as keys,
+            (SELECT COUNT(*) FROM sensitivity_keys WHERE vendor_id = v.vendor_id) as total_keys,
             (SELECT COUNT(*) FROM code_activity ca JOIN sensitivity_keys sk ON ca.lookup_key = sk.lookup_key WHERE sk.vendor_id = v.vendor_id) as clicks
             FROM vendors v
             LIMIT 10
         `);
         res.json(creators);
     } catch (e) {
-        res.status(500).json({ error: 'CREATOR_DATA_ERR' });
+        console.error('🚫 CREATOR_DATA_CRITICAL_FAILURE:', e);
+        res.status(500).json({ error: 'CREATOR_DATA_ERR', details: e.message });
     }
 });
 
