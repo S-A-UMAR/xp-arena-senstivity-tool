@@ -24,41 +24,49 @@ async function migrate() {
         const dbName = process.env.DB_NAME || 'xp_sensitivity_tool';
         await connection.query(`CREATE DATABASE IF NOT EXISTS \`${dbName}\``);
         await connection.query(`USE \`${dbName}\``);
-
-        const [existing] = await connection.query(
-            `SELECT COUNT(*) AS c
-             FROM information_schema.tables
-             WHERE table_schema = ? AND table_name = 'vendors'`,
-            [dbName]
-        );
-
-        if (!existing[0] || existing[0].c === 0) {
-            let sql = fs.readFileSync(path.join(__dirname, 'unified_schema.sql'), 'utf8');
-            sql = sql.replace(/CREATE DATABASE IF NOT EXISTS\s+\w+;/i, `CREATE DATABASE IF NOT EXISTS \`${dbName}\`;`);
-            sql = sql.replace(/USE\s+\w+;/i, `USE \`${dbName}\`;`);
-            console.log('Fresh database detected. Executing unified migration script...');
-            await connection.query(sql);
-        } else {
-            console.log('Existing database detected. Skipping full seed script (non-destructive mode).');
+ 
+        // ⚡ CRITICAL FIX: Recreate organizations table with correct collation for FK compatibility
+        try {
+            await connection.query(`DROP TABLE IF EXISTS organizations`);
+            console.log('✅ Dropped organizations for collation realignment.');
+        } catch (e) {
+            console.error('Failed to drop organizations:', e.message);
         }
+
+        console.log('Synchronizing schema with unified_schema.sql...');
+        let sql = fs.readFileSync(path.join(__dirname, 'unified_schema.sql'), 'utf8');
+        // Ensure the correct database is used in the script
+        sql = sql.replace(/CREATE DATABASE IF NOT EXISTS\s+[\w`]+;/i, `CREATE DATABASE IF NOT EXISTS \`${dbName}\`;`);
+        sql = sql.replace(/USE\s+[\w`]+;/i, `USE \`${dbName}\`;`);
+        await connection.query(sql);
+        console.log('✅ Schema base layer synchronized.');
 
         console.log('Schema alignment + seed normalization...');
         console.log('Database Name:', dbName);
 
         // Post-seed normalization: hash admin vendor key and set lookup_key
         try {
-            // Align schema via ALTERs (idempotent for TiDB/MySQL 8.0.19+)
-            await connection.query(`ALTER TABLE vendors ADD COLUMN IF NOT EXISTS lookup_key VARCHAR(20) UNIQUE NULL`);
+            // Align schema via ALTERs (TiDB compatible: split column add and index/unique)
+            await connection.query(`ALTER TABLE vendors ADD COLUMN IF NOT EXISTS org_id VARCHAR(50) NULL`);
+            await connection.query(`ALTER TABLE vendors ADD COLUMN IF NOT EXISTS lookup_key VARCHAR(20) NULL`);
             await connection.query(`ALTER TABLE vendors ADD COLUMN IF NOT EXISTS active_until DATETIME NULL`);
             await connection.query(`ALTER TABLE vendors ADD COLUMN IF NOT EXISTS webhook_url VARCHAR(500) NULL`);
             await connection.query(`ALTER TABLE vendors ADD COLUMN IF NOT EXISTS usage_limit INT NULL`);
             
-            await connection.query(`ALTER TABLE sensitivity_keys ADD COLUMN IF NOT EXISTS lookup_key VARCHAR(16) UNIQUE NOT NULL`);
+            // Add foreign key for org_id if it doesn't exist
+            try { await connection.query(`ALTER TABLE vendors ADD CONSTRAINT fk_vendor_org FOREIGN KEY (org_id) REFERENCES organizations(org_id) ON DELETE SET NULL`); } catch(e) {}
+            
+            // Add unique constraint for lookup_key
+            try { await connection.query(`ALTER TABLE vendors ADD UNIQUE INDEX IF NOT EXISTS idx_vendor_lookup (lookup_key)`); } catch(e) {}
+            
+            await connection.query(`ALTER TABLE sensitivity_keys ADD COLUMN IF NOT EXISTS lookup_key VARCHAR(16) NOT NULL`);
             await connection.query(`ALTER TABLE sensitivity_keys ADD COLUMN IF NOT EXISTS creator_advice TEXT NULL`);
             await connection.query(`ALTER TABLE sensitivity_keys ADD COLUMN IF NOT EXISTS custom_results_json JSON NULL`);
             await connection.query(`ALTER TABLE sensitivity_keys ADD COLUMN IF NOT EXISTS usage_limit INT NULL`);
             await connection.query(`ALTER TABLE sensitivity_keys ADD COLUMN IF NOT EXISTS current_usage INT DEFAULT 0`);
             await connection.query(`ALTER TABLE sensitivity_keys ADD COLUMN IF NOT EXISTS expires_at DATETIME NULL`);
+            
+            try { await connection.query(`ALTER TABLE sensitivity_keys ADD UNIQUE INDEX IF NOT EXISTS idx_key_lookup (lookup_key)`); } catch(e) {}
 
             await connection.query(`ALTER TABLE code_activity ADD COLUMN IF NOT EXISTS lookup_key VARCHAR(16) NOT NULL`);
             await connection.query(`ALTER TABLE code_activity ADD COLUMN IF NOT EXISTS feedback_rating INT NULL`);

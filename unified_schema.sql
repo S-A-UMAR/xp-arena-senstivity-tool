@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS organizations (
     plan_tier ENUM('basic', 'pro', 'enterprise') DEFAULT 'pro',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 -- 2. Vendors Table (Creators/Service Providers)
 CREATE TABLE IF NOT EXISTS vendors (
@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS vendors (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (org_id) REFERENCES organizations(org_id) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 -- 3. Sensitivity Keys Table (Generated Access Codes)
 CREATE TABLE IF NOT EXISTS sensitivity_keys (
@@ -49,7 +49,7 @@ CREATE TABLE IF NOT EXISTS sensitivity_keys (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     expires_at DATETIME DEFAULT NULL,
     FOREIGN KEY (vendor_id) REFERENCES vendors(vendor_id) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 -- 4. User Events Table (Conversion Tracking & Analytics)
 CREATE TABLE IF NOT EXISTS user_events (
@@ -63,7 +63,7 @@ CREATE TABLE IF NOT EXISTS user_events (
     INDEX (org_id),
     INDEX (vendor_id),
     INDEX (event_type)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 -- 5. Audit Logs Table (Admin Security Tracking)
 CREATE TABLE IF NOT EXISTS audit_logs (
@@ -74,7 +74,7 @@ CREATE TABLE IF NOT EXISTS audit_logs (
     details JSON,
     ip_address VARCHAR(45),
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 -- 6. Code Activity Table (Verification Tracking with Feedback)
 CREATE TABLE IF NOT EXISTS code_activity (
@@ -88,7 +88,7 @@ CREATE TABLE IF NOT EXISTS code_activity (
     feedback_comment TEXT DEFAULT NULL,
     INDEX (entry_code),
     INDEX (lookup_key)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 -- 7. Security Logs Table (Fraud Detection)
 CREATE TABLE IF NOT EXISTS security_logs (
@@ -99,7 +99,7 @@ CREATE TABLE IF NOT EXISTS security_logs (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     INDEX (ip_address),
     INDEX (event_type)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 -- 8. System Settings Table (Global Config)
 CREATE TABLE IF NOT EXISTS system_settings (
