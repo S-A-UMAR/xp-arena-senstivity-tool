@@ -628,7 +628,7 @@ router.get('/org/creators', async (req, res) => {
         const creators = await db.all(`
             SELECT v.vendor_id as name, 
             (SELECT COUNT(*) FROM sensitivity_keys WHERE vendor_id = v.vendor_id) as keys,
-            (SELECT COUNT(*) FROM code_activity ca JOIN sensitivity_keys sk ON ca.entry_code = sk.entry_code WHERE sk.vendor_id = v.vendor_id) as clicks
+            (SELECT COUNT(*) FROM code_activity ca JOIN sensitivity_keys sk ON ca.lookup_key = sk.lookup_key WHERE sk.vendor_id = v.vendor_id) as clicks
             FROM vendors v
             LIMIT 10
         `);
