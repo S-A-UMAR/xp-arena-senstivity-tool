@@ -738,18 +738,25 @@ router.post('/admin/vendors', authenticateAdmin, async (req, res) => {
 
         res.json({ success: true, message: 'VENDOR REGISTERED SUCCESSFULLY', vendorId, accessKey });
     } catch (e) {
-        console.error('POST /admin/vendors error:', e);
+        console.error('🚫 VENDOR_REGISTRATION_CRITICAL_FAILURE:', e);
         if (e instanceof z.ZodError) return res.status(400).json({ error: 'INVALID_INPUT_DATA', details: e.errors });
         
-        // 💡 Educational Hint: Most common cause for 500 on live is missing DB columns
+        // 💡 Specialized Debugging for Database Schema Mismatches
         let errorMsg = 'SERVER_ERROR_DURING_REGISTRATION';
         if (e.message.includes('Unknown column') || e.message.includes('Table')) {
-            errorMsg = `DATABASE_SCHEMA_OUTDATED: ${e.message}. Please run 'npm run migrate' on the live server.`;
+            errorMsg = `DATABASE_SCHEMA_OUTDATED: ${e.message}. Please run 'npm run migrate' on the live server or manually update tables using unified_schema.sql.`;
         } else if (e.code === 'ER_DUP_ENTRY') {
             return res.status(409).json({ error: 'VENDOR_ID_ALREADY_EXISTS' });
+        } else if (e.message.includes('connect') || e.message.includes('Access denied')) {
+            errorMsg = `DATABASE_CONNECTION_ERROR: ${e.message}. Check your Vercel Environment Variables.`;
+        } else {
+            errorMsg = `SYSTEM_LOGIC_ERROR: ${e.message}`;
         }
         
-        res.status(500).json({ error: errorMsg });
+        res.status(500).json({ 
+            error: errorMsg,
+            debug: process.env.NODE_ENV !== 'production' ? e.stack : undefined
+        });
     }
 });
 
