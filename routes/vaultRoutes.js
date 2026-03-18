@@ -716,6 +716,11 @@ router.post('/admin/vendors', authenticateAdmin, async (req, res) => {
         const hashedAccessKey = await bcrypt.hash(accessKey, 10);
         const lookupKey = getLookupKey(accessKey);
 
+        // Ensure core org row exists before FK-bound vendor insert
+        await db.run(
+            "INSERT IGNORE INTO organizations (org_id, org_name) VALUES ('XP-CORE-ORG', 'XP ARENA GLOBAL')"
+        );
+
         await db.run(`
             INSERT INTO vendors (org_id, vendor_id, access_key, lookup_key, usage_limit, brand_config, status)
             VALUES (?, ?, ?, ?, ?, ?, 'active')
@@ -726,9 +731,9 @@ router.post('/admin/vendors', authenticateAdmin, async (req, res) => {
         res.json({ success: true, message: 'VENDOR REGISTERED SUCCESSFULLY', vendorId, accessKey });
     } catch (e) {
         console.error('POST /admin/vendors error:', e);
-        if (e instanceof z.ZodError) return res.status(400).json({ error: 'INVALID_INPUT_DATA', details: e.errors });
-        if (e.code === 'ER_DUP_ENTRY') return res.status(409).json({ error: 'VENDOR_ID_ALREADY_EXISTS' });
-        res.status(500).json({ error: 'SERVER_ERROR_DURING_REGISTRATION' });
+        if (e instanceof z.ZodError) return res.status(400).json({ error: 'Invalid input' });
+        if (e && e.code === 'ER_DUP_ENTRY') return res.status(409).json({ error: 'VENDOR_ALREADY_EXISTS' });
+        res.status(500).json({ error: 'Server error' });
     }
 });
 
