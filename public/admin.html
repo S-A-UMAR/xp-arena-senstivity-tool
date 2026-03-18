@@ -590,7 +590,19 @@
             if (body) options.body = JSON.stringify(body);
             const res = await fetch(path, options);
             if (res.status === 401) return logoutAdmin();
-            if (!res.ok) throw new Error((await res.json()).error || 'API_ERR');
+            if (!res.ok) {
+                let errMsg = 'API_ERR';
+                try {
+                    const data = await res.json();
+                    errMsg = data.error || data.message || errMsg;
+                } catch (_e) {
+                    try {
+                        const txt = await res.text();
+                        if (txt) errMsg = txt.slice(0, 120);
+                    } catch (__e) {}
+                }
+                throw new Error(errMsg);
+            }
             return res.json();
         }
 
@@ -632,6 +644,13 @@
             if (targetSection) targetSection.classList.remove('hidden');
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             if (el) el.classList.add('active');
+            if (tabId === 'tool') initTool();
+            if (tabId === 'analytics') {
+                loadSecurityLogs();
+            }
+            if (tabId === 'vendors') {
+                loadDashboard();
+            }
         }
 
         function toggleActionSheet(show) {
@@ -781,14 +800,26 @@
         }
 
         async function addVendor() {
-            const vid = document.getElementById('vName').value;
-            if (!vid) return alert("NAME_REQUIRED");
+            const vid = document.getElementById('vName').value.trim();
+            const brand = document.getElementById('vBrand').value.trim();
+            const vLimit = parseInt(document.getElementById('vLimit').value, 10);
+            if (!vid || vid.length < 2) return alert("NAME_REQUIRED (MIN 2 CHARS)");
             try {
-                const res = await api('/api/vault/admin/vendors', 'POST', { vendorId: vid });
+                const payload = {
+                    vendorId: vid,
+                    brandConfig: {
+                        display_name: brand || vid,
+                        limit_hint: Number.isFinite(vLimit) ? vLimit : null
+                    }
+                };
+                const res = await api('/api/vault/admin/vendors', 'POST', payload);
                 alert(`PROVISIONED: ${res.accessKey}`);
+                document.getElementById('vName').value = '';
+                document.getElementById('vBrand').value = '';
+                document.getElementById('vLimit').value = '';
                 toggleActionSheet(false);
                 loadDashboard();
-            } catch (e) { alert(e.message); }
+            } catch (e) { alert(`VENDOR_CREATE_FAILED: ${e.message}`); }
         }
 
         async function toggleStatus(id, current) {

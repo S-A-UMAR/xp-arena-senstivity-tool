@@ -698,7 +698,14 @@ router.post('/admin/vendors', authenticateAdmin, async (req, res) => {
         const { vendorId: requestedId, brandConfig } = schema.parse(req.body);
         
         // Generate Vendor ID if not provided, or clean up provided one
-        const vendorId = requestedId ? requestedId.toUpperCase().replace(/\s+/g, '-') : 'VNDR-' + Math.random().toString(36).substring(2, 7).toUpperCase();
+        const normalizedRequestedId = requestedId
+            ? requestedId.trim().toUpperCase().replace(/\s+/g, '-').replace(/[^A-Z0-9-]/g, '')
+            : '';
+        const vendorId = normalizedRequestedId || 'VNDR-' + Math.random().toString(36).substring(2, 7).toUpperCase();
+        if (vendorId.length < 2) return res.status(400).json({ error: 'INVALID_VENDOR_ID' });
+
+        const existing = await db.get('SELECT vendor_id FROM vendors WHERE vendor_id = ?', [vendorId]);
+        if (existing) return res.status(409).json({ error: 'VENDOR_ALREADY_EXISTS' });
 
         // Custom Access Key Format: XP-[VENDOR_ID]-[RANDOM_4_DIGITS]
         const randomDigits = Math.floor(1000 + Math.random() * 9000);
@@ -718,6 +725,7 @@ router.post('/admin/vendors', authenticateAdmin, async (req, res) => {
     } catch (e) {
         console.error('POST /admin/vendors error:', e);
         if (e instanceof z.ZodError) return res.status(400).json({ error: 'Invalid input' });
+        if (e && e.code === 'ER_DUP_ENTRY') return res.status(409).json({ error: 'VENDOR_ALREADY_EXISTS' });
         res.status(500).json({ error: 'Server error' });
     }
 });

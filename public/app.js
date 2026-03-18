@@ -90,6 +90,7 @@ const UI = {
         brand: document.getElementById('brandSelect'),
         series: document.getElementById('seriesSelect'),
         model: document.getElementById('modelSelect'),
+        ramSelect: document.getElementById('ramSelect'),
         
         sensInput: document.getElementById('sensInput'),
         sensLabel: document.getElementById('sensLabel'),
@@ -270,11 +271,12 @@ const UI = {
     },
 
     attachCalibrationListeners() {
-        const { brand, series, model, sensInput, manualSens, calculateBtn, gripBtns } = this.elements;
+        const { brand, series, model, ramSelect, sensInput, manualSens, calculateBtn, gripBtns } = this.elements;
 
         brand.addEventListener('change', () => {
             state.brand = brand.value;
             this.updateSeriesDropdown();
+            this.autoSetRamForModel();
         });
 
         series.addEventListener('change', () => {
@@ -284,8 +286,15 @@ const UI = {
 
         model.addEventListener('change', () => {
             state.model = model.value;
+            this.autoSetRamForModel();
             this.saveProfile();
         });
+
+        if (ramSelect) {
+            ramSelect.addEventListener('change', () => {
+                state.ram = parseInt(ramSelect.value, 10) || 8;
+            });
+        }
 
         sensInput.addEventListener('input', (e) => {
             state.neuralScale = parseFloat(e.target.value);
@@ -348,6 +357,37 @@ const UI = {
             model.appendChild(opt);
         });
         model.disabled = false;
+    },
+
+    estimateRamByModel() {
+        const brand = (state.brand || '').toLowerCase();
+        const model = (state.model || '').toLowerCase();
+        if (!model) return 8;
+        if (brand === 'apple') {
+            if (model.includes('17') || model.includes('16') || model.includes('15 pro') || model.includes('14 pro')) return 8;
+            if (model.includes('13 pro') || model.includes('12 pro')) return 6;
+            return 4;
+        }
+        if (/(ultra|pro\+|rog|redmagic|gaming|gt|x100|12|11|10 pro)/.test(model)) return 12;
+        if (/(plus|note|neo|f\d|x\d|v\d|reno|nord|pova|camon)/.test(model)) return 8;
+        return 6;
+    },
+
+    autoSetRamForModel() {
+        const ramGroup = document.getElementById('ramGroup');
+        const ramSelect = this.elements.ramSelect;
+        if (!ramSelect || !ramGroup) return;
+
+        if ((state.brand || '').toLowerCase() === 'apple') {
+            state.ram = this.estimateRamByModel();
+            ramSelect.value = String(state.ram);
+            ramGroup.style.display = 'none';
+            return;
+        }
+
+        ramGroup.style.display = 'block';
+        state.ram = this.estimateRamByModel();
+        ramSelect.value = String(state.ram);
     },
 
     async handleCalculate() {
@@ -415,6 +455,10 @@ const UI = {
             this.elements.sensInput.value = state.neuralScale;
             this.elements.sensLabel.textContent = state.neuralScale.toFixed(1);
         }
+        if (this.elements.ramSelect) {
+            this.elements.ramSelect.value = String(state.ram || 8);
+        }
+        this.autoSetRamForModel();
     },
        initLanguage() {
         this.applyLang();
@@ -439,6 +483,8 @@ const UI = {
         // 🛡️ Special Case Handling (Selects, etc)
         const brandLabel = document.querySelector('#hardwareSection .form-group .form-label');
         if (brandLabel) brandLabel.textContent = dict.brandLabel || 'Device Architecture';
+        const ramLabel = document.querySelector('#ramGroup .form-label');
+        if (ramLabel) ramLabel.textContent = dict.ramLabel || 'Hardware RAM';
         
         const calcBtn = document.getElementById('calculateBtn');
         if (calcBtn) calcBtn.textContent = dict.calcBtn || 'GENERATE OPTIMIZED GUIDE';
