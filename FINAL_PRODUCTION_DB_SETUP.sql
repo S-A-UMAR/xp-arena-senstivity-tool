@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS vendors (
     access_key VARCHAR(100) UNIQUE NOT NULL, -- bcrypt hash
     lookup_key VARCHAR(20) UNIQUE DEFAULT NULL,
     active_until DATETIME DEFAULT NULL,
+    webhook_url VARCHAR(500) DEFAULT NULL,
     brand_config JSON NOT NULL, 
     status ENUM('active', 'suspended') DEFAULT 'active',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -39,6 +40,7 @@ CREATE TABLE IF NOT EXISTS sensitivity_keys (
     lookup_key VARCHAR(16) UNIQUE NOT NULL,
     vendor_id VARCHAR(50),
     results_json JSON NOT NULL,
+    creator_advice TEXT DEFAULT NULL,
     custom_results_json JSON DEFAULT NULL,
     usage_limit INT DEFAULT NULL,
     current_usage INT DEFAULT 0,
@@ -110,10 +112,8 @@ CREATE TABLE IF NOT EXISTS system_settings (
 
 INSERT IGNORE INTO organizations (org_id, org_name, plan_tier) VALUES ('XP-CORE-ORG', 'XP ARENA GLOBAL', 'enterprise');
 
--- NOTE: Hashed Access Key for 'XP-2008' is $2b$10$8bg2W.b7yxuHVFNyj98qzuGpPSjXwFp.YVX9MahbBVqj1t5S/VtNi
--- For manual SQL, we provide the correct hash for XP-2008:
-INSERT IGNORE INTO vendors (org_id, vendor_id, access_key, lookup_key, brand_config, status) VALUES 
-('XP-CORE-ORG', 'XP-ADMIN', '$2b$10$8bg2W.b7yxuHVFNyj98qzuGpPSjXwFp.YVX9MahbBVqj1t5S/VtNi', '17a6f27ba4', '{"logo": "", "colors": {"primary": "#00f0ff"}, "socials": {}}', 'active');
+-- NOTE: Do NOT hardcode admin credentials in SQL.
+-- Provision XP-ADMIN vendor from environment secret in migrate.js (ADMIN_SECRET / SEED_VENDOR_KEY).
 
 INSERT IGNORE INTO system_settings (setting_key, setting_value) VALUES ('global_sensitivity_offset', '1.0');
 
