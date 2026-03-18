@@ -57,7 +57,35 @@ body {
     min-height: 100vh;
 }
 
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: var(--bg-dark);
+}
+::-webkit-scrollbar-thumb {
+    background: rgba(0, 240, 255, 0.2);
+    border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-primary);
+}
+
+/* Shake Animation (Form Validation) */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-5px); }
+    40%, 80% { transform: translateX(5px); }
+}
+.shake {
+    animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+    border-color: #ff4444 !important;
+}
+
 /* Dynamic Ambient Glows */
+
 .ambient-glow {
     position: fixed;
     width: 150vw;
@@ -280,7 +308,7 @@ body {
 }
 
 .action-btn:active {
-    transform: scale(0.98);
+    transform: scale(0.95);
 }
 
 .action-btn:disabled {
@@ -713,35 +741,68 @@ body {
 }
 .range-sep { opacity: 0.3; }
 
-/* Follow Creator Fixed Button */
+/* 🔗 Social Icons & Result Polish */
 .follow-creator-bar {
     position: fixed;
     bottom: 0;
     left: 0;
-    right: 0;
-    background: rgba(10, 10, 10, 0.9);
-    backdrop-filter: blur(20px);
-    border-top: 1px solid var(--glass-border);
-    padding: 1rem;
+    width: 100%;
+    padding: 1.5rem;
+    background: rgba(10, 10, 10, 0.85);
+    backdrop-filter: blur(30px);
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
     z-index: 1000;
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    align-items: center;
 }
+
+.social-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: white;
+    text-decoration: none;
+    font-size: 0.65rem;
+    font-weight: 800;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 8px 16px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.social-link svg {
+    flex-shrink: 0;
+}
+.social-link span {
+    line-height: 1;
+}
+.social-link:active {
+    transform: scale(0.92);
+    background: rgba(255, 255, 255, 0.05);
+    border-color: var(--accent-primary);
+}
+
+.social-link.youtube { color: #ff0000; border-color: rgba(255, 0, 0, 0.2); }
+.social-link.tiktok { color: #00f2fe; border-color: rgba(0, 242, 254, 0.2); }
+.social-link.discord { color: #5865f2; border-color: rgba(88, 101, 242, 0.2); }
 
 .btn-follow {
     width: 100%;
     max-width: 400px;
-    background: #fff;
+    background: var(--accent-primary);
     color: #000;
     border: none;
     padding: 1rem;
-    border-radius: 12px;
-    font-weight: 900;
-    text-transform: uppercase;
+    border-radius: 16px;
+    font-weight: 800;
     font-size: 0.8rem;
-    letter-spacing: 0.1em;
     cursor: pointer;
-    box-shadow: 0 0 20px rgba(255,255,255,0.1);
+    box-shadow: 0 0 20px var(--accent-primary-glow);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-top: 1rem;
 }
 
 @keyframes scan-line {

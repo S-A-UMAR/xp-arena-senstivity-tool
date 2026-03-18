@@ -382,28 +382,30 @@ const UI = {
             this.elements.sensLabel.textContent = state.neuralScale.toFixed(1);
         }
     },
-    
-    initLanguage() {
-        const sel = document.getElementById('langSelect');
-        if (!sel) return;
-        sel.value = state.lang || 'en';
-        sel.addEventListener('change', () => {
-            state.lang = sel.value;
-            localStorage.setItem('xp_lang', state.lang);
-            this.applyLang();
-        });
+       initLanguage() {
         this.applyLang();
     },
     applyLang() {
-        const dict = (window.LANGUAGES && window.LANGUAGES[state.lang]) || window.LANGUAGES?.en;
+        const lang = localStorage.getItem('xp_lang') || 'en';
+        const dict = (window.LANGUAGES && window.LANGUAGES[lang]) || window.LANGUAGES?.en;
         if (!dict) return;
-        const map = [
-            { sel: 'h1.title-main', text: 'NEURAL\nCALIBRATION' },
-            { sel: 'header p', text: dict.heroSubtitle || 'NEURAL SENSITIVITY CALIBRATOR' },
-            { sel: 'label.form-label', attr: null }
-        ];
-        const brand = document.querySelector('#hardwareSection .form-group .form-label');
-        if (brand) brand.textContent = dict.brandLabel || 'Device Architecture';
+
+        // 🤖 Automated Attribute-Based Translation
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            const key = el.getAttribute('data-i18n');
+            if (dict[key]) {
+                if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+                    el.placeholder = dict[key];
+                } else {
+                    el.textContent = dict[key];
+                }
+            }
+        });
+
+        // 🛡️ Special Case Handling (Selects, etc)
+        const brandLabel = document.querySelector('#hardwareSection .form-group .form-label');
+        if (brandLabel) brandLabel.textContent = dict.brandLabel || 'Device Architecture';
+        
         const calcBtn = document.getElementById('calculateBtn');
         if (calcBtn) calcBtn.textContent = dict.calcBtn || 'GENERATE OPTIMIZED GUIDE';
     },

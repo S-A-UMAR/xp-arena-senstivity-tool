@@ -915,22 +915,41 @@ router.get('/vendor/stats', authenticateVendor, async (req, res) => {
 
 router.post('/vendor/generate', authenticateVendor, async (req, res) => {
     try {
+        const { brand, series, model, ram, speed, claw } = req.body;
+        
         const code = Math.floor(100000 + Math.random() * 900000).toString();
         const accessKey = `XP-${req.vendorId.toUpperCase()}-${code}`;
         const lookupKey = getLookupKey(accessKey);
         const hashed = await bcrypt.hash(accessKey, 10);
         
-        // Default random results for auto-gen
-        const results = {
-            general: 90 + Math.floor(Math.random() * 10),
-            redDot: 85 + Math.floor(Math.random() * 15),
-            scope2x: 80 + Math.floor(Math.random() * 20),
-            scope4x: 75 + Math.floor(Math.random() * 25),
-            sniper: 50 + Math.floor(Math.random() * 30),
-            freeLook: 100,
-            dpi: 600,
-            fireButton: 45
-        };
+        const globalOffset = await getGlobalOffset();
+        
+        // 🧪 Precision Calibration Engine
+        let results;
+        if (brand && model) {
+            results = Calculator.compute({
+                brand,
+                series,
+                model,
+                ram: ram || 8,
+                speed: speed || 'balanced',
+                claw: claw || '2',
+                neuralScale: 5.0 + (Math.random() * 2 - 1) // Slight natural variance
+            }, globalOffset);
+        } else {
+            // Fallback for legacy calls
+            results = {
+                formula_version: Calculator.version,
+                general: Math.round((94 + Math.floor(Math.random() * 6)) * globalOffset),
+                redDot: Math.round((90 + Math.floor(Math.random() * 8)) * globalOffset),
+                scope2x: 85,
+                scope4x: 82,
+                sniper: 50,
+                freeLook: 100,
+                dpi: "440-480",
+                fireButton: "62-66"
+            };
+        }
 
         await db.run(`
             INSERT INTO sensitivity_keys (entry_code, lookup_key, vendor_id, results_json, status)
@@ -939,7 +958,8 @@ router.post('/vendor/generate', authenticateVendor, async (req, res) => {
 
         res.json({ accessKey });
     } catch (e) {
-        res.status(500).json({ error: 'Server error' });
+        console.error('GEN_ERR:', e);
+        res.status(500).json({ error: 'VAULT_GENERATION_FAILED' });
     }
 });
 

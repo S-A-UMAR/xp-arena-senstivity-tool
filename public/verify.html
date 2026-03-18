@@ -1,103 +1,140 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>XP Arena - Code Verification</title>
-<link rel="stylesheet" href="styles.css">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>XP ARENA | NEURAL_AUTHENTICATOR</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Outfit:wght@600;800&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
 </head>
-<body class="result-body">
-<div class="ambient-glow"></div>
-<div class="app-wrapper">
-  <header class="hero">
-    <span class="logo-chip">XP VERIFY</span>
-    <h1 class="glow-text">Code Status</h1>
-    <p id="statusText" style="color:#94a3b8;"></p>
-  </header>
-  <main class="grid-layout">
-    <section class="panel glass-panel visible">
-      <div class="pro-card-wrapper modern-guide">
-        <header class="card-header">
-          <div class="branding">
-            <h2 class="card-logo" id="vendorId">XP ARENA</h2>
-            <span class="card-title-main">Verification</span>
-          </div>
-        </header>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
-          <div class="guide-box">
-            <div class="box-header">
-              <div class="box-title"><label>Entry Code</label></div>
-              <div class="box-value" id="codeVal">------</div>
-            </div>
-          </div>
-          <div class="guide-box">
-            <div class="box-header">
-              <div class="box-title"><label>Status</label></div>
-              <div class="box-value" id="codeStatus">UNKNOWN</div>
-            </div>
-          </div>
-          <div class="guide-box">
-            <div class="box-header">
-              <div class="box-title"><label>Usage</label></div>
-              <div class="box-value" id="codeUsage">0 / ∞</div>
-            </div>
-          </div>
-          <div class="guide-box">
-            <div class="box-header">
-              <div class="box-title"><label>Expires</label></div>
-              <div class="box-value" id="codeExp">PERMANENT</div>
-            </div>
-          </div>
-        </div>
-        <footer class="card-footer-modern">
-          <div class="user-meta">Vendor: <span id="vendorStatus">ACTIVE</span></div>
-          <div id="vendorLinks" style="margin-top:0.5rem;"></div>
-        </footer>
-        <div style="margin-top: 2rem;">
-            <button onclick="returnToHub()" class="secondary-btn" style="width: 100%; font-size: 0.7rem;">← RETURN TO NEURAL HUB</button>
-        </div>
-      </div>
-    </section>
-  </main>
-</div>
-<script>
-  async function init() {
-    const p = new URLSearchParams(window.location.search);
-    const code = p.get('code');
-    if (!code) { document.getElementById('statusText').textContent = 'Missing code parameter'; return; }
-    try {
-      const res = await fetch('/api/vault/code/' + encodeURIComponent(code) + '/status');
-      const data = await res.json();
-      if (res.ok) {
-        document.getElementById('codeVal').textContent = data.entry_code;
-        document.getElementById('vendorId').textContent = (data.vendor_id || 'XP ARENA').toUpperCase();
-        document.getElementById('codeStatus').textContent = data.status.toUpperCase();
-        const limit = data.usage_limit || '∞';
-        document.getElementById('codeUsage').textContent = `${data.current_usage} / ${limit}`;
-        document.getElementById('codeExp').textContent = data.expires_at ? new Date(data.expires_at).toLocaleString() : 'PERMANENT';
-        document.getElementById('vendorStatus').textContent = (data.vendor_status || 'unknown').toUpperCase();
-        document.getElementById('statusText').textContent = 'This code is issued by the vendor and current status is shown below.';
-        const links = document.getElementById('vendorLinks');
-        const socials = data.branding && data.branding.socials ? data.branding.socials : null;
-        if (socials && links) {
-          const yt = socials.yt ? `<a href="${socials.yt}" target="_blank" class="cyber-btn ghost-btn" style="margin-right:0.5rem;">YouTube</a>` : '';
-          const ig = socials.ig ? `<a href="${socials.ig}" target="_blank" class="cyber-btn ghost-btn">Instagram</a>` : '';
-          links.innerHTML = yt + ig;
-        }
-      } else {
-        document.getElementById('statusText').textContent = data.error || 'INVALID_CODE_FRAGMENT';
-        document.getElementById('codeStatus').style.color = '#ff4444';
-        document.getElementById('codeStatus').textContent = 'VOID';
-      }
-    } catch (e) {
-      document.getElementById('statusText').textContent = 'NETWORK_ENCRYPTION_FAIL';
-    }
-  }
+<body style="display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 2rem; background: var(--bg-dark);">
+    <div class="ambient-glow"></div>
 
-  function returnToHub() {
-    window.location.href = 'index.html';
-  }
-  document.addEventListener('DOMContentLoaded', init);
-</script>
+    <div class="terminal-container reveal">
+        <!-- Top Status Bar -->
+        <div class="terminal-header">
+            <div class="status-bit green">AUTHENTICATOR: ONLINE</div>
+            <div class="status-bit cyan">ENCRYPTION: AES-256</div>
+            <div class="status-time" id="terminalClock">00:00:00</div>
+        </div>
+
+        <div class="terminal-content" style="padding: 2.5rem 2rem;">
+            <div class="logo-badge" style="margin-bottom: 1.5rem;">CERTIFICATION_CHECK</div>
+            <h1 id="verifyTitle" style="font-family: var(--font-heading); font-size: 1.2rem; line-height: 1.4; margin-bottom: 2rem; color: white;">
+                INITIALIZING_SCAN...
+            </h1>
+
+            <div id="scanResult" class="hidden">
+                <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; padding: 1.5rem; text-align: left; margin-bottom: 2rem;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                        <div class="data-point">
+                            <span class="label">ENTRY_CODE</span>
+                            <span class="value" id="resCode" style="color: var(--accent-primary); font-size: 0.8rem;">---</span>
+                        </div>
+                        <div class="data-point">
+                            <span class="label">STATUS</span>
+                            <span class="value" id="resStatus" style="font-size: 0.8rem;">UNKNOWN</span>
+                        </div>
+                        <div class="data-point">
+                            <span class="label">AUTHOR</span>
+                            <span class="value" id="resVendor" style="font-size: 0.7rem;">---</span>
+                        </div>
+                        <div class="data-point">
+                            <span class="label">COPIES</span>
+                            <span class="value" id="resHits" style="font-size: 0.7rem;">---</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <p style="font-size: 0.55rem; color: var(--text-muted); line-height: 1.6; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 1rem;">
+                    This certificate confirms the origin and current operational status of the neural calibration fragment. Verified fragments are issued exclusively by certified XP Arena vendors.
+                </p>
+            </div>
+
+            <div id="errorBox" class="hidden" style="color: #ff4444; font-family: var(--font-mono); font-size: 0.7rem; margin-bottom: 2rem; border: 1px solid rgba(255,68,68,0.2); padding: 1rem; border-radius: 12px; background: rgba(255,68,68,0.05);">
+                INVALID_FRAGMENT_ERROR: AUTHENTICATION_FAILED
+            </div>
+
+            <button class="action-btn" onclick="window.location.href='index.html'" style="margin-top: 1rem;">RETURN_TO_GATEWAY</button>
+        </div>
+
+        <div class="terminal-footer">
+            <div class="data-point">
+                <span class="label">SEC_PROTOCOL</span>
+                <span class="value">XP_AUTH_V4</span>
+            </div>
+            <div class="data-point" style="text-align: center;">
+                <span class="label">CERT_TYPE</span>
+                <span class="value">NEURAL_ID</span>
+            </div>
+            <div class="data-point" style="text-align: right;">
+                <span class="label">SYS_LOC</span>
+                <span class="value" id="userIP">...</span>
+            </div>
+        </div>
+    </div>
+
+    <script src="notifications.js"></script>
+    <script src="settings.js"></script>
+    <script>
+        // 🕒 Clock
+        function updateClock() {
+            document.getElementById('terminalClock').textContent = new Date().toTimeString().split(' ')[0];
+        }
+        setInterval(updateClock, 1000); updateClock();
+
+        // 🛰️ IP
+        fetch('https://api.ipify.org?format=json').then(r => r.json()).then(d => document.getElementById('userIP').textContent = d.ip);
+
+        async function initScan() {
+            const p = new URLSearchParams(window.location.search);
+            const code = p.get('code');
+            const title = document.getElementById('verifyTitle');
+            const resultBox = document.getElementById('scanResult');
+            const errorBox = document.getElementById('errorBox');
+
+            if (!code) {
+                title.textContent = "MISSING_FRAGMENT_PARAMETER";
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/vault/code/' + encodeURIComponent(code) + '/status');
+                const data = await res.json();
+                
+                // Cosmetic delay for "scanning" feel
+                await new Promise(r => setTimeout(r, 1500));
+
+                if (res.ok) {
+                    title.textContent = "AUTHENTICATION_SUCCESSFUL";
+                    title.style.color = "#00ff88";
+                    resultBox.classList.remove('hidden');
+                    
+                    document.getElementById('resCode').textContent = data.entry_code;
+                    document.getElementById('resVendor').textContent = (data.vendor_id || 'XP_CORE').toUpperCase();
+                    document.getElementById('resStatus').textContent = data.status.toUpperCase();
+                    const limit = data.usage_limit || '∞';
+                    document.getElementById('resHits').textContent = `${data.current_usage} / ${limit}`;
+
+                    const statusVal = document.getElementById('resStatus');
+                    if (data.status === 'active') statusVal.style.color = '#00ff88';
+                    else statusVal.style.color = '#ff4444';
+
+                } else {
+                    title.textContent = "ACCESS_DENIED";
+                    title.style.color = "#ff4444";
+                    errorBox.classList.remove('hidden');
+                    errorBox.textContent = data.error || 'INVALID_FRAGMENT_SIGNATURE';
+                }
+            } catch (e) {
+                title.textContent = "SYSTEM_UPLINK_FAILURE";
+                errorBox.classList.remove('hidden');
+                errorBox.textContent = "CRITICAL: FAILED_TO_CONNECT_TO_NEURAL_DATABASE";
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', initScan);
+    </script>
 </body>
 </html>
