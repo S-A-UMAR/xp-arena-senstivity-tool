@@ -3,7 +3,7 @@ const router = express.Router();
 const { db } = require('../db');
 const jwt = require('jsonwebtoken');
 const { z } = require('zod');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const Calculator = require('../lib/calculator');
 
