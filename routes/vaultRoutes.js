@@ -702,9 +702,11 @@ router.post('/admin/vendors', authenticateAdmin, async (req, res) => {
     try {
         const schema = z.object({
             vendorId: z.string().min(2).optional(),
+            orgId: z.string().optional(),
+            usageLimit: z.number().int().positive().nullable().optional(),
             brandConfig: z.record(z.any()).optional()
         });
-        const { vendorId: requestedId, brandConfig } = schema.parse(req.body);
+        const { vendorId: requestedId, orgId, usageLimit, brandConfig } = schema.parse(req.body);
         
         // Generate Vendor ID if not provided, or clean up provided one
         const normalizedRequestedId = requestedId
@@ -729,9 +731,9 @@ router.post('/admin/vendors', authenticateAdmin, async (req, res) => {
         );
 
         await db.run(`
-            INSERT INTO vendors (vendor_id, access_key, lookup_key, brand_config, status)
-            VALUES (?, ?, ?, ?, 'active')
-        `, [vendorId, hashedAccessKey, lookupKey, typeof brandConfig === 'string' ? brandConfig : JSON.stringify(brandConfig || {})]);
+            INSERT INTO vendors (org_id, vendor_id, access_key, lookup_key, usage_limit, brand_config, status)
+            VALUES (?, ?, ?, ?, ?, ?, 'active')
+        `, [orgId || 'XP-CORE-ORG', vendorId, hashedAccessKey, lookupKey, usageLimit || null, typeof brandConfig === 'string' ? brandConfig : JSON.stringify(brandConfig || {})]);
 
         await logAudit('admin', 'SYSTEM', 'VENDOR_REGISTER', { vendorId, accessKey }, getClientIp(req));
 
@@ -1153,6 +1155,9 @@ router.post('/vendor/manual-entry', authenticateVendor, async (req, res) => {
         const hashed = await bcrypt.hash(accessKey, 10);
 
         const results = {
+            formula_version: Calculator.version,
+            brand: 'MANUAL',
+            model: 'PRESET',
             general: data.general,
             redDot: data.redDot,
             scope2x: data.scope2x,
