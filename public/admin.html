@@ -509,6 +509,12 @@
             <div id="funnelSteps" class="stat-tile" style="padding: 1.5rem;">
                 <!-- Funnel injected -->
             </div>
+            <div class="live-feed-header" style="margin-top: 1.25rem;">
+                <span class="stat-label">Security Logs</span>
+            </div>
+            <div id="securityLogs" class="stat-tile" style="padding: 1rem; max-height: 220px; overflow-y: auto;">
+                <div style="text-align:center; opacity:0.2; padding:2rem; font-size:0.6rem;">NO_SECURITY_EVENTS</div>
+            </div>
         </div>
     </div>
 
@@ -561,31 +567,19 @@
         </div>
     </div>
 
-    <script src="/socket.io/socket.io.js"></script>
     <script src="notifications.js"></script>
     <script src="settings.js"></script>
     <script>
         // ⚡ Master Interface Logic
-        const socket = typeof io !== 'undefined' ? io() : { on: () => {} };
-        
-        // Socket Live Feed
-        socket.on('live_event', (data) => {
-            const feed = document.getElementById('liveFeed');
-            if (feed.children[0] && feed.children[0].textContent.includes('WAITING')) feed.innerHTML = '';
-            
-            const item = document.createElement('div');
-            item.className = 'live-item';
-            
-            if (data.type === 'verify') {
-                item.innerHTML = `<span>[HIT] ${data.user_ign}</span><span style="color:var(--accent-primary)">${data.device}</span>`;
-            } else if (data.type === 'feedback') {
-                item.innerHTML = `<span>[FBK] ${'★'.repeat(data.rating)}</span><span style="color:#aaa">"${data.feedback}"</span>`;
-            }
-            
-            feed.prepend(item);
-            if (feed.children.length > 15) feed.removeChild(feed.lastChild);
-            loadDashboard(); // Refresh stats
-        });
+        let dashboardPoller = null;
+        function startLongPolling() {
+            if (dashboardPoller) return;
+            dashboardPoller = setInterval(() => {
+                if (!document.getElementById('mainPanel').classList.contains('hidden')) {
+                    loadDashboard().catch(() => {});
+                }
+            }, 10000);
+        }
 
         async function api(path, method = 'GET', body = null) {
             const options = {
@@ -615,6 +609,7 @@
                 if (res.ok) {
                     document.getElementById('privateGate').classList.add('hidden');
                     document.getElementById('mainPanel').classList.remove('hidden');
+                    startLongPolling();
                     loadDashboard();
                     initTool();
                 } else {
@@ -687,16 +682,19 @@
                 const funnel = document.getElementById('funnelSteps');
                 if (orgStats && orgStats.funnel && orgStats.funnel.length > 0) {
                     const maxVal = orgStats.funnel[0].val || 1;
+                    let prev = maxVal;
                     funnel.innerHTML = orgStats.funnel.map(step => {
-                        const pct = Math.round((step.val / maxVal) * 100);
+                        const pctOfStart = Math.round((step.val / maxVal) * 100);
+                        const conv = prev > 0 ? Math.round((step.val / prev) * 100) : 0;
+                        prev = step.val || prev;
                         return `
                             <div style="margin-bottom: 1rem;">
                                 <div style="display:flex; justify-content:space-between; font-size: 0.65rem; margin-bottom: 0.3rem;">
                                     <span style="font-weight:800;">${step.label}</span>
-                                    <span style="color:var(--accent-primary)">${step.val} (${pct}%)</span>
+                                    <span style="color:var(--accent-primary)">${step.val} (${pctOfStart}% of start / ${conv}% step)</span>
                                 </div>
                                 <div style="height: 4px; background: rgba(255,255,255,0.05); border-radius: 2px; overflow:hidden;">
-                                    <div style="width:${pct}%; height:100%; background:var(--accent-primary); box-shadow: 0 0 10px var(--accent-primary-glow);"></div>
+                                    <div style="width:${pctOfStart}%; height:100%; background:var(--accent-primary); box-shadow: 0 0 10px var(--accent-primary-glow);"></div>
                                 </div>
                             </div>
                         `;
@@ -704,7 +702,46 @@
                 } else if (funnel) {
                     funnel.innerHTML = '<div style="text-align:center; opacity:0.2; padding:2rem; font-size:0.6rem;">NO_ANALYTICS_DATA</div>';
                 }
+                await loadLiveFeed();
+                await loadSecurityLogs();
             } catch (e) { console.error('INIT_ERR:', e); }
+        }
+
+        async function loadLiveFeed() {
+            const feed = document.getElementById('liveFeed');
+            if (!feed) return;
+            try {
+                const events = await api('/api/vault/admin/live-feed');
+                if (!events || events.length === 0) {
+                    feed.innerHTML = '<div style="text-align:center; opacity:0.2; padding:2rem; font-size:0.6rem;">WAITING_FOR_UPLINK...</div>';
+                    return;
+                }
+                feed.innerHTML = events.map(ev => `
+                    <div class="live-item">
+                        <span>${ev.type === 'feedback' ? `[FBK] ${'★'.repeat(ev.rating || 0)}` : `[HIT] ${ev.user_ign}`}</span>
+                        <span style="color:${ev.type === 'feedback' ? '#aaa' : 'var(--accent-primary)'};">${ev.type === 'feedback' ? (ev.feedback || 'No comment') : (ev.region || 'Unknown')}</span>
+                    </div>
+                `).join('');
+            } catch (_e) {}
+        }
+
+        async function loadSecurityLogs() {
+            const box = document.getElementById('securityLogs');
+            if (!box) return;
+            try {
+                const logs = await api('/api/vault/admin/security-logs');
+                if (!logs || logs.length === 0) {
+                    box.innerHTML = '<div style="text-align:center; opacity:0.2; padding:2rem; font-size:0.6rem;">NO_SECURITY_EVENTS</div>';
+                    return;
+                }
+                box.innerHTML = logs.map(l => `
+                    <div style="padding:0.6rem 0.2rem; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; justify-content:space-between; gap:0.75rem; font-size:0.62rem;">
+                        <span style="font-family:var(--font-mono); color:var(--text-muted);">${new Date(l.created_at).toLocaleTimeString()}</span>
+                        <span style="font-weight:700;">${l.event_type}</span>
+                        <span style="font-family:var(--font-mono); color:#ff8a8a;">${l.ip_address || 'unknown-ip'}</span>
+                    </div>
+                `).join('');
+            } catch (_e) {}
         }
 
         function renderVendorCards(vendors, creators) {
@@ -762,7 +799,7 @@
 
         async function deleteVendor(id) {
             if (!confirm(`ERASE ${id} FOREVER?`)) return;
-            await api(`/api/vault/admin/vendor/${id}`, 'DELETE');
+            await api(`/api/vault/admin/vendor/${encodeURIComponent(id)}`, 'DELETE');
             loadDashboard();
         }
 

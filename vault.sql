@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS vendors (
     access_key VARCHAR(100) UNIQUE NOT NULL, -- bcrypt hash
     lookup_key VARCHAR(20) UNIQUE DEFAULT NULL,
     active_until DATETIME DEFAULT NULL,
+    webhook_url VARCHAR(500) DEFAULT NULL,
     brand_config JSON NOT NULL, -- { "logo": "...", "colors": { "primary": "..." }, "socials": { "yt": "...", "ig": "...", "dc": "..." } }
     status ENUM('active', 'suspended') DEFAULT 'active',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -31,6 +32,7 @@ CREATE TABLE IF NOT EXISTS sensitivity_keys (
     lookup_key VARCHAR(16) UNIQUE NOT NULL,
     vendor_id VARCHAR(50),
     results_json JSON NOT NULL, -- Calculated sensitivity data
+    creator_advice TEXT DEFAULT NULL,
     custom_results_json JSON DEFAULT NULL, -- Manual overrides by vendor/user
     usage_limit INT DEFAULT NULL, -- NULL = Unlimited
     current_usage INT DEFAULT 0,
@@ -90,8 +92,8 @@ CREATE TABLE IF NOT EXISTS security_logs (
 -- Seed Data
 INSERT IGNORE INTO organizations (org_id, org_name) VALUES ('XP-CORE-ORG', 'XP ARENA GLOBAL');
 
-INSERT IGNORE INTO vendors (org_id, vendor_id, access_key, lookup_key, brand_config, status) VALUES 
-('XP-CORE-ORG', 'XP-ADMIN', 'XP-2008', NULL, '{"logo": "", "colors": {"primary": "#00f2fe"}, "socials": {}}', 'active');
+-- NOTE: XP-ADMIN seed should be provisioned from environment secret by migrate.js
+-- (ADMIN_SECRET / SEED_VENDOR_KEY) to avoid hardcoded credentials in SQL.
 
 -- System Settings Table
 CREATE TABLE IF NOT EXISTS system_settings (

@@ -68,6 +68,13 @@ document.getElementById('pwaInstallBtn')?.addEventListener('click', async () => 
             document.getElementById('pwaInstallBtn').style.display = 'none';
         }
         deferredPrompt = null;
+    } else {
+        const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+        if (isIOS) {
+            UI?.notify?.("INSTALL TIP: TAP SHARE → 'ADD TO HOME SCREEN'", 'info');
+        } else {
+            UI?.notify?.("INSTALL OPTION NOT AVAILABLE IN THIS BROWSER", 'info');
+        }
     }
 });
 
@@ -360,14 +367,19 @@ const UI = {
         this.notify("NEURAL CALIBRATION IN PROGRESS...", "success");
         
         try {
+            const payload = {
+                ...state,
+                manualSens: state.manualMode ? Number.parseFloat(state.manualSens) : undefined
+            };
             const res = await fetch('/api/vault/calculate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(state)
+                body: JSON.stringify(payload)
             });
             const data = await res.json();
             
             if (data.results) {
+                if (window.SaaSAnalytics) window.SaaSAnalytics.track('code_generated');
                 localStorage.setItem('xp_sensitivity_profile_last_result', JSON.stringify(data.results));
                 localStorage.setItem('xp_sensitivity_profile', JSON.stringify(state));
                 localStorage.setItem('xp_last_entry_code', data.entry_code); // 🚀 Store for Result Page
@@ -460,6 +472,7 @@ const UI = {
         }
     }
 };
+window.UI = UI;
 
 window.toggleLowPerf = () => {
     const isLow = localStorage.getItem('xp_low_perf') === 'true';
@@ -478,6 +491,12 @@ window.toggleLowPerf = () => {
 
 document.addEventListener('DOMContentLoaded', () => {
     UI.init();
+    const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    const btn = document.getElementById('pwaInstallBtn');
+    if (btn && isIOS) {
+        btn.style.display = 'block';
+        btn.textContent = 'INSTALL: SHARE → A2HS';
+    }
     
     // ⚡ Adaptive Performance Check
     if (localStorage.getItem('xp_low_perf') === 'true') {
@@ -487,5 +506,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (btn) btn.textContent = 'MODE: LOW_LATENCY';
             document.body.style.background = 'var(--bg-dark)';
         }, 100);
+    }
+});
+
+window.addEventListener('xp:language-change', () => {
+    if (window.UI && typeof window.UI.applyLang === 'function') {
+        window.UI.applyLang();
     }
 });
