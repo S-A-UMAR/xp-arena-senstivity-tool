@@ -184,19 +184,6 @@ async function getGlobalOffset() {
     }
 }
 
-function normalizeBranding(rawBranding = {}, fallbackVendorId = 'XP CORE') {
-    const branding = typeof rawBranding === 'string' ? JSON.parse(rawBranding) : (rawBranding || {});
-    const socials = branding.socials || {};
-    return {
-        vendor_id: branding.vendor_id || fallbackVendorId,
-        name: branding.name || branding.vendor_id || fallbackVendorId,
-        logo: branding.logo || '',
-        colors: branding.colors || {},
-        socials,
-        social_link: branding.social_link || socials.yt || socials.ig || socials.dc || ''
-    };
-}
-
 // POST /api/vault/verify
 router.post('/verify', async (req, res) => {
     try {
@@ -336,7 +323,7 @@ router.post('/verify', async (req, res) => {
                 type: 'user',
                 redirect: '/result.html',
                 results: finalResults,
-                branding: normalizeBranding(keyData.brand_config, keyData.vendor_id || 'XP CORE'),
+                branding: typeof keyData.brand_config === 'string' ? JSON.parse(keyData.brand_config) : keyData.brand_config,
                 message: 'CALIBRATION DATA RETRIEVED'
             });
 
@@ -344,7 +331,7 @@ router.post('/verify', async (req, res) => {
                 type: 'user',
                 redirect: '/result.html',
                 results: finalResults,
-                branding: normalizeBranding(keyData.brand_config, keyData.vendor_id || 'XP CORE'),
+                branding: typeof keyData.brand_config === 'string' ? JSON.parse(keyData.brand_config) : keyData.brand_config,
                 message: 'CALIBRATION DATA RETRIEVED'
             });
         }
@@ -477,15 +464,9 @@ router.put('/profile', authenticateVendor, async (req, res) => {
         const schema = z.object({
             brand_config: z.object({
                 vendor_id: z.string().optional(),
-                name: z.string().max(80).optional(),
                 logo: z.string().optional(),
                 colors: z.object({ primary: z.string().regex(/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/) }).optional(),
-                socials: z.object({
-                    yt: z.string().url().optional(),
-                    ig: z.string().url().optional(),
-                    dc: z.string().url().optional()
-                }).optional(),
-                social_link: z.string().url().optional()
+                socials: z.object({ yt: z.string().optional(), ig: z.string().optional() }).optional()
             }).optional(),
             webhook_url: z.string().url().nullable().optional()
         });
@@ -838,7 +819,6 @@ router.get('/code/:code/status', async (req, res) => {
         if (!key) return res.status(404).json({ error: 'Not found' });
         const usage_total = await db.get('SELECT COUNT(*) as c FROM code_activity WHERE lookup_key = ?', [lookupKey]);
         res.json({
-            entry_code: code,
             lookup_key: key.lookup_key,
             vendor_id: key.vendor_id,
             vendor_status: key.vendor_status,
@@ -847,7 +827,7 @@ router.get('/code/:code/status', async (req, res) => {
             current_usage: key.current_usage,
             real_usage: usage_total ? usage_total.c : 0,
             expires_at: key.expires_at,
-            branding: normalizeBranding(key.brand_config, key.vendor_id || 'XP CORE')
+            branding: typeof key.brand_config === 'string' ? JSON.parse(key.brand_config) : key.brand_config
         });
     } catch (e) {
         res.status(500).json({ error: 'Server error' });
@@ -989,14 +969,13 @@ router.post('/vendor/manual-entry', authenticateVendor, async (req, res) => {
             sniper: data.sniper,
             freeLook: data.freeLook,
             dpi: 600, // Default
-            fireButton: 50, // Default
-            advice: data.advice || ''
+            fireButton: 50 // Default
         };
 
         await db.run(`
-            INSERT INTO sensitivity_keys (entry_code, lookup_key, vendor_id, results_json, custom_results_json, status)
+            INSERT INTO sensitivity_keys (entry_code, lookup_key, vendor_id, results_json, creator_advice, status)
             VALUES (?, ?, ?, ?, ?, 'active')
-        `, [hashed, lookupKey, req.vendorId, JSON.stringify(results), JSON.stringify({ advice: data.advice || '' })]);
+        `, [hashed, lookupKey, req.vendorId, JSON.stringify(results), data.advice]);
 
         res.json({ accessKey });
     } catch (e) {

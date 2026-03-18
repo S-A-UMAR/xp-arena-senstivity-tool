@@ -143,33 +143,23 @@
             // Populate Card Info
             document.getElementById('idModel').textContent = `${state.brand || 'GENERIC'} ${state.model || 'DEVICE'}`.toUpperCase();
             document.getElementById('idCode').textContent = code;
-            document.getElementById('creatorName').textContent = branding.name || branding.vendor_id || 'XP_CORE';
+            document.getElementById('creatorName').textContent = branding.name || 'XP_CORE';
             if (branding.logo) document.getElementById('creatorLogo').src = branding.logo;
             if (results.advice) document.getElementById('creatorAdvice').textContent = `"${results.advice}"`;
 
-            const parseRange = (val, fallback = 100) => {
-                if (typeof val === 'string' && val.includes('-')) {
-                    const [low, high] = val.split('-').map(v => parseInt(v, 10));
-                    if (!Number.isNaN(low) && !Number.isNaN(high)) return [low, high];
-                }
-                const base = parseInt(val, 10);
-                if (!Number.isNaN(base)) return [base - 3, base + 3];
-                return [fallback - 3, fallback + 3];
-            };
-
             // Professional Range Calculation (10/10 UX)
-            const mapRange = (id1, id2, val, fallback) => {
-                const [low, high] = parseRange(val, fallback);
-                document.getElementById(id1).textContent = low;
-                document.getElementById(id2).textContent = high;
+            const mapRange = (id1, id2, val) => {
+                const base = parseInt(val);
+                document.getElementById(id1).textContent = base - 3;
+                document.getElementById(id2).textContent = base + 3;
             };
 
-            mapRange('rGen1', 'rGen2', results.general, 100);
-            mapRange('rRed1', 'rRed2', results.redDot, 95);
-            mapRange('r2x1', 'r2x2', results.scope2x, 90);
-            mapRange('r4x1', 'r4x2', results.scope4x, 88);
-            mapRange('rSni1', 'rSni2', results.sniperScope || results.sniper, 60);
-            mapRange('rFree1', 'rFree2', results.freeLook || 100, 100);
+            mapRange('rGen1', 'rGen2', results.general);
+            mapRange('rRed1', 'rRed2', results.redDot);
+            mapRange('r2x1', 'r2x2', results.scope2x);
+            mapRange('r4x1', 'r4x2', results.scope4x);
+            mapRange('rSni1', 'rSni2', results.sniperScope || results.sniper);
+            mapRange('rFree1', 'rFree2', results.freeLook || 100);
 
             // Follow Button
             const followBtn = document.getElementById('followBtn');
@@ -199,9 +189,7 @@
 
             // Copy Logic with "Haptic" Toast
             document.getElementById('copyBtn').onclick = () => {
-                const [generalLow, generalHigh] = parseRange(results.general, 100);
-                const [redLow, redHigh] = parseRange(results.redDot, 95);
-                const text = `XP ARENA ACCESS PROFILE\nDEVICE: ${state.brand} ${state.model}\nGENERAL: ${generalLow}-${generalHigh}\nRED DOT: ${redLow}-${redHigh}\nCODE: ${code}`;
+                const text = `XP ARENA ACCESS PROFILE\nDEVICE: ${state.brand} ${state.model}\nGENERAL: ${results.general-3}-${results.general+3}\nRED DOT: ${results.redDot-3}-${results.redDot+3}\nCODE: ${code}`;
                 navigator.clipboard.writeText(text).then(() => {
                     if (window.notify) {
                         window.notify('PROFILE_COPIED_TO_CLIPBOARD', 'haptic');
