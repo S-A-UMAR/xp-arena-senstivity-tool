@@ -31,7 +31,6 @@ async function api(url, options = {}) {
 
 function switchTab(tabId) {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    // Fixed the selector for the active tab button
     const activeBtn = Array.from(document.querySelectorAll('.tab-btn')).find(b => b.getAttribute('onclick')?.includes(tabId));
     if (activeBtn) activeBtn.classList.add('active');
     
@@ -40,6 +39,9 @@ function switchTab(tabId) {
     document.getElementById('tab_profile').classList.add('hidden');
     document.getElementById('tab_' + tabId).classList.remove('hidden');
     
+    document.querySelectorAll('.admin-bottom-nav .nav-btn').forEach(b => b.classList.remove('active'));
+    const navBtn = document.querySelector(`.admin-bottom-nav .nav-btn[data-nav="${tabId}"]`);
+    if (navBtn) navBtn.classList.add('active');
     if (tabId === 'analytics') loadAnalytics();
 }
 
@@ -70,9 +72,14 @@ async function generateCode() {
     results.brand = ctx.brand;
     results.model = ctx.model;
 
+    const limitVal = parseInt(document.getElementById('o_limit')?.value || '', 10);
+    const expVal = parseInt(document.getElementById('o_exp')?.value || '', 10);
+    const usage_limit = Number.isFinite(limitVal) && limitVal >= 0 ? limitVal : null;
+    const expires_in_hours = Number.isFinite(expVal) && expVal > 0 ? expVal : null;
+
     const data = await api('/api/vault/generate', {
         method: 'POST',
-        body: { results }
+        body: { results, usage_limit, expires_in_hours }
     });
     
     if (data && data.success) {
@@ -92,16 +99,55 @@ async function generateCode() {
 async function loadAnalytics() {
     const codes = await api('/api/vault/codes');
     if (!codes) return;
-    
-    const tbody = document.getElementById('analyticsBody');
-    tbody.innerHTML = codes.map(c => {
+    const statusFilter = document.getElementById('f_status')?.value || '';
+    const q = (document.getElementById('f_search')?.value || '').trim().toLowerCase();
+
+    let filtered = codes.slice();
+    filtered = filtered.filter(c => {
         const resData = JSON.parse(c.results_json || '{}');
-        const status = (c.status === 'expired') ? 'EXPIRED' : 'ACTIVE';
+        const isExpired = c.status === 'expired' || (c.expires_at && new Date(c.expires_at) < new Date());
+        const isLimit = c.usage_limit && c.current_usage >= c.usage_limit;
+        if (statusFilter === 'expired' && !isExpired) return false;
+        if (statusFilter === 'limit' && !isLimit) return false;
+        if (statusFilter === 'active' && (isExpired || isLimit)) return false;
+        if (q) {
+            const txt = `${c.entry_code} ${(resData.ign || '')}`.toLowerCase();
+            if (!txt.includes(q)) return false;
+        }
+        return true;
+    });
+
+    const total = filtered.length;
+    const active = filtered.filter(c => {
+        const isExpired = c.status === 'expired' || (c.expires_at && new Date(c.expires_at) < new Date());
+        const isLimit = c.usage_limit && c.current_usage >= c.usage_limit;
+        return !isExpired && !isLimit;
+    }).length;
+    const limitCount = filtered.filter(c => c.usage_limit && c.current_usage >= c.usage_limit).length;
+
+    const statTotal = document.getElementById('statTotal');
+    const statActive = document.getElementById('statActive');
+    const statLimit = document.getElementById('statLimit');
+    if (statTotal) statTotal.textContent = total;
+    if (statActive) statActive.textContent = active;
+    if (statLimit) statLimit.textContent = limitCount;
+
+    const tbody = document.getElementById('analyticsBody');
+    if (!tbody) return;
+    if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; opacity:0.4; padding:2rem;">NO MATCHES</td></tr>`;
+        return;
+    }
+    tbody.innerHTML = filtered.map(c => {
+        const resData = JSON.parse(c.results_json || '{}');
+        const isExpired = c.status === 'expired' || (c.expires_at && new Date(c.expires_at) < new Date());
+        const isLimit = c.usage_limit && c.current_usage >= c.usage_limit;
+        const statusText = isExpired ? 'EXPIRED' : (isLimit ? 'LIMIT' : 'ACTIVE');
         return `
             <tr style="border-bottom: 1px solid rgba(255,255,255,0.02);">
                 <td style="padding: 0.75rem; font-weight: 800;">${c.entry_code}</td>
                 <td style="padding: 0.75rem;">${resData.ign || 'USER'}</td>
-                <td style="padding: 0.75rem;"><span class="logo-badge" style="font-size: 0.5rem; padding: 0.2rem 0.4rem;">${status}</span></td>
+                <td style="padding: 0.75rem;"><span class="logo-badge" style="font-size: 0.5rem; padding: 0.2rem 0.4rem;">${statusText}</span></td>
             </tr>
         `;
     }).join('');
@@ -183,6 +229,8 @@ function initDeviceSelection() {
 document.addEventListener('DOMContentLoaded', () => {
     switchTab('codes');
     initDeviceSelection();
+    const navHome = document.querySelector('.admin-bottom-nav .nav-btn[data-nav="codes"]');
+    if (navHome) navHome.classList.add('active');
     const branding = JSON.parse(localStorage.getItem('xp_last_branding') || '{}');
     if (branding.colors && branding.colors.primary) {
         const pColor = document.getElementById('p_color');
@@ -193,6 +241,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (savedWebhook && document.getElementById('p_webhook')) {
         document.getElementById('p_webhook').value = savedWebhook;
     }
+
+    const searchEl = document.getElementById('f_search');
+    const statusEl = document.getElementById('f_status');
+    function debounce(fn, ms) { let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); }; }
+    const applyDebounced = debounce(loadAnalytics, 250);
+    if (searchEl) searchEl.addEventListener('input', applyDebounced);
+    if (statusEl) statusEl.addEventListener('change', loadAnalytics);
 });
 
 async function copyCode() {
@@ -201,8 +256,9 @@ async function copyCode() {
     window.notify('ACCESS CODE COPIED', 'success');
 }
 
-function shareWhatsApp() {
+async function copyVerifyLink() {
     const code = document.getElementById('shareCode').textContent;
-    const text = `🚀 *XP ARENA PRO CALIBRATION*\n\nYour neural sensitivity settings are ready!\n\nAccess Code: *${code}*\nEnter it at: https://xp-arena.pro\n\n_Powered by Neural Core V4_`;
-    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`);
+    const link = `${location.origin}/index.html`;
+    await navigator.clipboard.writeText(link);
+    window.notify('VERIFY LINK COPIED', 'success');
 }

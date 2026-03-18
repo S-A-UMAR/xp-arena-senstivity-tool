@@ -33,6 +33,9 @@ app.use(helmet({
     }
 }));
 
+// Trust proxy for correct req.ip behind Vercel/Proxies
+app.set('trust proxy', 1);
+
 app.use(cors({
     origin: true, 
     credentials: true 
@@ -42,22 +45,15 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// Static Handlers
+app.get('/health', (req, res) => res.json({ status: 'ok', tool: 'XP-SENSITIVITY-PRO' }));
+
+// Static Handlers (local/dev; on Vercel, static is served by the platform)
 app.use(express.static(path.join(__dirname, 'public'), {
     maxAge: '1d',
-    setHeaders: (res, path) => {
-        if (path.endsWith('.html')) res.setHeader('Cache-Control', 'no-cache');
+    setHeaders: (res, filePath) => {
+        if (filePath.endsWith('.html')) res.setHeader('Cache-Control', 'no-cache');
     }
 }));
-// 🛡️ Global Intelligence & Error Sanitization (10/10 Resilience)
-app.use((err, req, res, next) => {
-    console.error('🛑 CRITICAL_SYSTEM_EXCEPTION:', err.stack);
-    res.status(500).json({
-        code: 'XP_INTERNAL_CRASH',
-        message: 'NEURAL_SYSTEM_RECOVERY_PENDING',
-        details: process.env.NODE_ENV === 'development' ? err.message : 'SANITIZED_FOR_SECURITY'
-    });
-});
 
 process.on('unhandledRejection', (error) => {
     console.error('⚠️ UNHANDLED_PROMISE_REJECTION:', error);
@@ -85,14 +81,6 @@ app.use('/api', apiLimiter);
 app.use('/api/vault/admin', adminLimiter);
 
 // Serve Frontend
-app.use(express.static(path.join(__dirname, 'public'), {
-    extensions: ['html', 'htm'],
-    setHeaders: (res, filePath) => {
-        if (path.extname(filePath) === '.html') {
-            res.setHeader('Cache-Control', 'no-cache');
-        }
-    }
-}));
 
 // Server configuration
 const http = require('http');
@@ -111,9 +99,6 @@ io.on('connection', (socket) => {
 // Routes
 const vaultRoutes = require('./routes/vaultRoutes');
 app.use('/api/vault', vaultRoutes);
-
-// Health Check
-app.get('/health', (req, res) => res.json({ status: 'ok', tool: 'XP-SENSITIVITY-PRO' }));
 
 // Error Handling
 app.use((err, req, res, next) => {

@@ -1,4 +1,5 @@
 const mysql = require('mysql2/promise');
+const bcrypt = require('bcrypt');
 const fs = require('fs');
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
@@ -30,6 +31,27 @@ async function migrate() {
         
         console.log('SUCCESS: All tables created and admin seeded.');
         console.log('Database Name:', dbName);
+
+        // Post-seed normalization: hash admin vendor key and set lookup_key
+        try {
+            // Align schema via ALTERs (idempotent)
+            await connection.query(`ALTER TABLE vendors ADD COLUMN IF NOT EXISTS lookup_key VARCHAR(20) UNIQUE NULL`);
+            await connection.query(`ALTER TABLE vendors ADD COLUMN IF NOT EXISTS active_until DATETIME NULL`);
+            await connection.query(`ALTER TABLE sensitivity_keys ADD COLUMN IF NOT EXISTS lookup_key VARCHAR(16) UNIQUE NOT NULL`);
+            await connection.query(`ALTER TABLE code_activity ADD COLUMN IF NOT EXISTS lookup_key VARCHAR(16) NOT NULL`);
+            await connection.query(`ALTER TABLE code_activity ADD INDEX IF NOT EXISTS idx_lookup_key (lookup_key)`);
+
+            const [rows] = await connection.query('SELECT vendor_id, access_key FROM vendors WHERE vendor_id = ?', ['XP-ADMIN']);
+            if (rows && rows[0]) {
+                const rawKey = process.env.SEED_VENDOR_KEY || rows[0].access_key || 'XP-2008';
+                const hash = await bcrypt.hash(rawKey, 10);
+                const lookup = require('crypto').createHash('sha1').update(rawKey).digest('hex').substring(0, 10);
+                await connection.query('UPDATE vendors SET access_key = ?, lookup_key = ? WHERE vendor_id = ?', [hash, lookup, 'XP-ADMIN']);
+                console.log('Seed vendor normalized (hashed key + lookup_key set).');
+            }
+        } catch (e) {
+            console.warn('Seed normalization skipped:', e.message);
+        }
     } catch (err) {
         console.error('MIGRATION FAILED:', err.message);
     } finally {

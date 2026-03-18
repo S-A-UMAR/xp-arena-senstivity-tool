@@ -134,6 +134,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             const results = JSON.parse(localStorage.getItem('xp_sensitivity_profile_last_result') || '{}');
             const state = JSON.parse(localStorage.getItem('xp_sensitivity_profile') || '{}');
+            const branding = JSON.parse(localStorage.getItem('xp_last_branding') || '{}');
 
             if (!results.general) {
                 window.location.href = 'index.html';
@@ -183,6 +184,32 @@
                     if (window.notify) window.notify('CALIBRATION_COPIED_TO_CLIPBOARD', 'success');
                 });
             });
+            
+            if (branding.colors && branding.colors.primary) {
+                document.documentElement.style.setProperty('--accent-primary', branding.colors.primary);
+            }
+            
+            const actions = document.querySelector('.pro-card-container + div');
+            if (actions) {
+                const shareBtn = document.createElement('button');
+                shareBtn.className = 'action-btn';
+                shareBtn.textContent = 'SHARE';
+                shareBtn.style.background = 'rgba(255,255,255,0.05)';
+                shareBtn.style.border = '1px solid var(--border-light)';
+                actions.appendChild(shareBtn);
+                shareBtn.addEventListener('click', async () => {
+                    const text = `XP ARENA PRO SETTINGS\nDevice: ${state.brand} ${state.model}\nGeneral: ${results.general}\nDPI: ${results.dpi}\nScopes: ${results.scope2x} / ${results.scope4x}\nButton: ${results.fireButton}`;
+                    if (navigator.share) {
+                        try {
+                            await navigator.share({ title: 'XP ARENA Settings', text });
+                            if (window.notify) window.notify('SHARED_SUCCESSFULLY', 'success');
+                        } catch (_) {}
+                    } else {
+                        await navigator.clipboard.writeText(text);
+                        if (window.notify) window.notify('COPIED_TO_CLIPBOARD', 'success');
+                    }
+                });
+            }
 
             // Feedback Logic (10/10 Milestone)
             let selectedRating = 0;

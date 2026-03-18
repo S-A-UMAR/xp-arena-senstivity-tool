@@ -137,7 +137,7 @@
             <button class="mini-btn danger" onclick="logoutAdmin()">EXIT</button>
         </header>
 
-        <section class="stat-grid">
+        <section id="overviewTop" class="stat-grid">
             <div class="stat-box">
                 <span class="stat-num" id="totalVendors">0</span>
                 <span class="form-label">VENDORS</span>
@@ -167,14 +167,59 @@
             </div>
         </section>
 
-        <section style="margin-top: 2rem;">
+        <section id="liveTop" style="margin-top: 2rem;">
             <label class="form-label">Real-time Activity Stream</label>
             <div id="liveFeed" class="glass-card" style="padding: 0.5rem; min-height: 100px; max-height: 200px; overflow-y: hidden; background: rgba(0,0,0,0.2);">
                 <div style="text-align: center; opacity: 0.2; padding: 2rem; font-size: 0.6rem;">WAITING_FOR_UPLINK...</div>
             </div>
         </section>
 
-        <section style="margin-top: 2rem;">
+        <section id="toolTop" style="margin-top: 2rem;">
+            <label class="form-label">Sensitivity Tool (Admin)</label>
+            <div class="glass-card" style="padding-top: 1rem;">
+                <div class="form-group">
+                    <div class="select-container">
+                        <select id="toolBrand" class="cyber-select">
+                            <option value="">SELECT BRAND</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="select-container">
+                        <select id="toolSeries" class="cyber-select" disabled>
+                            <option value="">SELECT SERIES</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="select-container">
+                        <select id="toolModel" class="cyber-select" disabled>
+                            <option value="">SELECT MODEL</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Play Speed</label>
+                    <div class="segment-group" id="toolSpeedSeg">
+                        <button class="segment-btn" data-speed="slow">PRECISION</button>
+                        <button class="segment-btn active" data-speed="medium">BALANCED</button>
+                        <button class="segment-btn" data-speed="fast">HIGH SPEED</button>
+                    </div>
+                </div>
+                <button class="action-btn" onclick="computePreview()">COMPUTE</button>
+                <div id="toolResult" style="margin-top:1rem;">
+                    <div style="font-size:0.7rem; opacity:0.6;">RESULT PREVIEW</div>
+                    <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:0.8rem; margin-top:0.5rem;">
+                        <div><div class="form-label">General</div><div id="rGeneral" style="font-weight:800;">-</div></div>
+                        <div><div class="form-label">Red Dot</div><div id="rRedDot" style="font-weight:800;">-</div></div>
+                        <div><div class="form-label">DPI</div><div id="rDPI" style="font-weight:800;">-</div></div>
+                        <div><div class="form-label">Fire</div><div id="rFire" style="font-weight:800;">-</div></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="creatorsTop" style="margin-top: 2rem;">
             <label class="form-label">Authorized Creators & Performance</label>
             <div class="glass-card" style="padding: 0; overflow-x: auto;">
                 <table style="width: 100%; border-collapse: collapse; font-size: 0.75rem;">
@@ -183,19 +228,41 @@
                             <th style="padding: 1rem;">CREATOR</th>
                             <th style="padding: 1rem;">KEYS</th>
                             <th style="padding: 1rem;">CLICKS</th>
+                            <th style="padding: 1rem;">ACTIVE UNTIL</th>
                             <th style="padding: 1rem;">ACTIONS</th>
                         </tr>
                     </thead>
                     <tbody id="vendorList">
-                        <tr><td colspan="4" style="text-align: center; opacity: 0.3; padding: 2rem;">INITIALIZING_DATA_STREAM...</td></tr>
+                        <tr><td colspan="5" style="text-align: center; opacity: 0.3; padding: 2rem;">INITIALIZING_DATA_STREAM...</td></tr>
                     </tbody>
                 </table>
             </div>
         </section>
 
-        <footer style="margin-top: 3rem; text-align: center; opacity: 0.5; padding-bottom: 2rem;">
+        <footer style="margin-top: 3rem; text-align: center; opacity: 0.5; padding-bottom: 4rem;">
             <p style="font-size: 0.6rem; letter-spacing: 0.1em; font-weight: 800;">XP ARENA SECURITY CORE V2.4</p>
         </footer>
+        <nav class="admin-bottom-nav">
+            <button class="nav-btn" data-anchor="home" onclick="setAdminNav('home');document.getElementById('overviewTop').scrollIntoView({behavior:'smooth'})">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 11l9-9 9 9v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-9z"/></svg>
+                HOME
+            </button>
+            <button class="nav-btn" data-anchor="tool" onclick="setAdminNav('tool');document.getElementById('toolTop').scrollIntoView({behavior:'smooth'})">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 3h4l2 3h8a2 2 0 0 1 2 2v2h-4l-2-2H9l-2 2H3V8a5 5 0 0 1 2-5zM3 13h18v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-6z"/></svg>
+                TOOL
+            </button>
+            <div class="fab-slot">
+                <button class="fab-btn" onclick="addVendorFab()">+</button>
+            </div>
+            <button class="nav-btn" data-anchor="vendors" onclick="setAdminNav('vendors');document.getElementById('creatorsTop').scrollIntoView({behavior:'smooth'})">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a5 5 0 0 1 5 5v1h1a4 4 0 1 1 0 8h-1v1a5 5 0 1 1-10 0v-1H6a4 4 0 1 1 0-8h1V7a5 5 0 0 1 5-5z"/></svg>
+                VENDORS
+            </button>
+            <button class="nav-btn" data-anchor="live" onclick="setAdminNav('live');document.getElementById('liveTop').scrollIntoView({behavior:'smooth'})">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h3v16H4V4zm13 0h3v16h-3V4zM10 8h4v8h-4V8z"/></svg>
+                LIVE
+            </button>
+        </nav>
     </div>
 
     <!-- Analytics Modal -->
@@ -291,6 +358,7 @@
                     document.getElementById('privateGate').classList.add('hidden');
                     document.getElementById('mainPanel').classList.remove('hidden');
                     loadDashboard();
+                    initTool();
                 } else {
                     status.textContent = 'ACCESS_DENIED';
                 }
@@ -348,13 +416,18 @@
                         <tr style="border-bottom: 1px solid rgba(255,255,255,0.02);">
                             <td style="padding: 1rem;">
                                 <div style="font-weight: 800;">${v.vendor_id}</div>
-                                <div style="font-size: 0.6rem; color: var(--text-muted); font-family:var(--font-mono);">${v.access_key}</div>
+                                <div style="font-size: 0.6rem; color: var(--text-muted); font-family:var(--font-mono);">STATUS: ${v.status.toUpperCase()}</div>
                             </td>
                             <td style="padding: 1rem;">${cData.keys}</td>
                             <td style="padding: 1rem;">${cData.clicks}</td>
+                            <td style="padding: 1rem;">${v.active_until ? new Date(v.active_until).toLocaleString() : '-'}</td>
                             <td style="padding: 1rem;">
                                 <div class="btn-stack">
                                     <button class="mini-btn" onclick="showAnalytics('${v.vendor_id}', ${v.total_codes}, ${v.total_usage})">LOGS</button>
+                                    <button class="mini-btn" onclick="promptActivate('${v.vendor_id}')">ACTIVATE</button>
+                                    <button class="mini-btn" onclick="quickActivate('${v.vendor_id}', 24)">+24H</button>
+                                    <button class="mini-btn" onclick="quickActivate('${v.vendor_id}', 168)">+7D</button>
+                                    <button class="mini-btn danger" onclick="suspendVendor('${v.vendor_id}')">SUSPEND</button>
                                     <button class="mini-btn danger" onclick="deleteVendor('${v.vendor_id}')">ERASE</button>
                                 </div>
                             </td>
@@ -404,6 +477,91 @@
         }
 
         function closeModal() { document.getElementById('analyticsModal').style.display = 'none'; }
+        async function quickActivate(id, hours) {
+            await api('/api/vault/admin/vendor/activate_until', 'POST', { vendorId: id, hours });
+            loadDashboard();
+        }
+        async function suspendVendor(id) {
+            await api('/api/vault/admin/vendor/status', 'POST', { vendorId: id, status: 'suspended' });
+            loadDashboard();
+        }
+        async function promptActivate(id) {
+            const v = prompt('Enter active hours (e.g., 24 or 72):');
+            const hours = parseInt(v, 10);
+            if (!hours || hours <= 0) return;
+            await api('/api/vault/admin/vendor/activate_until', 'POST', { vendorId: id, hours });
+            loadDashboard();
+        }
+        async function addVendorFab() {
+            const vid = prompt('Enter new vendor identity');
+            if (!vid) return;
+            try {
+                const res = await api('/api/vault/admin/vendors', 'POST', { vendorId: vid });
+                alert(`Provisioned: ${res.accessKey}`);
+                loadDashboard();
+            } catch (e) {
+                alert('Failed to provision');
+            }
+        }
+        function initTool() {
+            if (!window.DEVICES) return;
+            const b = document.getElementById('toolBrand');
+            const s = document.getElementById('toolSeries');
+            const m = document.getElementById('toolModel');
+            b.innerHTML = '<option value="">SELECT BRAND</option>' + window.DEVICES.map(d => `<option value="${d.brand}">${d.brand}</option>`).join('');
+            b.onchange = () => {
+                const bd = window.DEVICES.find(d => d.brand === b.value);
+                if (bd) {
+                    s.innerHTML = '<option value="">SELECT SERIES</option>' + bd.series.map(x => `<option value="${x.name}">${x.name}</option>`).join('');
+                    s.disabled = false;
+                } else {
+                    s.innerHTML = '<option value="">SELECT SERIES</option>';
+                    s.disabled = true;
+                }
+                m.innerHTML = '<option value="">SELECT MODEL</option>';
+                m.disabled = true;
+            };
+            s.onchange = () => {
+                const bd = window.DEVICES.find(d => d.brand === b.value);
+                const sd = bd?.series.find(x => x.name === s.value);
+                if (sd) {
+                    m.innerHTML = '<option value="">SELECT MODEL</option>' + sd.models.map(z => `<option value="${z}">${z}</option>`).join('');
+                    m.disabled = false;
+                } else {
+                    m.innerHTML = '<option value="">SELECT MODEL</option>';
+                    m.disabled = true;
+                }
+            };
+            document.querySelectorAll('#toolSpeedSeg .segment-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('#toolSpeedSeg .segment-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                });
+            });
+        }
+        function setAdminNav(key) {
+            document.querySelectorAll('.admin-bottom-nav .nav-btn').forEach(b => b.classList.remove('active'));
+            const t = document.querySelector(`.admin-bottom-nav .nav-btn[data-anchor="${key}"]`);
+            if (t) t.classList.add('active');
+        }
+        document.addEventListener('DOMContentLoaded', () => {
+            setAdminNav('home');
+        });
+        function computePreview() {
+            const brand = document.getElementById('toolBrand').value;
+            const series = document.getElementById('toolSeries').value;
+            const model = document.getElementById('toolModel').value;
+            const speedBtn = document.querySelector('#toolSpeedSeg .segment-btn.active');
+            const speed = speedBtn ? speedBtn.dataset.speed : 'medium';
+            if (!brand || !model) return alert('Select device profile first');
+            const results = window.Calculator.compute({ brand, series, model, speed, claw: '2', neuralScale: 5.0 });
+            document.getElementById('rGeneral').textContent = results.general;
+            document.getElementById('rRedDot').textContent = results.redDot;
+            document.getElementById('rDPI').textContent = results.dpi;
+            document.getElementById('rFire').textContent = results.fireButton;
+        }
     </script>
+    <script src="devices.js"></script>
+    <script src="calculator.js"></script>
 </body>
 </html>

@@ -128,6 +128,21 @@
                 <button class="action-btn" onclick="generateCode('smart')">PROVISION ACCESS CODE</button>
             </section>
 
+            <section class="glass-card">
+                <details>
+                    <summary class="form-label" style="cursor:pointer;">Advanced Options</summary>
+                    <div class="form-group" style="margin-top: 0.75rem;">
+                        <label class="form-label">Usage Limit (optional)</label>
+                        <input type="number" id="o_limit" class="cyber-input" placeholder="Unlimited">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Expire In (Hours, optional)</label>
+                        <input type="number" id="o_exp" class="cyber-input" placeholder="Permanent">
+                    </div>
+                    <p style="font-size:0.6rem; color:var(--text-muted);">Leave empty for unlimited and permanent codes.</p>
+                </details>
+            </section>
+
             <section id="generatedOutput" class="hidden">
                 <div class="code-result-box" style="border-style: solid; background: rgba(var(--accent-primary-rgb), 0.05);">
                     <span class="form-label" style="color: var(--accent-primary);">PROVISIONING SUCCESSFUL</span>
@@ -154,13 +169,29 @@
 
                     <div style="display: flex; gap: 0.5rem; margin-top: 1.5rem;">
                         <button class="action-btn" style="margin: 0; background: var(--accent-secondary);" onclick="copyCode()">COPY CODE</button>
-                        <button class="action-btn" style="margin: 0;" onclick="shareWhatsApp()">WHATSAPP</button>
+                        <button class="action-btn" style="margin: 0;" onclick="copyVerifyLink()">COPY VERIFY LINK</button>
                     </div>
                 </div>
             </section>
         </main>
 
         <main id="tab_analytics" class="hidden">
+            <div class="glass-card" style="margin-bottom: 1rem;">
+                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap:0.5rem;">
+                    <select id="f_status" class="cyber-select">
+                        <option value="">All</option>
+                        <option value="active">Active</option>
+                        <option value="limit">Limit Reached</option>
+                        <option value="expired">Expired</option>
+                    </select>
+                    <input type="text" id="f_search" class="cyber-input" placeholder="Search code/IGN">
+                </div>
+            </div>
+            <div class="summary-bar" style="margin-top:-0.5rem;">
+                <div class="summary-item"><span class="label">Total Codes</span><span class="value" id="statTotal">0</span></div>
+                <div class="summary-item"><span class="label">Active</span><span class="value" id="statActive">0</span></div>
+                <div class="summary-item"><span class="label">Limit Hits</span><span class="value" id="statLimit">0</span></div>
+            </div>
             <div class="glass-card scroll-list" style="padding: 0;">
                 <table style="width: 100%; border-collapse: collapse; font-size: 0.75rem;">
                     <thead>
@@ -201,6 +232,28 @@
             </section>
         </main>
     </div>
+
+    <nav class="admin-bottom-nav">
+        <button class="nav-btn" data-nav="codes" onclick="switchTab('codes')">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 11l9-9 9 9v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-9z"/></svg>
+            HOME
+        </button>
+        <button class="nav-btn" data-nav="analytics" onclick="switchTab('analytics')">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 13h3v7H4v-7zm6-6h3v13h-3V7zm6 3h3v10h-3V10z"/></svg>
+            ANALYTICS
+        </button>
+        <div class="fab-slot">
+            <button class="fab-btn" onclick="document.querySelector('#tab_codes .action-btn').scrollIntoView({behavior:'smooth'})">+</button>
+        </div>
+        <button class="nav-btn" data-nav="profile" onclick="switchTab('profile')">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3a4 4 0 0 1 4 4v1h1a4 4 0 1 1 0 8h-1v1a4 4 0 1 1-8 0v-1H7a4 4 0 1 1 0-8h1V7a4 4 0 0 1 4-4z"/></svg>
+            BRAND
+        </button>
+        <button class="nav-btn" data-nav="exit" onclick="handleLogout()">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 17l5-5-5-5v3H3v4h7v3zm9-13H11v2h8v12h-8v2h8a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/></svg>
+            EXIT
+        </button>
+    </nav>
 
     <script src="/socket.io/socket.io.js"></script>
     <script src="devices.js"></script>

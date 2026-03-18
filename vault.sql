@@ -10,12 +10,13 @@ CREATE TABLE IF NOT EXISTS organizations (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
--- Vendors Table: Manages multi-tenant configurations
 CREATE TABLE IF NOT EXISTS vendors (
     id INT AUTO_INCREMENT PRIMARY KEY,
     org_id VARCHAR(50) DEFAULT 'XP-CORE-ORG',
     vendor_id VARCHAR(50) UNIQUE NOT NULL, -- e.g., 'GUEST-CREATOR'
-    access_key VARCHAR(100) UNIQUE NOT NULL, -- e.g., 'XP-VNDR-KHAN'
+    access_key VARCHAR(100) UNIQUE NOT NULL, -- bcrypt hash
+    lookup_key VARCHAR(20) UNIQUE DEFAULT NULL,
+    active_until DATETIME DEFAULT NULL,
     brand_config JSON NOT NULL, -- { "logo": "...", "colors": { "primary": "..." }, "socials": { "yt": "...", "ig": "...", "dc": "..." } }
     status ENUM('active', 'suspended') DEFAULT 'active',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -26,7 +27,8 @@ CREATE TABLE IF NOT EXISTS vendors (
 -- Sensitivity Keys Table: Stores user-specific results linked to codes
 CREATE TABLE IF NOT EXISTS sensitivity_keys (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    entry_code VARCHAR(10) UNIQUE NOT NULL, -- 6-digit or custom slug
+    entry_code VARCHAR(100) UNIQUE NOT NULL, -- bcrypt hash of 6-digit code
+    lookup_key VARCHAR(16) UNIQUE NOT NULL,
     vendor_id VARCHAR(50),
     results_json JSON NOT NULL, -- Calculated sensitivity data
     custom_results_json JSON DEFAULT NULL, -- Manual overrides by vendor/user
@@ -63,17 +65,30 @@ CREATE TABLE IF NOT EXISTS audit_logs (
 -- Code Activity Table: Tracks who used what code
 CREATE TABLE IF NOT EXISTS code_activity (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    entry_code VARCHAR(10) NOT NULL,
+    entry_code VARCHAR(20) NOT NULL, -- plaintext for reference
+    lookup_key VARCHAR(16) NOT NULL,
     user_ign VARCHAR(100),
     user_region VARCHAR(50),
     used_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     feedback_rating INT DEFAULT NULL,
     feedback_comment TEXT DEFAULT NULL,
-    INDEX (entry_code)
+    INDEX (entry_code),
+    INDEX (lookup_key)
+);
+
+-- Security Logs Table: tracks verification failures and throttling
+CREATE TABLE IF NOT EXISTS security_logs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    ip_address VARCHAR(45),
+    event_type VARCHAR(50),
+    details JSON,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    INDEX (ip_address),
+    INDEX (event_type)
 );
 
 -- Seed Data
 INSERT IGNORE INTO organizations (org_id, org_name) VALUES ('XP-CORE-ORG', 'XP ARENA GLOBAL');
 
-INSERT IGNORE INTO vendors (org_id, vendor_id, access_key, brand_config, status) VALUES 
-('XP-CORE-ORG', 'XP-ADMIN', 'XP-2008', '{"logo": "", "colors": {"primary": "#00f2fe"}, "socials": {}}', 'active');
+INSERT IGNORE INTO vendors (org_id, vendor_id, access_key, lookup_key, brand_config, status) VALUES 
+('XP-CORE-ORG', 'XP-ADMIN', 'XP-2008', NULL, '{"logo": "", "colors": {"primary": "#00f2fe"}, "socials": {}}', 'active');

@@ -97,6 +97,7 @@ const UI = {
         this.attachVaultListeners();
         this.attachCalibrationListeners();
         this.loadProfile();
+        this.initLanguage();
         
         // SFX and Audio Initialization
         document.body.addEventListener('click', () => {
@@ -346,6 +347,31 @@ const UI = {
             this.elements.sensInput.value = state.neuralScale;
             this.elements.sensLabel.textContent = state.neuralScale.toFixed(1);
         }
+    },
+    
+    initLanguage() {
+        const sel = document.getElementById('langSelect');
+        if (!sel) return;
+        sel.value = state.lang || 'en';
+        sel.addEventListener('change', () => {
+            state.lang = sel.value;
+            localStorage.setItem('xp_lang', state.lang);
+            this.applyLang();
+        });
+        this.applyLang();
+    },
+    applyLang() {
+        const dict = (window.LANGUAGES && window.LANGUAGES[state.lang]) || window.LANGUAGES?.en;
+        if (!dict) return;
+        const map = [
+            { sel: 'h1.title-main', text: 'NEURAL\nCALIBRATION' },
+            { sel: 'header p', text: dict.heroSubtitle || 'NEURAL SENSITIVITY CALIBRATOR' },
+            { sel: 'label.form-label', attr: null }
+        ];
+        const brand = document.querySelector('#hardwareSection .form-group .form-label');
+        if (brand) brand.textContent = dict.brandLabel || 'Device Architecture';
+        const calcBtn = document.getElementById('calculateBtn');
+        if (calcBtn) calcBtn.textContent = dict.calcBtn || 'GENERATE OPTIMIZED GUIDE';
     },
 
     toggleManualMode(active) {

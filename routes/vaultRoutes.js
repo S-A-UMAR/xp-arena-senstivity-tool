@@ -36,16 +36,34 @@ function parseBearer(header) {
     return null;
 }
 
+function getJwtSecret() {
+    return process.env.JWT_SECRET || 'xparena_ultra_secure_777';
+}
+
 function authenticateVendor(req, res, next) {
-    try {
+    (async () => {
         const token = req.cookies.xp_vendor_token || parseBearer(req.headers['authorization']);
         if (!token) return fail(res, 'XP_AUTH_UNAUTHORIZED', 'VENDOR_SESSION_REQUIRED', 401);
-        const payload = jwt.verify(token, process.env.JWT_SECRET);
-        req.vendorId = payload.vendor_id;
-        next();
-    } catch (e) {
-        return fail(res, 'XP_AUTH_INVALID', 'SESSION_EXPIRED_OR_CORRUPT', 401);
-    }
+        let payload;
+        try {
+            payload = jwt.verify(token, getJwtSecret());
+        } catch (_e) {
+            return fail(res, 'XP_AUTH_INVALID', 'SESSION_EXPIRED_OR_CORRUPT', 401);
+        }
+        // Enforce vendor status and activation window
+        try {
+            const vendor = await db.get('SELECT status, active_until FROM vendors WHERE vendor_id = ?', [payload.vendor_id]);
+            const now = new Date();
+            const activeUntilOk = !vendor?.active_until || new Date(vendor.active_until) > now;
+            if (!vendor || vendor.status !== 'active' || !activeUntilOk) {
+                return fail(res, 'XP_AUTH_SUSPENDED', 'VENDOR_ACCOUNT_LOCKED_OR_EXPIRED', 403);
+            }
+            req.vendorId = payload.vendor_id;
+            next();
+        } catch (e) {
+            return fail(res, 'XP_AUTH_INVALID', 'VENDOR_LOOKUP_FAILED', 401);
+        }
+    })();
 }
 
 async function checkSoftBan(req, res, next) {
@@ -127,11 +145,6 @@ async function logAudit(actorType, actorId, action, details, ip) {
             INSERT INTO audit_logs (actor_type, actor_id, action, details, ip_address)
             VALUES (?, ?, ?, ?, ?)
         `, [actorType, actorId, action, JSON.stringify(details || {}), ip]);
-
-        if (action.includes('REGISTER') || action.includes('CHANGE')) {
-            await sendDiscordAlert(action, `Actor ${actorId} performed ${action}.\nDetails: ${JSON.stringify(details)}`, 0xffaa00);
-        }
-
         if (action.includes('REGISTER') || action.includes('CHANGE')) {
             await sendDiscordAlert(action, `Actor ${actorId} performed ${action}.\nDetails: ${JSON.stringify(details)}`, 0xffaa00);
         }
@@ -208,10 +221,12 @@ router.post('/verify', checkSoftBan, async (req, res) => {
         const vendor = await db.get('SELECT * FROM vendors WHERE lookup_key = ?', [prefix]);
         if (vendor) {
             if (await bcrypt.compare(input, vendor.access_key)) {
-                if (vendor.status === 'suspended') {
+                const now = new Date();
+                const activeWindow = !vendor.active_until || new Date(vendor.active_until) > now;
+                if (vendor.status === 'suspended' || !activeWindow) {
                     return fail(res, 'XP_AUTH_SUSPENDED', 'PROVIDER_ACCESS_DENIED', 403);
                 }
-                const token = jwt.sign({ vendor_id: vendor.vendor_id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+                const token = jwt.sign({ vendor_id: vendor.vendor_id }, getJwtSecret(), { expiresIn: '7d' });
                 res.cookie('xp_vendor_token', token, {
                     httpOnly: true,
                     secure: process.env.NODE_ENV === 'production',
@@ -244,6 +259,10 @@ router.post('/verify', checkSoftBan, async (req, res) => {
             if (keyData.vendor_status === 'suspended') {
                 return res.status(403).json({ error: 'PROVIDER UNAVAILABLE - ACCESS DENIED' });
             }
+            const vendorWindow = await db.get('SELECT active_until FROM vendors WHERE vendor_id = ?', [keyData.vendor_id]);
+            if (vendorWindow && vendorWindow.active_until && new Date(vendorWindow.active_until) < new Date()) {
+                return res.status(403).json({ error: 'PROVIDER ACCESS WINDOW EXPIRED' });
+            }
             
             if (keyData.status === 'expired' || (keyData.expires_at && new Date(keyData.expires_at) < new Date())) {
                 return res.status(403).json({ error: 'KEY EXPIRED OR DEACTIVATED' });
@@ -254,7 +273,7 @@ router.post('/verify', checkSoftBan, async (req, res) => {
             }
             
             await db.run('UPDATE sensitivity_keys SET current_usage = current_usage + 1 WHERE id = ?', [keyData.id]);
-            await db.run('INSERT INTO code_activity (entry_code, user_ign, user_region) VALUES (?, ?, ?)', [input, user_ign || 'Anonymous', user_region || 'Unknown']);
+            await db.run('INSERT INTO code_activity (entry_code, lookup_key, user_ign, user_region) VALUES (?, ?, ?, ?)', [input, prefix, user_ign || 'Anonymous', user_region || 'Unknown']);
 
             let finalResults = typeof keyData.results_json === 'string' ? JSON.parse(keyData.results_json) : keyData.results_json;
             if (keyData.custom_results_json) {
@@ -347,7 +366,7 @@ router.post('/vendor/login', async (req, res) => {
         if (!matchedVendor) return fail(res, 'XP_AUTH_DENIED', 'INVALID_VENDOR_KEY', 401);
         if (matchedVendor.status !== 'active') return fail(res, 'XP_AUTH_SUSPENDED', 'VENDOR_ACCOUNT_LOCKED', 403);
 
-        const token = jwt.sign({ vendor_id: matchedVendor.vendor_id }, process.env.JWT_SECRET || 'xparena_ultra_secure_777', { expiresIn: '7d' });
+        const token = jwt.sign({ vendor_id: matchedVendor.vendor_id }, getJwtSecret(), { expiresIn: '7d' });
         res.cookie('xp_vendor_token', token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
@@ -516,7 +535,7 @@ router.get('/admin/stats', authenticateAdmin, async (req, res) => {
                 (SELECT COUNT(*) FROM vendors) as vendors,
                 (SELECT COUNT(*) FROM sensitivity_keys) as codes,
                 (SELECT COUNT(*) FROM code_activity) as usage_total,
-                (SELECT AVG(rating) FROM code_activity WHERE rating IS NOT NULL) as global_accuracy
+                (SELECT AVG(feedback_rating) FROM code_activity WHERE feedback_rating IS NOT NULL) as global_accuracy
         `);
         res.json(stats);
     } catch (e) {
@@ -532,7 +551,7 @@ router.get('/admin/vendors', authenticateAdmin, async (req, res) => {
         const vendors = await db.all(`
             SELECT v.*, 
             (SELECT COUNT(*) FROM sensitivity_keys WHERE vendor_id = v.vendor_id) as total_codes,
-            (SELECT COUNT(*) FROM code_activity ca JOIN sensitivity_keys sk ON ca.entry_code = sk.entry_code WHERE sk.vendor_id = v.vendor_id) as total_usage
+            (SELECT COUNT(*) FROM code_activity ca JOIN sensitivity_keys sk ON ca.lookup_key = sk.lookup_key WHERE sk.vendor_id = v.vendor_id) as total_usage
             FROM vendors v
             ORDER BY v.created_at DESC
         `);
@@ -553,7 +572,7 @@ router.get('/admin/vendor/:vendorId/analytics', authenticateAdmin, async (req, r
         const activities = await db.all(`
             SELECT ca.*, sk.results_json
             FROM code_activity ca
-            JOIN sensitivity_keys sk ON ca.entry_code = sk.entry_code
+            JOIN sensitivity_keys sk ON ca.lookup_key = sk.lookup_key
             WHERE sk.vendor_id = ?
             ORDER BY ca.used_at DESC
             LIMIT 50
@@ -623,6 +642,30 @@ router.post('/admin/vendor/status', authenticateAdmin, async (req, res) => {
     }
 });
 
+// POST /api/vault/admin/vendor/activate_until
+router.post('/admin/vendor/activate_until', authenticateAdmin, async (req, res) => {
+    try {
+        const schema = z.object({
+            vendorId: z.string().min(2),
+            hours: z.number().int().positive().max(24 * 365).optional(),
+            until: z.string().datetime().optional()
+        }).refine(d => d.hours || d.until, 'Provide hours or until');
+        const { vendorId, hours, until } = schema.parse(req.body);
+        let activeUntil = null;
+        if (until) {
+            activeUntil = new Date(until);
+        } else if (hours) {
+            activeUntil = new Date(Date.now() + hours * 60 * 60 * 1000);
+        }
+        await db.run('UPDATE vendors SET status = ?, active_until = ? WHERE vendor_id = ?', ['active', activeUntil, vendorId]);
+        await logAudit('admin', 'SYSTEM', 'VENDOR_ACTIVATE_TIMED', { vendorId, active_until: activeUntil }, req.ip);
+        res.json({ success: true, active_until: activeUntil?.toISOString() || null });
+    } catch (e) {
+        if (e instanceof z.ZodError) return fail(res, 'XP_VAL_FAILED', 'INVALID_ACTIVATE_PARAMS', 400, e.errors);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
 // DELETE /api/vault/admin/vendor/:vendorId
 router.delete('/admin/vendor/:vendorId', authenticateAdmin, async (req, res) => {
     try {
@@ -655,8 +698,8 @@ router.post('/calculate', async (req, res) => {
         `, [hashedCode, lookupKey, JSON.stringify(results)]);
 
         // Log initial activity
-        await db.run('INSERT INTO code_activity (entry_code, user_ign, user_region) VALUES (?, ?, ?)', 
-            [entry_code, req.body.ign || 'Guest', req.body.rank || 'Global']);
+        await db.run('INSERT INTO code_activity (entry_code, lookup_key, user_ign, user_region) VALUES (?, ?, ?, ?)', 
+            [entry_code, lookupKey, req.body.ign || 'Guest', req.body.rank || 'Global']);
 
         res.json({ results, entry_code });
     } catch (e) {
@@ -687,13 +730,14 @@ router.post('/feedback', async (req, res) => {
         const { entry_code, rating, feedback_text } = schema.parse(req.body);
 
         // Find the most recent activity for this code (assuming the rater is the most recent user)
-        const activity = await db.get('SELECT id FROM code_activity WHERE entry_code = ? ORDER BY used_at DESC LIMIT 1', [entry_code]);
+        const lookupKey = crypto.createHash('sha1').update(entry_code).digest('hex').substring(0, 10);
+        const activity = await db.get('SELECT id FROM code_activity WHERE lookup_key = ? ORDER BY used_at DESC LIMIT 1', [lookupKey]);
         
         if (!activity) {
             return fail(res, 'XP_VAL_NOT_FOUND', 'SESSION_NOT_FOUND', 404);
         }
 
-        await db.run('UPDATE code_activity SET rating = ?, feedback_text = ? WHERE id = ?', [rating, feedback_text || null, activity.id]);
+        await db.run('UPDATE code_activity SET feedback_rating = ?, feedback_comment = ? WHERE id = ?', [rating, feedback_text || null, activity.id]);
 
         // Emit live event for feedback
         const io = req.app.get('io');
@@ -718,17 +762,18 @@ router.get('/code/:code/status', async (req, res) => {
     try {
         const code = req.params.code;
         if (!code) return res.status(400).json({ error: 'Missing code' });
+        const lookupKey = crypto.createHash('sha1').update(code).digest('hex').substring(0, 10);
         const key = await db.get(`
-            SELECT k.entry_code, k.vendor_id, k.usage_limit, k.current_usage, k.status, k.expires_at,
+            SELECT k.lookup_key, k.vendor_id, k.usage_limit, k.current_usage, k.status, k.expires_at,
                    v.vendor_id as v_id, v.status as vendor_status, v.brand_config
             FROM sensitivity_keys k
             LEFT JOIN vendors v ON k.vendor_id = v.vendor_id
-            WHERE k.entry_code = ?
-        `, [code]);
+            WHERE k.lookup_key = ?
+        `, [lookupKey]);
         if (!key) return res.status(404).json({ error: 'Not found' });
-        const usage_total = await db.get('SELECT COUNT(*) as c FROM code_activity WHERE entry_code = ?', [code]);
+        const usage_total = await db.get('SELECT COUNT(*) as c FROM code_activity WHERE lookup_key = ?', [lookupKey]);
         res.json({
-            entry_code: key.entry_code,
+            lookup_key: key.lookup_key,
             vendor_id: key.vendor_id,
             vendor_status: key.vendor_status,
             status: key.status,
