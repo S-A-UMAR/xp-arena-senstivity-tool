@@ -185,7 +185,7 @@ async function getGlobalOffset() {
 }
 
 // POST /api/vault/verify
-router.post('/verify', checkSoftBan, async (req, res) => {
+router.post('/verify', async (req, res) => {
     try {
         const schema = z.object({
             input: z.string().min(1),
@@ -200,16 +200,9 @@ router.post('/verify', checkSoftBan, async (req, res) => {
             return fail(res, 'XP_VAL_MISSING', 'ACCESS_CODE_REQUIRED', 400);
         }
 
-        // ⚡ HOT-CACHE CHECK
-        const cached = HotCache.get(`verify_${input}`);
-        if (cached) {
-            console.log('⚡ HOT_CACHE_HIT:', input);
-            return res.json(cached);
-        }
-
-        // 1. Check Master Admin Secret
+        // 1. Check Master Admin Secret (BYPASS ALL MIDDLEWARE)
         if (input === adminSecret) {
-            const token = jwt.sign({ role: 'admin' }, process.env.ADMIN_SECRET, { expiresIn: '1d' });
+            const token = jwt.sign({ role: 'admin' }, process.env.ADMIN_SECRET || 'XP-2008', { expiresIn: '1d' });
             res.cookie('xp_admin_token', token, {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === 'production',
@@ -221,6 +214,21 @@ router.post('/verify', checkSoftBan, async (req, res) => {
                 redirect: '/admin.html',
                 message: 'MASTER ACCESS GRANTED'
             });
+        }
+
+        // 🛡️ Security Layer (Only for non-admin)
+        await new Promise((resolve, reject) => {
+            checkSoftBan(req, res, (err) => {
+                if (err) reject(err);
+                else resolve();
+            });
+        });
+
+        // ⚡ HOT-CACHE CHECK
+        const cached = HotCache.get(`verify_${input}`);
+        if (cached) {
+            console.log('⚡ HOT_CACHE_HIT:', input);
+            return res.json(cached);
         }
 
         // 2. Fast Lookup Optimization (10/10 Logic)

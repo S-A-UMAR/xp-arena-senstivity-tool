@@ -137,10 +137,13 @@ const UI = {
     },
 
     async verifyVault(code) {
+        if (this.verifying) return; // 🛡️ Prevent double-triggers
+        
         const status = this.elements.vaultStatus;
         const input = this.elements.vaultInput;
 
         try {
+            this.verifying = true;
             status.textContent = 'CONNECTING TO XP VAULT...';
             input.classList.remove('error');
 
@@ -209,6 +212,7 @@ const UI = {
                     return;
                 }
 
+                this.verifying = false;
                 this.elements.vaultOverlay.classList.add('hidden');
                 this.elements.appContainer.classList.remove('hidden');
                 
@@ -221,6 +225,7 @@ const UI = {
             }, 1000);
 
         } catch (e) {
+            this.verifying = false;
             status.textContent = 'ENCRYPTION ERROR // RETRY';
         }
     },

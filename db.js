@@ -11,6 +11,7 @@ const pool = mysql.createPool({
     waitForConnections: true,
     connectionLimit: process.env.DB_CONNECTION_LIMIT ? parseInt(process.env.DB_CONNECTION_LIMIT, 10) : 10,
     queueLimit: 0,
+    connectTimeout: 5000, // ⚡ 5s timeout to prevent serverless hang
     enableKeepAlive: true,
     keepAliveInitialDelay: 10000,
     ssl: {
@@ -18,6 +19,17 @@ const pool = mysql.createPool({
         rejectUnauthorized: process.env.NODE_ENV === 'production' ? true : false
     }
 });
+
+// Diagnostic Connection Ping
+(async () => {
+    try {
+        const conn = await pool.getConnection();
+        console.log('✅ DB_CONNECTION_ESTABLISHED');
+        conn.release();
+    } catch (err) {
+        console.error('❌ DB_CONNECTION_FAILED:', err.message);
+    }
+})();
 
 const databaseHelper = {
     async query(sql, params) {
