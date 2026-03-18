@@ -1,4 +1,6 @@
 window.Calculator = {
+    version: '1.0.0-PRO',
+
     getTier(brand, series, model) {
         if (!model) return 'mid';
         const m = model.toLowerCase();
@@ -7,37 +9,43 @@ window.Calculator = {
         return 'budget';
     },
 
-    compute(state) {
+    range(val, max = 200) {
+        const v = Math.round(val);
+        const low = Math.max(0, v - 3);
+        const high = Math.min(max, v + 4);
+        return `${low}-${high}`;
+    },
+
+    compute(state, globalOffset = 1.0) {
         const tier = this.getTier(state.brand, state.series, state.model);
         const scale = state.neuralScale || 5.0;
-        
-        // Base values for Tier
+
         let baseRel = tier === 'high' ? 98 : tier === 'mid' ? 94 : 90;
-        
-        // AI Factor adjustment (scale 1-10, 5 is neutral)
-        const aiFactor = (scale - 5) * 1.5;
+        baseRel *= parseFloat(globalOffset || 1.0);
+
+        const aiFactor = (state.speed === 'fast' ? 5 : state.speed === 'slow' ? -5 : 0) + (scale - 5) * 1.5;
         baseRel += aiFactor;
 
-        // Final result JSON
         const results = {
-            general: Math.min(100, Math.round(baseRel)),
-            redDot: Math.min(100, Math.round(baseRel * 0.95)),
-            scope2x: Math.min(100, Math.round(baseRel * 0.90)),
-            scope4x: Math.min(100, Math.round(baseRel * 0.88)),
-            sniperScope: Math.round(baseRel * 0.6),
-            freeLook: Math.round(baseRel * 1.1),
-            ads: Math.min(100, Math.round(baseRel * 1.02)),
-            dpi: tier === 'high' ? 800 : tier === 'mid' ? 440 : 411,
-            fireButton: state.brand === 'Apple' ? 58 : 65,
+            formula_version: this.version,
+            brand: state.brand,
+            model: state.model,
+            general: this.range(baseRel, 200),
+            redDot: this.range(baseRel * 0.95, 200),
+            scope2x: this.range(baseRel * 0.9, 200),
+            scope4x: this.range(baseRel * 0.88, 200),
+            sniperScope: this.range(baseRel * 0.6, 200),
+            freeLook: this.range(baseRel * 1.1, 200),
+            dpi: tier === 'high' ? '800-840' : tier === 'mid' ? '440-480' : '411-440',
+            fireButton: state.brand === 'Apple' ? '54-58' : '62-66',
             graphics: tier === 'high' ? 'Ultra / Max' : 'Smooth / High',
-            clawStyle: state.grip === 'claw' ? '4-Finger' : '2-Finger',
-            gripStyle: state.grip.toUpperCase()
+            clawStyle: state.claw === '4' ? '4-Finger' : '2-Finger',
+            gripStyle: (state.grip || 'palm').toUpperCase()
         };
 
-        // Manual Override Injection
         if (state.manualSens && !isNaN(parseFloat(state.manualSens))) {
-            const manualVal = Math.round(parseFloat(state.manualSens));
-            results.general = manualVal;
+            const manualVal = parseFloat(state.manualSens);
+            results.general = this.range(manualVal, 200);
             results.isManual = true;
         }
 

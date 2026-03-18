@@ -402,9 +402,6 @@
 
         async function init() {
             try {
-                // Get basic config to identify vendor
-                const res = await api(`${API_BASE}/admin/settings`); // We use settings to get context or a dedicated profile route
-                // For now, assume the JWT sets req.vendorId
                 loadDashboard();
                 loadAnalytics();
             } catch (e) {
