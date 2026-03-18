@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS vendors (
     active_until DATETIME DEFAULT NULL,
     webhook_url VARCHAR(500) DEFAULT NULL,
     brand_config JSON NOT NULL, -- { "logo": "...", "colors": { "primary": "..." }, "socials": { "yt": "...", "ig": "...", "dc": "..." } }
+    usage_limit INT DEFAULT NULL,
     status ENUM('active', 'suspended') DEFAULT 'active',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

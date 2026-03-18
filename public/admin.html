@@ -570,15 +570,52 @@
     <script src="notifications.js"></script>
     <script src="settings.js"></script>
     <script>
-        // ⚡ Master Interface Logic
-        let dashboardPoller = null;
-        function startLongPolling() {
-            if (dashboardPoller) return;
-            dashboardPoller = setInterval(() => {
+        // ⚡ Master Interface Logic (Vercel-Friendly Polling)
+        let liveFeedTimer;
+        
+        async function fetchLiveFeed() {
+            try {
+                const data = await api('/api/vault/admin/live-feed');
+                if (!data || !Array.isArray(data)) return;
+                
+                const feed = document.getElementById('liveFeed');
+                if (data.length > 0 && feed.children[0] && feed.children[0].textContent.includes('WAITING')) {
+                    feed.innerHTML = '';
+                }
+                
+                // Clear and re-render feed (or prepend new ones)
+                // For simplicity, we'll re-render the last 15
+                feed.innerHTML = data.slice(0, 15).map(event => {
+                    const item = document.createElement('div');
+                    item.className = 'live-item';
+                    
+                    if (event.type === 'verify') {
+                        return `<div class="live-item"><span>[HIT] ${event.user_ign}</span><span style="color:var(--accent-primary)">${event.vendor_id || event.region || 'Unknown'}</span></div>`;
+                    } else if (event.type === 'feedback') {
+                        return `<div class="live-item"><span>[FBK] ${'★'.repeat(event.rating || 0)}</span><span style="color:#aaa">"${event.feedback || 'No comment'}"</span></div>`;
+                    }
+                    return '';
+                }).join('');
+            } catch (e) {
+                console.warn('LIVE_FEED_POLLING_ERR:', e);
+            }
+        }
+
+        function startPolling() {
+            fetchLiveFeed();
+            if (liveFeedTimer) clearInterval(liveFeedTimer);
+            liveFeedTimer = setInterval(fetchLiveFeed, 5000);
+            
+            // Stats Poller (10s)
+            setInterval(() => {
                 if (!document.getElementById('mainPanel').classList.contains('hidden')) {
                     loadDashboard().catch(() => {});
                 }
             }, 10000);
+        }
+
+        function stopPolling() {
+            clearInterval(liveFeedTimer);
         }
 
         async function api(path, method = 'GET', body = null) {
@@ -621,7 +658,7 @@
                 if (res.ok) {
                     document.getElementById('privateGate').classList.add('hidden');
                     document.getElementById('mainPanel').classList.remove('hidden');
-                    startLongPolling();
+                    startPolling();
                     loadDashboard();
                     initTool();
                 } else {
@@ -801,18 +838,16 @@
 
         async function addVendor() {
             const vid = document.getElementById('vName').value.trim();
-            const brand = document.getElementById('vBrand').value.trim();
-            const vLimit = parseInt(document.getElementById('vLimit').value, 10);
+            const vOrg = document.getElementById('vBrand').value.trim();
+            const vLim = parseInt(document.getElementById('vLimit').value, 10);
+            
             if (!vid || vid.length < 2) return alert("NAME_REQUIRED (MIN 2 CHARS)");
             try {
-                const payload = {
+                const res = await api('/api/vault/admin/vendors', 'POST', { 
                     vendorId: vid,
-                    brandConfig: {
-                        display_name: brand || vid,
-                        limit_hint: Number.isFinite(vLimit) ? vLimit : null
-                    }
-                };
-                const res = await api('/api/vault/admin/vendors', 'POST', payload);
+                    orgId: vOrg || 'XP-CORE-ORG',
+                    usageLimit: Number.isFinite(vLim) ? vLim : null
+                });
                 alert(`PROVISIONED: ${res.accessKey}`);
                 document.getElementById('vName').value = '';
                 document.getElementById('vBrand').value = '';
