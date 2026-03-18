@@ -37,7 +37,33 @@ function parseBearer(header) {
 }
 
 function getJwtSecret() {
-    return process.env.JWT_SECRET || 'xparena_ultra_secure_777';
+    return process.env.JWT_SECRET || getAdminSecret();
+}
+
+function getAdminSecret() {
+    return process.env.ADMIN_SECRET || '';
+}
+
+function getClientIp(req) {
+    const forwarded = req.headers['x-forwarded-for'];
+    const rawIp = (typeof forwarded === 'string' && forwarded.split(',')[0])
+        || req.ip
+        || req.connection?.remoteAddress
+        || '';
+    return rawIp.trim().replace('::ffff:', '');
+}
+
+function normalizeBranding(config) {
+    if (!config) return {};
+    const c = typeof config === 'string' ? JSON.parse(config) : config;
+    const socials = c.socials || {};
+    return {
+        ...c,
+        youtube: c.youtube || socials.yt || '',
+        tiktok: c.tiktok || socials.tiktok || socials.tt || '',
+        discord: c.discord || socials.discord || socials.dc || '',
+        logo_url: c.logo_url || c.logo || ''
+    };
 }
 
 function authenticateVendor(req, res, next) {
@@ -67,7 +93,7 @@ function authenticateVendor(req, res, next) {
 }
 
 async function checkSoftBan(req, res, next) {
-    const ip = req.ip || req.connection.remoteAddress;
+    const ip = getClientIp(req);
     try {
         const recentFailures = await db.get(`
             SELECT COUNT(*) as count FROM security_logs 
@@ -107,11 +133,13 @@ async function dispatchVendorWebhook(vendorId, eventType, data) {
 
 function authenticateAdmin(req, res, next) {
     try {
+        const adminSecret = getAdminSecret();
+        if (!adminSecret) return res.status(503).json({ error: 'ADMIN_SECRET_NOT_CONFIGURED' });
         // IP Whitelist Check (10/10 Security)
         const whitelist = process.env.ADMIN_IP_WHITELIST;
         if (whitelist && whitelist !== '*') {
-            const allowedIps = whitelist.split(',');
-            const clientIp = req.ip || req.connection.remoteAddress;
+            const allowedIps = whitelist.split(',').map(ip => ip.trim()).filter(Boolean).map(ip => ip.replace('::ffff:', ''));
+            const clientIp = getClientIp(req);
             if (!allowedIps.includes(clientIp)) {
                 console.warn(`🚫 UNAUTHORIZED_IP_BLOCKED: ${clientIp}`);
                 return res.status(403).json({ error: 'FORBIDDEN_IP' });
@@ -120,7 +148,7 @@ function authenticateAdmin(req, res, next) {
 
         const token = req.cookies.xp_admin_token || parseBearer(req.headers['authorization']);
         if (!token) return res.status(401).json({ error: 'Unauthorized' });
-        const payload = jwt.verify(token, process.env.ADMIN_SECRET);
+        const payload = jwt.verify(token, adminSecret);
         if (payload.role !== 'admin') return res.status(401).json({ error: 'Unauthorized' });
         next();
     } catch (e) {
@@ -212,16 +240,16 @@ router.post('/verify', async (req, res) => {
             user_region: z.string().optional()
         });
         const { input, user_ign, user_region } = schema.parse(req.body); 
-        const adminSecret = process.env.ADMIN_SECRET || 'XP-2008';
-        const clientIp = req.ip || req.connection.remoteAddress;
+        const adminSecret = getAdminSecret();
+        const clientIp = getClientIp(req);
 
         if (!input) {
             return fail(res, 'XP_VAL_MISSING', 'ACCESS_CODE_REQUIRED', 400);
         }
 
         // 1. Check Master Admin Secret (BYPASS ALL MIDDLEWARE)
-        if (input === adminSecret) {
-            const token = jwt.sign({ role: 'admin' }, process.env.ADMIN_SECRET || 'XP-2008', { expiresIn: '1d' });
+        if (adminSecret && input === adminSecret) {
+            const token = jwt.sign({ role: 'admin' }, adminSecret, { expiresIn: '1d' });
             res.cookie('xp_admin_token', token, {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === 'production',
@@ -291,7 +319,7 @@ router.post('/verify', async (req, res) => {
 
         if (keyData && await bcrypt.compare(input, keyData.entry_code)) {
             // Track Analytics Event
-            await trackEvent('landing_view', keyData.org_id, keyData.vendor_id, req.ip, 'mobile');
+            await trackEvent('landing_view', keyData.org_id, keyData.vendor_id, getClientIp(req), 'mobile');
             if (keyData.vendor_status === 'suspended') {
                 return res.status(403).json({ error: 'PROVIDER UNAVAILABLE - ACCESS DENIED' });
             }
@@ -316,6 +344,9 @@ router.post('/verify', async (req, res) => {
                 const custom = typeof keyData.custom_results_json === 'string' ? JSON.parse(keyData.custom_results_json) : keyData.custom_results_json;
                 finalResults = { ...finalResults, ...custom };
             }
+            if (keyData.creator_advice) {
+                finalResults = { ...finalResults, advice: keyData.creator_advice };
+            }
 
             // Dispatch Vendor Webhook (10/10 Feature)
             await dispatchVendorWebhook(keyData.vendor_id, 'CODE_VERIFIED', {
@@ -337,12 +368,15 @@ router.post('/verify', async (req, res) => {
                 });
             }
 
+            const branding = normalizeBranding(keyData.brand_config);
+
             // HotCache Warmup
             HotCache.set(`verify_${input}`, {
                 type: 'user',
                 redirect: '/result.html',
                 results: finalResults,
-                branding: typeof keyData.brand_config === 'string' ? JSON.parse(keyData.brand_config) : keyData.brand_config,
+                branding,
+                advice: keyData.creator_advice || null,
                 message: 'CALIBRATION DATA RETRIEVED'
             });
 
@@ -350,7 +384,8 @@ router.post('/verify', async (req, res) => {
                 type: 'user',
                 redirect: '/result.html',
                 results: finalResults,
-                branding: typeof keyData.brand_config === 'string' ? JSON.parse(keyData.brand_config) : keyData.brand_config,
+                branding,
+                advice: keyData.creator_advice || null,
                 message: 'CALIBRATION DATA RETRIEVED'
             });
         }
@@ -368,19 +403,21 @@ router.post('/verify', async (req, res) => {
         } else if (e.message.includes('Table')) {
             errorMsg = 'DATABASE MIGRATION REQUIRED: Tables do not exist in the remote database.';
         } else {
-            errorMsg = \`VAULT SYSTEM ERROR: \${e.message}\`;
+            errorMsg = `VAULT SYSTEM ERROR: ${e.message}`;
         }
         res.status(500).json({ error: errorMsg });
     }
 });
 
-router.post('/admin/login', async (req, res) => {
+router.post('/admin/login', async (req, res, next) => {
     try {
+        const adminSecret = getAdminSecret();
+        if (!adminSecret) return res.status(503).json({ error: 'ADMIN_SECRET_NOT_CONFIGURED' });
         const schema = z.object({ password: z.string().min(4) });
         const { password } = schema.parse(req.body || {});
         if (!password) return res.status(400).json({ error: 'Missing password' });
-        if (password !== process.env.ADMIN_SECRET) return res.status(401).json({ error: 'Unauthorized' });
-        const token = jwt.sign({ role: 'admin' }, process.env.ADMIN_SECRET, { expiresIn: '1d' });
+        if (password !== adminSecret) return res.status(401).json({ error: 'Unauthorized' });
+        const token = jwt.sign({ role: 'admin' }, adminSecret, { expiresIn: '1d' });
         res.cookie('xp_admin_token', token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
@@ -445,7 +482,7 @@ router.get('/codes', authenticateVendor, async (req, res) => {
 });
 
 // POST /api/vault/generate
-router.post('/generate', authenticateVendor, async (req, res) => {
+router.post('/generate', authenticateVendor, async (req, res, next) => {
     try {
         const schema = z.object({
             results: z.record(z.any()).optional(),
@@ -491,17 +528,48 @@ router.put('/profile', authenticateVendor, async (req, res) => {
         const schema = z.object({
             brand_config: z.object({
                 vendor_id: z.string().optional(),
+                display_name: z.string().optional(),
                 logo: z.string().optional(),
+                logo_url: z.string().optional(),
                 colors: z.object({ primary: z.string().regex(/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/) }).optional(),
-                socials: z.object({ yt: z.string().optional(), ig: z.string().optional() }).optional()
+                socials: z.object({
+                    yt: z.string().optional(),
+                    ig: z.string().optional(),
+                    tiktok: z.string().optional(),
+                    discord: z.string().optional()
+                }).optional(),
+                youtube: z.string().optional(),
+                tiktok: z.string().optional(),
+                discord: z.string().optional()
             }).optional(),
+            // Legacy flat payload support from vendor_dashboard.html
+            display_name: z.string().optional(),
+            logo_url: z.string().optional(),
+            youtube: z.string().optional(),
+            tiktok: z.string().optional(),
+            discord: z.string().optional(),
             webhook_url: z.string().url().nullable().optional()
         });
-        const { brand_config, webhook_url } = schema.parse(req.body);
+        const { brand_config, webhook_url, display_name, logo_url, youtube, tiktok, discord } = schema.parse(req.body);
         const vendorId = req.vendorId;
 
-        if (brand_config) {
-            await db.run('UPDATE vendors SET brand_config = ? WHERE vendor_id = ?', [JSON.stringify(brand_config), vendorId]);
+        let mergedBrandConfig = brand_config || null;
+        if (!mergedBrandConfig && (display_name || logo_url || youtube || tiktok || discord)) {
+            const current = await db.get('SELECT brand_config FROM vendors WHERE vendor_id = ?', [vendorId]);
+            const currentConfig = current?.brand_config
+                ? (typeof current.brand_config === 'string' ? JSON.parse(current.brand_config) : current.brand_config)
+                : {};
+            mergedBrandConfig = {
+                ...currentConfig,
+                display_name: display_name ?? currentConfig.display_name,
+                logo_url: logo_url ?? currentConfig.logo_url,
+                youtube: youtube ?? currentConfig.youtube,
+                tiktok: tiktok ?? currentConfig.tiktok,
+                discord: discord ?? currentConfig.discord
+            };
+        }
+        if (mergedBrandConfig) {
+            await db.run('UPDATE vendors SET brand_config = ? WHERE vendor_id = ?', [JSON.stringify(mergedBrandConfig), vendorId]);
         }
         if (webhook_url !== undefined) {
             await db.run('UPDATE vendors SET webhook_url = ? WHERE vendor_id = ?', [webhook_url, vendorId]);
@@ -639,7 +707,14 @@ router.post('/admin/vendors', authenticateAdmin, async (req, res) => {
         const { vendorId: requestedId, brandConfig } = schema.parse(req.body);
         
         // Generate Vendor ID if not provided, or clean up provided one
-        const vendorId = requestedId ? requestedId.toUpperCase().replace(/\s+/g, '-') : 'VNDR-' + Math.random().toString(36).substring(2, 7).toUpperCase();
+        const normalizedRequestedId = requestedId
+            ? requestedId.trim().toUpperCase().replace(/\s+/g, '-').replace(/[^A-Z0-9-]/g, '')
+            : '';
+        const vendorId = normalizedRequestedId || 'VNDR-' + Math.random().toString(36).substring(2, 7).toUpperCase();
+        if (vendorId.length < 2) return res.status(400).json({ error: 'INVALID_VENDOR_ID' });
+
+        const existing = await db.get('SELECT vendor_id FROM vendors WHERE vendor_id = ?', [vendorId]);
+        if (existing) return res.status(409).json({ error: 'VENDOR_ALREADY_EXISTS' });
 
         // Custom Access Key Format: XP-[VENDOR_ID]-[RANDOM_4_DIGITS]
         const randomDigits = Math.floor(1000 + Math.random() * 9000);
@@ -648,23 +723,29 @@ router.post('/admin/vendors', authenticateAdmin, async (req, res) => {
         const hashedAccessKey = await bcrypt.hash(accessKey, 10);
         const lookupKey = getLookupKey(accessKey);
 
+        // Ensure core org row exists before FK-bound vendor insert
+        await db.run(
+            "INSERT IGNORE INTO organizations (org_id, org_name) VALUES ('XP-CORE-ORG', 'XP ARENA GLOBAL')"
+        );
+
         await db.run(`
             INSERT INTO vendors (vendor_id, access_key, lookup_key, brand_config, status)
             VALUES (?, ?, ?, ?, 'active')
         `, [vendorId, hashedAccessKey, lookupKey, typeof brandConfig === 'string' ? brandConfig : JSON.stringify(brandConfig || {})]);
 
-        await logAudit('admin', 'SYSTEM', 'VENDOR_REGISTER', { vendorId, accessKey }, req.ip);
+        await logAudit('admin', 'SYSTEM', 'VENDOR_REGISTER', { vendorId, accessKey }, getClientIp(req));
 
         res.json({ success: true, message: 'VENDOR REGISTERED SUCCESSFULLY', vendorId, accessKey });
     } catch (e) {
         console.error('POST /admin/vendors error:', e);
         if (e instanceof z.ZodError) return res.status(400).json({ error: 'Invalid input' });
+        if (e && e.code === 'ER_DUP_ENTRY') return res.status(409).json({ error: 'VENDOR_ALREADY_EXISTS' });
         res.status(500).json({ error: 'Server error' });
     }
 });
 
 // POST /api/vault/admin/vendor/status
-router.post('/admin/vendor/status', authenticateAdmin, async (req, res) => {
+router.post('/admin/vendor/status', authenticateAdmin, async (req, res, next) => {
     try {
         const schema = z.object({
             vendorId: z.string().min(2),
@@ -677,7 +758,7 @@ router.post('/admin/vendor/status', authenticateAdmin, async (req, res) => {
 
         await db.run('UPDATE vendors SET status = ? WHERE vendor_id = ?', [status, vendorId]);
         
-        await logAudit('admin', 'SYSTEM', 'VENDOR_STATUS_CHANGE', { vendorId, status }, req.ip);
+        await logAudit('admin', 'SYSTEM', 'VENDOR_STATUS_CHANGE', { vendorId, status }, getClientIp(req));
 
         res.json({ success: true, message: `VENDOR ${status.toUpperCase()} SUCCESSFULLY` });
     } catch (e) {
@@ -702,7 +783,7 @@ router.post('/admin/vendor/activate_until', authenticateAdmin, async (req, res) 
             activeUntil = new Date(Date.now() + hours * 60 * 60 * 1000);
         }
         await db.run('UPDATE vendors SET status = ?, active_until = ? WHERE vendor_id = ?', ['active', activeUntil, vendorId]);
-        await logAudit('admin', 'SYSTEM', 'VENDOR_ACTIVATE_TIMED', { vendorId, active_until: activeUntil }, req.ip);
+        await logAudit('admin', 'SYSTEM', 'VENDOR_ACTIVATE_TIMED', { vendorId, active_until: activeUntil }, getClientIp(req));
         res.json({ success: true, active_until: activeUntil?.toISOString() || null });
     } catch (e) {
         if (e instanceof z.ZodError) return fail(res, 'XP_VAL_FAILED', 'INVALID_ACTIVATE_PARAMS', 400, e.errors);
@@ -722,6 +803,19 @@ router.delete('/admin/vendor/:vendorId', authenticateAdmin, async (req, res) => 
         res.json({ success: true, message: `VENDOR ${vendorId} DELETED PERMANENTLY` });
     } catch (e) {
         console.error('DELETE /admin/vendor error:', e);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Backward-compat alias for clients calling plural endpoint
+router.delete('/admin/vendors/:vendorId', authenticateAdmin, async (req, res) => {
+    try {
+        const { vendorId } = req.params;
+        await db.run('DELETE FROM sensitivity_keys WHERE vendor_id = ?', [vendorId]);
+        await db.run('DELETE FROM vendors WHERE vendor_id = ?', [vendorId]);
+        res.json({ success: true, message: `VENDOR ${vendorId} DELETED PERMANENTLY` });
+    } catch (e) {
+        console.error('DELETE /admin/vendors error:', e);
         res.status(500).json({ error: 'Server error' });
     }
 });
@@ -746,7 +840,7 @@ router.post('/admin/settings', authenticateAdmin, async (req, res) => {
         
         await db.run('REPLACE INTO system_settings (setting_key, setting_value) VALUES (?, ?)', [key, value]);
         
-        await logAudit('admin', 'SYSTEM', 'SETTING_CHANGE', { key, value }, req.ip);
+        await logAudit('admin', 'SYSTEM', 'SETTING_CHANGE', { key, value }, getClientIp(req));
         res.json({ success: true, message: 'SETTING_UPDATED' });
     } catch (e) {
         if (e instanceof z.ZodError) return res.status(400).json({ error: 'Invalid input' });
@@ -789,6 +883,47 @@ router.post('/track', async (req, res) => {
         res.json({ success: true });
     } catch (e) {
         res.status(500).json({ error: 'TRACK_ERR' });
+    }
+});
+
+router.get('/admin/live-feed', authenticateAdmin, async (req, res) => {
+    try {
+        const rows = await db.all(`
+            SELECT ca.used_at as ts, ca.user_ign, ca.user_region, ca.feedback_rating, ca.feedback_comment,
+                   sk.vendor_id
+            FROM code_activity ca
+            LEFT JOIN sensitivity_keys sk ON sk.lookup_key = ca.lookup_key
+            ORDER BY ca.used_at DESC
+            LIMIT 30
+        `);
+        const events = rows.map(r => ({
+            type: r.feedback_rating ? 'feedback' : 'verify',
+            timestamp: r.ts,
+            vendor_id: r.vendor_id || 'XP-CORE',
+            user_ign: r.user_ign || 'Anonymous',
+            region: r.user_region || 'Unknown',
+            rating: r.feedback_rating || null,
+            feedback: r.feedback_comment || null
+        }));
+        res.json(events);
+    } catch (e) {
+        console.error('LIVE_FEED_ERR:', e);
+        res.status(500).json({ error: 'LIVE_FEED_UNAVAILABLE' });
+    }
+});
+
+router.get('/admin/security-logs', authenticateAdmin, async (req, res) => {
+    try {
+        const logs = await db.all(`
+            SELECT id, ip_address, event_type, details, created_at
+            FROM security_logs
+            ORDER BY created_at DESC
+            LIMIT 100
+        `);
+        res.json(logs);
+    } catch (e) {
+        console.error('SECURITY_LOGS_ERR:', e);
+        res.status(500).json({ error: 'SECURITY_LOGS_UNAVAILABLE' });
     }
 });
 
@@ -904,19 +1039,28 @@ router.put('/code/:entryCode/deactivate', authenticateVendor, async (req, res) =
 });
 router.get('/vendor/profile', authenticateVendor, async (req, res) => {
     try {
-        const vendor = await db.get('SELECT vendor_id, status, active_until FROM vendors WHERE vendor_id = ?', [req.vendorId]);
+        const vendor = await db.get('SELECT vendor_id, status, active_until, brand_config, webhook_url FROM vendors WHERE vendor_id = ?', [req.vendorId]);
         const stats = await db.get(`
             SELECT COUNT(*) as codes, SUM(current_usage) as hits
             FROM sensitivity_keys 
             WHERE vendor_id = ?
         `, [req.vendorId]);
+        const config = vendor?.brand_config
+            ? (typeof vendor.brand_config === 'string' ? JSON.parse(vendor.brand_config) : vendor.brand_config)
+            : {};
         
         res.json({
             vendor_id: vendor.vendor_id,
             status: vendor.status,
             active_until: vendor.active_until,
             total_codes: stats.codes || 0,
-            total_hits: stats.hits || 0
+            total_hits: stats.hits || 0,
+            display_name: config.display_name || '',
+            logo_url: config.logo_url || config.logo || '',
+            youtube: config.youtube || config?.socials?.yt || '',
+            tiktok: config.tiktok || config?.socials?.tiktok || '',
+            discord: config.discord || config?.socials?.discord || '',
+            webhook_url: vendor.webhook_url || ''
         });
     } catch (e) {
         res.status(500).json({ error: 'Server error' });

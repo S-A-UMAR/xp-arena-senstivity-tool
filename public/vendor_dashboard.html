@@ -453,12 +453,17 @@
                 <input type="text" id="profDC" class="cyber-input" placeholder="discord.gg/invite">
             </div>
 
+            <div class="form-control">
+                <label>WEBHOOK URL</label>
+                <input type="url" id="profWebhook" class="cyber-input" placeholder="https://example.com/webhook">
+            </div>
+
             <button class="btn-primary" onclick="saveProfile()" style="margin-top: 1rem;">UPDATE_PRO_PROFILE</button>
         </div>
 
         <div class="glass-panel" style="background: rgba(255, 255, 255, 0.01);">
             <h3 style="margin: 0 0 1rem; font-size: 0.7rem; color: var(--text-muted);">SECURITY_RESOURCES</h3>
-            <button class="btn-primary" style="background: var(--glass-bg); color: #fff; box-shadow: none; font-size: 0.7rem; margin-bottom: 0.5rem;" onclick="logoutAdmin()">REVOKE_ACCESS_TOKEN</button>
+            <button class="btn-primary" style="background: var(--glass-bg); color: #fff; box-shadow: none; font-size: 0.7rem; margin-bottom: 0.5rem;" onclick="handleLogout()">REVOKE_ACCESS_TOKEN</button>
         </div>
     </div>
 
@@ -589,6 +594,7 @@
                     document.getElementById('profYT').value = profile.youtube || '';
                     document.getElementById('profTT').value = profile.tiktok || '';
                     document.getElementById('profDC').value = profile.discord || '';
+                    document.getElementById('profWebhook').value = profile.webhook_url || '';
                 }
             } catch (e) {
                 console.warn('LOAD_PROFILE_ERR:', e);
@@ -597,14 +603,17 @@
 
         async function saveProfile() {
             const data = {
-                display_name: document.getElementById('profName').value,
-                logo_url: document.getElementById('profLogo').value,
-                youtube: document.getElementById('profYT').value,
-                tiktok: document.getElementById('profTT').value,
-                discord: document.getElementById('profDC').value
+                brand_config: {
+                    display_name: document.getElementById('profName').value.trim(),
+                    logo_url: document.getElementById('profLogo').value.trim(),
+                    youtube: document.getElementById('profYT').value.trim(),
+                    tiktok: document.getElementById('profTT').value.trim(),
+                    discord: document.getElementById('profDC').value.trim()
+                },
+                webhook_url: document.getElementById('profWebhook').value.trim() || null
             };
             try {
-                await api(`${API_BASE}/vendor/profile`, 'POST', data);
+                await api(`${API_BASE}/profile`, 'PUT', data);
                 if (window.notify) window.notify('PROFILE_UPDATED_SYNCED', 'success');
                 loadDashboard(); // Refresh UI
             } catch (e) {
