@@ -14,7 +14,7 @@ A professional-grade, mobile-first SaaS platform designed for high-precision har
 
 ## 🛠 Tech Stack
 - **Backend**: Node.js, Express, Socket.io
-- **Database**: SQLite3 (O(1) Optimized Hashing)
+- **Database**: MySQL/TiDB Cloud (mysql2 connection pool)
 - **Frontend**: Vanilla JS (ES6+), Three.js (3D Neural Hub)
 - **Security**: JWT, Bcrypt, Helmet, Rate-Limit
 

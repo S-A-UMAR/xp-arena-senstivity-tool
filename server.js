@@ -77,16 +77,19 @@ app.use('/api/vault/admin', adminLimiter);
 // Server configuration
 const http = require('http');
 const server = http.createServer(app);
-const { Server } = require('socket.io');
-const io = new Server(server, {
-    cors: { origin: "*" }
-});
-
-// Real-time integration
+let io = null;
+if (!process.env.VERCEL) {
+    const { Server } = require('socket.io');
+    io = new Server(server, {
+        cors: { origin: "*" }
+    });
+    io.on('connection', (socket) => {
+        console.log('⚡ SOCKET_CONNECTED:', socket.id);
+    });
+} else {
+    console.log('ℹ️ VERCEL_ENV_DETECTED: live feed will use polling endpoints.');
+}
 app.set('io', io);
-io.on('connection', (socket) => {
-    console.log('⚡ SOCKET_CONNECTED:', socket.id);
-});
 
 // Routes
 const vaultRoutes = require('./routes/vaultRoutes');
