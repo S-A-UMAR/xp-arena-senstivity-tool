@@ -902,7 +902,15 @@ router.post('/track', async (req, res) => {
     }
 });
 
-// GET /api/vault/admin/security-logs
+// GET /api/vault/admin/audit-logs
+router.get('/admin/audit-logs', authenticateAdmin, async (req, res) => {
+    try {
+        const logs = await db.all('SELECT * FROM audit_logs ORDER BY created_at DESC LIMIT 100');
+        res.json(logs);
+    } catch (e) {
+        res.status(500).json({ error: 'AUDIT_LOGS_UNAVAILABLE' });
+    }
+});
 router.get('/admin/security-logs', authenticateAdmin, async (req, res) => {
     try {
         const logs = await db.all('SELECT * FROM security_logs ORDER BY created_at DESC LIMIT 100');
