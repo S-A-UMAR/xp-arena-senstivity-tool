@@ -435,19 +435,18 @@ router.post('/vendor/login', async (req, res) => {
     try {
         const schema = z.object({ access_key: z.string().min(6) });
         const { access_key } = schema.parse(req.body || {});
-        const vendors = await db.all('SELECT vendor_id, access_key, status FROM vendors');
-        let matchedVendor = null;
-        for (const v of vendors) {
-            if (await bcrypt.compare(access_key, v.access_key)) {
-                matchedVendor = v;
-                break;
-            }
+        
+        // ⚡ Fast O(1) Lookup Optimization
+        const prefix = getLookupKey(access_key);
+        const vendor = await db.get('SELECT vendor_id, access_key, status FROM vendors WHERE lookup_key = ?', [prefix]);
+
+        if (!vendor || !(await bcrypt.compare(access_key, vendor.access_key))) {
+            return fail(res, 'XP_AUTH_DENIED', 'INVALID_VENDOR_KEY', 401);
         }
+        
+        if (vendor.status !== 'active') return fail(res, 'XP_AUTH_SUSPENDED', 'VENDOR_ACCOUNT_LOCKED', 403);
 
-        if (!matchedVendor) return fail(res, 'XP_AUTH_DENIED', 'INVALID_VENDOR_KEY', 401);
-        if (matchedVendor.status !== 'active') return fail(res, 'XP_AUTH_SUSPENDED', 'VENDOR_ACCOUNT_LOCKED', 403);
-
-        const token = jwt.sign({ vendor_id: matchedVendor.vendor_id }, getJwtSecret(), { expiresIn: '7d' });
+        const token = jwt.sign({ vendor_id: vendor.vendor_id }, getJwtSecret(), { expiresIn: '7d' });
         res.cookie('xp_vendor_token', token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
@@ -740,9 +739,17 @@ router.post('/admin/vendors', authenticateAdmin, async (req, res) => {
         res.json({ success: true, message: 'VENDOR REGISTERED SUCCESSFULLY', vendorId, accessKey });
     } catch (e) {
         console.error('POST /admin/vendors error:', e);
-        if (e instanceof z.ZodError) return res.status(400).json({ error: 'Invalid input' });
-        if (e && e.code === 'ER_DUP_ENTRY') return res.status(409).json({ error: 'VENDOR_ALREADY_EXISTS' });
-        res.status(500).json({ error: 'Server error' });
+        if (e instanceof z.ZodError) return res.status(400).json({ error: 'INVALID_INPUT_DATA', details: e.errors });
+        
+        // 💡 Educational Hint: Most common cause for 500 on live is missing DB columns
+        let errorMsg = 'SERVER_ERROR_DURING_REGISTRATION';
+        if (e.message.includes('Unknown column') || e.message.includes('Table')) {
+            errorMsg = `DATABASE_SCHEMA_OUTDATED: ${e.message}. Please run 'npm run migrate' on the live server.`;
+        } else if (e.code === 'ER_DUP_ENTRY') {
+            return res.status(409).json({ error: 'VENDOR_ID_ALREADY_EXISTS' });
+        }
+        
+        res.status(500).json({ error: errorMsg });
     }
 });
 
@@ -888,6 +895,17 @@ router.post('/track', async (req, res) => {
     }
 });
 
+// GET /api/vault/admin/security-logs
+router.get('/admin/security-logs', authenticateAdmin, async (req, res) => {
+    try {
+        const logs = await db.all('SELECT * FROM security_logs ORDER BY created_at DESC LIMIT 100');
+        res.json(logs);
+    } catch (e) {
+        res.status(500).json({ error: 'SECURITY_LOGS_UNAVAILABLE' });
+    }
+});
+
+// GET /api/vault/admin/live-feed
 router.get('/admin/live-feed', authenticateAdmin, async (req, res) => {
     try {
         const rows = await db.all(`
@@ -911,21 +929,6 @@ router.get('/admin/live-feed', authenticateAdmin, async (req, res) => {
     } catch (e) {
         console.error('LIVE_FEED_ERR:', e);
         res.status(500).json({ error: 'LIVE_FEED_UNAVAILABLE' });
-    }
-});
-
-router.get('/admin/security-logs', authenticateAdmin, async (req, res) => {
-    try {
-        const logs = await db.all(`
-            SELECT id, ip_address, event_type, details, created_at
-            FROM security_logs
-            ORDER BY created_at DESC
-            LIMIT 100
-        `);
-        res.json(logs);
-    } catch (e) {
-        console.error('SECURITY_LOGS_ERR:', e);
-        res.status(500).json({ error: 'SECURITY_LOGS_UNAVAILABLE' });
     }
 });
 

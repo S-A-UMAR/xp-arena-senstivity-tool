@@ -33,10 +33,10 @@ async function migrate() {
         );
 
         if (!existing[0] || existing[0].c === 0) {
-            let sql = fs.readFileSync(path.join(__dirname, 'vault.sql'), 'utf8');
+            let sql = fs.readFileSync(path.join(__dirname, 'unified_schema.sql'), 'utf8');
             sql = sql.replace(/CREATE DATABASE IF NOT EXISTS\s+\w+;/i, `CREATE DATABASE IF NOT EXISTS \`${dbName}\`;`);
             sql = sql.replace(/USE\s+\w+;/i, `USE \`${dbName}\`;`);
-            console.log('Fresh database detected. Executing full migration script...');
+            console.log('Fresh database detected. Executing unified migration script...');
             await connection.query(sql);
         } else {
             console.log('Existing database detected. Skipping full seed script (non-destructive mode).');
@@ -47,14 +47,28 @@ async function migrate() {
 
         // Post-seed normalization: hash admin vendor key and set lookup_key
         try {
-            // Align schema via ALTERs (idempotent)
+            // Align schema via ALTERs (idempotent for TiDB/MySQL 8.0.19+)
             await connection.query(`ALTER TABLE vendors ADD COLUMN IF NOT EXISTS lookup_key VARCHAR(20) UNIQUE NULL`);
             await connection.query(`ALTER TABLE vendors ADD COLUMN IF NOT EXISTS active_until DATETIME NULL`);
             await connection.query(`ALTER TABLE vendors ADD COLUMN IF NOT EXISTS webhook_url VARCHAR(500) NULL`);
+            await connection.query(`ALTER TABLE vendors ADD COLUMN IF NOT EXISTS usage_limit INT NULL`);
+            
             await connection.query(`ALTER TABLE sensitivity_keys ADD COLUMN IF NOT EXISTS lookup_key VARCHAR(16) UNIQUE NOT NULL`);
             await connection.query(`ALTER TABLE sensitivity_keys ADD COLUMN IF NOT EXISTS creator_advice TEXT NULL`);
+            await connection.query(`ALTER TABLE sensitivity_keys ADD COLUMN IF NOT EXISTS custom_results_json JSON NULL`);
+            await connection.query(`ALTER TABLE sensitivity_keys ADD COLUMN IF NOT EXISTS usage_limit INT NULL`);
+            await connection.query(`ALTER TABLE sensitivity_keys ADD COLUMN IF NOT EXISTS current_usage INT DEFAULT 0`);
+            await connection.query(`ALTER TABLE sensitivity_keys ADD COLUMN IF NOT EXISTS expires_at DATETIME NULL`);
+
             await connection.query(`ALTER TABLE code_activity ADD COLUMN IF NOT EXISTS lookup_key VARCHAR(16) NOT NULL`);
+            await connection.query(`ALTER TABLE code_activity ADD COLUMN IF NOT EXISTS feedback_rating INT NULL`);
+            await connection.query(`ALTER TABLE code_activity ADD COLUMN IF NOT EXISTS feedback_comment TEXT NULL`);
             await connection.query(`ALTER TABLE code_activity ADD INDEX IF NOT EXISTS idx_lookup_key (lookup_key)`);
+
+            await connection.query(`ALTER TABLE organizations ADD COLUMN IF NOT EXISTS admin_email VARCHAR(255) DEFAULT 'admin@xp-arena.pro'`);
+            await connection.query(`ALTER TABLE organizations ADD COLUMN IF NOT EXISTS status ENUM('active', 'trial', 'suspended') DEFAULT 'active'`);
+            await connection.query(`ALTER TABLE organizations ADD COLUMN IF NOT EXISTS plan_tier ENUM('basic', 'pro', 'enterprise') DEFAULT 'pro'`);
+
             await connection.query(`INSERT IGNORE INTO organizations (org_id, org_name) VALUES ('XP-CORE-ORG', 'XP ARENA GLOBAL')`);
             await connection.query(`INSERT IGNORE INTO system_settings (setting_key, setting_value) VALUES ('global_sensitivity_offset', '1.0')`);
 

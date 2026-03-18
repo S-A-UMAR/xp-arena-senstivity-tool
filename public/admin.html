@@ -677,8 +677,11 @@
                 // 1. Stats
                 const stats = await api('/api/vault/admin/stats');
                 if (stats) {
-                    document.getElementById('totalVendors').textContent = stats.vendors;
-                    document.getElementById('totalUsage').textContent = stats.usage_total;
+                    document.getElementById('totalVendors').textContent = stats.vendors || 0;
+                    document.getElementById('totalUsage').textContent = stats.usage_total || 0;
+                    if (document.getElementById('globalAccuracy')) {
+                        document.getElementById('globalAccuracy').textContent = (stats.global_accuracy || 0).toFixed(1) + '%';
+                    }
                 }
 
                 // 2. Settings (Offset)
@@ -723,7 +726,7 @@
                 }
                 await loadLiveFeed();
                 await loadSecurityLogs();
-            } catch (e) { console.error('INIT_ERR:', e); }
+            } catch (e) { console.error('DASH_LOAD_ERR:', e); }
         }
 
         async function loadLiveFeed() {
