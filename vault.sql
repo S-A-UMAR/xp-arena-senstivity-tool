@@ -92,3 +92,12 @@ INSERT IGNORE INTO organizations (org_id, org_name) VALUES ('XP-CORE-ORG', 'XP A
 
 INSERT IGNORE INTO vendors (org_id, vendor_id, access_key, lookup_key, brand_config, status) VALUES 
 ('XP-CORE-ORG', 'XP-ADMIN', 'XP-2008', NULL, '{"logo": "", "colors": {"primary": "#00f2fe"}, "socials": {}}', 'active');
+
+-- System Settings Table
+CREATE TABLE IF NOT EXISTS system_settings (
+    setting_key VARCHAR(50) PRIMARY KEY,
+    setting_value VARCHAR(255) NOT NULL,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+INSERT IGNORE INTO system_settings (setting_key, setting_value) VALUES ('global_sensitivity_offset', '1.0');

@@ -52,20 +52,30 @@
 
     <!-- The Vault (Secure Access) -->
     <div id="vaultOverlay" class="vault-root">
-        <div class="reveal" style="text-align: center;">
-            <div class="logo-badge">XP SECURE CORE</div>
-            <h1 class="title-main" style="font-size: 2.2rem;">CALIBRATION<br>REQUIRED</h1>
+        <div class="reveal" style="text-align: center; width: 100%; max-width: 400px;">
+            <div class="logo-badge" style="margin-bottom: 2rem; border-color: rgba(255,255,255,0.1); color: var(--text-muted);">SECURE_ACCESS_REQUIRED</div>
+            <h1 class="title-main" style="font-size: 1.8rem; margin-bottom: 3rem;">IDENTIFY<br>AUTHORIZATION</h1>
             
             <div class="vault-input-wrap">
-                <input type="text" id="vaultInput" class="vault-input-field" placeholder="000 - 000" maxlength="20" autofocus autocomplete="off">
+                <input type="text" id="vaultInput" class="vault-input-field" placeholder="XP-000-000" maxlength="20" autofocus autocomplete="off">
+                <div style="height: 1px; background: linear-gradient(90deg, transparent, var(--accent-primary), transparent); margin-top: -1px; opacity: 0.5;"></div>
             </div>
             
-            <p id="vaultStatus" style="font-size: 0.7rem; color: var(--text-muted); margin-top: 1rem; font-family: var(--font-mono); height: 1.2rem;"></p>
+            <p id="vaultStatus" style="font-size: 0.6rem; color: var(--text-muted); margin-top: 1.5rem; font-family: var(--font-mono); height: 1.2rem; text-transform: uppercase; letter-spacing: 0.1em;"></p>
         </div>
-        
-        <div style="position: fixed; bottom: 2rem; opacity: 0.3; font-size: 0.6rem; letter-spacing: 0.2em; font-weight: 800;">
-            ENCRYPTED LINK AUTHENTICATION ACTIVE
+    </div>
+
+    <!-- 🛡️ Tech Scanner (The Hype Processing Bridge) -->
+    <div id="scannerOverlay" class="scanner-overlay">
+        <div class="scanner-circle-wrap">
+            <svg viewBox="0 0 100 100" style="width: 100%; height: 100%;">
+                <circle class="scanner-circle-bg" cx="50" cy="50" r="45"></circle>
+                <circle id="scannerProgress" class="scanner-circle-progress" cx="50" cy="50" r="45"></circle>
+            </svg>
+            <div class="scan-line"></div>
         </div>
+        <div id="scannerLabel" class="scanner-label">INITIALIZING_SCAN...</div>
+        <div class="scanner-sparkles" id="scannerSparkles"></div>
     </div>
 
     <!-- Main Calibration UI -->

@@ -167,15 +167,44 @@ const UI = {
             status.style.color = 'var(--accent-primary)';
             if (window.SFX) window.SFX.play('ping');
 
-            setTimeout(() => {
+            setTimeout(async () => {
+                if (data.redirect && data.type === 'user') {
+                    // 🧬 THE HYPE MACHINE: Tech Scanner Bridge
+                    const scanner = document.getElementById('scannerOverlay');
+                    const label = document.getElementById('scannerLabel');
+                    const progress = document.getElementById('scannerProgress');
+                    
+                    if (scanner && label && progress) {
+                        scanner.classList.add('active');
+                        
+                        // Sequence 1: Identifying
+                        label.textContent = "IDENTIFYING_HARDWARE_SIGNATURE...";
+                        progress.style.strokeDashoffset = "180"; // ~35%
+                        
+                        await new Promise(r => setTimeout(r, 800));
+                        
+                        // Sequence 2: Calibrating
+                        label.textContent = "CALIBRATING_NEURAL_SENSITIVITY...";
+                        progress.style.strokeDashoffset = "90"; // ~65%
+                        
+                        await new Promise(r => setTimeout(r, 800));
+                        
+                        // Sequence 3: Finalizing
+                        label.textContent = "FINALIZING_RECOIL_BUFF_ALGORITHMS...";
+                        progress.style.strokeDashoffset = "0"; // 100%
+                        
+                        await new Promise(r => setTimeout(r, 900));
+                    }
+
+                    localStorage.setItem('xp_sensitivity_profile_last_result', JSON.stringify({ ...data.results, advice: data.advice }));
+                    localStorage.setItem('xp_last_entry_code', code);
+                    if (data.branding) localStorage.setItem('xp_last_branding', JSON.stringify(data.branding));
+                    
+                    window.location.href = data.redirect;
+                    return;
+                }
+
                 if (data.redirect) {
-                    if (data.type === 'user') {
-                        localStorage.setItem('xp_sensitivity_profile_last_result', JSON.stringify(data.results));
-                        localStorage.setItem('xp_last_entry_code', code);
-                    }
-                    if (data.branding) {
-                        localStorage.setItem('xp_last_branding', JSON.stringify(data.branding));
-                    }
                     window.location.href = data.redirect;
                     return;
                 }

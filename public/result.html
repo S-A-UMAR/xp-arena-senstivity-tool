@@ -2,315 +2,201 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>XP ARENA | CALIBRATION_ID</title>
-    <meta name="description" content="View your personalized neural sensitivity calibration for mobile hardware.">
-    
-    <!-- Dynamic Social Scaffolding -->
-    <meta property="og:title" id="ogTitle" content="XP ARENA | CALIBRATED SETTINGS">
-    <meta property="og:description" id="ogDesc" content="Hardware-optimized mobile sensitivity benchmarks.">
-    <meta name="twitter:title" id="twTitle" content="XP ARENA | CALIBRATED">
-    <link rel="icon" type="image/png" href="favicon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>XP ARENA | CALIBRATION_PROFILE</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Outfit:wght@600;800&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;800&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
-    <meta name="theme-color" content="#020617">
+    <style>
+        /* Result Page Specific Overrides */
+        body { padding-bottom: 80px; } /* Space for follow button */
+        .app-container { max-width: 450px; }
+    </style>
 </head>
 <body>
     <div class="ambient-glow"></div>
 
     <div class="app-container">
-        <header class="results-header-box reveal">
-            <div class="logo-badge">PROFILE GENERATED</div>
-            <h1 class="title-main" id="deviceDisplay">DEVICE OPTIMIZED</h1>
-            <p style="color: var(--text-secondary); font-size: 0.8rem;">HARDWARE CALIBRATION SUCCESSFUL</p>
+        <header style="text-align: center; margin-bottom: 2rem;" class="reveal">
+            <div class="logo-badge">SCAN_COMPLETE</div>
+            <h1 class="title-main" style="font-size: 1.5rem; margin-top: 0.5rem;">AUTHORIZATION_SUCCESS</h1>
         </header>
 
-        <main>
-            <!-- Elite Premium Share Card -->
-            <section class="pro-card-container reveal" style="animation-delay: 0.1s;">
-                <div class="calibration-card" id="captureArea" style="background: linear-gradient(135deg, #020617 0%, #0f172a 100%); border: 1px solid rgba(255,255,255,0.1); position: relative; overflow: hidden; padding: 2.5rem; border-radius: 24px;">
-                    <div style="position: absolute; top: -50px; right: -50px; width: 150px; height: 150px; background: var(--accent-primary); filter: blur(80px); opacity: 0.2;"></div>
-                    
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 1rem;">
+        <main class="reveal" style="animation-delay: 0.2s;">
+            <!-- 🪪 THE MILITARY ID CARD -->
+            <div id="captureArea" class="glass-card military-id">
+                <div class="id-header">
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <img id="creatorLogo" src="favicon.png" style="width: 32px; height: 32px; filter: grayscale(1) brightness(200%);" alt="L">
                         <div>
-                            <div style="font-family: 'JetBrains Mono'; font-size: 0.6rem; color: var(--accent-primary); letter-spacing: 0.3em; font-weight: 800;">NEURAL_CORE_V4_CALIBRATED</div>
-                            <h2 style="font-family: 'Outfit'; font-size: 1.8rem; font-weight: 800; margin: 0; background: linear-gradient(to right, #fff, rgba(255,255,255,0.5)); background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent;" id="cardBrand">PREMIUM</h2>
-                        </div>
-                        <div style="text-align: right;">
-                            <div class="logo-badge" style="margin: 0; background: rgba(5, 150, 105, 0.1); color: #10b981; border-color: rgba(5, 150, 105, 0.2);">ACTIVE_OPTIMIZATION</div>
+                            <div style="font-size: 0.5rem; color: #444; letter-spacing: 0.1em;">UNIT_ID</div>
+                            <div style="font-size: 0.7rem; color: #fff; font-weight: 800;" id="creatorName">XP_CORE</div>
                         </div>
                     </div>
-
-                    <div class="card-grid" style="grid-template-columns: repeat(2, 1fr); gap: 1.5rem;">
-                        <div class="metric-box">
-                            <span class="metric-label">GENERAL SENS</span>
-                            <span class="metric-value" id="valGeneral" style="font-size: 1.5rem; color: #fff;">--</span>
-                        </div>
-                        <div class="metric-box">
-                            <span class="metric-label">DPI MASTERING</span>
-                            <span class="metric-value" id="valDPI" style="font-size: 1.5rem; color: var(--accent-primary);">--</span>
-                        </div>
-                        <div class="metric-box">
-                            <span class="metric-label">RED DOT / HOLO</span>
-                            <span class="metric-value" id="valRedDot">--</span>
-                        </div>
-                        <div class="metric-box">
-                            <span class="metric-label">2X / 4X SCOPES</span>
-                            <span class="metric-value" id="valScopes">--</span>
-                        </div>
-                        <div class="metric-box">
-                            <span class="metric-label">SNIPER PRECISION</span>
-                            <span class="metric-value" id="valSniper">--</span>
-                        </div>
-                        <div class="metric-box">
-                            <span class="metric-label">FREE LOOK</span>
-                            <span class="metric-value" id="valFreeLook">--</span>
-                        </div>
-                    </div>
-
-                    <div style="margin-top: 2rem; background: rgba(255,255,255,0.02); border-radius: 12px; padding: 1rem; border: 1px solid rgba(255,255,255,0.05);">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                            <span class="metric-label">BUTTON PLACEMENT</span>
-                            <span style="font-size: 0.8rem; font-weight: 800; color: #fff;" id="valFire">--</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between;">
-                            <span class="metric-label">GRAPHICS TUNING</span>
-                            <span style="font-size: 0.8rem; font-weight: 800; color: #fff;" id="valGraphics">--</span>
-                        </div>
-                    </div>
-                    
-                    <div style="margin-top: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
-                        <div>
-                            <span class="metric-label">VALIDATION CODE</span>
-                            <div style="font-size: 1rem; font-weight: 900; color: var(--accent-primary); font-family: 'JetBrains Mono';" id="displayCode">------</div>
-                        </div>
-                        <div style="text-align: right; opacity: 0.3;">
-                            <div style="font-size: 0.5rem; font-weight: 800;">HARDWARE_SIG</div>
-                            <div style="font-size: 0.5rem; font-family: 'JetBrains Mono';" id="hardwareSig">SCANNING...</div>
-                        </div>
+                    <div style="text-align: right;">
+                        <div style="font-size: 0.5rem; color: #444; letter-spacing: 0.1em;">EXPIRY</div>
+                        <div style="font-size: 0.7rem; color: var(--accent-primary); font-weight: 800;">NEVER</div>
                     </div>
                 </div>
 
-                <!-- Action Hub -->
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1.5rem;">
-                    <button class="action-btn" id="downloadBtn" style="background: var(--accent-primary); border: none; color: #000; font-weight: 900;">DOWNLOAD CARD</button>
-                    <button class="action-btn" id="copyBtn" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-light);">COPY TEXT</button>
+                <div class="id-body">
+                    <div class="id-row">
+                        <span class="id-label">SUBJECT_MODEL</span>
+                        <span class="id-value" id="idModel">UNKNOWN_HARDWARE</span>
+                    </div>
+
+                    <div class="id-row">
+                        <span class="id-label">ACCESS_CODE</span>
+                        <span class="id-value" id="idCode">XP-000-000</span>
+                    </div>
+
+                    <!-- Sensitivity Matrix -->
+                    <div class="id-stats-grid">
+                        <div class="id-stat-box">
+                            <div class="id-stat-label">GENERAL_SENS</div>
+                            <div class="id-stat-val range-display">
+                                <span id="rGen1">--</span>
+                                <span class="range-sep">—</span>
+                                <span id="rGen2">--</span>
+                            </div>
+                        </div>
+                        <div class="id-stat-box">
+                            <div class="id-stat-label">RED_DOT_PRECISION</div>
+                            <div class="id-stat-val range-display">
+                                <span id="rRed1">--</span>
+                                <span class="range-sep">—</span>
+                                <span id="rRed2">--</span>
+                            </div>
+                        </div>
+                        <div class="id-stat-box">
+                            <div class="id-stat-label">2X_SCOPE_ZOOM</div>
+                            <div class="id-stat-val range-display">
+                                <span id="r2x1">--</span>
+                                <span class="range-sep">—</span>
+                                <span id="r2x2">--</span>
+                            </div>
+                        </div>
+                        <div class="id-stat-box">
+                            <div class="id-stat-label">4X_SCOPE_ZOOM</div>
+                            <div class="id-stat-val range-display">
+                                <span id="r4x1">--</span>
+                                <span class="range-sep">—</span>
+                                <span id="r4x2">--</span>
+                            </div>
+                        </div>
+                        <div class="id-stat-box">
+                            <div class="id-stat-label">SNIPER_CALIBRATION</div>
+                            <div class="id-stat-val range-display">
+                                <span id="rSni1">--</span>
+                                <span class="range-sep">—</span>
+                                <span id="rSni2">--</span>
+                            </div>
+                        </div>
+                        <div class="id-stat-box">
+                            <div class="id-stat-label">FREE_LOOK_AXIS</div>
+                            <div class="id-stat-val range-display">
+                                <span id="rFree1">--</span>
+                                <span class="range-sep">—</span>
+                                <span id="rFree2">--</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 2rem; padding: 1rem; border: 1px dashed #222; text-align: center;">
+                        <div style="font-size: 0.5rem; color: #444; margin-bottom: 5px;">ADDITIONAL_NOTES</div>
+                        <div style="font-size: 0.65rem; color: #888; line-height: 1.4;" id="creatorAdvice">NO_EXTRA_ADVICE_PROVIDED</div>
+                    </div>
                 </div>
-            </section>
+
+                <!-- Decorative Elements -->
+                <div style="position: absolute; bottom: 10px; right: 10px; opacity: 0.05; transform: rotate(-15deg); font-size: 3rem; font-weight: 900; pointer-events: none;">XP_ARENA</div>
+                <div class="scan-line"></div>
+            </div>
 
             <!-- Actions -->
-            <!-- Accuracy Feedback (10/10 Milestone) -->
-            <section class="glass-card reveal" style="animation-delay: 0.3s; margin-top: 1.5rem; text-align: center;">
-                <label class="form-label" style="display: block; margin-bottom: 0.8rem;">RATE CALIBRATION ACCURACY</label>
-                <div class="rating-stars" style="display: flex; justify-content: center; gap: 0.5rem; margin-bottom: 1rem;">
-                    <button class="star-btn" data-val="1">★</button>
-                    <button class="star-btn" data-val="2">★</button>
-                    <button class="star-btn" data-val="3">★</button>
-                    <button class="star-btn" data-val="4">★</button>
-                    <button class="star-btn" data-val="5">★</button>
-                </div>
-                <div id="feedbackArea" style="display: none;">
-                    <textarea id="feedbackText" class="cyber-select" placeholder="OPTIONAL: HOW DID IT FEEL? (MOBILE/SENS...)" style="height: 60px; font-size: 0.7rem; margin-bottom: 1rem; width: 100%; border-radius: 8px;"></textarea>
-                    <button id="submitFeedback" class="action-btn" style="padding: 0.6rem; font-size: 0.7rem;">LOG TO NEURAL CORE</button>
-                </div>
-                <p id="thanksMsg" style="display: none; font-size: 0.7rem; color: var(--accent-primary); font-family: var(--font-mono); font-weight: 800; padding: 1rem;">FEEDBACK_ACKNOWLEDGED // NEURAL_UPGRADE_PENDING</p>
-            </section>
-        </main>
-
-        <footer style="margin-top: 3rem; text-align: center; opacity: 0.5; padding-bottom: 2rem; font-family: var(--font-mono); font-size: 0.6rem;">
-            <div style="display: flex; justify-content: center; gap: 1.5rem; margin-bottom: 1.5rem; font-weight: 800; letter-spacing: 0.05em;">
-                <a href="#" onclick="window.notify ? window.notify('PRIVACY_POLICY_ENCRYPTED', 'info') : alert('PRIVACY')" style="color: inherit; text-decoration: none;">PRIVACY</a>
-                <a href="#" onclick="window.notify ? window.notify('TERMS_OF_SERVICE_ACKNOWLEDGED', 'info') : alert('TERMS')" style="color: inherit; text-decoration: none;">TERMS</a>
-                <a href="#" onclick="window.notify ? window.notify('NEURAL_SUPPORT_LINK_ACTIVE', 'info') : alert('SUPPORT')" style="color: var(--accent-primary); text-decoration: none;">SUPPORT</a>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1.5rem;">
+                <button class="action-btn" id="downloadBtn" style="margin-top: 0; background: #fff; color: #000; box-shadow: none;">DOWNLOAD_ID</button>
+                <button class="action-btn" id="copyBtn" style="margin-top: 0; background: var(--bg-card); color: #fff; border: 1px solid #222; box-shadow: none;">COPY_TEXT</button>
             </div>
-            <p style="letter-spacing: 0.1em; font-weight: 800;">XP ARENA GLOBAL ARCHITECTURE</p>
-        </footer>
+        </main>
+    </div>
+
+    <!-- 🔗 Follow Creator Fixed Bar -->
+    <div class="follow-creator-bar reveal" style="animation-delay: 0.5s;">
+        <button class="btn-follow" id="followBtn">FOLLOW_CREATOR</button>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="notifications.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const results = JSON.parse(localStorage.getItem('xp_sensitivity_profile_last_result') || '{}');
             const state = JSON.parse(localStorage.getItem('xp_sensitivity_profile') || '{}');
             const branding = JSON.parse(localStorage.getItem('xp_last_branding') || '{}');
+            const code = localStorage.getItem('xp_last_entry_code') || 'FREE-GEN';
 
             if (!results.general) {
                 window.location.href = 'index.html';
                 return;
             }
 
-            const deviceName = `${state.brand || 'DEVICE'} ${state.model || ''}`.toUpperCase();
-            document.getElementById('deviceDisplay').textContent = deviceName;
-            document.getElementById('cardBrand').textContent = state.model || 'CALIBRATED';
-            
-            // 🌐 Dynamic SEO & Social Identity (10/10 SEO)
-            const seoTitle = `XP ARENA | ${deviceName} CALIBRATED`;
-            document.title = seoTitle;
-            document.getElementById('ogTitle')?.setAttribute('content', seoTitle);
-            document.getElementById('twTitle')?.setAttribute('content', seoTitle);
-            document.getElementById('ogDesc')?.setAttribute('content', `Optimized neural sensitivity for ${deviceName}. Ready for deployment.`);
-            
-            // Map Metrics to Premium Card
-            document.getElementById('valGeneral').textContent = results.general;
-            document.getElementById('valDPI').textContent = results.dpi || '441-449';
-            document.getElementById('valRedDot').textContent = results.redDot;
-            document.getElementById('valScopes').textContent = `${results.scope2x} / ${results.scope4x}`;
-            document.getElementById('valSniper').textContent = results.sniperScope;
-            document.getElementById('valFreeLook').textContent = results.freeLook || '92-98';
-            document.getElementById('valFire').textContent = results.fireButton;
-            document.getElementById('valGraphics').textContent = results.graphics;
-            
-            document.getElementById('hardwareSig').textContent = `CAL-${Math.random().toString(36).substring(7).toUpperCase()}`;
-            document.getElementById('displayCode').textContent = localStorage.getItem('xp_last_entry_code') || 'FREE-GEN';
+            // Populate Card Info
+            document.getElementById('idModel').textContent = `${state.brand || 'GENERIC'} ${state.model || 'DEVICE'}`.toUpperCase();
+            document.getElementById('idCode').textContent = code;
+            document.getElementById('creatorName').textContent = branding.name || 'XP_CORE';
+            if (branding.logo) document.getElementById('creatorLogo').src = branding.logo;
+            if (results.advice) document.getElementById('creatorAdvice').textContent = `"${results.advice}"`;
 
-            // Download Logic
-            document.getElementById('downloadBtn').addEventListener('click', () => {
-                const area = document.getElementById('captureArea');
-                html2canvas(area, { scale: 3, backgroundColor: null }).then(canvas => {
-                    const link = document.createElement('a');
-                    link.download = `xp-pro-settings-${state.model}.png`;
-                    link.href = canvas.toDataURL();
-                    link.click();
-                    if (window.notify) window.notify('PREMIUM_CARD_GENERATED', 'success');
-                });
-            });
+            // Professional Range Calculation (10/10 UX)
+            const mapRange = (id1, id2, val) => {
+                const base = parseInt(val);
+                document.getElementById(id1).textContent = base - 3;
+                document.getElementById(id2).textContent = base + 3;
+            };
 
-            // Copy Logic
-            document.getElementById('copyBtn').addEventListener('click', () => {
-                const text = `XP ARENA PRO SETTINGS\nDevice: ${state.brand} ${state.model}\nGeneral: ${results.general}\nDPI: ${results.dpi}\nScopes: ${results.scope2x} / ${results.scope4x}\nButton: ${results.fireButton}\nCode: ${localStorage.getItem('xp_last_entry_code')}`;
-                navigator.clipboard.writeText(text).then(() => {
-                    if (window.notify) window.notify('CALIBRATION_COPIED_TO_CLIPBOARD', 'success');
-                });
-            });
-            
+            mapRange('rGen1', 'rGen2', results.general);
+            mapRange('rRed1', 'rRed2', results.redDot);
+            mapRange('r2x1', 'r2x2', results.scope2x);
+            mapRange('r4x1', 'r4x2', results.scope4x);
+            mapRange('rSni1', 'rSni2', results.sniperScope || results.sniper);
+            mapRange('rFree1', 'rFree2', results.freeLook || 100);
+
+            // Follow Button
+            const followBtn = document.getElementById('followBtn');
+            if (branding.social_link) {
+                followBtn.onclick = () => window.open(branding.social_link, '_blank');
+            } else {
+                followBtn.textContent = 'JOIN_COMMUNITY';
+                followBtn.onclick = () => window.open('https://discord.gg/xparena', '_blank');
+            }
+
+            // Branding Colors
             if (branding.colors && branding.colors.primary) {
                 document.documentElement.style.setProperty('--accent-primary', branding.colors.primary);
             }
-            
-            const actions = document.querySelector('.pro-card-container + div');
-            if (actions) {
-                const shareBtn = document.createElement('button');
-                shareBtn.className = 'action-btn';
-                shareBtn.textContent = 'SHARE';
-                shareBtn.style.background = 'rgba(255,255,255,0.05)';
-                shareBtn.style.border = '1px solid var(--border-light)';
-                actions.appendChild(shareBtn);
-                shareBtn.addEventListener('click', async () => {
-                    const text = `XP ARENA PRO SETTINGS\nDevice: ${state.brand} ${state.model}\nGeneral: ${results.general}\nDPI: ${results.dpi}\nScopes: ${results.scope2x} / ${results.scope4x}\nButton: ${results.fireButton}`;
-                    if (navigator.share) {
-                        try {
-                            await navigator.share({ title: 'XP ARENA Settings', text });
-                            if (window.notify) window.notify('SHARED_SUCCESSFULLY', 'success');
-                        } catch (_) {}
-                    } else {
-                        await navigator.clipboard.writeText(text);
-                        if (window.notify) window.notify('COPIED_TO_CLIPBOARD', 'success');
-                    }
+
+            // Download Logic
+            document.getElementById('downloadBtn').onclick = () => {
+                const area = document.getElementById('captureArea');
+                html2canvas(area, { scale: 3, backgroundColor: '#0a0a0a' }).then(canvas => {
+                    const link = document.createElement('a');
+                    link.download = `xp-id-${code}.png`;
+                    link.href = canvas.toDataURL();
+                    link.click();
+                    if (window.notify) window.notify('ID_CARD_EXPORTED', 'success');
                 });
-            }
-
-            // Feedback Logic (10/10 Milestone)
-            let selectedRating = 0;
-            const stars = document.querySelectorAll('.star-btn');
-            const feedbackArea = document.getElementById('feedbackArea');
-            const thanksMsg = document.getElementById('thanksMsg');
-            const entryCode = localStorage.getItem('xp_last_entry_code');
-
-            stars.forEach(star => {
-                star.addEventListener('click', () => {
-                    selectedRating = parseInt(star.dataset.val);
-                    stars.forEach((s, idx) => {
-                        s.style.color = idx < selectedRating ? 'var(--accent-primary)' : 'rgba(255,255,255,0.2)';
-                    });
-                    feedbackArea.style.display = 'block';
-                });
-            });
-
-            // 10/10 Logic: Neural Sync Engine (Offline Resilience)
-            const SyncEngine = {
-                dbName: 'XP_SYNC_LOG',
-                async getDB() {
-                    return new Promise((resolve, reject) => {
-                        const req = indexedDB.open(this.dbName, 1);
-                        req.onupgradeneeded = () => req.result.createObjectStore('queue', { keyPath: 'id', autoIncrement: true });
-                        req.onsuccess = () => resolve(req.result);
-                        req.onerror = () => reject(req.error);
-                    });
-                },
-                async queue(data) {
-                    const db = await this.getDB();
-                    const tx = db.transaction('queue', 'readwrite');
-                    tx.objectStore('queue').add({ ...data, timestamp: Date.now() });
-                },
-                async sync() {
-                    if (!navigator.onLine) return;
-                    const db = await this.getDB();
-                    const tx = db.transaction('queue', 'readwrite');
-                    const store = tx.objectStore('queue');
-                    const requests = await new Promise(r => {
-                        const req = store.getAll();
-                        req.onsuccess = () => r(req.result);
-                    });
-
-                    for (const item of requests) {
-                        try {
-                            const res = await fetch('/api/vault/feedback', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify(item)
-                            });
-                            if (res.ok) store.delete(item.id);
-                        } catch (e) { break; }
-                    }
-                }
             };
 
-            window.addEventListener('online', () => SyncEngine.sync());
-
-            document.getElementById('submitFeedback').addEventListener('click', async () => {
-                if (!selectedRating) return;
-                const text = document.getElementById('feedbackText').value;
-                const payload = {
-                    entry_code: entryCode,
-                    rating: selectedRating,
-                    feedback_text: text
-                };
-
-                feedbackArea.style.display = 'none';
-                document.querySelector('.rating-stars').style.display = 'none';
-                document.querySelector('.form-label').style.display = 'none';
-                thanksMsg.textContent = 'NEURAL_QUEUED // WAITING_FOR_SYNC';
-                thanksMsg.style.display = 'block';
-
-                try {
-                    const res = await fetch('/api/vault/feedback', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-
-                    if (res.ok) {
-                        thanksMsg.textContent = 'FEEDBACK_ACKNOWLEDGED // NEURAL_UPGRADE_PENDING';
-                    } else {
-                        throw new Error('OFFLINE');
+            // Copy Logic with "Haptic" Toast
+            document.getElementById('copyBtn').onclick = () => {
+                const text = `XP ARENA ACCESS PROFILE\nDEVICE: ${state.brand} ${state.model}\nGENERAL: ${results.general-3}-${results.general+3}\nRED DOT: ${results.redDot-3}-${results.redDot+3}\nCODE: ${code}`;
+                navigator.clipboard.writeText(text).then(() => {
+                    if (window.notify) {
+                        window.notify('PROFILE_COPIED_TO_CLIPBOARD', 'haptic');
                     }
-                } catch (e) {
-                    await SyncEngine.queue(payload);
-                    window.notify('OFFLINE: FEEDBACK QUEUED FOR SYNC', 'warning');
-                }
-            });
-
-            // Initial Sync
-            SyncEngine.sync();
-
-            // 📊 Finalize Funnel: Track Result View
-            if (window.SaaSAnalytics) {
-                window.SaaSAnalytics.track('result_view');
-            }
+                });
+            };
         });
     </script>
-    <script src="analytics.js"></script>
 </body>
 </html>

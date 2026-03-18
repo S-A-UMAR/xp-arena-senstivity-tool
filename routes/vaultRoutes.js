@@ -175,6 +175,15 @@ async function sendDiscordAlert(title, message, color = 0x00f0ff) {
     }
 }
 
+async function getGlobalOffset() {
+    try {
+        const row = await db.get("SELECT setting_value FROM system_settings WHERE setting_key = 'global_sensitivity_offset'");
+        return row ? parseFloat(row.setting_value) : 1.0;
+    } catch (e) {
+        return 1.0;
+    }
+}
+
 // POST /api/vault/verify
 router.post('/verify', checkSoftBan, async (req, res) => {
     try {
@@ -682,10 +691,39 @@ router.delete('/admin/vendor/:vendorId', authenticateAdmin, async (req, res) => 
     }
 });
 
+// Admin System Settings
+router.get('/admin/settings', authenticateAdmin, async (req, res) => {
+    try {
+        const settings = await db.all('SELECT * FROM system_settings');
+        res.json(settings);
+    } catch (e) {
+        res.status(500).json({ error: 'SETTINGS_UNAVAILABLE' });
+    }
+});
+
+router.post('/admin/settings', authenticateAdmin, async (req, res) => {
+    try {
+        const schema = z.object({
+            key: z.string(),
+            value: z.string()
+        });
+        const { key, value } = schema.parse(req.body);
+        
+        await db.run('REPLACE INTO system_settings (setting_key, setting_value) VALUES (?, ?)', [key, value]);
+        
+        await logAudit('admin', 'SYSTEM', 'SETTING_CHANGE', { key, value }, req.ip);
+        res.json({ success: true, message: 'SETTING_UPDATED' });
+    } catch (e) {
+        if (e instanceof z.ZodError) return res.status(400).json({ error: 'Invalid input' });
+        res.status(500).json({ error: 'SETTINGS_UPDATE_FAILED' });
+    }
+});
+
 // SSNE: Server-Side Neural Engine (10/10 Logic)
 router.post('/calculate', async (req, res) => {
     try {
-        const results = Calculator.compute(req.body);
+        const offset = await getGlobalOffset();
+        const results = Calculator.compute(req.body, offset);
         
         // ⚡ 10/10 Logic: Generate a persistent Master Code for every calculation
         const entry_code = Math.floor(100000 + Math.random() * 900000).toString();
@@ -825,6 +863,113 @@ router.put('/code/:entryCode/deactivate', authenticateVendor, async (req, res) =
         if (!owner || owner.vendor_id !== req.vendorId) return res.status(404).json({ error: 'Not found' });
         await db.run('UPDATE sensitivity_keys SET status = ? WHERE entry_code = ?', ['expired', entryCode]);
         res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+router.get('/vendor/profile', authenticateVendor, async (req, res) => {
+    try {
+        const vendor = await db.get('SELECT vendor_id, status, active_until FROM vendors WHERE vendor_id = ?', [req.vendorId]);
+        const stats = await db.get(`
+            SELECT COUNT(*) as codes, SUM(current_usage) as hits
+            FROM sensitivity_keys 
+            WHERE vendor_id = ?
+        `, [req.vendorId]);
+        
+        res.json({
+            vendor_id: vendor.vendor_id,
+            status: vendor.status,
+            active_until: vendor.active_until,
+            total_codes: stats.codes || 0,
+            total_hits: stats.hits || 0
+        });
+    } catch (e) {
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+router.get('/vendor/stats', authenticateVendor, async (req, res) => {
+    try {
+        const stats = await db.all(`
+            SELECT DATE(used_at) as date, COUNT(*) as count
+            FROM code_activity ca
+            JOIN sensitivity_keys k ON ca.lookup_key = k.lookup_key
+            WHERE k.vendor_id = ?
+            AND used_at > DATE_SUB(NOW(), INTERVAL 7 DAY)
+            GROUP BY DATE(used_at)
+            ORDER BY date ASC
+        `, [req.vendorId]);
+        res.json(stats);
+    } catch (e) {
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+router.post('/vendor/generate', authenticateVendor, async (req, res) => {
+    try {
+        const code = Math.floor(100000 + Math.random() * 900000).toString();
+        const accessKey = `XP-${req.vendorId.toUpperCase()}-${code}`;
+        const lookupKey = getLookupKey(accessKey);
+        const hashed = await bcrypt.hash(accessKey, 10);
+        
+        // Default random results for auto-gen
+        const results = {
+            general: 90 + Math.floor(Math.random() * 10),
+            redDot: 85 + Math.floor(Math.random() * 15),
+            scope2x: 80 + Math.floor(Math.random() * 20),
+            scope4x: 75 + Math.floor(Math.random() * 25),
+            sniper: 50 + Math.floor(Math.random() * 30),
+            freeLook: 100,
+            dpi: 600,
+            fireButton: 45
+        };
+
+        await db.run(`
+            INSERT INTO sensitivity_keys (entry_code, lookup_key, vendor_id, results_json, status)
+            VALUES (?, ?, ?, ?, 'active')
+        `, [hashed, lookupKey, req.vendorId, JSON.stringify(results)]);
+
+        res.json({ accessKey });
+    } catch (e) {
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+router.post('/vendor/manual-entry', authenticateVendor, async (req, res) => {
+    try {
+        const schema = z.object({
+            general: z.number().min(0).max(200),
+            redDot: z.number().min(0).max(200),
+            scope2x: z.number().min(0).max(200),
+            scope4x: z.number().min(0).max(200),
+            sniper: z.number().min(0).max(200),
+            freeLook: z.number().min(0).max(200),
+            advice: z.string().max(500).optional()
+        });
+        const data = schema.parse(req.body);
+        
+        const code = Math.floor(100000 + Math.random() * 900000).toString();
+        const accessKey = `XP-${req.vendorId.toUpperCase()}-${code}`;
+        const lookupKey = getLookupKey(accessKey);
+        const hashed = await bcrypt.hash(accessKey, 10);
+
+        const results = {
+            general: data.general,
+            redDot: data.redDot,
+            scope2x: data.scope2x,
+            scope4x: data.scope4x,
+            sniper: data.sniper,
+            freeLook: data.freeLook,
+            dpi: 600, // Default
+            fireButton: 50 // Default
+        };
+
+        await db.run(`
+            INSERT INTO sensitivity_keys (entry_code, lookup_key, vendor_id, results_json, creator_advice, status)
+            VALUES (?, ?, ?, ?, ?, 'active')
+        `, [hashed, lookupKey, req.vendorId, JSON.stringify(results), data.advice]);
+
+        res.json({ accessKey });
     } catch (e) {
         res.status(500).json({ error: 'Server error' });
     }

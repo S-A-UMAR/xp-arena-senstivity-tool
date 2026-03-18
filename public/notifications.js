@@ -28,29 +28,32 @@ window.notify = function(message, type = 'info', duration = 3000) {
     };
     
     const color = colors[type] || colors.info;
+    const isHaptic = type === 'haptic';
     
+    toast.className = isHaptic ? 'haptic' : '';
     toast.style.cssText = `
-        background: rgba(15, 23, 42, 0.9);
+        background: ${isHaptic ? 'rgba(0, 240, 255, 0.1)' : 'rgba(15, 23, 42, 0.9)'};
         backdrop-filter: blur(10px);
-        border: 1px solid ${color}44;
-        border-left: 4px solid ${color};
+        border: 1px solid ${isHaptic ? 'var(--accent-primary)' : color + '44'};
+        border-left: 4px solid ${isHaptic ? 'var(--accent-primary)' : color};
         padding: 1rem 1.5rem;
         border-radius: 12px;
         color: #fff;
-        font-family: 'Inter', sans-serif;
+        font-family: ${isHaptic ? "'JetBrains Mono', monospace" : "'Inter', sans-serif"};
         font-weight: 700;
         font-size: 0.85rem;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        box-shadow: 0 10px 30px ${isHaptic ? 'rgba(0, 240, 255, 0.2)' : 'rgba(0,0,0,0.5)'};
         pointer-events: auto;
         animation: toastSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
         display: flex;
         justify-content: space-between;
         align-items: center;
+        letter-spacing: ${isHaptic ? '0.1em' : 'normal'};
     `;
 
     toast.innerHTML = `
         <span>${message.toUpperCase()}</span>
-        <div style="font-size: 0.6rem; opacity: 0.5; font-family: 'JetBrains Mono'; margin-left: 1rem;">SECURE_MSG</div>
+        <div style="font-size: 0.6rem; opacity: 0.5; font-family: 'JetBrains Mono'; margin-left: 1rem;">${isHaptic ? 'HAPTIC_FEEDBACK' : 'SECURE_MSG'}</div>
     `;
 
     container.appendChild(toast);
