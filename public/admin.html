@@ -435,7 +435,37 @@
             border-radius: 4px;
             display: inline-block;
             margin-bottom: 1rem;
+            box-shadow: 0 0 10px var(--accent-primary-glow);
+            animation: pulse-glow 2s infinite;
         }
+
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 5px var(--accent-primary-glow); }
+            50% { box-shadow: 0 0 15px var(--accent-primary-glow); }
+        }
+
+        .diagnostics-bar {
+            height: 4px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 2px;
+            margin-top: 0.5rem;
+            overflow: hidden;
+        }
+
+        .diagnostics-fill {
+            height: 100%;
+            background: var(--accent-primary);
+        }
+
+        .audit-item {
+            padding: 0.75rem;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+            font-size: 0.65rem;
+            font-family: var(--font-mono);
+        }
+
+        .scroll-hide::-webkit-scrollbar { display: none; }
+        .scroll-hide { scrollbar-width: none; }
     </style>
 </head>
 <body>
@@ -488,6 +518,28 @@
                 <div style="display: flex; justify-content: space-between; font-size: 0.6rem; color: var(--text-muted); font-family: var(--font-mono);">
                     <span>0.8x (PRECISION)</span>
                     <span>1.2x (MAX SPEED)</span>
+                </div>
+            </div>
+
+            <div class="live-feed-container">
+                <div class="live-feed-header">
+                    <span class="stat-label">System Diagnostics</span>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div>
+                        <div style="display:flex; justify-content:space-between; font-size: 0.6rem; color: var(--text-muted);">
+                            <span>NEURAL_LOAD</span>
+                            <span id="loadVal">24%</span>
+                        </div>
+                        <div class="diagnostics-bar"><div class="diagnostics-fill" style="width: 24%;"></div></div>
+                    </div>
+                    <div>
+                        <div style="display:flex; justify-content:space-between; font-size: 0.6rem; color: var(--text-muted);">
+                            <span>DB_COHERENCE</span>
+                            <span>99.9%</span>
+                        </div>
+                        <div class="diagnostics-bar"><div class="diagnostics-fill" style="width: 99%;"></div></div>
+                    </div>
                 </div>
             </div>
 
@@ -551,11 +603,13 @@
                 <!-- Funnel injected -->
             </div>
             <div class="live-feed-header" style="margin-top: 1.25rem;">
-                <span class="stat-label">Security Logs</span>
+                <span class="stat-label">System Audit Logs</span>
             </div>
-            <div id="securityLogs" class="stat-tile" style="padding: 1rem; max-height: 220px; overflow-y: auto;">
-                <div style="text-align:center; opacity:0.2; padding:2rem; font-size:0.6rem;">NO_SECURITY_EVENTS</div>
+            <div id="auditLogs" class="stat-tile scroll-hide" style="padding: 1rem; max-height: 220px; overflow-y: auto;">
+                <div style="text-align:center; opacity:0.2; padding:2rem; font-size:0.6rem;">NO_AUDIT_LOGS</div>
             </div>
+
+            <div class="live-feed-header" style="margin-top: 1.25rem;">
         </div>
     </div>
 
@@ -698,6 +752,7 @@
             if (tabId === 'tool') initTool();
             if (tabId === 'analytics') {
                 loadSecurityLogs();
+                loadAuditLogs();
             }
             if (tabId === 'vendors') {
                 loadDashboard();
@@ -728,8 +783,11 @@
                 // 1. Stats
                 const stats = await api('/api/vault/admin/stats');
                 if (stats) {
-                    document.getElementById('totalVendors').textContent = stats.vendors;
-                    document.getElementById('totalUsage').textContent = stats.usage_total;
+                    document.getElementById('totalVendors').textContent = stats.vendors || 0;
+                    document.getElementById('totalUsage').textContent = stats.usage_total || 0;
+                    if (document.getElementById('globalAccuracy')) {
+                        document.getElementById('globalAccuracy').textContent = (stats.global_accuracy || 0).toFixed(1) + '%';
+                    }
                 }
 
                 // 2. Settings (Offset)
@@ -780,9 +838,73 @@
                 }
                 await loadLiveFeed();
                 await loadSecurityLogs();
-                const syncLabel = document.getElementById('lastSyncLabel');
-                if (syncLabel) syncLabel.textContent = `SYNCED ${new Date().toLocaleTimeString()}`;
-            } catch (e) { console.error('INIT_ERR:', e); }
+                await loadAuditLogs();
+            } catch (e) { console.error('DASH_LOAD_ERR:', e); }
+        }
+
+        async function loadAuditLogs() {
+            const box = document.getElementById('auditLogs');
+            if (!box) return;
+            try {
+                const logs = await api('/api/vault/admin/audit-logs');
+                if (!logs || logs.length === 0) {
+                    box.innerHTML = '<div style="text-align:center; opacity:0.2; padding:2rem; font-size:0.6rem;">NO_AUDIT_LOGS</div>';
+                    return;
+                }
+                box.innerHTML = logs.map(l => {
+                    const details = typeof l.details === 'string' ? JSON.parse(l.details) : l.details;
+                    return `
+                        <div class="audit-item">
+                            <div style="display:flex; justify-content:space-between; margin-bottom: 2px;">
+                                <span style="color:var(--accent-primary)">${l.action}</span>
+                                <span style="opacity:0.5">${new Date(l.created_at).toLocaleTimeString()}</span>
+                            </div>
+                            <div style="opacity:0.6; font-size: 0.6rem;">
+                                ${l.actor_type.toUpperCase()}:${l.actor_id} @ ${l.ip_address}
+                                <br>
+                                DATA: ${JSON.stringify(details).slice(0, 50)}...
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (_e) {}
+        }
+
+        async function loadLiveFeed() {
+            const feed = document.getElementById('liveFeed');
+            if (!feed) return;
+            try {
+                const events = await api('/api/vault/admin/live-feed');
+                if (!events || events.length === 0) {
+                    feed.innerHTML = '<div style="text-align:center; opacity:0.2; padding:2rem; font-size:0.6rem;">WAITING_FOR_UPLINK...</div>';
+                    return;
+                }
+                feed.innerHTML = events.map(ev => `
+                    <div class="live-item">
+                        <span>${ev.type === 'feedback' ? `[FBK] ${'★'.repeat(ev.rating || 0)}` : `[HIT] ${ev.user_ign}`}</span>
+                        <span style="color:${ev.type === 'feedback' ? '#aaa' : 'var(--accent-primary)'};">${ev.type === 'feedback' ? (ev.feedback || 'No comment') : (ev.region || 'Unknown')}</span>
+                    </div>
+                `).join('');
+            } catch (_e) {}
+        }
+
+        async function loadSecurityLogs() {
+            const box = document.getElementById('securityLogs');
+            if (!box) return;
+            try {
+                const logs = await api('/api/vault/admin/security-logs');
+                if (!logs || logs.length === 0) {
+                    box.innerHTML = '<div style="text-align:center; opacity:0.2; padding:2rem; font-size:0.6rem;">NO_SECURITY_EVENTS</div>';
+                    return;
+                }
+                box.innerHTML = logs.map(l => `
+                    <div style="padding:0.6rem 0.2rem; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; justify-content:space-between; gap:0.75rem; font-size:0.62rem;">
+                        <span style="font-family:var(--font-mono); color:var(--text-muted);">${new Date(l.created_at).toLocaleTimeString()}</span>
+                        <span style="font-weight:700;">${l.event_type}</span>
+                        <span style="font-family:var(--font-mono); color:#ff8a8a;">${l.ip_address || 'unknown-ip'}</span>
+                    </div>
+                `).join('');
+            } catch (_e) {}
         }
 
         async function loadLiveFeed() {
@@ -850,6 +972,8 @@
                         <button class="action-btn" style="margin-top: 1rem;" onclick="toggleActionSheet(true)">CREATE_VENDOR</button>
                     </div>
                 `;
+            if (!vendors || vendors.length === 0) {
+                container.innerHTML = '<div style="text-align: center; opacity: 0.2; padding: 4rem; font-size: 0.7rem;">NO_VENDORS_PROVISIONED</div>';
                 return;
             }
 
@@ -864,22 +988,49 @@
                                 <h3>${escapeHtml(v.vendor_id)}</h3>
                                 <div style="font-size: 0.6rem; color: var(--text-muted); font-family: var(--font-mono); margin-top: 4px;">
                                     HITS: ${cData.clicks} | KEYS: ${cData.keys}
+                const c = creators?.find(x => x.name === v.vendor_id);
+                const isActive = v.status === 'active';
+                const expiry = v.active_until ? new Date(v.active_until).toLocaleDateString() : 'PERPETUAL';
+                return `
+                    <div class="glass-card stat-tile" style="margin-bottom: 1rem; border-left: 3px solid ${isActive ? 'var(--accent-primary)' : '#ff4444'};">
+                        <div style="display:flex; justify-content:space-between; align-items:start;">
+                            <div>
+                                <div style="font-size: 0.5rem; color: var(--text-muted); font-family:var(--font-mono); margin-bottom: 2px;">${v.org_id || 'XP-CORE'}</div>
+                                <h3 style="margin:0; font-size: 1rem; color: #fff; display:flex; align-items:center; gap:8px;">
+                                    ${v.vendor_id}
+                                    ${v.usage_limit > 500 ? '<span style="font-size:0.5rem; background:var(--accent-primary); color:#000; padding:1px 4px; border-radius:2px;">PREMIUM</span>' : ''}
+                                </h3>
+                                <div style="font-size: 0.6rem; color: var(--text-secondary); margin-top: 4px; font-family:var(--font-mono);">
+                                    KEY: <span style="color:var(--accent-primary)">${v.lookup_key}</span>
                                 </div>
                             </div>
-                            <div class="status-pill">
-                                <span class="led ${isActive ? 'active' : 'suspended'}"></span>
-                                ${isActive ? 'ACTIVE' : 'LOCKED'}
+                            <div style="text-align:right;">
+                                <div class="logo-badge" style="margin:0; font-size: 0.5rem; ${isActive ? '' : 'border-color:#ff4444; color:#ff4444;'}">${v.status.toUpperCase()}</div>
+                                <div style="font-size: 0.5rem; opacity: 0.5; margin-top: 4px;">EXP: ${expiry}</div>
                             </div>
                         </div>
-                        <div class="vendor-actions">
-                            <button class="v-btn" onclick="showAnalytics('${v.vendor_id}', ${v.total_codes}, ${v.total_usage})">LOGS</button>
-                            <button class="v-btn" onclick="promptActivate('${v.vendor_id}')">REFUEL</button>
-                            <button class="v-btn ${v.status === 'active' ? 'danger' : ''}" onclick="toggleStatus('${v.vendor_id}', '${v.status}')">
-                                ${v.status === 'active' ? 'SUSPEND' : 'RESTORE'}
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.03);">
+                             <div onclick="showAnalytics('${v.vendor_id}', ${v.total_codes || 0}, ${v.total_usage || 0})" style="cursor:pointer;">
+                                <div style="font-size: 0.55rem; color: var(--text-muted);">ACTIVE_KEYS</div>
+                                <div style="font-size: 0.9rem; font-weight: 800; font-family: var(--font-mono);">${v.total_codes || 0}</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 0.55rem; color: var(--text-muted);">GLOBAL_REACH</div>
+                                <div style="font-size: 0.9rem; font-weight: 800; font-family: var(--font-mono); color: var(--accent-primary);">${v.total_usage || 0}</div>
+                            </div>
+                        </div>
+
+                        <div style="display:flex; gap: 0.5rem; margin-top: 1.5rem;">
+                            <button class="action-btn" onclick="toggleStatus('${v.vendor_id}', '${v.status}')" style="flex:1; font-size:0.6rem; padding: 0.5rem;">
+                                ${isActive ? 'SUSPEND' : 'ACTIVATE'}
                             </button>
-                            <button class="v-btn" onclick="quickActivate('${v.vendor_id}', 24)">+24H</button>
-                            <button class="v-btn" onclick="quickActivate('${v.vendor_id}', 168)">+7D</button>
-                            <button class="v-btn danger" onclick="deleteVendor('${v.vendor_id}')">ERASE</button>
+                            <button class="action-btn" onclick="promptActivate('${v.vendor_id}')" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); font-size:0.6rem; padding: 0.5rem;">
+                                EXTEND
+                            </button>
+                            <button class="action-btn" onclick="deleteVendor('${v.vendor_id}')" style="background: rgba(255, 68, 68, 0.1); color: #ff4444; border-color: rgba(255, 68, 68, 0.2); width: 40px; padding: 0.5rem;">
+                                <i class="fas fa-trash"></i>
+                            </button>
                         </div>
                     </div>
                 `;

@@ -30,8 +30,8 @@ window.Calculator = {
             dpi: tier === 'high' ? 800 : tier === 'mid' ? 440 : 411,
             fireButton: state.brand === 'Apple' ? 58 : 65,
             graphics: tier === 'high' ? 'Ultra / Max' : 'Smooth / High',
-            clawStyle: state.grip === 'claw' ? '4-Finger' : '2-Finger',
-            gripStyle: state.grip.toUpperCase()
+            clawStyle: (state.grip || '2') === 'claw' ? '4-Finger' : '2-Finger',
+            gripStyle: (state.grip || '2').toUpperCase()
         };
 
         // Manual Override Injection

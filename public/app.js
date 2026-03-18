@@ -103,16 +103,68 @@ const UI = {
     },
 
     init() {
+        console.log('--- XP ARENA NEURAL ENGINE INITIALIZING ---');
         this.populateBrands();
         this.attachVaultListeners();
         this.attachCalibrationListeners();
         this.loadProfile();
         this.initLanguage();
+        this.initPWA();
+        
+        // Funnel Tracking: Landing View
+        this.trackFunnel('landing_view');
         
         // SFX and Audio Initialization
         document.body.addEventListener('click', () => {
             if (window.SFX) window.SFX.init();
         }, { once: true });
+    },
+
+    async trackFunnel(type) {
+        try {
+            await fetch('/api/vault/track', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    event_type: type,
+                    vendor_id: 'XP-PUBLIC',
+                    session_id: localStorage.getItem('xp_session_id') || (Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)),
+                    device: /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ? 'mobile' : 'desktop'
+                })
+            });
+        } catch (e) {}
+    },
+
+    showInstallInstructions() {
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+        
+        if (isIOS && !isStandalone) {
+            this.notify("INSTALL_ID: TAP 'SHARE' THEN 'ADD TO HOME SCREEN'", "info");
+        }
+    },
+    
+    initPWA() {
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            const btn = document.getElementById('pwaInstallBtn');
+            if (btn) btn.style.display = 'flex';
+        });
+
+        document.getElementById('pwaInstallBtn')?.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    const btn = document.getElementById('pwaInstallBtn');
+                    if (btn) btn.style.display = 'none';
+                }
+                deferredPrompt = null;
+            } else {
+                this.showInstallInstructions();
+            }
+        });
     },
 
     notify(message, type = 'info') {
@@ -402,13 +454,17 @@ const UI = {
         }
 
         if (window.SFX) window.SFX.play('calculate');
-        if (window.SaaSAnalytics) window.SaaSAnalytics.track('calibration_start');
+        this.trackFunnel('calibration_start');
         
         this.notify("NEURAL CALIBRATION IN PROGRESS...", "success");
         
         try {
+            // Apply Global Offset from system settings if available
+            const globalOffset = parseFloat(localStorage.getItem('xp_global_offset')) || 1.0;
+
             const payload = {
                 ...state,
+                globalOffset,
                 manualSens: state.manualMode ? Number.parseFloat(state.manualSens) : undefined
             };
             const res = await fetch('/api/vault/calculate', {

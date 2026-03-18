@@ -1,49 +1,57 @@
--- Database Initialization
-CREATE DATABASE IF NOT EXISTS xp_sensitivity_tool;
-USE xp_sensitivity_tool;
+-- ############################################################################
+-- # XP ARENA SENSITIVITY TOOL PRO - UNIFIED PRODUCTION SCHEMA (MYSQL/TIDB)
+-- ############################################################################
 
--- Organizations Table (Multi-tenant Root)
+SET NAMES utf8mb4;
+SET FOREIGN_KEY_CHECKS = 0;
+
+-- 1. Organizations Table (Multi-tenant Root)
 CREATE TABLE IF NOT EXISTS organizations (
     id INT AUTO_INCREMENT PRIMARY KEY,
     org_id VARCHAR(50) UNIQUE NOT NULL,
     org_name VARCHAR(100) NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);
+    admin_email VARCHAR(255) DEFAULT 'admin@xp-arena.pro',
+    status ENUM('active', 'trial', 'suspended') DEFAULT 'active',
+    plan_tier ENUM('basic', 'pro', 'enterprise') DEFAULT 'pro',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
+-- 2. Vendors Table (Creators/Service Providers)
 CREATE TABLE IF NOT EXISTS vendors (
     id INT AUTO_INCREMENT PRIMARY KEY,
     org_id VARCHAR(50) DEFAULT 'XP-CORE-ORG',
-    vendor_id VARCHAR(50) UNIQUE NOT NULL, -- e.g., 'GUEST-CREATOR'
+    vendor_id VARCHAR(50) UNIQUE NOT NULL,
     access_key VARCHAR(100) UNIQUE NOT NULL, -- bcrypt hash
     lookup_key VARCHAR(20) UNIQUE DEFAULT NULL,
     active_until DATETIME DEFAULT NULL,
     webhook_url VARCHAR(500) DEFAULT NULL,
-    brand_config JSON NOT NULL, -- { "logo": "...", "colors": { "primary": "..." }, "socials": { "yt": "...", "ig": "...", "dc": "..." } }
+    brand_config JSON NOT NULL, 
     usage_limit INT DEFAULT NULL,
     status ENUM('active', 'suspended') DEFAULT 'active',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (org_id) REFERENCES organizations(org_id) ON DELETE SET NULL
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
--- Sensitivity Keys Table: Stores user-specific results linked to codes
+-- 3. Sensitivity Keys Table (Generated Access Codes)
 CREATE TABLE IF NOT EXISTS sensitivity_keys (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    entry_code VARCHAR(100) UNIQUE NOT NULL, -- bcrypt hash of 6-digit code
+    entry_code VARCHAR(100) UNIQUE NOT NULL, -- bcrypt hash
     lookup_key VARCHAR(16) UNIQUE NOT NULL,
     vendor_id VARCHAR(50),
-    results_json JSON NOT NULL, -- Calculated sensitivity data
+    results_json JSON NOT NULL,
     creator_advice TEXT DEFAULT NULL,
-    custom_results_json JSON DEFAULT NULL, -- Manual overrides by vendor/user
-    usage_limit INT DEFAULT NULL, -- NULL = Unlimited
+    custom_results_json JSON DEFAULT NULL,
+    usage_limit INT DEFAULT NULL,
     current_usage INT DEFAULT 0,
     status ENUM('active', 'expired') DEFAULT 'active',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     expires_at DATETIME DEFAULT NULL,
     FOREIGN KEY (vendor_id) REFERENCES vendors(vendor_id) ON DELETE SET NULL
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
--- User Events Table (Analytics Upgrade)
+-- 4. User Events Table (Conversion Tracking & Analytics)
 CREATE TABLE IF NOT EXISTS user_events (
     id INT AUTO_INCREMENT PRIMARY KEY,
     event_type VARCHAR(50) NOT NULL,
@@ -51,10 +59,13 @@ CREATE TABLE IF NOT EXISTS user_events (
     vendor_id VARCHAR(50),
     user_session_id VARCHAR(100),
     device_tier VARCHAR(50),
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    INDEX (org_id),
+    INDEX (vendor_id),
+    INDEX (event_type)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
--- Audit Logs Table
+-- 5. Audit Logs Table (Admin Security Tracking)
 CREATE TABLE IF NOT EXISTS audit_logs (
     id INT AUTO_INCREMENT PRIMARY KEY,
     actor_type VARCHAR(50),
@@ -63,12 +74,12 @@ CREATE TABLE IF NOT EXISTS audit_logs (
     details JSON,
     ip_address VARCHAR(45),
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
--- Code Activity Table: Tracks who used what code
+-- 6. Code Activity Table (Verification Tracking with Feedback)
 CREATE TABLE IF NOT EXISTS code_activity (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    entry_code VARCHAR(20) NOT NULL, -- plaintext for reference
+    entry_code VARCHAR(100) NOT NULL, -- Plaintext entry code for reference (matches user input length)
     lookup_key VARCHAR(16) NOT NULL,
     user_ign VARCHAR(100),
     user_region VARCHAR(50),
@@ -77,9 +88,9 @@ CREATE TABLE IF NOT EXISTS code_activity (
     feedback_comment TEXT DEFAULT NULL,
     INDEX (entry_code),
     INDEX (lookup_key)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
--- Security Logs Table: tracks verification failures and throttling
+-- 7. Security Logs Table (Fraud Detection)
 CREATE TABLE IF NOT EXISTS security_logs (
     id INT AUTO_INCREMENT PRIMARY KEY,
     ip_address VARCHAR(45),
@@ -88,19 +99,24 @@ CREATE TABLE IF NOT EXISTS security_logs (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     INDEX (ip_address),
     INDEX (event_type)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
--- Seed Data
-INSERT IGNORE INTO organizations (org_id, org_name) VALUES ('XP-CORE-ORG', 'XP ARENA GLOBAL');
-
--- NOTE: XP-ADMIN seed should be provisioned from environment secret by migrate.js
--- (ADMIN_SECRET / SEED_VENDOR_KEY) to avoid hardcoded credentials in SQL.
-
--- System Settings Table
+-- 8. System Settings Table (Global Config)
 CREATE TABLE IF NOT EXISTS system_settings (
     setting_key VARCHAR(50) PRIMARY KEY,
     setting_value VARCHAR(255) NOT NULL,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ############################################################################
+-- # SEED INITIAL SYSTEM DATA
+-- ############################################################################
+
+INSERT IGNORE INTO organizations (org_id, org_name, plan_tier) VALUES ('XP-CORE-ORG', 'XP ARENA GLOBAL', 'enterprise');
+
+-- NOTE: Do NOT hardcode admin credentials in SQL.
+-- Provision XP-ADMIN vendor from environment secret in migrate.js (ADMIN_SECRET / SEED_VENDOR_KEY).
 
 INSERT IGNORE INTO system_settings (setting_key, setting_value) VALUES ('global_sensitivity_offset', '1.0');
+
+SET FOREIGN_KEY_CHECKS = 1;
