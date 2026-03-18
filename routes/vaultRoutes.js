@@ -739,6 +739,10 @@ router.post('/admin/vendors', authenticateAdmin, async (req, res) => {
 
         res.json({ success: true, message: 'VENDOR REGISTERED SUCCESSFULLY', vendorId, accessKey });
     } catch (e) {
+        console.error('POST /admin/vendors error:', e);
+        if (e instanceof z.ZodError) return res.status(400).json({ error: 'Invalid input' });
+        if (e && e.code === 'ER_DUP_ENTRY') return res.status(409).json({ error: 'VENDOR_ALREADY_EXISTS' });
+        res.status(500).json({ error: 'Server error' });
         console.error('🚫 VENDOR_REGISTRATION_CRITICAL_FAILURE:', e);
         if (e instanceof z.ZodError) return res.status(400).json({ error: 'INVALID_INPUT_DATA', details: e.errors });
         
@@ -945,6 +949,21 @@ router.get('/admin/live-feed', authenticateAdmin, async (req, res) => {
     } catch (e) {
         console.error('LIVE_FEED_ERR:', e);
         res.status(500).json({ error: 'LIVE_FEED_UNAVAILABLE' });
+    }
+});
+
+router.get('/admin/security-logs', authenticateAdmin, async (req, res) => {
+    try {
+        const logs = await db.all(`
+            SELECT id, ip_address, event_type, details, created_at
+            FROM security_logs
+            ORDER BY created_at DESC
+            LIMIT 100
+        `);
+        res.json(logs);
+    } catch (e) {
+        console.error('SECURITY_LOGS_ERR:', e);
+        res.status(500).json({ error: 'SECURITY_LOGS_UNAVAILABLE' });
     }
 });
 

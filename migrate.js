@@ -24,6 +24,24 @@ async function migrate() {
         const dbName = process.env.DB_NAME || 'xp_sensitivity_tool';
         await connection.query(`CREATE DATABASE IF NOT EXISTS \`${dbName}\``);
         await connection.query(`USE \`${dbName}\``);
+
+        const [existing] = await connection.query(
+            `SELECT COUNT(*) AS c
+             FROM information_schema.tables
+             WHERE table_schema = ? AND table_name = 'vendors'`,
+            [dbName]
+        );
+
+        if (!existing[0] || existing[0].c === 0) {
+            let sql = fs.readFileSync(path.join(__dirname, 'vault.sql'), 'utf8');
+            sql = sql.replace(/CREATE DATABASE IF NOT EXISTS\s+\w+;/i, `CREATE DATABASE IF NOT EXISTS \`${dbName}\`;`);
+            sql = sql.replace(/USE\s+\w+;/i, `USE \`${dbName}\`;`);
+            console.log('Fresh database detected. Executing full migration script...');
+            await connection.query(sql);
+        } else {
+            console.log('Existing database detected. Skipping full seed script (non-destructive mode).');
+        }
+
  
         // ⚡ CRITICAL FIX: Recreate organizations table with correct collation for FK compatibility
         try {
@@ -72,6 +90,8 @@ async function migrate() {
             await connection.query(`ALTER TABLE code_activity ADD COLUMN IF NOT EXISTS feedback_rating INT NULL`);
             await connection.query(`ALTER TABLE code_activity ADD COLUMN IF NOT EXISTS feedback_comment TEXT NULL`);
             await connection.query(`ALTER TABLE code_activity ADD INDEX IF NOT EXISTS idx_lookup_key (lookup_key)`);
+            await connection.query(`INSERT IGNORE INTO organizations (org_id, org_name) VALUES ('XP-CORE-ORG', 'XP ARENA GLOBAL')`);
+            await connection.query(`INSERT IGNORE INTO system_settings (setting_key, setting_value) VALUES ('global_sensitivity_offset', '1.0')`);
 
             await connection.query(`ALTER TABLE organizations ADD COLUMN IF NOT EXISTS admin_email VARCHAR(255) DEFAULT 'admin@xp-arena.pro'`);
             await connection.query(`ALTER TABLE organizations ADD COLUMN IF NOT EXISTS status ENUM('active', 'trial', 'suspended') DEFAULT 'active'`);

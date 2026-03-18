@@ -53,6 +53,31 @@ window.onerror = (msg) => SoftRecovery.show({ message: msg });
 window.onunhandledrejection = (e) => SoftRecovery.show({ message: e.reason });
 
 let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    const btn = document.getElementById('pwaInstallBtn');
+    if (btn) btn.style.display = 'block';
+});
+
+document.getElementById('pwaInstallBtn')?.addEventListener('click', async () => {
+    if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+            document.getElementById('pwaInstallBtn').style.display = 'none';
+        }
+        deferredPrompt = null;
+    } else {
+        const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+        if (isIOS) {
+            UI?.notify?.("INSTALL TIP: TAP SHARE → 'ADD TO HOME SCREEN'", 'info');
+        } else {
+            UI?.notify?.("INSTALL OPTION NOT AVAILABLE IN THIS BROWSER", 'info');
+        }
+    }
+});
+
 const UI = {
     elements: {
         vaultOverlay: document.getElementById('vaultOverlay'),
