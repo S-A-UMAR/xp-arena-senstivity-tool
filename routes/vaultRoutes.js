@@ -44,6 +44,15 @@ function getAdminSecret() {
     return process.env.ADMIN_SECRET || '';
 }
 
+function getClientIp(req) {
+    const forwarded = req.headers['x-forwarded-for'];
+    const rawIp = (typeof forwarded === 'string' && forwarded.split(',')[0])
+        || req.ip
+        || req.connection?.remoteAddress
+        || '';
+    return rawIp.trim().replace('::ffff:', '');
+}
+
 function normalizeBranding(config) {
     if (!config) return {};
     const c = typeof config === 'string' ? JSON.parse(config) : config;
@@ -84,7 +93,7 @@ function authenticateVendor(req, res, next) {
 }
 
 async function checkSoftBan(req, res, next) {
-    const ip = req.ip || req.connection.remoteAddress;
+    const ip = getClientIp(req);
     try {
         const recentFailures = await db.get(`
             SELECT COUNT(*) as count FROM security_logs 
@@ -129,8 +138,8 @@ function authenticateAdmin(req, res, next) {
         // IP Whitelist Check (10/10 Security)
         const whitelist = process.env.ADMIN_IP_WHITELIST;
         if (whitelist && whitelist !== '*') {
-            const allowedIps = whitelist.split(',');
-            const clientIp = req.ip || req.connection.remoteAddress;
+            const allowedIps = whitelist.split(',').map(ip => ip.trim()).filter(Boolean).map(ip => ip.replace('::ffff:', ''));
+            const clientIp = getClientIp(req);
             if (!allowedIps.includes(clientIp)) {
                 console.warn(`🚫 UNAUTHORIZED_IP_BLOCKED: ${clientIp}`);
                 return res.status(403).json({ error: 'FORBIDDEN_IP' });
@@ -232,7 +241,7 @@ router.post('/verify', async (req, res) => {
         });
         const { input, user_ign, user_region } = schema.parse(req.body); 
         const adminSecret = getAdminSecret();
-        const clientIp = req.ip || req.connection.remoteAddress;
+        const clientIp = getClientIp(req);
 
         if (!input) {
             return fail(res, 'XP_VAL_MISSING', 'ACCESS_CODE_REQUIRED', 400);
@@ -310,7 +319,7 @@ router.post('/verify', async (req, res) => {
 
         if (keyData && await bcrypt.compare(input, keyData.entry_code)) {
             // Track Analytics Event
-            await trackEvent('landing_view', keyData.org_id, keyData.vendor_id, req.ip, 'mobile');
+            await trackEvent('landing_view', keyData.org_id, keyData.vendor_id, getClientIp(req), 'mobile');
             if (keyData.vendor_status === 'suspended') {
                 return res.status(403).json({ error: 'PROVIDER UNAVAILABLE - ACCESS DENIED' });
             }
@@ -726,7 +735,7 @@ router.post('/admin/vendors', authenticateAdmin, async (req, res) => {
             VALUES (?, ?, ?, ?, ?, ?, 'active')
         `, [orgId || 'XP-CORE-ORG', vendorId, hashedAccessKey, lookupKey, usageLimit || null, typeof brandConfig === 'string' ? brandConfig : JSON.stringify(brandConfig || {})]);
 
-        await logAudit('admin', 'SYSTEM', 'VENDOR_REGISTER', { vendorId, accessKey }, req.ip);
+        await logAudit('admin', 'SYSTEM', 'VENDOR_REGISTER', { vendorId, accessKey }, getClientIp(req));
 
         res.json({ success: true, message: 'VENDOR REGISTERED SUCCESSFULLY', vendorId, accessKey });
     } catch (e) {
@@ -751,7 +760,7 @@ router.post('/admin/vendor/status', authenticateAdmin, async (req, res, next) =>
 
         await db.run('UPDATE vendors SET status = ? WHERE vendor_id = ?', [status, vendorId]);
         
-        await logAudit('admin', 'SYSTEM', 'VENDOR_STATUS_CHANGE', { vendorId, status }, req.ip);
+        await logAudit('admin', 'SYSTEM', 'VENDOR_STATUS_CHANGE', { vendorId, status }, getClientIp(req));
 
         res.json({ success: true, message: `VENDOR ${status.toUpperCase()} SUCCESSFULLY` });
     } catch (e) {
@@ -776,7 +785,7 @@ router.post('/admin/vendor/activate_until', authenticateAdmin, async (req, res) 
             activeUntil = new Date(Date.now() + hours * 60 * 60 * 1000);
         }
         await db.run('UPDATE vendors SET status = ?, active_until = ? WHERE vendor_id = ?', ['active', activeUntil, vendorId]);
-        await logAudit('admin', 'SYSTEM', 'VENDOR_ACTIVATE_TIMED', { vendorId, active_until: activeUntil }, req.ip);
+        await logAudit('admin', 'SYSTEM', 'VENDOR_ACTIVATE_TIMED', { vendorId, active_until: activeUntil }, getClientIp(req));
         res.json({ success: true, active_until: activeUntil?.toISOString() || null });
     } catch (e) {
         if (e instanceof z.ZodError) return fail(res, 'XP_VAL_FAILED', 'INVALID_ACTIVATE_PARAMS', 400, e.errors);
@@ -833,7 +842,7 @@ router.post('/admin/settings', authenticateAdmin, async (req, res) => {
         
         await db.run('REPLACE INTO system_settings (setting_key, setting_value) VALUES (?, ?)', [key, value]);
         
-        await logAudit('admin', 'SYSTEM', 'SETTING_CHANGE', { key, value }, req.ip);
+        await logAudit('admin', 'SYSTEM', 'SETTING_CHANGE', { key, value }, getClientIp(req));
         res.json({ success: true, message: 'SETTING_UPDATED' });
     } catch (e) {
         if (e instanceof z.ZodError) return res.status(400).json({ error: 'Invalid input' });

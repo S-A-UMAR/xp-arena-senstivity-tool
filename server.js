@@ -58,8 +58,6 @@ process.on('uncaughtException', (error) => {
 
 const PORT = process.env.PORT || 3001;
 
-app.use(express.json());
-
 // Rate Limiting
 const apiLimiter = rateLimit({
     windowMs: 60 * 1000,

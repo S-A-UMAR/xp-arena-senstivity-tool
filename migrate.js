@@ -34,8 +34,8 @@ async function migrate() {
 
         if (!existing[0] || existing[0].c === 0) {
             let sql = fs.readFileSync(path.join(__dirname, 'vault.sql'), 'utf8');
-            sql = sql.replace(/CREATE DATABASE IF NOT EXISTS\s+\w+;/i, `CREATE DATABASE IF NOT EXISTS ${dbName};`);
-            sql = sql.replace(/USE\s+\w+;/i, `USE ${dbName};`);
+            sql = sql.replace(/CREATE DATABASE IF NOT EXISTS\s+\w+;/i, `CREATE DATABASE IF NOT EXISTS \`${dbName}\`;`);
+            sql = sql.replace(/USE\s+\w+;/i, `USE \`${dbName}\`;`);
             console.log('Fresh database detected. Executing full migration script...');
             await connection.query(sql);
         } else {
@@ -49,9 +49,8 @@ async function migrate() {
         try {
             // Align schema via ALTERs (idempotent)
             await connection.query(`ALTER TABLE vendors ADD COLUMN IF NOT EXISTS lookup_key VARCHAR(20) UNIQUE NULL`);
-            await connection.query("ALTER TABLE vendors ADD COLUMN IF NOT EXISTS active_until DATETIME DEFAULT NULL");
-        await connection.query("ALTER TABLE vendors ADD COLUMN IF NOT EXISTS usage_limit INT DEFAULT NULL");
-        await connection.query("ALTER TABLE vendors ADD COLUMN IF NOT EXISTS webhook_url VARCHAR(500) DEFAULT NULL");
+            await connection.query(`ALTER TABLE vendors ADD COLUMN IF NOT EXISTS active_until DATETIME NULL`);
+            await connection.query(`ALTER TABLE vendors ADD COLUMN IF NOT EXISTS webhook_url VARCHAR(500) NULL`);
             await connection.query(`ALTER TABLE sensitivity_keys ADD COLUMN IF NOT EXISTS lookup_key VARCHAR(16) UNIQUE NOT NULL`);
             await connection.query(`ALTER TABLE sensitivity_keys ADD COLUMN IF NOT EXISTS creator_advice TEXT NULL`);
             await connection.query(`ALTER TABLE code_activity ADD COLUMN IF NOT EXISTS lookup_key VARCHAR(16) NOT NULL`);
