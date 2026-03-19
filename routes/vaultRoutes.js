@@ -36,11 +36,15 @@ function parseBearer(header) {
     return null;
 }
 
-function getJwtSecret() {
-    return process.env.JWT_SECRET || getAdminSecret();
+async function getJwtSecret() {
+    return process.env.JWT_SECRET || await getAdminSecret();
 }
 
-function getAdminSecret() {
+async function getAdminSecret() {
+    try {
+        const row = await db.get("SELECT setting_value FROM system_settings WHERE setting_key = 'admin_secret'");
+        if (row && row.setting_value) return row.setting_value;
+    } catch (e) {}
     return process.env.ADMIN_SECRET || '';
 }
 
@@ -129,7 +133,7 @@ function authenticateVendor(req, res, next) {
         if (!token) return fail(res, 'XP_AUTH_UNAUTHORIZED', 'VENDOR_SESSION_REQUIRED', 401);
         let payload;
         try {
-            payload = jwt.verify(token, getJwtSecret());
+            payload = jwt.verify(token, await getJwtSecret());
         } catch (_e) {
             return fail(res, 'XP_AUTH_INVALID', 'SESSION_EXPIRED_OR_CORRUPT', 401);
         }
@@ -188,9 +192,9 @@ async function dispatchVendorWebhook(vendorId, eventType, data) {
     }
 }
 
-function authenticateAdmin(req, res, next) {
+async function authenticateAdmin(req, res, next) {
     try {
-        const adminSecret = getAdminSecret();
+        const adminSecret = await getAdminSecret();
         if (!adminSecret) return res.status(503).json({ error: 'ADMIN_SECRET_NOT_CONFIGURED' });
         // IP Whitelist Check (10/10 Security)
         const whitelist = process.env.ADMIN_IP_WHITELIST;
@@ -297,7 +301,7 @@ router.post('/verify', async (req, res) => {
             user_region: z.string().optional()
         });
         const { input, user_ign, user_region } = schema.parse(req.body);
-        const adminSecret = getAdminSecret();
+        const adminSecret = await getAdminSecret();
         const clientIp = getClientIp(req);
 
         if (adminSecret && input === adminSecret) {
@@ -423,7 +427,7 @@ router.post('/verify', async (req, res) => {
 
 router.post('/admin/login', async (req, res, next) => {
     try {
-        const adminSecret = getAdminSecret();
+        const adminSecret = await getAdminSecret();
         if (!adminSecret) return res.status(503).json({ error: 'ADMIN_SECRET_NOT_CONFIGURED' });
         const schema = z.object({ password: z.string().min(4) });
         const { password } = schema.parse(req.body || {});
@@ -888,6 +892,21 @@ router.post('/admin/settings', authenticateAdmin, async (req, res) => {
     } catch (e) {
         if (e instanceof z.ZodError) return res.status(400).json({ error: 'Invalid input' });
         res.status(500).json({ error: 'SETTINGS_UPDATE_FAILED' });
+    }
+});
+
+router.post('/admin/update-master-key', authenticateAdmin, async (req, res) => {
+    try {
+        const schema = z.object({ newKey: z.string().min(4) });
+        const { newKey } = schema.parse(req.body);
+        
+        await db.run('REPLACE INTO system_settings (setting_key, setting_value) VALUES (?, ?)', ['admin_secret', newKey]);
+        await logAudit('admin', 'MASTER', 'CHANGE_MASTER_KEY', { action: 'updated' }, getClientIp(req));
+        
+        res.json({ success: true, message: 'MASTER_KEY_UPDATED' });
+    } catch (e) {
+        if (e instanceof z.ZodError) return res.status(400).json({ error: 'Invalid input' });
+        res.status(500).json({ error: 'MASTER_KEY_UPDATE_FAILED' });
     }
 });
 

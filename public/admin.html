@@ -483,7 +483,6 @@
             <h1 style="font-family: var(--font-heading); font-size: 2.5rem; margin-bottom: 2rem;">MASTER<br>ACCESS</h1>
             <input type="password" id="adminPass" class="vault-input-field" placeholder="••••" maxlength="32">
             <p id="gateStatus" style="font-size: 0.7rem; color: var(--text-muted); margin: 1.5rem 0; font-family: var(--font-mono); height: 1.2rem;"></p>
-            <button id="adminUnlockBtn" class="action-btn">UPLINK_ENGINE</button>
             <button id="adminUnlockBtn" class="action-btn" onclick="checkPass()">UPLINK_ENGINE</button>
         </div>
     </div>
@@ -603,6 +602,18 @@
         <!-- Analytics Section (Legacy) -->
         <div id="section-analytics" class="nav-section hidden">
             <div class="live-feed-header">
+                <span class="stat-label">Security Settings</span>
+            </div>
+            <div class="stat-tile" style="margin-bottom: 1.5rem;">
+                <label class="stat-label" style="display: block; margin-bottom: 0.5rem;">Update Master Key</label>
+                <div style="display: flex; gap: 0.5rem;">
+                    <input type="password" id="newMasterKey" class="cyber-input" style="margin-bottom: 0;" placeholder="ENTER NEW MASTER KEY">
+                    <button class="v-btn" style="padding: 0 1rem; height: 48px;" onclick="updateMasterKey()">UPDATE</button>
+                </div>
+                <p style="font-size: 0.55rem; color: var(--text-muted); margin-top: 0.5rem; font-family: var(--font-mono);">WARNING: THIS WILL INVALIDATE YOUR CURRENT SESSION AND REQUIRE RE-LOGIN.</p>
+            </div>
+
+            <div class="live-feed-header">
                 <span class="stat-label">Funnel Analytics</span>
             </div>
             <div id="funnelSteps" class="stat-tile" style="padding: 1.5rem;">
@@ -696,20 +707,25 @@
             if (body) options.body = JSON.stringify(body);
             const res = await fetch(path, options);
             if (res.status === 401) return logoutAdmin();
-            if (!res.ok) {
-                let errMsg = 'API_ERR';
-                try {
-                    const data = await res.json();
-                    errMsg = data.error || data.message || errMsg;
-                } catch (_e) {
+            
+            let data = null;
+            try {
+                data = await res.json();
+            } catch (_e) {
+                if (!res.ok) {
                     try {
                         const txt = await res.text();
-                        if (txt) errMsg = txt.slice(0, 120);
-                    } catch (__e) {}
+                        throw new Error(txt.slice(0, 120) || 'API_ERR');
+                    } catch (__e) {
+                        throw new Error('API_ERR');
+                    }
                 }
-                throw new Error(errMsg);
             }
-            return res.json();
+
+            if (!res.ok) {
+                throw new Error(data?.error || data?.message || 'API_ERR');
+            }
+            return data;
         }
 
         function escapeHtml(unsafe) {
@@ -1085,6 +1101,23 @@
             if (!confirm(`ERASE ${id} FOREVER?`)) return;
             await api(`/api/vault/admin/vendor/${encodeURIComponent(id)}`, 'DELETE');
             loadDashboard();
+        }
+
+        async function updateMasterKey() {
+            const newKey = document.getElementById('newMasterKey').value.trim();
+            if (!newKey || newKey.length < 4) {
+                if (window.notify) window.notify('KEY_TOO_SHORT (MIN 4 CHARS)', 'error');
+                return;
+            }
+            if (!confirm('CHANGE MASTER KEY? YOU WILL BE LOGGED OUT.')) return;
+
+            try {
+                await api('/api/vault/admin/update-master-key', 'POST', { newKey });
+                if (window.notify) window.notify('MASTER_KEY_UPDATED', 'success');
+                setTimeout(() => logoutAdmin(), 1000);
+            } catch (e) {
+                if (window.notify) window.notify(`UPDATE_FAILED: ${e.message}`, 'error');
+            }
         }
 
         async function promptActivate(id) {

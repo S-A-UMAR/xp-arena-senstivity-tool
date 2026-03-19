@@ -59,7 +59,6 @@
         reg = await navigator.serviceWorker.register('/service-worker.js');
       }
       reg = reg || await navigator.serviceWorker.ready;
-      const reg = await navigator.serviceWorker.getRegistration('/service-worker.js') || await navigator.serviceWorker.ready;
       if (!reg) return;
 
       if (reg.waiting) {
