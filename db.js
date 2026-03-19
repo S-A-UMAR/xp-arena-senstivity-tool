@@ -20,16 +20,21 @@ const pool = mysql.createPool({
     }
 });
 
-// Diagnostic Connection Ping
-(async () => {
+// Diagnostic connection ping (skip during tests to avoid async logs after Jest teardown)
+async function runConnectionDiagnostic() {
     try {
         const conn = await pool.getConnection();
         console.log('✅ DB_CONNECTION_ESTABLISHED');
         conn.release();
     } catch (err) {
-        console.error('❌ DB_CONNECTION_FAILED:', err.message);
+        const msg = err && err.message ? err.message : 'UNKNOWN_DB_ERROR';
+        console.error('❌ DB_CONNECTION_FAILED:', msg);
     }
-})();
+}
+
+if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
+    runConnectionDiagnostic();
+}
 
 const databaseHelper = {
     async query(sql, params) {
