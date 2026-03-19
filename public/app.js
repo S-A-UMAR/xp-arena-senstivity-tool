@@ -332,6 +332,7 @@ const UI = {
 
     updateSeriesDropdown() {
         const { series, model } = this.elements;
+        const ramGroup = document.getElementById('ramGroup');
         series.innerHTML = '<option value="">SELECT SERIES</option>';
         model.innerHTML = '<option value="">SELECT MODEL</option>';
         model.disabled = true;
@@ -339,6 +340,13 @@ const UI = {
         if (!state.brand) {
             series.disabled = true;
             return;
+        }
+
+        // 🍎 Apple Logic: Hide RAM for iOS
+        if (state.brand.toLowerCase() === 'apple') {
+            if (ramGroup) ramGroup.style.display = 'none';
+        } else {
+            if (ramGroup) ramGroup.style.display = 'block';
         }
 
         const brandData = window.DEVICES.find(b => b.brand === state.brand);
@@ -378,6 +386,12 @@ const UI = {
             model.appendChild(opt);
         });
         model.disabled = false;
+
+        // 🤖 Auto-set RAM based on device tier
+        state.ram = this.estimateRamByModel();
+        if (this.elements.ramSelect) {
+            this.elements.ramSelect.value = String(state.ram);
+        }
     },
 
     estimateRamByModel() {

@@ -850,18 +850,42 @@
             brandSel.dataset.loaded = 'true';
         }
 
+        function updateRamUI() {
+            const ram = parseInt(document.getElementById('genRam').value, 10);
+            document.getElementById('ramVal').textContent = `${ram} GB`;
+            
+            // 🎮 Dynamic Graphics Intelligence
+            let graphics = 'SMOOTH + ULTRA';
+            if (ram >= 12) graphics = 'ULTRA + MAX';
+            else if (ram >= 8) graphics = 'HIGH + MAX';
+            else if (ram <= 4) graphics = 'SMOOTH + HIGH';
+            
+            document.getElementById('graphicsCap').textContent = graphics;
+        }
+
         function updateSeries() {
             const brand = document.getElementById('genBrand').value;
             const seriesSel = document.getElementById('genSeries');
             const modelSel = document.getElementById('genModel');
+            const ramGroup = document.getElementById('ramGroup');
+            
             seriesSel.innerHTML = '<option value="">SELECT SERIES</option>';
             modelSel.innerHTML = '<option value="">SELECT MODEL</option>';
             modelSel.disabled = true;
             document.getElementById('graphicsCap').textContent = '---';
+            
             if (!brand) {
                 seriesSel.disabled = true;
                 return;
             }
+
+            // 🍎 Apple Logic: Hide RAM slider for iOS devices
+            if (brand.toLowerCase() === 'apple') {
+                ramGroup.style.display = 'none';
+            } else {
+                ramGroup.style.display = 'block';
+            }
+
             const data = window.DEVICES.find(d => d.brand === brand);
             if (data) {
                 data.series.forEach(s => {
@@ -894,20 +918,20 @@
                 modelSel.appendChild(opt);
             });
             modelSel.disabled = false;
-            const isHigh = /ultra|pro max|gaming/i.test(seriesData.name);
-            document.getElementById('graphicsCap').textContent = isHigh ? 'ULTRA + MAX' : 'SMOOTH + ULTRA';
+
+            // 🤖 Auto-detect REAL RAM based on model tier
+            const autoRam = estimateRamByModel(brand, series, ''); // We can improve this if we had model specific ram
+            document.getElementById('genRam').value = autoRam;
+            updateRamUI();
         }
 
-        function setSegment(type, el) {
-            const parent = el.parentElement;
-            parent.querySelectorAll('.segment-toggle').forEach(b => b.classList.remove('active'));
-            el.classList.add('active');
-            genState[type] = el.dataset.val;
-        }
-
-        function toggleSheet(show) {
-            document.getElementById('overlay').classList.toggle('active', show);
-            document.getElementById('manualSheet').classList.toggle('active', show);
+        function estimateRamByModel(brand, series, model) {
+            const b = brand.toLowerCase();
+            const s = series.toLowerCase();
+            if (b === 'apple') return 8; // Internal benchmark target
+            if (s.includes('ultra') || s.includes('rog') || s.includes('gaming')) return 12;
+            if (s.includes('pro') || s.includes('plus') || s.includes('note')) return 8;
+            return 6;
         }
 
         async function autoGenerate() {
@@ -922,15 +946,14 @@
                     return;
                 }
 
+                // 💡 Fix: Send top-level fields to match vaultRoutes.js schema
                 const body = {
-                    results: {
-                        brand,
-                        series,
-                        model,
-                        ram: parseInt(document.getElementById('genRam').value, 10),
-                        speed: genState.playstyle,
-                        claw: genState.claw
-                    }
+                    brand,
+                    series,
+                    model,
+                    ram: parseInt(document.getElementById('genRam').value, 10),
+                    speed: genState.playstyle,
+                    claw: genState.claw
                 };
 
                 const res = await api(`${API_BASE}/generate`, 'POST', body);

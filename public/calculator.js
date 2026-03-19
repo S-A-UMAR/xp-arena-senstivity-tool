@@ -14,6 +14,11 @@ window.Calculator = {
         // Base values for Tier (FF Max now supports up to 200)
         let baseRel = tier === 'high' ? 175 : tier === 'mid' ? 160 : 145;
         
+        // ⚔️ Combat Playstyle Intelligence (Slow / Balanced / Fast)
+        const speedMap = { slow: -15, balanced: 0, fast: 15 };
+        const playstyleFactor = speedMap[state.speed] || 0;
+        baseRel += playstyleFactor;
+
         // AI Factor adjustment (scale 1-10, 5 is neutral)
         const aiFactor = (scale - 5) * 5; 
         baseRel += aiFactor;

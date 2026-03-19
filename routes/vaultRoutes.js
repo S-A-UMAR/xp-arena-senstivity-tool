@@ -127,30 +127,33 @@ async function getCodeStatusPayload(rawCode) {
     };
 }
 
-function authenticateVendor(req, res, next) {
-    (async () => {
+async function authenticateVendor(req, res, next) {
+    try {
         const token = req.cookies.xp_vendor_token || parseBearer(req.headers['authorization']);
         if (!token) return fail(res, 'XP_AUTH_UNAUTHORIZED', 'VENDOR_SESSION_REQUIRED', 401);
+        
         let payload;
         try {
             payload = jwt.verify(token, await getJwtSecret());
         } catch (_e) {
             return fail(res, 'XP_AUTH_INVALID', 'SESSION_EXPIRED_OR_CORRUPT', 401);
         }
+
         // Enforce vendor status and activation window
-        try {
-            const vendor = await db.get('SELECT status, active_until FROM vendors WHERE vendor_id = ?', [payload.vendor_id]);
-            const now = new Date();
-            const activeUntilOk = !vendor?.active_until || new Date(vendor.active_until) > now;
-            if (!vendor || vendor.status !== 'active' || !activeUntilOk) {
-                return fail(res, 'XP_AUTH_SUSPENDED', 'VENDOR_ACCOUNT_LOCKED_OR_EXPIRED', 403);
-            }
-            req.vendorId = payload.vendor_id;
-            next();
-        } catch (e) {
-            return fail(res, 'XP_AUTH_INVALID', 'VENDOR_LOOKUP_FAILED', 401);
+        const vendor = await db.get('SELECT status, active_until FROM vendors WHERE vendor_id = ?', [payload.vendor_id]);
+        const now = new Date();
+        const activeUntilOk = !vendor?.active_until || new Date(vendor.active_until) > now;
+        
+        if (!vendor || vendor.status !== 'active' || !activeUntilOk) {
+            return fail(res, 'XP_AUTH_SUSPENDED', 'VENDOR_ACCOUNT_LOCKED_OR_EXPIRED', 403);
         }
-    })();
+
+        req.vendorId = payload.vendor_id;
+        next();
+    } catch (e) {
+        console.error('AUTH_VENDOR_ERR:', e);
+        return fail(res, 'XP_AUTH_INVALID', 'VENDOR_LOOKUP_FAILED', 401);
+    }
 }
 
 async function checkSoftBan(req, res, next) {
@@ -512,47 +515,6 @@ router.get('/codes', authenticateVendor, async (req, res) => {
     } catch (e) {
         console.error('GET /codes error:', e);
         res.status(500).json({ error: 'Server error' });
-    }
-});
-
-// POST /api/vault/generate
-router.post('/generate', authenticateVendor, async (req, res, next) => {
-    try {
-        const schema = z.object({
-            results: z.record(z.any()).optional(),
-            custom_results: z.record(z.any()).optional(),
-            usage_limit: z.union([z.number().int().min(0), z.null()]).optional(),
-            expires_in_hours: z.union([z.number().int().min(1), z.null()]).optional()
-        });
-        const { results, custom_results, usage_limit, expires_in_hours } = schema.parse(req.body);
-        const vendorId = req.vendorId;
-
-        const entry_code = Math.floor(100000 + Math.random() * 900000).toString();
-        let expires_at = null;
-        if (expires_in_hours) {
-            expires_at = new Date(Date.now() + expires_in_hours * 60 * 60 * 1000);
-        }
-
-        const hashedCode = await bcrypt.hash(entry_code, 10);
-        const lookupKey = getLookupKey(entry_code);
-
-        await db.run(`
-            INSERT INTO sensitivity_keys (entry_code, lookup_key, vendor_id, results_json, custom_results_json, usage_limit, expires_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-        `, [
-            hashedCode, 
-            lookupKey,
-            vendorId, 
-            JSON.stringify(results || {}), 
-            custom_results ? JSON.stringify(custom_results) : null,
-            usage_limit || null,
-            expires_at
-        ]);
-
-        res.json({ success: true, accessKey: entry_code });
-    } catch (e) {
-        if (e instanceof z.ZodError) return fail(res, 'XP_VAL_FAILED', 'INVALID_GEN_PARAMS', 400, e.errors);
-        next(e); // Let global handler catch unexpected logic crashes
     }
 });
 
@@ -1176,7 +1138,7 @@ router.put('/code/:entryCode/deactivate', authenticateVendor, async (req, res) =
         res.status(500).json({ error: 'Server error' });
     }
 });
-router.get('/vendor/profile', authenticateVendor, async (req, res) => {
+router.get('/profile', authenticateVendor, async (req, res) => {
     try {
         const vendor = await db.get('SELECT vendor_id, status, active_until, brand_config, webhook_url, usage_limit FROM vendors WHERE vendor_id = ?', [req.vendorId]);
         const stats = await db.get(`
@@ -1212,7 +1174,7 @@ router.get('/vendor/profile', authenticateVendor, async (req, res) => {
     }
 });
 
-router.get('/vendor/stats', authenticateVendor, async (req, res) => {
+router.get('/stats', authenticateVendor, async (req, res) => {
     try {
         const stats = await db.all(`
             SELECT DATE(used_at) as date, COUNT(*) as count
@@ -1229,7 +1191,7 @@ router.get('/vendor/stats', authenticateVendor, async (req, res) => {
     }
 });
 
-router.post('/vendor/generate', authenticateVendor, async (req, res) => {
+router.post('/generate', authenticateVendor, async (req, res) => {
     try {
         const schema = z.object({
             brand: z.string().min(1),
@@ -1269,7 +1231,7 @@ router.post('/vendor/generate', authenticateVendor, async (req, res) => {
     }
 });
 
-router.post('/vendor/manual-entry', authenticateVendor, async (req, res) => {
+router.post('/manual-entry', authenticateVendor, async (req, res) => {
     try {
         const schema = z.object({
             general: z.number().min(0).max(200),
