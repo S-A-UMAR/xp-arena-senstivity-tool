@@ -478,6 +478,7 @@
             <h1 style="font-family: var(--font-heading); font-size: 2.5rem; margin-bottom: 2rem;">MASTER<br>ACCESS</h1>
             <input type="password" id="adminPass" class="vault-input-field" placeholder="••••" maxlength="32">
             <p id="gateStatus" style="font-size: 0.7rem; color: var(--text-muted); margin: 1.5rem 0; font-family: var(--font-mono); height: 1.2rem;"></p>
+            <button id="adminUnlockBtn" class="action-btn">UPLINK_ENGINE</button>
             <button id="adminUnlockBtn" class="action-btn" onclick="checkPass()">UPLINK_ENGINE</button>
         </div>
     </div>
@@ -718,6 +719,9 @@
             initTool();
         }
 
+        let gateBusy = false;
+        async function checkPass() {
+            if (gateBusy) return;
         async function checkPass() {
             const pass = document.getElementById('adminPass').value.trim();
             const status = document.getElementById('gateStatus');
@@ -726,6 +730,7 @@
                 return;
             }
             try {
+                gateBusy = true;
                 status.textContent = 'CONNECTING_TO_CORE...';
                 const res = await fetch('/api/vault/admin/login', { 
                     method: 'POST',
@@ -773,6 +778,7 @@
                 status.textContent = msg;
                 if (window.notify) window.notify('INVALID_MASTER_KEY', 'error');
             } catch (e) { status.textContent = 'CONNECTION_FAILURE'; }
+            finally { gateBusy = false; }
         }
 
         async function logoutAdmin() {
@@ -1201,5 +1207,6 @@
     </script>
     <script src="devices.js"></script>
     <script src="calculator.js"></script>
+    <script src="update-overlay.js"></script>
 </body>
 </html>

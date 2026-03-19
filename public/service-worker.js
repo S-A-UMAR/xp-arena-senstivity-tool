@@ -1,9 +1,10 @@
-const CACHE_NAME = 'xp-arena-v2';
+const CACHE_NAME = 'xp-arena-v3';
 const ASSETS = [
     '/',
     '/index.html',
     '/styles.css',
     '/app.js',
+    '/update-overlay.js',
     '/devices.js',
     '/calculator.js',
     '/manifest.json'
@@ -63,4 +64,10 @@ self.addEventListener('fetch', (e) => {
             return cached || networkFetch;
         })
     );
+});
+
+self.addEventListener('message', (event) => {
+    if (event.data && event.data.type === 'SKIP_WAITING') {
+        self.skipWaiting();
+    }
 });
