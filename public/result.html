@@ -53,57 +53,53 @@
                         <span class="id-value" id="idCode">XP-000-000</span>
                     </div>
 
-                    <!-- Sensitivity Matrix -->
-                    <div class="id-stats-grid">
-                        <div class="id-stat-box">
-                            <div class="id-stat-label">GENERAL_SENS</div>
-                            <div class="id-stat-val range-display">
-                                <span id="rGen1">--</span>
-                                <span class="range-sep">—</span>
-                                <span id="rGen2">--</span>
-                            </div>
-                        </div>
-                        <div class="id-stat-box">
-                            <div class="id-stat-label">RED_DOT_PRECISION</div>
-                            <div class="id-stat-val range-display">
-                                <span id="rRed1">--</span>
-                                <span class="range-sep">—</span>
-                                <span id="rRed2">--</span>
-                            </div>
-                        </div>
-                        <div class="id-stat-box">
-                            <div class="id-stat-label">2X_SCOPE_ZOOM</div>
-                            <div class="id-stat-val range-display">
-                                <span id="r2x1">--</span>
-                                <span class="range-sep">—</span>
-                                <span id="r2x2">--</span>
-                            </div>
-                        </div>
-                        <div class="id-stat-box">
-                            <div class="id-stat-label">4X_SCOPE_ZOOM</div>
-                            <div class="id-stat-val range-display">
-                                <span id="r4x1">--</span>
-                                <span class="range-sep">—</span>
-                                <span id="r4x2">--</span>
-                            </div>
-                        </div>
-                        <div class="id-stat-box">
-                            <div class="id-stat-label">SNIPER_CALIBRATION</div>
-                            <div class="id-stat-val range-display">
-                                <span id="rSni1">--</span>
-                                <span class="range-sep">—</span>
-                                <span id="rSni2">--</span>
-                            </div>
-                        </div>
-                        <div class="id-stat-box">
-                            <div class="id-stat-label">FREE_LOOK_AXIS</div>
-                            <div class="id-stat-val range-display">
-                                <span id="rFree1">--</span>
-                                <span class="range-sep">—</span>
-                                <span id="rFree2">--</span>
-                            </div>
+                <!-- Sensitivity Matrix -->
+                <div class="id-stats-grid">
+                    <div class="id-stat-box">
+                        <div class="id-stat-label">GENERAL_SENS</div>
+                        <div class="id-stat-val range-display">
+                            <span id="rGen1">--</span>
+                            <span class="range-sep">—</span>
+                            <span id="rGen2">--</span>
                         </div>
                     </div>
+                    <div class="id-stat-box">
+                        <div class="id-stat-label">RED_DOT_PRECISION</div>
+                        <div class="id-stat-val range-display">
+                            <span id="rRed1">--</span>
+                            <span class="range-sep">—</span>
+                            <span id="rRed2">--</span>
+                        </div>
+                    </div>
+                    <div class="id-stat-box">
+                        <div class="id-stat-label">2X_SCOPE_ZOOM</div>
+                        <div class="id-stat-val range-display">
+                            <span id="r2x1">--</span>
+                            <span class="range-sep">—</span>
+                            <span id="r2x2">--</span>
+                        </div>
+                    </div>
+                    <div class="id-stat-box">
+                        <div class="id-stat-label">4X_SCOPE_ZOOM</div>
+                        <div class="id-stat-val range-display">
+                            <span id="r4x1">--</span>
+                            <span class="range-sep">—</span>
+                            <span id="r4x2">--</span>
+                        </div>
+                    </div>
+                    <div class="id-stat-box">
+                        <div class="id-stat-label">SNIPER_CALIBRATION</div>
+                        <div class="id-stat-val range-display">
+                            <span id="rSni1">--</span>
+                            <span class="range-sep">—</span>
+                            <span id="rSni2">--</span>
+                        </div>
+                    </div>
+                    <div class="id-stat-box">
+                        <div class="id-stat-label">DPI_BENCHMARK</div>
+                        <div class="id-stat-val" id="idDPI" style="font-size: 1.1rem; color: var(--accent-primary);">--</div>
+                    </div>
+                </div>
 
                     <div class="status-banner hidden" id="expiryWarning"></div>
                     <div style="margin-top: 2rem; padding: 1rem; border: 1px dashed #222; text-align: center;">
@@ -308,7 +304,7 @@
             paintRange('r2x1', 'r2x2', results.scope2x);
             paintRange('r4x1', 'r4x2', results.scope4x);
             paintRange('rSni1', 'rSni2', results.sniperScope || results.sniper);
-            paintRange('rFree1', 'rFree2', results.freeLook);
+            document.getElementById('idDPI').textContent = results.dpi || 'DEFAULT';
             setExpiryState(hydrated.validUntil);
 
             const socialBox = document.getElementById('socialLinks');

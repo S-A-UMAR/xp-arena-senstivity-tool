@@ -146,11 +146,17 @@
             background: var(--glass-bg);
             border: 1px solid var(--glass-border);
             border-radius: var(--radius-main);
-            padding: 1rem;
-            margin-bottom: 1rem;
+            padding: 0.85rem;
+            margin-bottom: 0.75rem;
             display: flex;
             flex-direction: column;
-            gap: 1rem;
+            gap: 0.6rem;
+            transition: 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .vendor-card:hover {
+            border-color: rgba(0, 255, 136, 0.25);
+            background: rgba(255, 255, 255, 0.07);
         }
 
         .vendor-header {
@@ -161,37 +167,78 @@
 
         .vendor-info h3 {
             margin: 0;
-            font-size: 1.1rem;
+            font-size: 0.95rem;
             font-weight: 800;
-            letter-spacing: -0.02em;
+            letter-spacing: -0.01em;
         }
 
         .status-pill {
             display: flex;
             align-items: center;
-            gap: 6px;
-            font-size: 0.65rem;
+            gap: 5px;
+            font-size: 0.6rem;
             font-weight: 800;
-            padding: 4px 10px;
+            padding: 3px 8px;
             border-radius: 20px;
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid var(--glass-border);
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255,255,255,0.05);
         }
 
         .led {
-            width: 8px;
-            height: 8px;
+            width: 6px;
+            height: 6px;
             border-radius: 50%;
             background: #666;
         }
 
-        .led.active { background: var(--accent-primary); box-shadow: 0 0 8px var(--accent-primary); }
-        .led.suspended { background: var(--accent-danger); box-shadow: 0 0 8px var(--accent-danger); }
+        .led.active { background: var(--accent-primary); box-shadow: 0 0 6px var(--accent-primary); }
+        .led.suspended { background: var(--accent-danger); box-shadow: 0 0 6px var(--accent-danger); }
 
         .vendor-actions {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 0.5rem;
+            margin-top: 0.25rem;
+        }
+
+        .v-btn-mini {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            color: #fff;
+            padding: 0.45rem;
+            border-radius: 8px;
+            font-size: 0.58rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-align: center;
+            font-family: var(--font-mono);
+            transition: 0.2s;
+        }
+        .v-btn-mini:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.15); }
+        .v-btn-mini.primary { background: rgba(0, 255, 136, 0.1); border-color: rgba(0, 255, 136, 0.2); color: var(--accent-primary); }
+        .v-btn-mini.danger { color: #ff6b6b; border-color: rgba(255, 107, 107, 0.1); }
+        .v-btn-mini.danger:hover { background: rgba(255, 107, 107, 0.1); }
+
+        .vendor-stats-mini {
+            display: flex;
+            gap: 1rem;
+            padding-top: 0.5rem;
+            border-top: 1px solid rgba(255,255,255,0.03);
+        }
+        .stat-mini {
+            flex: 1;
+        }
+        .stat-mini-val {
+            font-size: 0.85rem;
+            font-weight: 800;
+            color: #fff;
+            font-family: var(--font-mono);
+        }
+        .stat-mini-label {
+            font-size: 0.5rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
 
         .section-toolbar {
@@ -471,6 +518,97 @@
 
         .scroll-hide::-webkit-scrollbar { display: none; }
         .scroll-hide { scrollbar-width: none; }
+
+        /* Premium Access Card */
+        .premium-access-card {
+            background: linear-gradient(145deg, #0f172a, #020617);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: 20px;
+            padding: 1.5rem;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+            margin-top: 1.5rem;
+            font-family: var(--font-main);
+        }
+        .premium-access-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at center, rgba(0, 255, 136, 0.05), transparent 70%);
+            pointer-events: none;
+        }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            padding-bottom: 1rem;
+        }
+        .card-logo {
+            font-family: var(--font-heading);
+            font-weight: 800;
+            font-size: 0.9rem;
+            color: var(--accent-primary);
+            letter-spacing: 0.1em;
+        }
+        .card-chip {
+            background: rgba(0, 255, 136, 0.1);
+            color: var(--accent-primary);
+            font-size: 0.55rem;
+            padding: 4px 10px;
+            border-radius: 999px;
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            font-family: var(--font-mono);
+        }
+        .card-body {
+            margin-bottom: 1.5rem;
+        }
+        .card-label {
+            font-size: 0.55rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            margin-bottom: 0.25rem;
+            font-family: var(--font-mono);
+        }
+        .card-value {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: #fff;
+            font-family: var(--font-heading);
+            margin-bottom: 1rem;
+        }
+        .card-key-box {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px dashed rgba(255,255,255,0.1);
+            padding: 1rem;
+            border-radius: 12px;
+            margin-top: 0.5rem;
+            word-break: break-all;
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            color: var(--accent-primary);
+            text-align: center;
+            letter-spacing: 0.05em;
+        }
+        .card-footer {
+            font-size: 0.5rem;
+            color: rgba(255,255,255,0.2);
+            text-align: center;
+            font-family: var(--font-mono);
+            letter-spacing: 0.2em;
+        }
+        .card-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            margin-top: 1.5rem;
+        }
     </style>
 </head>
 <body>
@@ -576,25 +714,65 @@
 
         <!-- Tool Preview Section -->
         <div id="section-tool" class="nav-section hidden">
-            <label class="stat-label">Master Calculator Preview</label>
-            <div class="vendor-card" style="margin-top: 1rem;">
-                <select id="toolBrand" class="cyber-input">
-                    <option value="">SELECT BRAND</option>
-                </select>
-                <select id="toolSeries" class="cyber-input" disabled>
-                    <option value="">SELECT SERIES</option>
-                </select>
+            <div class="live-feed-header">
+                <span class="stat-label">Neural Engine Master Tool</span>
+            </div>
+            
+            <div class="vendor-card" style="padding: 1.5rem;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                    <select id="toolBrand" class="cyber-input" style="margin-bottom:0;">
+                        <option value="">SELECT BRAND</option>
+                    </select>
+                    <select id="toolSeries" class="cyber-input" style="margin-bottom:0;" disabled>
+                        <option value="">SELECT SERIES</option>
+                    </select>
+                </div>
                 <select id="toolModel" class="cyber-input" disabled>
                     <option value="">SELECT MODEL</option>
                 </select>
-                <button class="action-btn" onclick="computePreview()">COMPUTE_NEURAL</button>
-                <div id="toolResult" style="margin-top: 1rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 1rem;">
-                    <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
-                        <div><span class="stat-label">General</span><div id="rGeneral" style="font-weight: 800; font-size: 1.2rem;">-</div></div>
-                        <div><span class="stat-label">Red Dot</span><div id="rRedDot" style="font-weight: 800; font-size: 1.2rem;">-</div></div>
-                        <div><span class="stat-label">DPI</span><div id="rDPI" style="font-weight: 800; font-size: 1rem;">-</div></div>
-                        <div><span class="stat-label">Fire Button</span><div id="rFire" style="font-weight: 800; font-size: 1rem;">-</div></div>
+                
+                <div style="margin: 1rem 0;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.5rem;">
+                        <span class="stat-label">Neural Scale</span>
+                        <span id="toolScaleVal" style="color:var(--accent-primary); font-family:var(--font-mono);">5.0</span>
                     </div>
+                    <input type="range" id="toolScale" min="1" max="10" step="0.1" value="5.0" oninput="document.getElementById('toolScaleVal').textContent = this.value">
+                </div>
+
+                <button class="action-btn" onclick="computeAdminTool()">GENERATE_MASTER_CARD</button>
+            </div>
+
+            <div id="adminToolResult" class="hidden" style="margin-top: 2rem;">
+                <div class="premium-access-card" id="adminCardCapture">
+                    <div class="card-header">
+                        <div class="card-logo">XP ARENA MASTER</div>
+                        <div class="card-chip">NEURAL_CALIBRATION_ID</div>
+                    </div>
+                    <div class="card-body">
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                            <div>
+                                <div class="card-label">GENERAL</div>
+                                <div class="card-value" id="admGen" style="font-size:1.5rem;">-</div>
+                            </div>
+                            <div>
+                                <div class="card-label">RED_DOT</div>
+                                <div class="card-value" id="admRed" style="font-size:1.5rem;">-</div>
+                            </div>
+                        </div>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem;">
+                            <div><div class="card-label">2X</div><div class="card-value" id="adm2x" style="font-size:1rem;">-</div></div>
+                            <div><div class="card-label">4X</div><div class="card-value" id="adm4x" style="font-size:1rem;">-</div></div>
+                            <div><div class="card-label">DPI</div><div class="card-value" id="admDPI" style="font-size:1rem;">-</div></div>
+                        </div>
+                        <div class="card-label" style="margin-top:1rem;">SUBJECT_HARDWARE</div>
+                        <div class="card-value" id="admHardware" style="font-size:0.8rem; margin-bottom:0;">-</div>
+                    </div>
+                    <div class="card-footer">XP_CORE_ADMIN_MASTER_UPLINK</div>
+                </div>
+                
+                <div class="card-actions">
+                    <button class="v-btn" style="background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1);" onclick="copyAdminResults()">COPY_TEXT</button>
+                    <button class="v-btn" style="background: var(--accent-primary); color: #000; border: none;" onclick="downloadAdminCard()">DOWNLOAD_PNG</button>
                 </div>
             </div>
         </div>
@@ -657,12 +835,39 @@
         <input type="text" id="vName" class="cyber-input" placeholder="Vendor Name (e.g. SKY-NET)">
         <input type="text" id="vBrand" class="cyber-input" placeholder="Brand/Organization">
         <input type="number" id="vLimit" class="cyber-input" placeholder="Credit Limit (Usage Cap)">
+        
+        <div style="margin-top: 1rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 1rem;">
+            <p class="stat-label" style="margin-bottom: 0.5rem;">VENDOR_BRANDING (OPTIONAL)</p>
+            <input type="text" id="vLogo" class="cyber-input" placeholder="Logo URL (e.g. https://...)">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                <input type="text" id="vYT" class="cyber-input" placeholder="YouTube Link">
+                <input type="text" id="vTT" class="cyber-input" placeholder="TikTok Link">
+            </div>
+            <input type="text" id="vDC" class="cyber-input" placeholder="Discord Link">
+        </div>
+
         <button class="action-btn" onclick="addVendor()">REGISTER_NOW</button>
-        <div id="provisionCard" class="vendor-card success-card hidden" style="margin-top: 1rem;">
-            <div class="stat-label">VENDOR PROVISIONED</div>
-            <div id="provisionVendor" style="font-family: var(--font-heading); font-size: 1.2rem; margin-top: 0.3rem;">-</div>
-            <div id="provisionAccessKey" style="font-family: var(--font-mono); color: var(--accent-primary); margin-top: 0.4rem; word-break: break-all;">-</div>
-            <button class="v-btn" style="margin-top: 0.5rem;" onclick="copyProvisionedKey()">COPY ACCESS KEY</button>
+        
+        <div id="provisionCard" class="hidden">
+            <div class="premium-access-card" id="cardToCapture">
+                <div class="card-header">
+                    <div class="card-logo">XP ARENA PRO</div>
+                    <div class="card-chip">PREMIUM_VENDOR</div>
+                </div>
+                <div class="card-body">
+                    <div class="card-label">IDENTIFIER</div>
+                    <div class="card-value" id="provisionVendor">-</div>
+                    
+                    <div class="card-label">ACCESS_KEY (PRIVATE)</div>
+                    <div class="card-key-box" id="provisionAccessKey">-</div>
+                </div>
+                <div class="card-footer">XP_CORE_GLOBAL_UPLINK_SYSTEM</div>
+            </div>
+            
+            <div class="card-actions">
+                <button class="v-btn" style="background: var(--accent-primary); color: #000; border: none;" onclick="copyProvisionedKey()">COPY_KEY</button>
+                <button class="v-btn" style="background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2);" onclick="downloadProvisionedCard()">DOWNLOAD_ID</button>
+            </div>
         </div>
     </div>
 
@@ -683,6 +888,7 @@
         </div>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="notifications.js"></script>
     <script src="settings.js"></script>
     <script>
@@ -829,6 +1035,9 @@
         function toggleActionSheet(show) {
             document.getElementById('sheetOverlay').classList.toggle('active', show);
             document.getElementById('vendorSheet').classList.toggle('active', show);
+            if (!show) {
+                document.getElementById('provisionCard').classList.add('hidden');
+            }
         }
 
         // Global Offset
@@ -1014,45 +1223,33 @@
                 const isActive = v.status === 'active';
                 const expiry = v.active_until ? new Date(v.active_until).toLocaleDateString() : 'PERPETUAL';
                 return `
-                    <div class="glass-card stat-tile" style="margin-bottom: 1rem; border-left: 3px solid ${isActive ? 'var(--accent-primary)' : '#ff4444'};">
-                        <div style="display:flex; justify-content:space-between; align-items:start;">
-                            <div>
+                    <div class="vendor-card">
+                        <div class="vendor-header">
+                            <div class="vendor-info">
                                 <div style="font-size: 0.5rem; color: var(--text-muted); font-family:var(--font-mono); margin-bottom: 2px;">${v.org_id || 'XP-CORE'}</div>
-                                <h3 style="margin:0; font-size: 1rem; color: #fff; display:flex; align-items:center; gap:8px;">
-                                    ${v.vendor_id}
-                                    ${v.usage_limit > 500 ? '<span style="font-size:0.5rem; background:var(--accent-primary); color:#000; padding:1px 4px; border-radius:2px;">PREMIUM</span>' : ''}
-                                </h3>
-                                <div style="font-size: 0.6rem; color: var(--text-secondary); margin-top: 4px; font-family:var(--font-mono);">
-                                    KEY: <span style="color:var(--accent-primary)">${v.lookup_key}</span>
-                                </div>
+                                <h3>${v.vendor_id}</h3>
                             </div>
-                            <div style="text-align:right;">
-                                <div class="logo-badge" style="margin:0; font-size: 0.5rem; ${isActive ? '' : 'border-color:#ff4444; color:#ff4444;'}">${v.status.toUpperCase()}</div>
-                                <div style="font-size: 0.5rem; opacity: 0.5; margin-top: 4px;">EXP: ${expiry}</div>
+                            <div class="status-pill">
+                                <div class="led ${isActive ? 'active' : 'suspended'}"></div>
+                                ${v.status.toUpperCase()}
                             </div>
                         </div>
 
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.03);">
-                             <div onclick="showAnalytics('${v.vendor_id}', ${v.total_codes || 0}, ${v.total_usage || 0})" style="cursor:pointer;">
-                                <div style="font-size: 0.55rem; color: var(--text-muted);">ACTIVE_KEYS</div>
-                                <div style="font-size: 0.9rem; font-weight: 800; font-family: var(--font-mono);">${v.total_codes || 0}</div>
+                        <div class="vendor-stats-mini">
+                            <div class="stat-mini">
+                                <div class="stat-mini-label">KEYS</div>
+                                <div class="stat-mini-val">${v.total_codes || 0}</div>
                             </div>
-                            <div>
-                                <div style="font-size: 0.55rem; color: var(--text-muted);">GLOBAL_REACH</div>
-                                <div style="font-size: 0.9rem; font-weight: 800; font-family: var(--font-mono); color: var(--accent-primary);">${v.total_usage || 0}</div>
+                            <div class="stat-mini">
+                                <div class="stat-mini-label">HITS</div>
+                                <div class="stat-mini-val" style="color:var(--accent-primary)">${v.total_usage || 0}</div>
                             </div>
                         </div>
 
-                        <div style="display:flex; gap: 0.5rem; margin-top: 1.5rem;">
-                            <button class="action-btn" onclick="toggleStatus('${v.vendor_id}', '${v.status}')" style="flex:1; font-size:0.6rem; padding: 0.5rem;">
-                                ${isActive ? 'SUSPEND' : 'ACTIVATE'}
-                            </button>
-                            <button class="action-btn" onclick="promptActivate('${v.vendor_id}')" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); font-size:0.6rem; padding: 0.5rem;">
-                                EXTEND
-                            </button>
-                            <button class="action-btn" onclick="deleteVendor('${v.vendor_id}')" style="background: rgba(255, 68, 68, 0.1); color: #ff4444; border-color: rgba(255, 68, 68, 0.2); width: 40px; padding: 0.5rem;">
-                                <i class="fas fa-trash"></i>
-                            </button>
+                        <div class="vendor-actions">
+                            <button class="v-btn-mini primary" onclick="showAnalytics('${v.vendor_id}', ${v.total_codes || 0}, ${v.total_usage || 0})">VIEW</button>
+                            <button class="v-btn-mini" onclick="toggleStatus('${v.vendor_id}', '${v.status}')">${isActive ? 'SUSPEND' : 'ACTIVATE'}</button>
+                            <button class="v-btn-mini danger" onclick="deleteVendor('${v.vendor_id}')">ERASE</button>
                         </div>
                     </div>
                 `;
@@ -1064,6 +1261,11 @@
             const brand = document.getElementById('vBrand').value.trim();
             const vLimit = parseInt(document.getElementById('vLimit').value, 10);
             
+            const logo = document.getElementById('vLogo').value.trim();
+            const youtube = document.getElementById('vYT').value.trim();
+            const tiktok = document.getElementById('vTT').value.trim();
+            const discord = document.getElementById('vDC').value.trim();
+
             if (!vid || vid.length < 2) {
                 if (window.notify) window.notify('NAME_REQUIRED (MIN 2 CHARS)', 'error');
                 return;
@@ -1073,34 +1275,81 @@
                 const payload = {
                     vendorId: vid,
                     orgId: brand || 'XP-CORE-ORG',
-                    usageLimit: Number.isFinite(vLimit) ? vLimit : null
+                    usageLimit: Number.isFinite(vLimit) ? vLimit : null,
+                    brandConfig: {
+                        logo_url: logo || null,
+                        youtube: youtube || null,
+                        tiktok: tiktok || null,
+                        discord: discord || null,
+                        display_name: vid
+                    }
                 };
                 const res = await api('/api/vault/admin/vendors', 'POST', payload);
                 
-                // Show provisioning success modal or alert
-                alert(`PROVISIONED: ${res.accessKey}`);
+                // Populate and show premium card
+                document.getElementById('provisionVendor').textContent = vid.toUpperCase();
+                document.getElementById('provisionAccessKey').textContent = res.accessKey;
+                document.getElementById('provisionCard').classList.remove('hidden');
                 
+                // Clear inputs
                 document.getElementById('vName').value = '';
                 document.getElementById('vBrand').value = '';
                 document.getElementById('vLimit').value = '';
-                toggleActionSheet(false);
+                document.getElementById('vLogo').value = '';
+                document.getElementById('vYT').value = '';
+                document.getElementById('vTT').value = '';
+                document.getElementById('vDC').value = '';
+                
+                if (window.notify) window.notify('VENDOR_PROVISIONED_SUCCESS', 'success');
                 loadDashboard();
             } catch (e) {
                 if (window.notify) window.notify(`VENDOR_CREATE_FAILED: ${e.message}`, 'error');
-                else alert(`VENDOR_CREATE_FAILED: ${e.message}`);
+            }
+        }
+
+        function copyProvisionedKey() {
+            const key = document.getElementById('provisionAccessKey').textContent;
+            navigator.clipboard.writeText(key);
+            if (window.notify) window.notify('ACCESS_KEY_COPIED', 'success');
+        }
+
+        async function downloadProvisionedCard() {
+            const card = document.getElementById('cardToCapture');
+            const vendor = document.getElementById('provisionVendor').textContent;
+            try {
+                const canvas = await html2canvas(card, {
+                    backgroundColor: '#020617',
+                    scale: 2
+                });
+                const link = document.createElement('a');
+                link.download = `XP_ACCESS_${vendor}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            } catch (e) {
+                if (window.notify) window.notify('DOWNLOAD_FAILED', 'error');
             }
         }
 
         async function toggleStatus(id, current) {
             const newStatus = current === 'active' ? 'suspended' : 'active';
-            await api('/api/vault/admin/vendor/status', 'POST', { vendorId: id, status: newStatus });
-            loadDashboard();
+            try {
+                await api('/api/vault/admin/vendor/status', 'POST', { vendorId: id, status: newStatus });
+                if (window.notify) window.notify(`VENDOR_${newStatus.toUpperCase()}`, 'success');
+                loadDashboard();
+            } catch (e) {
+                if (window.notify) window.notify('STATUS_UPDATE_FAILED', 'error');
+            }
         }
 
         async function deleteVendor(id) {
             if (!confirm(`ERASE ${id} FOREVER?`)) return;
-            await api(`/api/vault/admin/vendor/${encodeURIComponent(id)}`, 'DELETE');
-            loadDashboard();
+            try {
+                await api(`/api/vault/admin/vendor/${encodeURIComponent(id)}`, 'DELETE');
+                if (window.notify) window.notify('VENDOR_ERASED', 'success');
+                loadDashboard();
+            } catch (e) {
+                if (window.notify) window.notify('ERASE_FAILED', 'error');
+            }
         }
 
         async function updateMasterKey() {
@@ -1179,15 +1428,50 @@
             };
         }
 
-        function computePreview() {
+        function computeAdminTool() {
             const brand = document.getElementById('toolBrand').value;
             const model = document.getElementById('toolModel').value;
-            if (!brand || !model) return alert('SELECT_PROFILE');
-            const results = window.Calculator.compute({ brand, model, speed: 'medium', claw: '2', neuralScale: 5.0 });
-            document.getElementById('rGeneral').textContent = results.general;
-            document.getElementById('rRedDot').textContent = results.redDot;
-            document.getElementById('rDPI').textContent = results.dpi;
-            document.getElementById('rFire').textContent = results.fireButton;
+            const scale = parseFloat(document.getElementById('toolScale').value);
+            
+            if (!brand || !model) {
+                if (window.notify) window.notify('SELECT_HARDWARE_PROFILE', 'error');
+                return;
+            }
+
+            const results = window.Calculator.compute({ brand, model, speed: 'medium', claw: '2', neuralScale: scale });
+            
+            document.getElementById('admGen').textContent = results.general;
+            document.getElementById('admRed').textContent = results.redDot;
+            document.getElementById('adm2x').textContent = results.scope2x;
+            document.getElementById('adm4x').textContent = results.scope4x;
+            document.getElementById('admDPI').textContent = results.dpi;
+            document.getElementById('admHardware').textContent = `${brand} ${model}`.toUpperCase();
+            
+            document.getElementById('adminToolResult').classList.remove('hidden');
+            if (window.notify) window.notify('NEURAL_CALIBRATION_COMPLETE', 'success');
+        }
+
+        function copyAdminResults() {
+            const gen = document.getElementById('admGen').textContent;
+            const red = document.getElementById('admRed').textContent;
+            const model = document.getElementById('admHardware').textContent;
+            const text = `XP ARENA MASTER CALIBRATION\nHardware: ${model}\nGeneral: ${gen}\nRed Dot: ${red}\nGenerated via Admin Uplink`;
+            navigator.clipboard.writeText(text);
+            if (window.notify) window.notify('RESULTS_COPIED', 'success');
+        }
+
+        async function downloadAdminCard() {
+            const card = document.getElementById('adminCardCapture');
+            const model = document.getElementById('admHardware').textContent.replace(/\s+/g, '_');
+            try {
+                const canvas = await html2canvas(card, { backgroundColor: '#020617', scale: 2 });
+                const link = document.createElement('a');
+                link.download = `XP_MASTER_${model}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            } catch (e) {
+                if (window.notify) window.notify('DOWNLOAD_FAILED', 'error');
+            }
         }
 
         document.getElementById('adminPass').addEventListener('keypress', (e) => { if (e.key === 'Enter') checkPass(); });

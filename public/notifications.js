@@ -8,7 +8,7 @@ window.notify = function(message, type = 'info', duration = 3000) {
             top: 2rem;
             left: 50%;
             transform: translateX(-50%);
-            z-index: 9999;
+            z-index: 99999;
             display: flex;
             flex-direction: column;
             gap: 0.75rem;
@@ -24,7 +24,8 @@ window.notify = function(message, type = 'info', duration = 3000) {
         success: '#00f0ff',
         error: '#ff4444',
         warning: '#ffaa00',
-        info: '#ffffff'
+        info: '#ffffff',
+        haptic: '#00f0ff'
     };
     
     const color = colors[type] || colors.info;
@@ -32,35 +33,39 @@ window.notify = function(message, type = 'info', duration = 3000) {
     
     toast.className = isHaptic ? 'haptic' : '';
     toast.style.cssText = `
-        background: ${isHaptic ? 'rgba(0, 240, 255, 0.1)' : 'rgba(15, 23, 42, 0.9)'};
-        backdrop-filter: blur(10px);
-        border: 1px solid ${isHaptic ? 'var(--accent-primary)' : color + '44'};
-        border-left: 4px solid ${isHaptic ? 'var(--accent-primary)' : color};
-        padding: 1rem 1.5rem;
-        border-radius: 12px;
+        background: ${isHaptic ? 'rgba(0, 240, 255, 0.1)' : 'rgba(8, 10, 14, 0.95)'};
+        backdrop-filter: blur(12px);
+        border: 1px solid ${isHaptic ? 'var(--accent-primary)' : color + '33'};
+        border-left: 4px solid ${color};
+        padding: 1rem 1.25rem;
+        border-radius: 14px;
         color: #fff;
         font-family: ${isHaptic ? "'JetBrains Mono', monospace" : "'Inter', sans-serif"};
-        font-weight: 700;
-        font-size: 0.85rem;
-        box-shadow: 0 10px 30px ${isHaptic ? 'rgba(0, 240, 255, 0.2)' : 'rgba(0,0,0,0.5)'};
+        font-weight: 800;
+        font-size: 0.75rem;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.5);
         pointer-events: auto;
-        animation: toastSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+        animation: toastSlideIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        letter-spacing: ${isHaptic ? '0.1em' : 'normal'};
+        letter-spacing: 0.05em;
+        margin-bottom: 0.5rem;
     `;
 
     toast.innerHTML = `
-        <span>${message.toUpperCase()}</span>
-        <div style="font-size: 0.6rem; opacity: 0.5; font-family: 'JetBrains Mono'; margin-left: 1rem;">${isHaptic ? 'HAPTIC_FEEDBACK' : 'SECURE_MSG'}</div>
+        <div style="display:flex; align-items:center; gap: 10px;">
+            <div style="width: 8px; height: 8px; border-radius: 50%; background: ${color}; box-shadow: 0 0 8px ${color};"></div>
+            <span>${message.toUpperCase()}</span>
+        </div>
+        <div style="font-size: 0.55rem; opacity: 0.4; font-family: 'JetBrains Mono'; letter-spacing: 0.1em;">${isHaptic ? 'HAPTIC' : 'UPLINK'}</div>
     `;
 
     container.appendChild(toast);
 
     setTimeout(() => {
-        toast.style.animation = 'toastSlideOut 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards';
-        setTimeout(() => toast.remove(), 400);
+        toast.style.animation = 'toastSlideOut 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards';
+        setTimeout(() => toast.remove(), 500);
     }, duration);
 };
 

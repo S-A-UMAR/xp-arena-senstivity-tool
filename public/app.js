@@ -384,14 +384,25 @@ const UI = {
         const brand = (state.brand || '').toLowerCase();
         const model = (state.model || '').toLowerCase();
         if (!model) return 8;
+
+        // 🍎 Apple Logic: RAM is handled by iOS internally, but we use benchmarks for calibration
         if (brand === 'apple') {
             if (model.includes('17') || model.includes('16') || model.includes('15 pro') || model.includes('14 pro')) return 8;
-            if (model.includes('13 pro') || model.includes('12 pro')) return 6;
+            if (model.includes('13 pro') || model.includes('12 pro') || model.includes('15') || model.includes('14')) return 6;
             return 4;
         }
-        if (/(ultra|pro\+|rog|redmagic|gaming|gt|x100|12|11|10 pro)/.test(model)) return 12;
-        if (/(plus|note|neo|f\d|x\d|v\d|reno|nord|pova|camon)/.test(model)) return 8;
-        return 6;
+
+        // 🤖 Android Performance Tiers (Auto-Detection)
+        // Ultra/Pro Gaming Models (12GB - 16GB+)
+        if (/(ultra|pro\+|rog|redmagic|gaming|gt|x100|ultimate|premier|vip)/.test(model)) return 12;
+        
+        // Performance/Mid-High Models (8GB - 12GB)
+        if (/(plus|note|pro|neo|f\d|x\d|v\d|reno|nord|pova|camon|spark 20 pro)/.test(model)) return 8;
+        
+        // Budget/Mid Models (4GB - 6GB)
+        if (/(a\d|m\d|f\d|spark|hot|pop|p\d)/.test(model)) return 6;
+
+        return 6; // Safe default for unlisted Android devices
     },
 
     autoSetRamForModel() {
@@ -399,6 +410,7 @@ const UI = {
         const ramSelect = this.elements.ramSelect;
         if (!ramSelect || !ramGroup) return;
 
+        // 💡 Logic: Apple devices don't show RAM selection (Auto-handled)
         if ((state.brand || '').toLowerCase() === 'apple') {
             state.ram = this.estimateRamByModel();
             ramSelect.value = String(state.ram);
@@ -406,6 +418,7 @@ const UI = {
             return;
         }
 
+        // Android/Other: Auto-set based on hardware lookup, but keep visible for manual adjustment
         ramGroup.style.display = 'block';
         state.ram = this.estimateRamByModel();
         ramSelect.value = String(state.ram);

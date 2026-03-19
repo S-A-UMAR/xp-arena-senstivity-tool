@@ -466,21 +466,30 @@ router.post('/vendor/login', async (req, res) => {
         const prefix = getLookupKey(access_key);
         const vendor = await db.get('SELECT vendor_id, access_key, status FROM vendors WHERE lookup_key = ?', [prefix]);
 
-        if (!vendor || !(await bcrypt.compare(access_key, vendor.access_key))) {
+        if (!vendor) {
+            console.warn(`[LOGIN_FAIL] No vendor found with prefix: ${prefix}`);
+            return fail(res, 'XP_AUTH_DENIED', 'INVALID_VENDOR_KEY', 401);
+        }
+
+        const isMatch = await bcrypt.compare(access_key, vendor.access_key);
+        if (!isMatch) {
+            console.warn(`[LOGIN_FAIL] Password mismatch for vendor: ${vendor.vendor_id}`);
             return fail(res, 'XP_AUTH_DENIED', 'INVALID_VENDOR_KEY', 401);
         }
         
         if (vendor.status !== 'active') return fail(res, 'XP_AUTH_SUSPENDED', 'VENDOR_ACCOUNT_LOCKED', 403);
 
-        const token = jwt.sign({ vendor_id: vendor.vendor_id }, getJwtSecret(), { expiresIn: '7d' });
+        const token = jwt.sign({ vendor_id: vendor.vendor_id }, await getJwtSecret(), { expiresIn: '7d' });
         res.cookie('xp_vendor_token', token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'Lax',
-            maxAge: 7 * 24 * 60 * 60 * 1000
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+            path: '/'
         });
         res.json({ token, type: 'vendor', redirect: '/vendor_dashboard.html' });
     } catch (e) {
+        console.error('[VENDOR_LOGIN_CRITICAL_ERR]:', e);
         if (e instanceof z.ZodError) return res.status(400).json({ error: 'Invalid input' });
         res.status(500).json({ error: 'Server error' });
     }

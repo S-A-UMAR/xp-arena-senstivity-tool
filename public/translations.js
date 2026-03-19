@@ -67,7 +67,9 @@ window.LANGUAGES = {
         giveaway: "SORTEIO",
         comingSoon: "EM BREVE",
         serverStatus: "SERVIDOR: ONLINE",
-        neuralSync: "SINCRONIA_NEURAL: ATIVA"
+        neuralSync: "SINCRONIA_NEURAL: ATIVA",
+        adviceLabel: "CONSELHO",
+        noAdvice: "NENHUM_CONSELHO_ADICIONAL"
     },
     es: {
         title: "Herramienta Free Fire",
@@ -101,7 +103,9 @@ window.LANGUAGES = {
         giveaway: "SORTEO",
         comingSoon: "PRÓXIMAMENTE",
         serverStatus: "SERVIDOR: EN LÍNEA",
-        neuralSync: "SINCRONIZACIÓN_NEURAL: ACTIVA"
+        neuralSync: "SINCRONIZACIÓN_NEURAL: ACTIVA",
+        adviceLabel: "CONSEJO",
+        noAdvice: "SIN_CONSEJOS_ADICIONALES"
     },
     bn: {
         title: "ফ্রি ফায়ার টুল",
