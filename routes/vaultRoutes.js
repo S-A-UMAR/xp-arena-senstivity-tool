@@ -445,19 +445,18 @@ router.post('/vendor/login', async (req, res) => {
     try {
         const schema = z.object({ access_key: z.string().min(6) });
         const { access_key } = schema.parse(req.body || {});
-        const vendors = await db.all('SELECT vendor_id, access_key, status FROM vendors');
-        let matchedVendor = null;
-        for (const v of vendors) {
-            if (await bcrypt.compare(access_key, v.access_key)) {
-                matchedVendor = v;
-                break;
-            }
+        
+        // ⚡ Fast O(1) Lookup Optimization
+        const prefix = getLookupKey(access_key);
+        const vendor = await db.get('SELECT vendor_id, access_key, status FROM vendors WHERE lookup_key = ?', [prefix]);
+
+        if (!vendor || !(await bcrypt.compare(access_key, vendor.access_key))) {
+            return fail(res, 'XP_AUTH_DENIED', 'INVALID_VENDOR_KEY', 401);
         }
+        
+        if (vendor.status !== 'active') return fail(res, 'XP_AUTH_SUSPENDED', 'VENDOR_ACCOUNT_LOCKED', 403);
 
-        if (!matchedVendor) return fail(res, 'XP_AUTH_DENIED', 'INVALID_VENDOR_KEY', 401);
-        if (matchedVendor.status !== 'active') return fail(res, 'XP_AUTH_SUSPENDED', 'VENDOR_ACCOUNT_LOCKED', 403);
-
-        const token = jwt.sign({ vendor_id: matchedVendor.vendor_id }, getJwtSecret(), { expiresIn: '7d' });
+        const token = jwt.sign({ vendor_id: vendor.vendor_id }, getJwtSecret(), { expiresIn: '7d' });
         res.cookie('xp_vendor_token', token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
@@ -638,14 +637,15 @@ router.get('/org/creators', authenticateAdmin, async (req, res) => {
     try {
         const creators = await db.all(`
             SELECT v.vendor_id as name, 
-            (SELECT COUNT(*) FROM sensitivity_keys WHERE vendor_id = v.vendor_id) as keys,
-            (SELECT COUNT(*) FROM code_activity ca JOIN sensitivity_keys sk ON ca.entry_code = sk.entry_code WHERE sk.vendor_id = v.vendor_id) as clicks
+            (SELECT COUNT(*) FROM sensitivity_keys WHERE vendor_id = v.vendor_id) as total_keys,
+            (SELECT COUNT(*) FROM code_activity ca JOIN sensitivity_keys sk ON ca.lookup_key = sk.lookup_key WHERE sk.vendor_id = v.vendor_id) as clicks
             FROM vendors v
             LIMIT 10
         `);
         res.json(creators);
     } catch (e) {
-        res.status(500).json({ error: 'CREATOR_DATA_ERR' });
+        console.error('🚫 CREATOR_DATA_CRITICAL_FAILURE:', e);
+        res.status(500).json({ error: 'CREATOR_DATA_ERR', details: e.message });
     }
 });
 
@@ -712,9 +712,11 @@ router.post('/admin/vendors', authenticateAdmin, async (req, res) => {
     try {
         const schema = z.object({
             vendorId: z.string().min(2).optional(),
+            orgId: z.string().optional(),
+            usageLimit: z.number().int().positive().nullable().optional(),
             brandConfig: z.record(z.any()).optional()
         });
-        const { vendorId: requestedId, brandConfig } = schema.parse(req.body);
+        const { vendorId: requestedId, orgId, usageLimit, brandConfig } = schema.parse(req.body);
         
         // Generate Vendor ID if not provided, or clean up provided one
         const normalizedRequestedId = requestedId
@@ -739,9 +741,9 @@ router.post('/admin/vendors', authenticateAdmin, async (req, res) => {
         );
 
         await db.run(`
-            INSERT INTO vendors (vendor_id, access_key, lookup_key, brand_config, status)
-            VALUES (?, ?, ?, ?, 'active')
-        `, [vendorId, hashedAccessKey, lookupKey, typeof brandConfig === 'string' ? brandConfig : JSON.stringify(brandConfig || {})]);
+            INSERT INTO vendors (org_id, vendor_id, access_key, lookup_key, usage_limit, brand_config, status)
+            VALUES (?, ?, ?, ?, ?, ?, 'active')
+        `, [orgId || 'XP-CORE-ORG', vendorId, hashedAccessKey, lookupKey, usageLimit || null, typeof brandConfig === 'string' ? brandConfig : JSON.stringify(brandConfig || {})]);
 
         await logAudit('admin', 'SYSTEM', 'VENDOR_REGISTER', { vendorId, accessKey }, getClientIp(req));
 
@@ -751,6 +753,25 @@ router.post('/admin/vendors', authenticateAdmin, async (req, res) => {
         if (e instanceof z.ZodError) return res.status(400).json({ error: 'Invalid input' });
         if (e && e.code === 'ER_DUP_ENTRY') return res.status(409).json({ error: 'VENDOR_ALREADY_EXISTS' });
         res.status(500).json({ error: 'Server error' });
+        console.error('🚫 VENDOR_REGISTRATION_CRITICAL_FAILURE:', e);
+        if (e instanceof z.ZodError) return res.status(400).json({ error: 'INVALID_INPUT_DATA', details: e.errors });
+        
+        // 💡 Specialized Debugging for Database Schema Mismatches
+        let errorMsg = 'SERVER_ERROR_DURING_REGISTRATION';
+        if (e.message.includes('Unknown column') || e.message.includes('Table')) {
+            errorMsg = `DATABASE_SCHEMA_OUTDATED: ${e.message}. Please run 'npm run migrate' on the live server or manually update tables using unified_schema.sql.`;
+        } else if (e.code === 'ER_DUP_ENTRY') {
+            return res.status(409).json({ error: 'VENDOR_ID_ALREADY_EXISTS' });
+        } else if (e.message.includes('connect') || e.message.includes('Access denied')) {
+            errorMsg = `DATABASE_CONNECTION_ERROR: ${e.message}. Check your Vercel Environment Variables.`;
+        } else {
+            errorMsg = `SYSTEM_LOGIC_ERROR: ${e.message}`;
+        }
+        
+        res.status(500).json({ 
+            error: errorMsg,
+            debug: process.env.NODE_ENV !== 'production' ? e.stack : undefined
+        });
     }
 });
 
@@ -896,6 +917,25 @@ router.post('/track', async (req, res) => {
     }
 });
 
+// GET /api/vault/admin/audit-logs
+router.get('/admin/audit-logs', authenticateAdmin, async (req, res) => {
+    try {
+        const logs = await db.all('SELECT * FROM audit_logs ORDER BY created_at DESC LIMIT 100');
+        res.json(logs);
+    } catch (e) {
+        res.status(500).json({ error: 'AUDIT_LOGS_UNAVAILABLE' });
+    }
+});
+router.get('/admin/security-logs', authenticateAdmin, async (req, res) => {
+    try {
+        const logs = await db.all('SELECT * FROM security_logs ORDER BY created_at DESC LIMIT 100');
+        res.json(logs);
+    } catch (e) {
+        res.status(500).json({ error: 'SECURITY_LOGS_UNAVAILABLE' });
+    }
+});
+
+// GET /api/vault/admin/live-feed
 router.get('/admin/live-feed', authenticateAdmin, async (req, res) => {
     try {
         const rows = await db.all(`
@@ -1162,6 +1202,9 @@ router.post('/vendor/manual-entry', authenticateVendor, async (req, res) => {
         const hashed = await bcrypt.hash(accessKey, 10);
 
         const results = {
+            formula_version: Calculator.version,
+            brand: 'MANUAL',
+            model: 'PRESET',
             general: data.general,
             redDot: data.redDot,
             scope2x: data.scope2x,

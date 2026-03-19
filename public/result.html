@@ -155,6 +155,20 @@
                 return;
             }
             if (window.SaaSAnalytics) window.SaaSAnalytics.track('result_view');
+            
+            // Funnel Tracking: Result View
+            try {
+                fetch('/api/vault/track', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        event_type: 'result_view',
+                        vendor_id: branding.id || 'XP-PUBLIC',
+                        session_id: localStorage.getItem('xp_session_id'),
+                        device: /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ? 'mobile' : 'desktop'
+                    })
+                });
+            } catch (e) {}
 
             const applyResultLang = () => {
                 const title = document.querySelector('.title-main');
