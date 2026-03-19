@@ -609,6 +609,38 @@
             gap: 0.75rem;
             margin-top: 1.5rem;
         }
+
+        /* Overlay Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(10px);
+            z-index: 100000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            padding: 2rem;
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .modal-content {
+            width: 100%;
+            max-width: 400px;
+            transform: scale(0.9);
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .modal-overlay.active .modal-content {
+            transform: scale(1);
+        }
     </style>
 </head>
 <body>
@@ -847,8 +879,11 @@
         </div>
 
         <button class="action-btn" onclick="addVendor()">REGISTER_NOW</button>
-        
-        <div id="provisionCard" class="hidden">
+    </div>
+
+    <!-- Vendor Card Success Overlay -->
+    <div id="vendorSuccessOverlay" class="modal-overlay">
+        <div class="modal-content">
             <div class="premium-access-card" id="cardToCapture">
                 <div class="card-header">
                     <div class="card-logo">XP ARENA PRO</div>
@@ -868,6 +903,7 @@
                 <button class="v-btn" style="background: var(--accent-primary); color: #000; border: none;" onclick="copyProvisionedKey()">COPY_KEY</button>
                 <button class="v-btn" style="background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2);" onclick="downloadProvisionedCard()">DOWNLOAD_ID</button>
             </div>
+            <button class="v-btn" style="width: 100%; margin-top: 1rem; background: rgba(255,255,255,0.05); color: #888;" onclick="closeSuccessOverlay()">CLOSE_TERMINAL</button>
         </div>
     </div>
 
@@ -882,8 +918,30 @@
                 <div class="stat-tile"><span class="stat-val" id="vCodes">0</span><span class="stat-label">GENS</span></div>
                 <div class="stat-tile"><span class="stat-val" id="vUsage">0</span><span class="stat-label">HITS</span></div>
             </div>
-            <div id="activityBody" style="background: rgba(255,255,255,0.03); border-radius: 16px; padding: 0.5rem;">
+            <div id="activityBody" style="background: rgba(255,255,255,0.03); border-radius: 16px; padding: 0.5rem; margin-bottom: 1.5rem;">
                 <!-- Logs here -->
+            </div>
+
+            <div id="vendorCardHistory" class="hidden">
+                <div class="stat-label" style="margin-bottom: 1rem;">VENDOR_IDENTIFICATION_CARD</div>
+                <div class="premium-access-card" id="historyCardCapture">
+                    <div class="card-header">
+                        <div class="card-logo">XP ARENA PRO</div>
+                        <div class="card-chip">PRO_VENDOR_ID</div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-label">IDENTIFIER</div>
+                        <div class="card-value" id="historyVendorName">-</div>
+                        
+                        <div class="card-label">ACCESS_KEY (RECOVERED)</div>
+                        <div class="card-key-box" id="historyAccessKey" style="font-size: 0.7rem;">-</div>
+                    </div>
+                    <div class="card-footer">XP_CORE_RECOVERY_UPLINK</div>
+                </div>
+                <div class="card-actions">
+                    <button class="v-btn" style="background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1);" onclick="copyHistoryKey()">COPY_KEY</button>
+                    <button class="v-btn" style="background: var(--accent-primary); color: #000; border: none;" onclick="downloadHistoryCard()">DOWNLOAD_ID</button>
+                </div>
             </div>
         </div>
     </div>
@@ -1286,12 +1344,12 @@
                 };
                 const res = await api('/api/vault/admin/vendors', 'POST', payload);
                 
-                // Populate and show premium card
+                // Populate and show premium card in OVERLAY
                 document.getElementById('provisionVendor').textContent = vid.toUpperCase();
                 document.getElementById('provisionAccessKey').textContent = res.accessKey;
-                document.getElementById('provisionCard').classList.remove('hidden');
                 
-                // Clear inputs
+                // Clear and Close sheet
+                toggleActionSheet(false);
                 document.getElementById('vName').value = '';
                 document.getElementById('vBrand').value = '';
                 document.getElementById('vLimit').value = '';
@@ -1300,11 +1358,18 @@
                 document.getElementById('vTT').value = '';
                 document.getElementById('vDC').value = '';
                 
+                // Show Overlay
+                document.getElementById('vendorSuccessOverlay').classList.add('active');
+                
                 if (window.notify) window.notify('VENDOR_PROVISIONED_SUCCESS', 'success');
                 loadDashboard();
             } catch (e) {
                 if (window.notify) window.notify(`VENDOR_CREATE_FAILED: ${e.message}`, 'error');
             }
+        }
+
+        function closeSuccessOverlay() {
+            document.getElementById('vendorSuccessOverlay').classList.remove('active');
         }
 
         function copyProvisionedKey() {
@@ -1382,26 +1447,65 @@
         async function showAnalytics(id, codes, usage) {
             const modal = document.getElementById('analyticsModal');
             modal.classList.remove('hidden');
-            document.getElementById('modalTitle').textContent = id;
+            modal.style.display = 'flex';
+            document.getElementById('modalTitle').textContent = id.toUpperCase();
             document.getElementById('vCodes').textContent = codes;
             document.getElementById('vUsage').textContent = usage;
+            
+            // Show Card History/Recovery
+            const vendor = allVendorsCache.find(v => v.vendor_id === id);
+            if (vendor && vendor.lookup_key) {
+                document.getElementById('vendorCardHistory').classList.remove('hidden');
+                document.getElementById('historyVendorName').textContent = id.toUpperCase();
+                document.getElementById('historyAccessKey').textContent = `RECOVERY_KEY: ${vendor.lookup_key}****`;
+            } else {
+                document.getElementById('vendorCardHistory').classList.add('hidden');
+            }
+
             const body = document.getElementById('activityBody');
             body.innerHTML = '<div style="text-align:center; padding: 2rem; opacity: 0.3;">DECRYPTING_LOGS...</div>';
             try {
                 const logs = await api(`/api/vault/admin/vendor/${id}/analytics`);
-                if (logs) {
+                if (logs && logs.length > 0) {
                     body.innerHTML = logs.map(l => {
                         const res = typeof l.results_json === 'string' ? JSON.parse(l.results_json) : l.results_json;
                         return `
                             <div style="padding: 0.75rem; border-bottom: 1px solid rgba(255,255,255,0.03); display: flex; justify-content: space-between; font-size: 0.7rem;">
                                 <span style="font-family: var(--font-mono); color: var(--text-muted);">${new Date(l.used_at).toLocaleTimeString()}</span>
-                                <span style="font-weight: 800;">${l.user_ign}</span>
-                                <span style="font-family: var(--font-mono); color: var(--accent-primary);">${res.model}</span>
+                                <span style="font-weight: 800;">${l.user_ign || 'GUEST'}</span>
+                                <span style="font-family: var(--font-mono); color: var(--accent-primary);">${res?.model || 'DEVICE'}</span>
                             </div>
                         `;
                     }).join('');
+                } else {
+                    body.innerHTML = '<div style="text-align:center; padding:2rem; opacity:0.2; font-size:0.6rem;">NO_RECENT_ACTIVITY</div>';
                 }
-            } catch (e) {}
+            } catch (e) {
+                body.innerHTML = '<div style="text-align:center; padding:2rem; color:#ff4444;">LOG_FETCH_FAILED</div>';
+            }
+        }
+
+        function copyHistoryKey() {
+            const vid = document.getElementById('historyVendorName').textContent;
+            const vendor = allVendorsCache.find(v => v.vendor_id === vid);
+            if (vendor && vendor.lookup_key) {
+                navigator.clipboard.writeText(`XP-${vid}-${vendor.lookup_key}`);
+                if (window.notify) window.notify('LOOKUP_PREFIX_COPIED', 'success');
+            }
+        }
+
+        async function downloadHistoryCard() {
+            const card = document.getElementById('historyCardCapture');
+            const vid = document.getElementById('historyVendorName').textContent;
+            try {
+                const canvas = await html2canvas(card, { backgroundColor: '#020617', scale: 2 });
+                const link = document.createElement('a');
+                link.download = `XP_RECOVERY_${vid}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            } catch (e) {
+                if (window.notify) window.notify('DOWNLOAD_FAILED', 'error');
+            }
         }
 
         function closeModal() { document.getElementById('analyticsModal').classList.add('hidden'); }

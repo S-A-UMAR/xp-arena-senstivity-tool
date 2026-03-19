@@ -341,7 +341,7 @@ router.post('/verify', async (req, res) => {
             if (vendor.status === 'suspended' || !activeWindow) {
                 return fail(res, 'XP_AUTH_SUSPENDED', 'PROVIDER_ACCESS_DENIED', 403);
             }
-            const token = jwt.sign({ vendor_id: vendor.vendor_id }, getJwtSecret(), { expiresIn: '7d' });
+            const token = jwt.sign({ vendor_id: vendor.vendor_id }, await getJwtSecret(), { expiresIn: '7d' });
             res.cookie('xp_vendor_token', token, {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === 'production',
