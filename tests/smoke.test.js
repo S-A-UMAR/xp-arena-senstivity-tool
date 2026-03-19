@@ -1,4 +1,5 @@
 const request = require('supertest');
+process.env.ADMIN_SECRET = process.env.ADMIN_SECRET || 'TEST-ADMIN-SECRET';
 const app = require('../server');
 
 describe('Smoke', () => {
@@ -11,7 +12,7 @@ describe('Smoke', () => {
   it('admin verify with master code', async () => {
     const res = await request(app)
       .post('/api/vault/verify')
-      .send({ input: process.env.ADMIN_SECRET || 'XP-2008' });
+      .send({ input: process.env.ADMIN_SECRET });
     expect(res.status).toBe(200);
     expect(res.body.type).toBe('admin');
     expect(res.body.redirect).toBe('/admin.html');
