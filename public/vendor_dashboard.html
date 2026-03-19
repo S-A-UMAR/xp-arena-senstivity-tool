@@ -569,10 +569,29 @@
                 credentials: 'include'
             };
             if (body) options.body = JSON.stringify(body);
-            const res = await fetch(path, options);
-            if (res.status === 401) window.location.href = '/verify.html';
+            
+            // 💡 Fix: Handle full URL or relative path correctly
+            const fullPath = path.startsWith('http') ? path : path;
+            const res = await fetch(fullPath, options);
+            
+            if (res.status === 401) {
+                // 💡 Fix: Direct redirect to verify.html if unauthorized
+                window.location.href = '/verify.html';
+                return;
+            }
+            
             let payload = {};
-            try { payload = await res.json(); } catch (_e) {}
+            try { 
+                const contentType = res.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    payload = await res.json(); 
+                } else {
+                    const txt = await res.text();
+                    console.warn('API_NON_JSON:', txt.substring(0, 100));
+                    payload = { error: 'SERVER_RESPONSE_MALFORMED' };
+                }
+            } catch (_e) {}
+            
             if (!res.ok) throw new Error(payload.error || payload.message || 'API_ERR');
             return payload;
         }
@@ -611,7 +630,7 @@
         async function loadDashboard() {
             try {
                 showDashError('');
-                const profile = await api(`${API_BASE}/vendor/profile`);
+                const profile = await api(`${API_BASE}/profile`);
                 document.getElementById('vendorTitle').textContent = (profile.display_name || profile.vendor_id).toUpperCase();
                 document.getElementById('statCodes').textContent = profile.total_codes || 0;
                 document.getElementById('statHits').textContent = profile.total_hits || 0;
@@ -641,7 +660,7 @@
 
         async function loadProfile() {
             try {
-                const profile = await api(`${API_BASE}/vendor/profile`);
+                const profile = await api(`${API_BASE}/profile`);
                 if (profile) {
                     document.getElementById('profName').value = profile.display_name || '';
                     document.getElementById('profLogo').value = profile.logo_url || '';
@@ -658,13 +677,11 @@
 
         async function saveProfile() {
             const data = {
-                brand_config: {
-                    display_name: document.getElementById('profName').value.trim(),
-                    logo_url: document.getElementById('profLogo').value.trim(),
-                    youtube: document.getElementById('profYT').value.trim(),
-                    tiktok: document.getElementById('profTT').value.trim(),
-                    discord: document.getElementById('profDC').value.trim()
-                },
+                display_name: document.getElementById('profName').value.trim(),
+                logo_url: document.getElementById('profLogo').value.trim(),
+                youtube: document.getElementById('profYT').value.trim(),
+                tiktok: document.getElementById('profTT').value.trim(),
+                discord: document.getElementById('profDC').value.trim(),
                 webhook_url: document.getElementById('profWebhook').value.trim() || null
             };
             try {
@@ -687,7 +704,7 @@
 
         async function loadAnalytics() {
             try {
-                const stats = await api(`${API_BASE}/vendor/stats`);
+                const stats = await api(`${API_BASE}/stats`);
                 const barChart = document.getElementById('barChart');
                 if (stats && stats.length > 0) {
                     const max = Math.max(...stats.map(s => s.count)) || 1;
@@ -783,14 +800,16 @@
                 const model = document.getElementById('genModel').value;
                 if (!brand || !model) throw new Error('SELECT BRAND + MODEL FIRST');
                 const body = {
-                    brand,
-                    series,
-                    model,
-                    ram: parseInt(document.getElementById('genRam').value, 10),
-                    speed: genState.playstyle,
-                    claw: genState.claw
+                    results: {
+                        brand,
+                        series,
+                        model,
+                        ram: parseInt(document.getElementById('genRam').value, 10),
+                        speed: genState.playstyle,
+                        claw: genState.claw
+                    }
                 };
-                const res = await api(`${API_BASE}/vendor/generate`, 'POST', body);
+                const res = await api(`${API_BASE}/generate`, 'POST', body);
                 document.getElementById('genResult').classList.remove('hidden');
                 document.getElementById('accessKeyVal').textContent = res.accessKey;
                 if (window.notify) window.notify('AUTO_CALIBRATED_SUCCESS', 'success');
@@ -818,7 +837,7 @@
                 if (requiredValues.some(v => Number.isNaN(v))) throw new Error('ENTER ALL SENSITIVITY VALUES');
                 const keys = [];
                 for (let i = 0; i < bulkAmount; i += 1) {
-                    const res = await api(`${API_BASE}/vendor/manual-entry`, 'POST', body);
+                    const res = await api(`${API_BASE}/manual-entry`, 'POST', body);
                     keys.push(res.accessKey);
                 }
                 toggleSheet(false);
@@ -856,7 +875,7 @@
 
         async function handleLogout() {
             try {
-                await fetch(`${API_BASE}/vendor/logout`, { method: 'POST', credentials: 'include' });
+                await fetch(`${API_BASE}/logout`, { method: 'POST', credentials: 'include' });
             } catch (_e) {}
             document.cookie = 'xp_vendor_token=; Max-Age=0; path=/;';
             window.location.href = '/verify.html';

@@ -433,10 +433,10 @@ router.post('/admin/login', async (req, res, next) => {
         res.cookie('xp_admin_token', token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
+            sameSite: 'Lax',
             maxAge: 24 * 60 * 60 * 1000
         });
-        res.json({ token });
+        res.json({ token, type: 'admin', redirect: '/admin.html' });
     } catch (e) {
         if (e instanceof z.ZodError) return fail(res, 'XP_VAL_FAILED', 'INVALID_LOGIN_INPUT', 400);
         next(e);
@@ -472,10 +472,10 @@ router.post('/vendor/login', async (req, res) => {
         res.cookie('xp_vendor_token', token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
+            sameSite: 'Lax',
             maxAge: 7 * 24 * 60 * 60 * 1000
         });
-        res.json({ token });
+        res.json({ token, type: 'vendor', redirect: '/vendor_dashboard.html' });
     } catch (e) {
         if (e instanceof z.ZodError) return res.status(400).json({ error: 'Invalid input' });
         res.status(500).json({ error: 'Server error' });
@@ -536,7 +536,7 @@ router.post('/generate', authenticateVendor, async (req, res, next) => {
             expires_at
         ]);
 
-        res.json({ success: true, entry_code });
+        res.json({ success: true, accessKey: entry_code });
     } catch (e) {
         if (e instanceof z.ZodError) return fail(res, 'XP_VAL_FAILED', 'INVALID_GEN_PARAMS', 400, e.errors);
         next(e); // Let global handler catch unexpected logic crashes
@@ -575,18 +575,18 @@ router.put('/profile', authenticateVendor, async (req, res) => {
         const vendorId = req.vendorId;
 
         let mergedBrandConfig = brand_config || null;
-        if (!mergedBrandConfig && (display_name || logo_url || youtube || tiktok || discord)) {
+        if (!mergedBrandConfig && (display_name !== undefined || logo_url !== undefined || youtube !== undefined || tiktok !== undefined || discord !== undefined)) {
             const current = await db.get('SELECT brand_config FROM vendors WHERE vendor_id = ?', [vendorId]);
             const currentConfig = current?.brand_config
                 ? (typeof current.brand_config === 'string' ? JSON.parse(current.brand_config) : current.brand_config)
                 : {};
             mergedBrandConfig = {
                 ...currentConfig,
-                display_name: display_name ?? currentConfig.display_name,
-                logo_url: logo_url ?? currentConfig.logo_url,
-                youtube: youtube ?? currentConfig.youtube,
-                tiktok: tiktok ?? currentConfig.tiktok,
-                discord: discord ?? currentConfig.discord
+                display_name: display_name !== undefined ? display_name : currentConfig.display_name,
+                logo_url: logo_url !== undefined ? logo_url : currentConfig.logo_url,
+                youtube: youtube !== undefined ? youtube : currentConfig.youtube,
+                tiktok: tiktok !== undefined ? tiktok : currentConfig.tiktok,
+                discord: discord !== undefined ? discord : currentConfig.discord
             };
         }
         if (mergedBrandConfig) {

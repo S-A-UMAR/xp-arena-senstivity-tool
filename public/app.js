@@ -227,63 +227,32 @@ const UI = {
                 return;
             }
 
-            status.textContent = 'ACCESS GRANTED // SYNCHRONIZING';
+            status.textContent = 'ACCESS_GRANTED_DECRYPTING...';
             status.style.color = 'var(--accent-primary)';
             if (window.SFX) window.SFX.play('ping');
 
-            setTimeout(async () => {
-                if (data.redirect && (data.type === 'user' || data.type === 'code' || data.legacy_type === 'user')) {
-                    // 🧬 THE HYPE MACHINE: Tech Scanner Bridge
-                    const scanner = document.getElementById('scannerOverlay');
-                    const label = document.getElementById('scannerLabel');
-                    const progress = document.getElementById('scannerProgress');
-                    
-                    if (scanner && label && progress) {
-                        scanner.classList.add('active');
-                        
-                        // Sequence 1: Identifying
-                        label.textContent = "IDENTIFYING_HARDWARE_SIGNATURE...";
-                        progress.style.strokeDashoffset = "180"; // ~35%
-                        
-                        await new Promise(r => setTimeout(r, 800));
-                        
-                        // Sequence 2: Calibrating
-                        label.textContent = "CALIBRATING_NEURAL_SENSITIVITY...";
-                        progress.style.strokeDashoffset = "90"; // ~65%
-                        
-                        await new Promise(r => setTimeout(r, 800));
-                        
-                        // Sequence 3: Finalizing
-                        label.textContent = "FINALIZING_RECOIL_BUFF_ALGORITHMS...";
-                        progress.style.strokeDashoffset = "0"; // 100%
-                        
-                        await new Promise(r => setTimeout(r, 900));
-                    }
-
-                    localStorage.setItem('xp_sensitivity_profile_last_result', JSON.stringify({ ...data.results, advice: data.advice }));
-                    localStorage.setItem('xp_last_entry_code', code);
-                    if (data.branding) localStorage.setItem('xp_last_branding', JSON.stringify(data.branding));
-                    
+            // 💡 Fix: Direct redirection based on response type
+            if (data.redirect) {
+                setTimeout(() => {
                     window.location.href = data.redirect;
-                    return;
-                }
+                }, 800);
+                return;
+            }
 
-                if (data.redirect) {
-                    window.location.href = data.redirect;
-                    return;
-                }
-
-                this.verifying = false;
-                this.elements.vaultOverlay.classList.add('hidden');
-                this.elements.appContainer.classList.remove('hidden');
-                
-                if (data.branding) {
-                    localStorage.setItem('xp_last_branding', JSON.stringify(data.branding));
+            localStorage.setItem('xp_last_branding', JSON.stringify(data.branding || {}));
+            localStorage.setItem('xp_sensitivity_profile_last_result', JSON.stringify({ ...data.results, advice: data.advice }));
+            localStorage.setItem('xp_last_entry_code', code);
+            
+            setTimeout(() => {
+                this.elements.scannerOverlay.classList.remove('hidden');
+                setTimeout(() => {
+                    this.elements.vaultOverlay.classList.add('hidden');
+                    this.elements.appContainer.classList.remove('hidden');
+                    this.elements.scannerOverlay.classList.add('hidden');
                     this.applyBranding(data.branding);
-                }
-                
-                localStorage.setItem('xp_last_entry_code', code);
-            }, 1000);
+                    this.verifying = false;
+                }, 2000);
+            }, 800);
 
         } catch (e) {
             this.verifying = false;
@@ -459,8 +428,6 @@ const UI = {
         this.notify("NEURAL CALIBRATION IN PROGRESS...", "success");
         
         try {
-            const payload = {
-                ...state,
             // Apply Global Offset from system settings if available
             const globalOffset = parseFloat(localStorage.getItem('xp_global_offset')) || 1.0;
 

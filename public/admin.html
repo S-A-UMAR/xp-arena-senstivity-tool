@@ -767,6 +767,7 @@
 
                 if (response.ok && payload.type === 'admin' || (response.ok && payload.token)) {
                     status.textContent = 'MASTER_ACCESS_GRANTED';
+                    // 💡 Fix: Fully refresh into the dashboard view
                     unlockAdminPanel();
                     return;
                 }
@@ -859,8 +860,6 @@
                     }
                     return [];
                 });
-                const creators = await api('/api/vault/org/creators');
-                const vendors = await api('/api/vault/admin/vendors');
                 if (vendors) {
                     allVendorsCache = vendors.map(v => ({
                         ...v,
@@ -898,9 +897,6 @@
                 await loadSecurityLogs();
                 const syncLabel = document.getElementById('lastSyncLabel');
                 if (syncLabel) syncLabel.textContent = `SYNCED ${new Date().toLocaleTimeString()}`;
-            } catch (e) { console.error('INIT_ERR:', e); }
-        }
-
                 await loadAuditLogs();
             } catch (e) { console.error('DASH_LOAD_ERR:', e); }
         }
@@ -930,43 +926,6 @@
                         </div>
                     `;
                 }).join('');
-            } catch (_e) {}
-        }
-
-        async function loadLiveFeed() {
-            const feed = document.getElementById('liveFeed');
-            if (!feed) return;
-            try {
-                const events = await api('/api/vault/admin/live-feed');
-                if (!events || events.length === 0) {
-                    feed.innerHTML = '<div style="text-align:center; opacity:0.2; padding:2rem; font-size:0.6rem;">WAITING_FOR_UPLINK...</div>';
-                    return;
-                }
-                feed.innerHTML = events.map(ev => `
-                    <div class="live-item">
-                        <span>${ev.type === 'feedback' ? `[FBK] ${'★'.repeat(ev.rating || 0)}` : `[HIT] ${ev.user_ign}`}</span>
-                        <span style="color:${ev.type === 'feedback' ? '#aaa' : 'var(--accent-primary)'};">${ev.type === 'feedback' ? (ev.feedback || 'No comment') : (ev.region || 'Unknown')}</span>
-                    </div>
-                `).join('');
-            } catch (_e) {}
-        }
-
-        async function loadSecurityLogs() {
-            const box = document.getElementById('securityLogs');
-            if (!box) return;
-            try {
-                const logs = await api('/api/vault/admin/security-logs');
-                if (!logs || logs.length === 0) {
-                    box.innerHTML = '<div style="text-align:center; opacity:0.2; padding:2rem; font-size:0.6rem;">NO_SECURITY_EVENTS</div>';
-                    return;
-                }
-                box.innerHTML = logs.map(l => `
-                    <div style="padding:0.6rem 0.2rem; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; justify-content:space-between; gap:0.75rem; font-size:0.62rem;">
-                        <span style="font-family:var(--font-mono); color:var(--text-muted);">${new Date(l.created_at).toLocaleTimeString()}</span>
-                        <span style="font-weight:700;">${l.event_type}</span>
-                        <span style="font-family:var(--font-mono); color:#ff8a8a;">${l.ip_address || 'unknown-ip'}</span>
-                    </div>
-                `).join('');
             } catch (_e) {}
         }
 
@@ -1017,7 +976,7 @@
             const filtered = !term
                 ? allVendorsCache
                 : allVendorsCache.filter(v => {
-                    const hay = `${v.vendor_id} ${v.status} ${v._creatorMeta?.keys || 0} ${v._creatorMeta?.clicks || 0}`.toLowerCase();
+                    const hay = `${v.vendor_id} ${v.status}`.toLowerCase();
                     return hay.includes(term);
                 });
             renderVendorCards(filtered);
@@ -1031,31 +990,11 @@
             if (chip) chip.textContent = `${activeCount} ACTIVE`;
 
             if (!vendors || vendors.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <div class="logo-badge">VENDOR_GRID</div>
-                        <h3 style="margin: 0.2rem 0 0.5rem; font-family: var(--font-heading);">No vendors found</h3>
-                        <p style="margin: 0; color: var(--text-muted); font-size: 0.72rem; line-height: 1.5;">Create your first vendor profile to issue codes, monitor usage, and control access windows from one place.</p>
-                        <button class="action-btn" style="margin-top: 1rem;" onclick="toggleActionSheet(true)">CREATE_VENDOR</button>
-                    </div>
-                `;
-            if (!vendors || vendors.length === 0) {
                 container.innerHTML = '<div style="text-align: center; opacity: 0.2; padding: 4rem; font-size: 0.7rem;">NO_VENDORS_PROVISIONED</div>';
                 return;
             }
 
             container.innerHTML = vendors.map(v => {
-                const cData = v._creatorMeta || { keys: 0, clicks: 0 };
-                const isActive = v.status === 'active' && (!v.active_until || new Date(v.active_until) > new Date());
-                
-                return `
-                    <div class="vendor-card">
-                        <div class="vendor-header">
-                            <div class="vendor-info">
-                                <h3>${escapeHtml(v.vendor_id)}</h3>
-                                <div style="font-size: 0.6rem; color: var(--text-muted); font-family: var(--font-mono); margin-top: 4px;">
-                                    HITS: ${cData.clicks} | KEYS: ${cData.keys}
-                const c = creators?.find(x => x.name === v.vendor_id);
                 const isActive = v.status === 'active';
                 const expiry = v.active_until ? new Date(v.active_until).toLocaleDateString() : 'PERPETUAL';
                 return `
@@ -1108,48 +1047,32 @@
             const vid = document.getElementById('vName').value.trim();
             const brand = document.getElementById('vBrand').value.trim();
             const vLimit = parseInt(document.getElementById('vLimit').value, 10);
+            
             if (!vid || vid.length < 2) {
                 if (window.notify) window.notify('NAME_REQUIRED (MIN 2 CHARS)', 'error');
                 return;
             }
-            if (!vid || vid.length < 2) return alert("NAME_REQUIRED (MIN 2 CHARS)");
+
             try {
                 const payload = {
                     vendorId: vid,
-                    brandConfig: {
-                        display_name: brand || vid,
-                        limit_hint: Number.isFinite(vLimit) ? vLimit : null
-                    }
+                    orgId: brand || 'XP-CORE-ORG',
+                    usageLimit: Number.isFinite(vLimit) ? vLimit : null
                 };
                 const res = await api('/api/vault/admin/vendors', 'POST', payload);
-                document.getElementById('provisionCard').classList.remove('hidden');
-                document.getElementById('provisionVendor').textContent = res.vendorId || vid.toUpperCase();
-                document.getElementById('provisionAccessKey').textContent = res.accessKey || 'N/A';
-                if (window.notify) window.notify('VENDOR_PROVISIONED_SUCCESS', 'success');
-                document.getElementById('vName').value = '';
-                document.getElementById('vBrand').value = '';
-                document.getElementById('vLimit').value = '';
-                loadDashboard();
-            } catch (e) {
-                if (window.notify) window.notify(`VENDOR_CREATE_FAILED: ${e.message}`, 'error');
-            }
-        }
-
-        function copyProvisionedKey() {
-            const key = document.getElementById('provisionAccessKey').textContent || '';
-            if (!key || key === 'N/A') return;
-            navigator.clipboard.writeText(key).then(() => {
-                if (window.notify) window.notify('ACCESS_KEY_COPIED', 'success');
-            }).catch(() => {
-                if (window.notify) window.notify('COPY_FAILED', 'error');
-            });
+                
+                // Show provisioning success modal or alert
                 alert(`PROVISIONED: ${res.accessKey}`);
+                
                 document.getElementById('vName').value = '';
                 document.getElementById('vBrand').value = '';
                 document.getElementById('vLimit').value = '';
                 toggleActionSheet(false);
                 loadDashboard();
-            } catch (e) { alert(`VENDOR_CREATE_FAILED: ${e.message}`); }
+            } catch (e) {
+                if (window.notify) window.notify(`VENDOR_CREATE_FAILED: ${e.message}`, 'error');
+                else alert(`VENDOR_CREATE_FAILED: ${e.message}`);
+            }
         }
 
         async function toggleStatus(id, current) {

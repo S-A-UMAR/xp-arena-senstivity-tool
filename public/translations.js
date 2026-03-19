@@ -31,7 +31,9 @@ window.LANGUAGES = {
         giveaway: "GIVEAWAY",
         comingSoon: "COMING SOON",
         serverStatus: "SERVER: ONLINE",
-        neuralSync: "NEURAL_SYNC: ACTIVE"
+        neuralSync: "NEURAL_SYNC: ACTIVE",
+        adviceLabel: "ADVICE",
+        noAdvice: "NO_EXTRA_ADVICE_PROVIDED"
     },
     pt: {
         title: "Ferramenta Free Fire",

@@ -272,6 +272,10 @@
                 if (downloadBtn) downloadBtn.textContent = t('downloadBtn', 'DOWNLOAD_ID');
                 const copyBtn = document.getElementById('copyBtn');
                 if (copyBtn) copyBtn.textContent = `${t('copyBtn', 'COPY_TEXT')} / SHARE`;
+                
+                // Labels
+                const adviceLabel = document.querySelector('div[style*="font-size: 0.5rem; color: #444; margin-bottom: 5px;"]:nth-of-type(2)');
+                if (adviceLabel) adviceLabel.textContent = t('adviceLabel', 'ADDITIONAL_NOTES');
             };
             applyResultLang();
             window.addEventListener('xp:language-change', applyResultLang);
@@ -297,7 +301,7 @@
             document.getElementById('creatorName').textContent = branding.display_name || hydrated.displayName || branding.name || 'XP_CORE';
             document.getElementById('settingsBy').textContent = `Settings by: ${branding.display_name || hydrated.displayName || hydrated.vendorId || 'XP_CORE'} 👾`;
             if (branding.logo_url || branding.logo) document.getElementById('creatorLogo').src = branding.logo_url || branding.logo;
-            document.getElementById('creatorAdvice').textContent = hydrated.advice ? `💡 Advice: ${hydrated.advice}` : 'NO_EXTRA_ADVICE_PROVIDED';
+            document.getElementById('creatorAdvice').textContent = hydrated.advice ? `💡 ${t('adviceLabel', 'Advice')}: ${hydrated.advice}` : t('noAdvice', 'NO_EXTRA_ADVICE_PROVIDED');
             document.getElementById('likeBtn').textContent = `❤️ LIKE (${hydrated.likes || 0})`;
             paintRange('rGen1', 'rGen2', results.general);
             paintRange('rRed1', 'rRed2', results.redDot);
