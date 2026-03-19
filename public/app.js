@@ -467,6 +467,8 @@ const UI = {
         this.notify("NEURAL CALIBRATION IN PROGRESS...", "success");
         
         try {
+            const payload = {
+                ...state,
             // Apply Global Offset from system settings if available
             const globalOffset = parseFloat(localStorage.getItem('xp_global_offset')) || 1.0;
 
