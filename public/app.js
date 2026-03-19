@@ -401,7 +401,15 @@ const UI = {
         }
 
         const brandData = window.DEVICES.find(b => b.brand === state.brand);
+        if (!brandData) {
+            model.disabled = true;
+            return;
+        }
         const seriesData = brandData.series.find(s => s.name === state.series);
+        if (!seriesData) {
+            model.disabled = true;
+            return;
+        }
         
         seriesData.models.forEach(m => {
             const opt = document.createElement('option');
@@ -473,6 +481,10 @@ const UI = {
                 body: JSON.stringify(payload)
             });
             const data = await res.json();
+            if (!res.ok) {
+                this.notify(data.error || "NEURAL ENGINE UNREACHABLE", "error");
+                return;
+            }
             
             if (data.results) {
                 if (window.SaaSAnalytics) window.SaaSAnalytics.track('code_generated');

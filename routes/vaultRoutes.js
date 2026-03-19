@@ -431,6 +431,16 @@ router.post('/admin/login', async (req, res, next) => {
     }
 });
 
+router.post('/admin/logout', (req, res) => {
+    res.clearCookie('xp_admin_token', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        path: '/'
+    });
+    res.json({ success: true });
+});
+
 router.post('/vendor/login', async (req, res) => {
     try {
         const schema = z.object({ access_key: z.string().min(6) });
@@ -582,7 +592,7 @@ router.put('/profile', authenticateVendor, async (req, res) => {
 });
 
 // GET /api/vault/org/stats
-router.get('/org/stats', async (req, res) => {
+router.get('/org/stats', authenticateAdmin, async (req, res) => {
     try {
         const events = await db.all(`
             SELECT event_type, COUNT(*) as count 
@@ -623,7 +633,7 @@ router.get('/org/stats', async (req, res) => {
 });
 
 // GET /api/vault/org/creators
-router.get('/org/creators', async (req, res) => {
+router.get('/org/creators', authenticateAdmin, async (req, res) => {
     try {
         const creators = await db.all(`
             SELECT v.vendor_id as name, 
@@ -1005,7 +1015,6 @@ router.post('/feedback', async (req, res) => {
     }
 });
 
-module.exports = router;
 router.get('/code/:code/status', async (req, res) => {
     try {
         const code = req.params.code;
@@ -1216,3 +1225,5 @@ router.post('/vendor/manual-entry', authenticateVendor, async (req, res) => {
         res.status(500).json({ error: 'Server error' });
     }
 });
+
+module.exports = router;

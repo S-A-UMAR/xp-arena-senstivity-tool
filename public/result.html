@@ -153,6 +153,7 @@
                 window.location.href = 'index.html';
                 return;
             }
+            if (window.SaaSAnalytics) window.SaaSAnalytics.track('result_view');
             
             // Funnel Tracking: Result View
             try {

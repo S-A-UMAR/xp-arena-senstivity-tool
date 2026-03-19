@@ -603,13 +603,11 @@
                 <!-- Funnel injected -->
             </div>
             <div class="live-feed-header" style="margin-top: 1.25rem;">
-                <span class="stat-label">System Audit Logs</span>
+                <span class="stat-label">Security Logs</span>
             </div>
-            <div id="auditLogs" class="stat-tile scroll-hide" style="padding: 1rem; max-height: 220px; overflow-y: auto;">
-                <div style="text-align:center; opacity:0.2; padding:2rem; font-size:0.6rem;">NO_AUDIT_LOGS</div>
+            <div id="securityLogs" class="stat-tile" style="padding: 1rem; max-height: 220px; overflow-y: auto;">
+                <div style="text-align:center; opacity:0.2; padding:2rem; font-size:0.6rem;">NO_SECURITY_EVENTS</div>
             </div>
-
-            <div class="live-feed-header" style="margin-top: 1.25rem;">
         </div>
     </div>
 
@@ -730,13 +728,21 @@
                     loadDashboard();
                     initTool();
                 } else {
-                    status.textContent = 'ACCESS_DENIED_PROTECTION_ACTIVE';
+                    let msg = 'ACCESS_DENIED_PROTECTION_ACTIVE';
+                    try {
+                        const payload = await res.json();
+                        if (payload && payload.error) msg = payload.error;
+                    } catch (_e) {}
+                    status.textContent = msg;
                     if (window.notify) window.notify('INVALID_MASTER_KEY', 'error');
                 }
             } catch (e) { status.textContent = 'CONNECTION_FAILURE'; }
         }
 
-        function logoutAdmin() {
+        async function logoutAdmin() {
+            try {
+                await fetch('/api/vault/admin/logout', { method: 'POST', credentials: 'include' });
+            } catch (_e) {}
             document.getElementById('mainPanel').classList.add('hidden');
             document.getElementById('privateGate').classList.remove('hidden');
             document.getElementById('adminPass').value = '';
@@ -838,6 +844,11 @@
                 }
                 await loadLiveFeed();
                 await loadSecurityLogs();
+                const syncLabel = document.getElementById('lastSyncLabel');
+                if (syncLabel) syncLabel.textContent = `SYNCED ${new Date().toLocaleTimeString()}`;
+            } catch (e) { console.error('INIT_ERR:', e); }
+        }
+
                 await loadAuditLogs();
             } catch (e) { console.error('DASH_LOAD_ERR:', e); }
         }
@@ -922,7 +933,9 @@
                         <span style="color:${ev.type === 'feedback' ? '#aaa' : 'var(--accent-primary)'};">${ev.type === 'feedback' ? (ev.feedback || 'No comment') : (ev.region || 'Unknown')}</span>
                     </div>
                 `).join('');
-            } catch (_e) {}
+            } catch (_e) {
+                feed.innerHTML = '<div style="text-align:center; opacity:0.5; padding:2rem; font-size:0.6rem; color:#ff8a8a;">LIVE_FEED_UNAVAILABLE (CHECK DB/API)</div>';
+            }
         }
 
         async function loadSecurityLogs() {
@@ -942,7 +955,9 @@
                         <span style="font-family:var(--font-mono); color:var(--text-muted); max-width: 34%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHtml(l.details ? JSON.stringify(l.details) : '-')}</span>
                     </div>
                 `).join('');
-            } catch (_e) {}
+            } catch (_e) {
+                box.innerHTML = '<div style="text-align:center; opacity:0.5; padding:2rem; font-size:0.6rem; color:#ff8a8a;">SECURITY_LOGS_UNAVAILABLE (CHECK DB/API)</div>';
+            }
         }
 
         function applyVendorFilter() {

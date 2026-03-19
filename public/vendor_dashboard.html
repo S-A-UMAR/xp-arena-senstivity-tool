@@ -700,6 +700,10 @@
             }
 
             const brandData = window.DEVICES.find(d => d.brand === brand);
+            if (!brandData) {
+                modelSel.disabled = true;
+                return;
+            }
             const seriesData = brandData.series.find(s => s.name === series);
             
             if (seriesData) {
@@ -733,10 +737,16 @@
 
         async function autoGenerate() {
             try {
+                const brand = document.getElementById('genBrand').value;
+                const model = document.getElementById('genModel').value;
+                if (!brand || !model) {
+                    if (window.notify) window.notify('SELECT BRAND + MODEL FIRST', 'error');
+                    return;
+                }
                 const body = {
-                    brand: document.getElementById('genBrand').value,
+                    brand,
                     series: document.getElementById('genSeries').value,
-                    model: document.getElementById('genModel').value,
+                    model,
                     ram: parseInt(document.getElementById('genRam').value),
                     speed: genState.playstyle,
                     claw: genState.claw
@@ -764,6 +774,11 @@
                     freeLook: parseInt(document.getElementById('mFree').value),
                     advice: document.getElementById('mAdvice').value
                 };
+                const requiredValues = [body.general, body.redDot, body.scope2x, body.scope4x, body.sniper, body.freeLook];
+                if (requiredValues.some(v => Number.isNaN(v))) {
+                    if (window.notify) window.notify('ENTER ALL SENSITIVITY VALUES', 'error');
+                    return;
+                }
                 
                 let keys = [];
                 for(let i=0; i<bulkAmount; i++) {
