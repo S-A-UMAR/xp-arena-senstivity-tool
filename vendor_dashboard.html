@@ -1,0 +1,22 @@
+// Fix for race condition on line 812-813
+setTimeout(() => {
+    init(); // Ensure init() is called before populateBrands
+    populateBrands();
+}, 500);
+
+// Updated autoGenerate() function to handle API responses
+function autoGenerate() {
+    // ... existing code ...
+    fetch(apiUrl)
+    .then(response => response.json())
+    .then(data => {
+        // Assuming data contains accessKey
+        if (data.accessKey) {
+            return data.accessKey;
+        }
+        throw new Error('Access key not found');
+    })
+    .catch(error => {
+        console.error('API Error:', error);
+    });
+}
