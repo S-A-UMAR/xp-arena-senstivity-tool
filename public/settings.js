@@ -34,9 +34,13 @@
 
     function applyLang(langCode) {
         localStorage.setItem('xp_lang', langCode);
-        // If app.js is present and initialized, we could call UI.applyLang()
-        // But location.reload() is safer for a global effect across different page structures
-        location.reload();
+        document.querySelectorAll('.lang-item').forEach(item => {
+            item.classList.toggle('active', item.dataset.lang === langCode);
+        });
+        if (window.UI && typeof window.UI.applyLang === 'function') {
+            window.UI.applyLang();
+        }
+        window.dispatchEvent(new CustomEvent('xp:language-change', { detail: { lang: langCode } }));
     }
 
     // Inject Settings Hub UI

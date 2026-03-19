@@ -194,6 +194,48 @@
             gap: 0.5rem;
         }
 
+        .section-toolbar {
+            display: flex;
+            gap: 0.6rem;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .toolbar-input {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: 0.75rem;
+            padding: 0.65rem 0.8rem;
+            outline: none;
+        }
+
+        .toolbar-chip {
+            font-family: var(--font-mono);
+            font-size: 0.62rem;
+            color: var(--accent-primary);
+            border: 1px solid rgba(0, 255, 136, 0.35);
+            background: rgba(0, 255, 136, 0.08);
+            border-radius: 999px;
+            padding: 0.45rem 0.65rem;
+            white-space: nowrap;
+        }
+
+        .empty-state {
+            background: var(--glass-bg);
+            border: 1px dashed var(--glass-border);
+            border-radius: var(--radius-main);
+            padding: 1.25rem;
+            text-align: center;
+        }
+
+        .success-card {
+            border: 1px solid rgba(0, 255, 136, 0.35);
+            background: linear-gradient(140deg, rgba(0, 255, 136, 0.09), rgba(0, 0, 0, 0.5));
+        }
+
         .v-btn {
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid var(--glass-border);
@@ -411,7 +453,7 @@
             <h1 style="font-family: var(--font-heading); font-size: 2.5rem; margin-bottom: 2rem;">MASTER<br>ACCESS</h1>
             <input type="password" id="adminPass" class="vault-input-field" placeholder="••••" maxlength="32">
             <p id="gateStatus" style="font-size: 0.7rem; color: var(--text-muted); margin: 1.5rem 0; font-family: var(--font-mono); height: 1.2rem;"></p>
-            <button class="action-btn" onclick="checkPass()">UPLINK_ENGINE</button>
+            <button id="adminUnlockBtn" class="action-btn">UPLINK_ENGINE</button>
         </div>
     </div>
 
@@ -457,7 +499,7 @@
             <div class="live-feed-container">
                 <div class="live-feed-header">
                     <span class="stat-label">Live Activity Stream</span>
-                    <span style="font-size: 0.6rem; color: var(--accent-primary);" class="pulse"></span>
+                    <span id="lastSyncLabel" style="font-size: 0.6rem; color: var(--accent-primary);" class="pulse">SYNCING...</span>
                 </div>
                 <div id="liveFeed" class="live-feed-list">
                     <div style="text-align: center; opacity: 0.2; padding: 2rem; font-size: 0.6rem;">WAITING_FOR_UPLINK...</div>
@@ -469,6 +511,10 @@
         <div id="section-vendors" class="nav-section hidden">
             <div class="live-feed-header">
                 <span class="stat-label">Vendor Management</span>
+            </div>
+            <div class="section-toolbar">
+                <input id="vendorSearch" class="toolbar-input" type="text" placeholder="Search vendor..." oninput="applyVendorFilter()">
+                <span class="toolbar-chip" id="vendorCountChip">0 ACTIVE</span>
             </div>
             <div id="vendorCardsContainer">
                 <!-- Cards injected here -->
@@ -509,6 +555,12 @@
             <div id="funnelSteps" class="stat-tile" style="padding: 1.5rem;">
                 <!-- Funnel injected -->
             </div>
+            <div class="live-feed-header" style="margin-top: 1.25rem;">
+                <span class="stat-label">Security Logs</span>
+            </div>
+            <div id="securityLogs" class="stat-tile" style="padding: 1rem; max-height: 220px; overflow-y: auto;">
+                <div style="text-align:center; opacity:0.2; padding:2rem; font-size:0.6rem;">NO_SECURITY_EVENTS</div>
+            </div>
         </div>
     </div>
 
@@ -542,6 +594,12 @@
         <input type="text" id="vBrand" class="cyber-input" placeholder="Brand/Organization">
         <input type="number" id="vLimit" class="cyber-input" placeholder="Credit Limit (Usage Cap)">
         <button class="action-btn" onclick="addVendor()">REGISTER_NOW</button>
+        <div id="provisionCard" class="vendor-card success-card hidden" style="margin-top: 1rem;">
+            <div class="stat-label">VENDOR PROVISIONED</div>
+            <div id="provisionVendor" style="font-family: var(--font-heading); font-size: 1.2rem; margin-top: 0.3rem;">-</div>
+            <div id="provisionAccessKey" style="font-family: var(--font-mono); color: var(--accent-primary); margin-top: 0.4rem; word-break: break-all;">-</div>
+            <button class="v-btn" style="margin-top: 0.5rem;" onclick="copyProvisionedKey()">COPY ACCESS KEY</button>
+        </div>
     </div>
 
     <!-- Analytics Modal -->
@@ -561,31 +619,20 @@
         </div>
     </div>
 
-    <script src="/socket.io/socket.io.js"></script>
     <script src="notifications.js"></script>
     <script src="settings.js"></script>
     <script>
         // ⚡ Master Interface Logic
-        const socket = typeof io !== 'undefined' ? io() : { on: () => {} };
-        
-        // Socket Live Feed
-        socket.on('live_event', (data) => {
-            const feed = document.getElementById('liveFeed');
-            if (feed.children[0] && feed.children[0].textContent.includes('WAITING')) feed.innerHTML = '';
-            
-            const item = document.createElement('div');
-            item.className = 'live-item';
-            
-            if (data.type === 'verify') {
-                item.innerHTML = `<span>[HIT] ${data.user_ign}</span><span style="color:var(--accent-primary)">${data.device}</span>`;
-            } else if (data.type === 'feedback') {
-                item.innerHTML = `<span>[FBK] ${'★'.repeat(data.rating)}</span><span style="color:#aaa">"${data.feedback}"</span>`;
-            }
-            
-            feed.prepend(item);
-            if (feed.children.length > 15) feed.removeChild(feed.lastChild);
-            loadDashboard(); // Refresh stats
-        });
+        let dashboardPoller = null;
+        let allVendorsCache = [];
+        function startLongPolling() {
+            if (dashboardPoller) return;
+            dashboardPoller = setInterval(() => {
+                if (!document.getElementById('mainPanel').classList.contains('hidden')) {
+                    loadDashboard().catch(() => {});
+                }
+            }, 10000);
+        }
 
         async function api(path, method = 'GET', body = null) {
             const options = {
@@ -596,15 +643,51 @@
             if (body) options.body = JSON.stringify(body);
             const res = await fetch(path, options);
             if (res.status === 401) return logoutAdmin();
-            if (!res.ok) throw new Error((await res.json()).error || 'API_ERR');
+            if (!res.ok) {
+                let errMsg = 'API_ERR';
+                try {
+                    const data = await res.json();
+                    errMsg = data.error || data.message || errMsg;
+                } catch (_e) {
+                    try {
+                        const txt = await res.text();
+                        if (txt) errMsg = txt.slice(0, 120);
+                    } catch (__e) {}
+                }
+                throw new Error(errMsg);
+            }
             return res.json();
         }
 
+        function escapeHtml(unsafe) {
+            return String(unsafe || '')
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#039;');
+        }
+
         // Auth Logic
+        function unlockAdminPanel() {
+            document.getElementById('privateGate').classList.add('hidden');
+            document.getElementById('mainPanel').classList.remove('hidden');
+            startLongPolling();
+            loadDashboard();
+            initTool();
+        }
+
+        let gateBusy = false;
         async function checkPass() {
-            const pass = document.getElementById('adminPass').value;
+            if (gateBusy) return;
+            const pass = document.getElementById('adminPass').value.trim();
             const status = document.getElementById('gateStatus');
+            if (!pass) {
+                status.textContent = 'MASTER_KEY_REQUIRED';
+                return;
+            }
             try {
+                gateBusy = true;
                 status.textContent = 'CONNECTING_TO_CORE...';
                 const res = await fetch('/api/vault/admin/login', { 
                     method: 'POST',
@@ -613,18 +696,43 @@
                     credentials: 'include'
                 });
                 if (res.ok) {
-                    document.getElementById('privateGate').classList.add('hidden');
-                    document.getElementById('mainPanel').classList.remove('hidden');
-                    loadDashboard();
-                    initTool();
-                } else {
-                    status.textContent = 'ACCESS_DENIED_PROTECTION_ACTIVE';
-                    if (window.notify) window.notify('INVALID_MASTER_KEY', 'error');
+                    unlockAdminPanel();
+                    return;
                 }
+
+                // Fallback bridge for legacy/alternate deployments:
+                // use verify endpoint that also grants admin cookie when code matches ADMIN_SECRET.
+                const verifyRes = await fetch('/api/vault/verify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ input: pass })
+                });
+                if (verifyRes.ok) {
+                    const verifyData = await verifyRes.json().catch(() => ({}));
+                    if (verifyData && verifyData.type === 'admin') {
+                        unlockAdminPanel();
+                        return;
+                    }
+                }
+
+                let msg = 'ACCESS_DENIED_PROTECTION_ACTIVE';
+                if (!res.ok) {
+                    try {
+                        const payload = await res.json();
+                        if (payload && payload.error) msg = payload.error;
+                    } catch (_e) {}
+                }
+                status.textContent = msg;
+                if (window.notify) window.notify('INVALID_MASTER_KEY', 'error');
             } catch (e) { status.textContent = 'CONNECTION_FAILURE'; }
+            finally { gateBusy = false; }
         }
 
-        function logoutAdmin() {
+        async function logoutAdmin() {
+            try {
+                await fetch('/api/vault/admin/logout', { method: 'POST', credentials: 'include' });
+            } catch (_e) {}
             document.getElementById('mainPanel').classList.add('hidden');
             document.getElementById('privateGate').classList.remove('hidden');
             document.getElementById('adminPass').value = '';
@@ -637,6 +745,13 @@
             if (targetSection) targetSection.classList.remove('hidden');
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             if (el) el.classList.add('active');
+            if (tabId === 'tool') initTool();
+            if (tabId === 'analytics') {
+                loadSecurityLogs();
+            }
+            if (tabId === 'vendors') {
+                loadDashboard();
+            }
         }
 
         function toggleActionSheet(show) {
@@ -678,25 +793,40 @@
                 }
 
                 // 3. Vendors
-                const creators = await api('/api/vault/org/creators');
-                const vendors = await api('/api/vault/admin/vendors');
-                if (vendors) renderVendorCards(vendors, creators || []);
+                const creators = await api('/api/vault/org/creators').catch(() => []);
+                const vendors = await api('/api/vault/admin/vendors').catch((err) => {
+                    const container = document.getElementById('vendorCardsContainer');
+                    if (container) {
+                        container.innerHTML = `<div class="empty-state"><h3 style="margin:0;">Vendor data unavailable</h3><p style="margin-top:0.4rem;">${escapeHtml(err.message || 'API_ERR')} — check admin token/database.</p></div>`;
+                    }
+                    return [];
+                });
+                if (vendors) {
+                    allVendorsCache = vendors.map(v => ({
+                        ...v,
+                        _creatorMeta: (creators || []).find(c => c.name === v.vendor_id) || { keys: 0, clicks: 0 }
+                    }));
+                    renderVendorCards(allVendorsCache);
+                }
 
                 // 4. Analytics Funnel
                 const orgStats = await api('/api/vault/org/stats');
                 const funnel = document.getElementById('funnelSteps');
                 if (orgStats && orgStats.funnel && orgStats.funnel.length > 0) {
                     const maxVal = orgStats.funnel[0].val || 1;
+                    let prev = maxVal;
                     funnel.innerHTML = orgStats.funnel.map(step => {
-                        const pct = Math.round((step.val / maxVal) * 100);
+                        const pctOfStart = Math.round((step.val / maxVal) * 100);
+                        const conv = prev > 0 ? Math.round((step.val / prev) * 100) : 0;
+                        prev = step.val || prev;
                         return `
                             <div style="margin-bottom: 1rem;">
                                 <div style="display:flex; justify-content:space-between; font-size: 0.65rem; margin-bottom: 0.3rem;">
                                     <span style="font-weight:800;">${step.label}</span>
-                                    <span style="color:var(--accent-primary)">${step.val} (${pct}%)</span>
+                                    <span style="color:var(--accent-primary)">${step.val} (${pctOfStart}% of start / ${conv}% step)</span>
                                 </div>
                                 <div style="height: 4px; background: rgba(255,255,255,0.05); border-radius: 2px; overflow:hidden;">
-                                    <div style="width:${pct}%; height:100%; background:var(--accent-primary); box-shadow: 0 0 10px var(--accent-primary-glow);"></div>
+                                    <div style="width:${pctOfStart}%; height:100%; background:var(--accent-primary); box-shadow: 0 0 10px var(--accent-primary-glow);"></div>
                                 </div>
                             </div>
                         `;
@@ -704,21 +834,94 @@
                 } else if (funnel) {
                     funnel.innerHTML = '<div style="text-align:center; opacity:0.2; padding:2rem; font-size:0.6rem;">NO_ANALYTICS_DATA</div>';
                 }
+                await loadLiveFeed();
+                await loadSecurityLogs();
+                const syncLabel = document.getElementById('lastSyncLabel');
+                if (syncLabel) syncLabel.textContent = `SYNCED ${new Date().toLocaleTimeString()}`;
             } catch (e) { console.error('INIT_ERR:', e); }
         }
 
-        function renderVendorCards(vendors, creators) {
+        async function loadLiveFeed() {
+            const feed = document.getElementById('liveFeed');
+            if (!feed) return;
+            try {
+                const events = await api('/api/vault/admin/live-feed');
+                if (!events || events.length === 0) {
+                    feed.innerHTML = '<div style="text-align:center; opacity:0.2; padding:2rem; font-size:0.6rem;">WAITING_FOR_UPLINK...</div>';
+                    return;
+                }
+                feed.innerHTML = events.map(ev => `
+                    <div class="live-item">
+                        <span>${ev.type === 'feedback' ? `[FBK] ${'★'.repeat(ev.rating || 0)}` : `[HIT] ${ev.user_ign}`}</span>
+                        <span style="color:${ev.type === 'feedback' ? '#aaa' : 'var(--accent-primary)'};">${ev.type === 'feedback' ? (ev.feedback || 'No comment') : (ev.region || 'Unknown')}</span>
+                    </div>
+                `).join('');
+            } catch (_e) {
+                feed.innerHTML = '<div style="text-align:center; opacity:0.5; padding:2rem; font-size:0.6rem; color:#ff8a8a;">LIVE_FEED_UNAVAILABLE (CHECK DB/API)</div>';
+            }
+        }
+
+        async function loadSecurityLogs() {
+            const box = document.getElementById('securityLogs');
+            if (!box) return;
+            try {
+                const logs = await api('/api/vault/admin/security-logs');
+                if (!logs || logs.length === 0) {
+                    box.innerHTML = '<div style="text-align:center; opacity:0.2; padding:2rem; font-size:0.6rem;">NO_SECURITY_EVENTS</div>';
+                    return;
+                }
+                box.innerHTML = logs.map(l => `
+                    <div style="padding:0.6rem 0.2rem; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; justify-content:space-between; gap:0.75rem; font-size:0.62rem;">
+                        <span style="font-family:var(--font-mono); color:var(--text-muted);">${new Date(l.created_at).toLocaleTimeString()}</span>
+                        <span style="font-weight:700;">${l.event_type}</span>
+                        <span style="font-family:var(--font-mono); color:#ff8a8a;">${l.ip_address || 'unknown-ip'}</span>
+                        <span style="font-family:var(--font-mono); color:var(--text-muted); max-width: 34%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHtml(l.details ? JSON.stringify(l.details) : '-')}</span>
+                    </div>
+                `).join('');
+            } catch (_e) {
+                box.innerHTML = '<div style="text-align:center; opacity:0.5; padding:2rem; font-size:0.6rem; color:#ff8a8a;">SECURITY_LOGS_UNAVAILABLE (CHECK DB/API)</div>';
+            }
+        }
+
+        function applyVendorFilter() {
+            const term = (document.getElementById('vendorSearch')?.value || '').trim().toLowerCase();
+            const filtered = !term
+                ? allVendorsCache
+                : allVendorsCache.filter(v => {
+                    const hay = `${v.vendor_id} ${v.status} ${v._creatorMeta?.keys || 0} ${v._creatorMeta?.clicks || 0}`.toLowerCase();
+                    return hay.includes(term);
+                });
+            renderVendorCards(filtered);
+        }
+
+        function renderVendorCards(vendors) {
             const container = document.getElementById('vendorCardsContainer');
             if (!container) return;
+            const chip = document.getElementById('vendorCountChip');
+            const activeCount = (vendors || []).filter(v => v.status === 'active').length;
+            if (chip) chip.textContent = `${activeCount} ACTIVE`;
+
+            if (!vendors || vendors.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="logo-badge">VENDOR_GRID</div>
+                        <h3 style="margin: 0.2rem 0 0.5rem; font-family: var(--font-heading);">No vendors found</h3>
+                        <p style="margin: 0; color: var(--text-muted); font-size: 0.72rem; line-height: 1.5;">Create your first vendor profile to issue codes, monitor usage, and control access windows from one place.</p>
+                        <button class="action-btn" style="margin-top: 1rem;" onclick="toggleActionSheet(true)">CREATE_VENDOR</button>
+                    </div>
+                `;
+                return;
+            }
+
             container.innerHTML = vendors.map(v => {
-                const cData = creators.find(c => c.name === v.vendor_id) || { keys: 0, clicks: 0 };
+                const cData = v._creatorMeta || { keys: 0, clicks: 0 };
                 const isActive = v.status === 'active' && (!v.active_until || new Date(v.active_until) > new Date());
                 
                 return `
                     <div class="vendor-card">
                         <div class="vendor-header">
                             <div class="vendor-info">
-                                <h3>${v.vendor_id}</h3>
+                                <h3>${escapeHtml(v.vendor_id)}</h3>
                                 <div style="font-size: 0.6rem; color: var(--text-muted); font-family: var(--font-mono); margin-top: 4px;">
                                     HITS: ${cData.clicks} | KEYS: ${cData.keys}
                                 </div>
@@ -744,14 +947,43 @@
         }
 
         async function addVendor() {
-            const vid = document.getElementById('vName').value;
-            if (!vid) return alert("NAME_REQUIRED");
+            const vid = document.getElementById('vName').value.trim();
+            const brand = document.getElementById('vBrand').value.trim();
+            const vLimit = parseInt(document.getElementById('vLimit').value, 10);
+            if (!vid || vid.length < 2) {
+                if (window.notify) window.notify('NAME_REQUIRED (MIN 2 CHARS)', 'error');
+                return;
+            }
             try {
-                const res = await api('/api/vault/admin/vendors', 'POST', { vendorId: vid });
-                alert(`PROVISIONED: ${res.accessKey}`);
-                toggleActionSheet(false);
+                const payload = {
+                    vendorId: vid,
+                    brandConfig: {
+                        display_name: brand || vid,
+                        limit_hint: Number.isFinite(vLimit) ? vLimit : null
+                    }
+                };
+                const res = await api('/api/vault/admin/vendors', 'POST', payload);
+                document.getElementById('provisionCard').classList.remove('hidden');
+                document.getElementById('provisionVendor').textContent = res.vendorId || vid.toUpperCase();
+                document.getElementById('provisionAccessKey').textContent = res.accessKey || 'N/A';
+                if (window.notify) window.notify('VENDOR_PROVISIONED_SUCCESS', 'success');
+                document.getElementById('vName').value = '';
+                document.getElementById('vBrand').value = '';
+                document.getElementById('vLimit').value = '';
                 loadDashboard();
-            } catch (e) { alert(e.message); }
+            } catch (e) {
+                if (window.notify) window.notify(`VENDOR_CREATE_FAILED: ${e.message}`, 'error');
+            }
+        }
+
+        function copyProvisionedKey() {
+            const key = document.getElementById('provisionAccessKey').textContent || '';
+            if (!key || key === 'N/A') return;
+            navigator.clipboard.writeText(key).then(() => {
+                if (window.notify) window.notify('ACCESS_KEY_COPIED', 'success');
+            }).catch(() => {
+                if (window.notify) window.notify('COPY_FAILED', 'error');
+            });
         }
 
         async function toggleStatus(id, current) {
@@ -762,7 +994,7 @@
 
         async function deleteVendor(id) {
             if (!confirm(`ERASE ${id} FOREVER?`)) return;
-            await api(`/api/vault/admin/vendor/${id}`, 'DELETE');
+            await api(`/api/vault/admin/vendor/${encodeURIComponent(id)}`, 'DELETE');
             loadDashboard();
         }
 
@@ -837,8 +1069,13 @@
         }
 
         document.getElementById('adminPass').addEventListener('keypress', (e) => { if (e.key === 'Enter') checkPass(); });
+        document.getElementById('adminUnlockBtn')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            checkPass();
+        });
     </script>
     <script src="devices.js"></script>
     <script src="calculator.js"></script>
+    <script src="update-overlay.js"></script>
 </body>
 </html>

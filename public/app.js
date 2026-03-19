@@ -19,14 +19,6 @@ const state = {
     manualSens: ''
 };
 
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/service-worker.js')
-            .then(reg => console.log('🚀 SW_REGISTERED'))
-            .catch(err => console.log('❌ SW_ERROR:', err));
-    });
-}
-
 // 🛡️ Global Intelligence: Frontend Error Boundary (10/10 Resilience)
 const SoftRecovery = {
     show(err) {
@@ -68,6 +60,13 @@ document.getElementById('pwaInstallBtn')?.addEventListener('click', async () => 
             document.getElementById('pwaInstallBtn').style.display = 'none';
         }
         deferredPrompt = null;
+    } else {
+        const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+        if (isIOS) {
+            UI?.notify?.("INSTALL TIP: TAP SHARE → 'ADD TO HOME SCREEN'", 'info');
+        } else {
+            UI?.notify?.("INSTALL OPTION NOT AVAILABLE IN THIS BROWSER", 'info');
+        }
     }
 });
 
@@ -83,6 +82,7 @@ const UI = {
         brand: document.getElementById('brandSelect'),
         series: document.getElementById('seriesSelect'),
         model: document.getElementById('modelSelect'),
+        ramSelect: document.getElementById('ramSelect'),
         
         sensInput: document.getElementById('sensInput'),
         sensLabel: document.getElementById('sensLabel'),
@@ -263,11 +263,12 @@ const UI = {
     },
 
     attachCalibrationListeners() {
-        const { brand, series, model, sensInput, manualSens, calculateBtn, gripBtns } = this.elements;
+        const { brand, series, model, ramSelect, sensInput, manualSens, calculateBtn, gripBtns } = this.elements;
 
         brand.addEventListener('change', () => {
             state.brand = brand.value;
             this.updateSeriesDropdown();
+            this.autoSetRamForModel();
         });
 
         series.addEventListener('change', () => {
@@ -277,8 +278,15 @@ const UI = {
 
         model.addEventListener('change', () => {
             state.model = model.value;
+            this.autoSetRamForModel();
             this.saveProfile();
         });
+
+        if (ramSelect) {
+            ramSelect.addEventListener('change', () => {
+                state.ram = parseInt(ramSelect.value, 10) || 8;
+            });
+        }
 
         sensInput.addEventListener('input', (e) => {
             state.neuralScale = parseFloat(e.target.value);
@@ -333,7 +341,15 @@ const UI = {
         }
 
         const brandData = window.DEVICES.find(b => b.brand === state.brand);
+        if (!brandData) {
+            model.disabled = true;
+            return;
+        }
         const seriesData = brandData.series.find(s => s.name === state.series);
+        if (!seriesData) {
+            model.disabled = true;
+            return;
+        }
         
         seriesData.models.forEach(m => {
             const opt = document.createElement('option');
@@ -341,6 +357,37 @@ const UI = {
             model.appendChild(opt);
         });
         model.disabled = false;
+    },
+
+    estimateRamByModel() {
+        const brand = (state.brand || '').toLowerCase();
+        const model = (state.model || '').toLowerCase();
+        if (!model) return 8;
+        if (brand === 'apple') {
+            if (model.includes('17') || model.includes('16') || model.includes('15 pro') || model.includes('14 pro')) return 8;
+            if (model.includes('13 pro') || model.includes('12 pro')) return 6;
+            return 4;
+        }
+        if (/(ultra|pro\+|rog|redmagic|gaming|gt|x100|12|11|10 pro)/.test(model)) return 12;
+        if (/(plus|note|neo|f\d|x\d|v\d|reno|nord|pova|camon)/.test(model)) return 8;
+        return 6;
+    },
+
+    autoSetRamForModel() {
+        const ramGroup = document.getElementById('ramGroup');
+        const ramSelect = this.elements.ramSelect;
+        if (!ramSelect || !ramGroup) return;
+
+        if ((state.brand || '').toLowerCase() === 'apple') {
+            state.ram = this.estimateRamByModel();
+            ramSelect.value = String(state.ram);
+            ramGroup.style.display = 'none';
+            return;
+        }
+
+        ramGroup.style.display = 'block';
+        state.ram = this.estimateRamByModel();
+        ramSelect.value = String(state.ram);
     },
 
     async handleCalculate() {
@@ -360,14 +407,23 @@ const UI = {
         this.notify("NEURAL CALIBRATION IN PROGRESS...", "success");
         
         try {
+            const payload = {
+                ...state,
+                manualSens: state.manualMode ? Number.parseFloat(state.manualSens) : undefined
+            };
             const res = await fetch('/api/vault/calculate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(state)
+                body: JSON.stringify(payload)
             });
             const data = await res.json();
+            if (!res.ok) {
+                this.notify(data.error || "NEURAL ENGINE UNREACHABLE", "error");
+                return;
+            }
             
             if (data.results) {
+                if (window.SaaSAnalytics) window.SaaSAnalytics.track('code_generated');
                 localStorage.setItem('xp_sensitivity_profile_last_result', JSON.stringify(data.results));
                 localStorage.setItem('xp_sensitivity_profile', JSON.stringify(state));
                 localStorage.setItem('xp_last_entry_code', data.entry_code); // 🚀 Store for Result Page
@@ -403,6 +459,10 @@ const UI = {
             this.elements.sensInput.value = state.neuralScale;
             this.elements.sensLabel.textContent = state.neuralScale.toFixed(1);
         }
+        if (this.elements.ramSelect) {
+            this.elements.ramSelect.value = String(state.ram || 8);
+        }
+        this.autoSetRamForModel();
     },
        initLanguage() {
         this.applyLang();
@@ -427,6 +487,8 @@ const UI = {
         // 🛡️ Special Case Handling (Selects, etc)
         const brandLabel = document.querySelector('#hardwareSection .form-group .form-label');
         if (brandLabel) brandLabel.textContent = dict.brandLabel || 'Device Architecture';
+        const ramLabel = document.querySelector('#ramGroup .form-label');
+        if (ramLabel) ramLabel.textContent = dict.ramLabel || 'Hardware RAM';
         
         const calcBtn = document.getElementById('calculateBtn');
         if (calcBtn) calcBtn.textContent = dict.calcBtn || 'GENERATE OPTIMIZED GUIDE';
@@ -460,6 +522,7 @@ const UI = {
         }
     }
 };
+window.UI = UI;
 
 window.toggleLowPerf = () => {
     const isLow = localStorage.getItem('xp_low_perf') === 'true';
@@ -478,6 +541,12 @@ window.toggleLowPerf = () => {
 
 document.addEventListener('DOMContentLoaded', () => {
     UI.init();
+    const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    const btn = document.getElementById('pwaInstallBtn');
+    if (btn && isIOS) {
+        btn.style.display = 'block';
+        btn.textContent = 'INSTALL: SHARE → A2HS';
+    }
     
     // ⚡ Adaptive Performance Check
     if (localStorage.getItem('xp_low_perf') === 'true') {
@@ -487,5 +556,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (btn) btn.textContent = 'MODE: LOW_LATENCY';
             document.body.style.background = 'var(--bg-dark)';
         }, 100);
+    }
+});
+
+window.addEventListener('xp:language-change', () => {
+    if (window.UI && typeof window.UI.applyLang === 'function') {
+        window.UI.applyLang();
     }
 });

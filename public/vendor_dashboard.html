@@ -453,12 +453,17 @@
                 <input type="text" id="profDC" class="cyber-input" placeholder="discord.gg/invite">
             </div>
 
+            <div class="form-control">
+                <label>WEBHOOK URL</label>
+                <input type="url" id="profWebhook" class="cyber-input" placeholder="https://example.com/webhook">
+            </div>
+
             <button class="btn-primary" onclick="saveProfile()" style="margin-top: 1rem;">UPDATE_PRO_PROFILE</button>
         </div>
 
         <div class="glass-panel" style="background: rgba(255, 255, 255, 0.01);">
             <h3 style="margin: 0 0 1rem; font-size: 0.7rem; color: var(--text-muted);">SECURITY_RESOURCES</h3>
-            <button class="btn-primary" style="background: var(--glass-bg); color: #fff; box-shadow: none; font-size: 0.7rem; margin-bottom: 0.5rem;" onclick="logoutAdmin()">REVOKE_ACCESS_TOKEN</button>
+            <button class="btn-primary" style="background: var(--glass-bg); color: #fff; box-shadow: none; font-size: 0.7rem; margin-bottom: 0.5rem;" onclick="handleLogout()">REVOKE_ACCESS_TOKEN</button>
         </div>
     </div>
 
@@ -535,6 +540,7 @@
     <script src="devices.js"></script>
     <script src="notifications.js"></script>
     <script src="settings.js"></script>
+    <script src="update-overlay.js"></script>
     <script>
         // ⚡ Master Creator Logic
         const API_BASE = '/api/vault';
@@ -548,8 +554,10 @@
             if (body) options.body = JSON.stringify(body);
             const res = await fetch(path, options);
             if (res.status === 401) window.location.href = '/verify.html';
-            if (!res.ok) throw new Error((await res.json()).error || 'API_ERR');
-            return res.json();
+            let payload = {};
+            try { payload = await res.json(); } catch (_e) {}
+            if (!res.ok) throw new Error(payload.error || payload.message || 'API_ERR');
+            return payload;
         }
 
         async function init() {
@@ -589,6 +597,7 @@
                     document.getElementById('profYT').value = profile.youtube || '';
                     document.getElementById('profTT').value = profile.tiktok || '';
                     document.getElementById('profDC').value = profile.discord || '';
+                    document.getElementById('profWebhook').value = profile.webhook_url || '';
                 }
             } catch (e) {
                 console.warn('LOAD_PROFILE_ERR:', e);
@@ -597,14 +606,17 @@
 
         async function saveProfile() {
             const data = {
-                display_name: document.getElementById('profName').value,
-                logo_url: document.getElementById('profLogo').value,
-                youtube: document.getElementById('profYT').value,
-                tiktok: document.getElementById('profTT').value,
-                discord: document.getElementById('profDC').value
+                brand_config: {
+                    display_name: document.getElementById('profName').value.trim(),
+                    logo_url: document.getElementById('profLogo').value.trim(),
+                    youtube: document.getElementById('profYT').value.trim(),
+                    tiktok: document.getElementById('profTT').value.trim(),
+                    discord: document.getElementById('profDC').value.trim()
+                },
+                webhook_url: document.getElementById('profWebhook').value.trim() || null
             };
             try {
-                await api(`${API_BASE}/vendor/profile`, 'POST', data);
+                await api(`${API_BASE}/profile`, 'PUT', data);
                 if (window.notify) window.notify('PROFILE_UPDATED_SYNCED', 'success');
                 loadDashboard(); // Refresh UI
             } catch (e) {
@@ -691,6 +703,10 @@
             }
 
             const brandData = window.DEVICES.find(d => d.brand === brand);
+            if (!brandData) {
+                modelSel.disabled = true;
+                return;
+            }
             const seriesData = brandData.series.find(s => s.name === series);
             
             if (seriesData) {
@@ -724,10 +740,16 @@
 
         async function autoGenerate() {
             try {
+                const brand = document.getElementById('genBrand').value;
+                const model = document.getElementById('genModel').value;
+                if (!brand || !model) {
+                    if (window.notify) window.notify('SELECT BRAND + MODEL FIRST', 'error');
+                    return;
+                }
                 const body = {
-                    brand: document.getElementById('genBrand').value,
+                    brand,
                     series: document.getElementById('genSeries').value,
-                    model: document.getElementById('genModel').value,
+                    model,
                     ram: parseInt(document.getElementById('genRam').value),
                     speed: genState.playstyle,
                     claw: genState.claw
@@ -739,7 +761,7 @@
                 if (window.notify) window.notify('AUTO_CALIBRATED_SUCCESS', 'success');
                 loadDashboard(); // Refresh stats
             } catch (e) {
-                alert(e.message);
+                if (window.notify) window.notify(e.message || 'VAULT_GENERATION_FAILED', 'error');
             }
         }
 
@@ -755,6 +777,11 @@
                     freeLook: parseInt(document.getElementById('mFree').value),
                     advice: document.getElementById('mAdvice').value
                 };
+                const requiredValues = [body.general, body.redDot, body.scope2x, body.scope4x, body.sniper, body.freeLook];
+                if (requiredValues.some(v => Number.isNaN(v))) {
+                    if (window.notify) window.notify('ENTER ALL SENSITIVITY VALUES', 'error');
+                    return;
+                }
                 
                 let keys = [];
                 for(let i=0; i<bulkAmount; i++) {
@@ -767,7 +794,7 @@
                 document.getElementById('accessKeyVal').innerHTML = keys.join('<br>');
                 if (window.notify) window.notify(`PUBLISHED ${keys.length} KEY(S)`, 'success');
             } catch (e) {
-                alert(e.message);
+                if (window.notify) window.notify(e.message || 'MANUAL_PUBLISH_FAILED', 'error');
             }
         }
 
