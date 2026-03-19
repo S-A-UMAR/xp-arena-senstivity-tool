@@ -66,6 +66,63 @@ function normalizeBranding(config) {
     };
 }
 
+async function buildVerificationPayload(keyData) {
+    let finalResults = typeof keyData.results_json === 'string' ? JSON.parse(keyData.results_json) : (keyData.results_json || {});
+    if (keyData.custom_results_json) {
+        const custom = typeof keyData.custom_results_json === 'string' ? JSON.parse(keyData.custom_results_json) : keyData.custom_results_json;
+        finalResults = { ...finalResults, ...custom };
+    }
+    if (keyData.creator_advice) {
+        finalResults = { ...finalResults, advice: keyData.creator_advice };
+    }
+
+    const branding = normalizeBranding(keyData.brand_config);
+    const vendor = await db.get('SELECT usage_limit, active_until, webhook_url FROM vendors WHERE vendor_id = ?', [keyData.vendor_id]);
+    const likesRow = await db.get('SELECT COUNT(*) as likes FROM code_activity WHERE lookup_key = ? AND feedback_rating IS NOT NULL', [keyData.lookup_key]);
+
+    return {
+        type: 'code',
+        redirect: '/result.html',
+        vendor_id: keyData.vendor_id,
+        display_name: branding.display_name || keyData.vendor_id,
+        sensitivity: finalResults,
+        results: finalResults,
+        branding,
+        advice: keyData.creator_advice || finalResults.advice || null,
+        likes: likesRow?.likes || 0,
+        created_at: keyData.created_at || null,
+        valid_until: keyData.expires_at || vendor?.active_until || null,
+        usage_count: keyData.current_usage || 0,
+        usage_limit: keyData.usage_limit ?? vendor?.usage_limit ?? null,
+        social_links: {
+            youtube: branding.youtube || '',
+            tiktok: branding.tiktok || '',
+            discord: branding.discord || ''
+        }
+    };
+}
+
+async function getCodeStatusPayload(rawCode) {
+    const lookupKey = getLookupKey(rawCode);
+    const keyData = await db.get(`
+        SELECT k.*, v.status as vendor_status, v.brand_config, v.active_until, v.usage_limit as vendor_usage_limit
+        FROM sensitivity_keys k
+        LEFT JOIN vendors v ON k.vendor_id = v.vendor_id
+        WHERE k.lookup_key = ?
+    `, [lookupKey]);
+    if (!keyData || !(await bcrypt.compare(rawCode, keyData.entry_code))) return null;
+    const payload = await buildVerificationPayload(keyData);
+    return {
+        ...payload,
+        status: keyData.status,
+        vendor_status: keyData.vendor_status,
+        lookup_key: lookupKey,
+        current_usage: keyData.current_usage || 0,
+        real_usage: keyData.current_usage || 0,
+        expires_at: keyData.expires_at || null
+    };
+}
+
 function authenticateVendor(req, res, next) {
     (async () => {
         const token = req.cookies.xp_vendor_token || parseBearer(req.headers['authorization']);
@@ -239,15 +296,10 @@ router.post('/verify', async (req, res) => {
             user_ign: z.string().optional(),
             user_region: z.string().optional()
         });
-        const { input, user_ign, user_region } = schema.parse(req.body); 
+        const { input, user_ign, user_region } = schema.parse(req.body);
         const adminSecret = getAdminSecret();
         const clientIp = getClientIp(req);
 
-        if (!input) {
-            return fail(res, 'XP_VAL_MISSING', 'ACCESS_CODE_REQUIRED', 400);
-        }
-
-        // 1. Check Master Admin Secret (BYPASS ALL MIDDLEWARE)
         if (adminSecret && input === adminSecret) {
             const token = jwt.sign({ role: 'admin' }, adminSecret, { expiresIn: '1d' });
             res.cookie('xp_admin_token', token, {
@@ -263,53 +315,44 @@ router.post('/verify', async (req, res) => {
             });
         }
 
-        // 🛡️ Security Layer (Only for non-admin)
+        let blocked = false;
         await new Promise((resolve, reject) => {
             checkSoftBan(req, res, (err) => {
-                if (err) reject(err);
-                else resolve();
+                if (err) return reject(err);
+                if (res.headersSent) blocked = true;
+                resolve();
             });
         });
+        if (blocked || res.headersSent) return;
 
-        // ⚡ HOT-CACHE CHECK
         const cached = HotCache.get(`verify_${input}`);
-        if (cached) {
-            console.log('⚡ HOT_CACHE_HIT:', input);
-            return res.json(cached);
-        }
+        if (cached) return res.json(cached);
 
-        // 2. Fast Lookup Optimization (10/10 Logic)
         const prefix = getLookupKey(input);
-        
-        // 2a. Check Vendor Access Key (Fast Lookup)
+
         const vendor = await db.get('SELECT * FROM vendors WHERE lookup_key = ?', [prefix]);
-        if (vendor) {
-            if (await bcrypt.compare(input, vendor.access_key)) {
-                const now = new Date();
-                const activeWindow = !vendor.active_until || new Date(vendor.active_until) > now;
-                if (vendor.status === 'suspended' || !activeWindow) {
-                    return fail(res, 'XP_AUTH_SUSPENDED', 'PROVIDER_ACCESS_DENIED', 403);
-                }
-                const token = jwt.sign({ vendor_id: vendor.vendor_id }, getJwtSecret(), { expiresIn: '7d' });
-                res.cookie('xp_vendor_token', token, {
-                    httpOnly: true,
-                    secure: process.env.NODE_ENV === 'production',
-                    sameSite: 'strict',
-                    maxAge: 7 * 24 * 60 * 60 * 1000
-                });
-                return res.json({
-                    type: 'vendor',
-                    redirect: '/vendor_dashboard.html',
-                    vendor: {
-                        id: vendor.vendor_id,
-                        config: typeof vendor.brand_config === 'string' ? JSON.parse(vendor.brand_config) : vendor.brand_config
-                    },
-                    message: 'VENDOR DASHBOARD UNLOCKED'
-                });
+        if (vendor && await bcrypt.compare(input, vendor.access_key)) {
+            const now = new Date();
+            const activeWindow = !vendor.active_until || new Date(vendor.active_until) > now;
+            if (vendor.status === 'suspended' || !activeWindow) {
+                return fail(res, 'XP_AUTH_SUSPENDED', 'PROVIDER_ACCESS_DENIED', 403);
             }
+            const token = jwt.sign({ vendor_id: vendor.vendor_id }, getJwtSecret(), { expiresIn: '7d' });
+            res.cookie('xp_vendor_token', token, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'strict',
+                maxAge: 7 * 24 * 60 * 60 * 1000
+            });
+            const branding = normalizeBranding(vendor.brand_config);
+            return res.json({
+                type: 'vendor',
+                redirect: '/vendor_dashboard.html',
+                vendor: { id: vendor.vendor_id, config: branding },
+                message: 'VENDOR DASHBOARD UNLOCKED'
+            });
         }
 
-        // 3. Check User Entry Code (Sensitivity Key - O1 Lookup)
         const keyData = await db.get(`
             SELECT k.*, v.status as vendor_status, v.brand_config, v.org_id
             FROM sensitivity_keys k
@@ -318,7 +361,6 @@ router.post('/verify', async (req, res) => {
         `, [prefix]);
 
         if (keyData && await bcrypt.compare(input, keyData.entry_code)) {
-            // Track Analytics Event
             await trackEvent('landing_view', keyData.org_id, keyData.vendor_id, getClientIp(req), 'mobile');
             if (keyData.vendor_status === 'suspended') {
                 return res.status(403).json({ error: 'PROVIDER UNAVAILABLE - ACCESS DENIED' });
@@ -327,73 +369,43 @@ router.post('/verify', async (req, res) => {
             if (vendorWindow && vendorWindow.active_until && new Date(vendorWindow.active_until) < new Date()) {
                 return res.status(403).json({ error: 'PROVIDER ACCESS WINDOW EXPIRED' });
             }
-            
             if (keyData.status === 'expired' || (keyData.expires_at && new Date(keyData.expires_at) < new Date())) {
                 return res.status(403).json({ error: 'KEY EXPIRED OR DEACTIVATED' });
             }
-
             if (keyData.usage_limit && keyData.current_usage >= keyData.usage_limit) {
                 return res.status(403).json({ error: 'USAGE LIMIT REACHED' });
             }
-            
+
             await db.run('UPDATE sensitivity_keys SET current_usage = current_usage + 1 WHERE id = ?', [keyData.id]);
             await db.run('INSERT INTO code_activity (entry_code, lookup_key, user_ign, user_region) VALUES (?, ?, ?, ?)', [input, prefix, user_ign || 'Anonymous', user_region || 'Unknown']);
 
-            let finalResults = typeof keyData.results_json === 'string' ? JSON.parse(keyData.results_json) : keyData.results_json;
-            if (keyData.custom_results_json) {
-                const custom = typeof keyData.custom_results_json === 'string' ? JSON.parse(keyData.custom_results_json) : keyData.custom_results_json;
-                finalResults = { ...finalResults, ...custom };
-            }
-            if (keyData.creator_advice) {
-                finalResults = { ...finalResults, advice: keyData.creator_advice };
-            }
+            const verifyPayload = await buildVerificationPayload({ ...keyData, current_usage: (keyData.current_usage || 0) + 1 });
 
-            // Dispatch Vendor Webhook (10/10 Feature)
-            await dispatchVendorWebhook(keyData.vendor_id, 'CODE_VERIFIED', {
+            await dispatchVendorWebhook(keyData.vendor_id, 'code_used', {
+                event: 'code_used',
+                code: input,
                 user_ign: user_ign || 'Anonymous',
-                device: `${finalResults.brand} ${finalResults.model}`,
-                region: user_region || 'Unknown',
-                formula_version: finalResults.formula_version
+                used_at: new Date().toISOString(),
+                region: user_region || 'Unknown'
             });
 
-            // Emit Real-time Event
             const io = req.app.get('io');
             if (io) {
                 io.emit('live_event', {
                     type: 'verify',
                     vendor_id: keyData.vendor_id,
                     user_ign: user_ign || 'Anonymous',
-                    device: `${finalResults.brand} ${finalResults.model}`,
+                    device: `${verifyPayload.sensitivity.brand || ''} ${verifyPayload.sensitivity.model || ''}`.trim(),
                     timestamp: new Date().toISOString()
                 });
             }
 
-            const branding = normalizeBranding(keyData.brand_config);
-
-            // HotCache Warmup
-            HotCache.set(`verify_${input}`, {
-                type: 'user',
-                redirect: '/result.html',
-                results: finalResults,
-                branding,
-                advice: keyData.creator_advice || null,
-                message: 'CALIBRATION DATA RETRIEVED'
-            });
-
-            return res.json({
-                type: 'user',
-                redirect: '/result.html',
-                results: finalResults,
-                branding,
-                advice: keyData.creator_advice || null,
-                message: 'CALIBRATION DATA RETRIEVED'
-            });
+            const responsePayload = { ...verifyPayload, legacy_type: 'user' };
+            HotCache.set(`verify_${input}`, responsePayload);
+            return res.json(responsePayload);
         }
 
-        // 🛡️ AI Fraud Detection (Log Failure)
-        await db.run('INSERT INTO security_logs (ip_address, event_type, details) VALUES (?, ?, ?)', 
-            [clientIp, 'VERIFY_FAIL', JSON.stringify({ input_length: input.length })]);
-
+        await db.run('INSERT INTO security_logs (ip_address, event_type, details) VALUES (?, ?, ?)', [clientIp, 'VERIFY_FAIL', JSON.stringify({ input_length: input.length })]);
         return res.status(404).json({ error: 'INVALID ACCESS KEY' });
     } catch (e) {
         console.error('Vault Verification Error:', e);
@@ -981,37 +993,78 @@ router.get('/admin/security-logs', authenticateAdmin, async (req, res) => {
 router.post('/feedback', async (req, res) => {
     try {
         const schema = z.object({
-            entry_code: z.string().min(1),
+            code: z.string().min(1).optional(),
+            entry_code: z.string().min(1).optional(),
             rating: z.number().int().min(1).max(5),
+            feedback: z.string().max(500).optional(),
             feedback_text: z.string().max(500).optional()
-        });
-        const { entry_code, rating, feedback_text } = schema.parse(req.body);
-
-        // Find the most recent activity for this code (assuming the rater is the most recent user)
-        const lookupKey = crypto.createHash('sha1').update(entry_code).digest('hex').substring(0, 10);
+        }).refine((data) => data.code || data.entry_code, 'CODE_REQUIRED');
+        const payload = schema.parse(req.body || {});
+        const entryCode = payload.code || payload.entry_code;
+        const feedbackText = payload.feedback ?? payload.feedback_text ?? null;
+        const lookupKey = getLookupKey(entryCode);
         const activity = await db.get('SELECT id FROM code_activity WHERE lookup_key = ? ORDER BY used_at DESC LIMIT 1', [lookupKey]);
-        
         if (!activity) {
             return fail(res, 'XP_VAL_NOT_FOUND', 'SESSION_NOT_FOUND', 404);
         }
 
-        await db.run('UPDATE code_activity SET feedback_rating = ?, feedback_comment = ? WHERE id = ?', [rating, feedback_text || null, activity.id]);
+        await db.run('UPDATE code_activity SET feedback_rating = ?, feedback_comment = ? WHERE id = ?', [payload.rating, feedbackText, activity.id]);
+        const likesCount = await db.get('SELECT COUNT(*) as likes_count FROM code_activity WHERE lookup_key = ? AND feedback_rating IS NOT NULL', [lookupKey]);
+        HotCache._cache.delete(`verify_${entryCode}`);
 
-        // Emit live event for feedback
         const io = req.app.get('io');
         if (io) {
             io.emit('live_event', {
                 type: 'feedback',
-                entry_code,
-                rating,
-                feedback: feedback_text || 'No comment'
+                entry_code: entryCode,
+                rating: payload.rating,
+                feedback: feedbackText || 'No comment'
             });
         }
 
-        res.json({ success: true, message: 'FEEDBACK_LOGGED_SUCCESSFULLY' });
+        res.json({ success: true, likes_count: likesCount?.likes_count || 0 });
     } catch (e) {
+        if (e instanceof z.ZodError) return fail(res, 'XP_VAL_FAILED', 'INVALID_FEEDBACK_INPUT', 400, e.errors);
         console.error('FEEDBACK_ERR:', e);
         res.status(500).json({ error: 'FEEDBACK_SYSTEM_ERROR' });
+    }
+});
+
+router.get('/leaderboard', async (req, res) => {
+    try {
+        const limit = Math.min(Math.max(parseInt(req.query.limit || '10', 10), 1), 100);
+        const sort = req.query.sort === 'hits' ? 'hits' : 'likes';
+        const orderBy = sort === 'hits' ? 'total_hits DESC, total_likes DESC' : 'total_likes DESC, total_hits DESC';
+        const rows = await db.all(`
+            SELECT
+                v.vendor_id,
+                COALESCE(NULLIF(JSON_UNQUOTE(JSON_EXTRACT(v.brand_config, '$.display_name')), ''), v.vendor_id) as display_name,
+                COALESCE(SUM(sk.current_usage), 0) as total_hits,
+                COALESCE(SUM(CASE WHEN ca.feedback_rating IS NOT NULL THEN 1 ELSE 0 END), 0) as total_likes,
+                COALESCE(NULLIF(JSON_UNQUOTE(JSON_EXTRACT(v.brand_config, '$.youtube')), ''), NULLIF(JSON_UNQUOTE(JSON_EXTRACT(v.brand_config, '$.socials.yt')), '')) as youtube,
+                COALESCE(NULLIF(JSON_UNQUOTE(JSON_EXTRACT(v.brand_config, '$.tiktok')), ''), NULLIF(JSON_UNQUOTE(JSON_EXTRACT(v.brand_config, '$.socials.tiktok')), ''), NULLIF(JSON_UNQUOTE(JSON_EXTRACT(v.brand_config, '$.socials.tt')), '')) as tiktok,
+                COALESCE(NULLIF(JSON_UNQUOTE(JSON_EXTRACT(v.brand_config, '$.discord')), ''), NULLIF(JSON_UNQUOTE(JSON_EXTRACT(v.brand_config, '$.socials.discord')), ''), NULLIF(JSON_UNQUOTE(JSON_EXTRACT(v.brand_config, '$.socials.dc')), '')) as discord
+            FROM vendors v
+            LEFT JOIN sensitivity_keys sk ON sk.vendor_id = v.vendor_id
+            LEFT JOIN code_activity ca ON ca.lookup_key = sk.lookup_key
+            WHERE v.status = 'active'
+            GROUP BY v.vendor_id, v.brand_config
+            ORDER BY ${orderBy}
+            LIMIT ${limit}
+        `);
+        res.json(rows.map((row, idx) => ({
+            vendor_id: row.vendor_id,
+            display_name: row.display_name || row.vendor_id,
+            total_hits: row.total_hits || 0,
+            total_likes: row.total_likes || 0,
+            rank: idx + 1,
+            youtube: row.youtube || '',
+            tiktok: row.tiktok || '',
+            discord: row.discord || ''
+        })));
+    } catch (e) {
+        console.error('LEADERBOARD_ERR:', e);
+        res.status(500).json({ error: 'LEADERBOARD_UNAVAILABLE' });
     }
 });
 
@@ -1019,29 +1072,38 @@ router.get('/code/:code/status', async (req, res) => {
     try {
         const code = req.params.code;
         if (!code) return res.status(400).json({ error: 'Missing code' });
-        const lookupKey = crypto.createHash('sha1').update(code).digest('hex').substring(0, 10);
-        const key = await db.get(`
-            SELECT k.lookup_key, k.vendor_id, k.usage_limit, k.current_usage, k.status, k.expires_at,
-                   v.vendor_id as v_id, v.status as vendor_status, v.brand_config
-            FROM sensitivity_keys k
-            LEFT JOIN vendors v ON k.vendor_id = v.vendor_id
-            WHERE k.lookup_key = ?
-        `, [lookupKey]);
-        if (!key) return res.status(404).json({ error: 'Not found' });
-        const usage_total = await db.get('SELECT COUNT(*) as c FROM code_activity WHERE lookup_key = ?', [lookupKey]);
-        res.json({
-            lookup_key: key.lookup_key,
-            vendor_id: key.vendor_id,
-            vendor_status: key.vendor_status,
-            status: key.status,
-            usage_limit: key.usage_limit,
-            current_usage: key.current_usage,
-            real_usage: usage_total ? usage_total.c : 0,
-            expires_at: key.expires_at,
-            branding: typeof key.brand_config === 'string' ? JSON.parse(key.brand_config) : key.brand_config
-        });
+        const payload = await getCodeStatusPayload(code);
+        if (!payload) return res.status(404).json({ error: 'Not found' });
+        res.json(payload);
     } catch (e) {
+        console.error('CODE_STATUS_ERR:', e);
         res.status(500).json({ error: 'Server error' });
+    }
+});
+
+router.post('/vendor/logout', authenticateVendor, async (req, res) => {
+    res.clearCookie('xp_vendor_token', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        path: '/'
+    });
+    res.json({ success: true });
+});
+
+router.post('/vendor/extend-access', authenticateVendor, async (req, res) => {
+    try {
+        const schema = z.object({ hours: z.number().int().min(1).max(24 * 365) });
+        const { hours } = schema.parse(req.body || {});
+        const vendor = await db.get('SELECT active_until FROM vendors WHERE vendor_id = ?', [req.vendorId]);
+        const now = new Date();
+        const base = vendor?.active_until && new Date(vendor.active_until) > now ? new Date(vendor.active_until) : now;
+        const activeUntil = new Date(base.getTime() + (hours * 60 * 60 * 1000));
+        await db.run('UPDATE vendors SET active_until = ?, status = ? WHERE vendor_id = ?', [activeUntil, 'active', req.vendorId]);
+        res.json({ success: true, active_until: activeUntil.toISOString() });
+    } catch (e) {
+        if (e instanceof z.ZodError) return fail(res, 'XP_VAL_FAILED', 'INVALID_EXTEND_PARAMS', 400, e.errors);
+        res.status(500).json({ error: 'EXTEND_FAILED' });
     }
 });
 
@@ -1088,31 +1150,37 @@ router.put('/code/:entryCode/deactivate', authenticateVendor, async (req, res) =
 });
 router.get('/vendor/profile', authenticateVendor, async (req, res) => {
     try {
-        const vendor = await db.get('SELECT vendor_id, status, active_until, brand_config, webhook_url FROM vendors WHERE vendor_id = ?', [req.vendorId]);
+        const vendor = await db.get('SELECT vendor_id, status, active_until, brand_config, webhook_url, usage_limit FROM vendors WHERE vendor_id = ?', [req.vendorId]);
         const stats = await db.get(`
-            SELECT COUNT(*) as codes, SUM(current_usage) as hits
+            SELECT COUNT(*) as codes, COALESCE(SUM(current_usage), 0) as hits
             FROM sensitivity_keys 
             WHERE vendor_id = ?
         `, [req.vendorId]);
-        const config = vendor?.brand_config
-            ? (typeof vendor.brand_config === 'string' ? JSON.parse(vendor.brand_config) : vendor.brand_config)
-            : {};
-        
+        const likes = await db.get(`
+            SELECT COUNT(*) as likes
+            FROM code_activity ca
+            JOIN sensitivity_keys sk ON ca.lookup_key = sk.lookup_key
+            WHERE sk.vendor_id = ? AND ca.feedback_rating IS NOT NULL
+        `, [req.vendorId]);
+        const config = normalizeBranding(vendor?.brand_config);
         res.json({
             vendor_id: vendor.vendor_id,
+            display_name: config.display_name || vendor.vendor_id,
+            total_codes: stats?.codes || 0,
+            total_hits: stats?.hits || 0,
+            total_likes: likes?.likes || 0,
             status: vendor.status,
+            webhook_url: vendor.webhook_url || '',
+            youtube: config.youtube || '',
+            tiktok: config.tiktok || '',
+            discord: config.discord || '',
             active_until: vendor.active_until,
-            total_codes: stats.codes || 0,
-            total_hits: stats.hits || 0,
-            display_name: config.display_name || '',
-            logo_url: config.logo_url || config.logo || '',
-            youtube: config.youtube || config?.socials?.yt || '',
-            tiktok: config.tiktok || config?.socials?.tiktok || '',
-            discord: config.discord || config?.socials?.discord || '',
-            webhook_url: vendor.webhook_url || ''
+            usage_limit: vendor.usage_limit ?? null,
+            logo_url: config.logo_url || ''
         });
     } catch (e) {
-        res.status(500).json({ error: 'Server error' });
+        console.error('VENDOR_PROFILE_ERR:', e);
+        res.status(500).json({ error: 'VENDOR_PROFILE_UNAVAILABLE' });
     }
 });
 
@@ -1135,41 +1203,30 @@ router.get('/vendor/stats', authenticateVendor, async (req, res) => {
 
 router.post('/vendor/generate', authenticateVendor, async (req, res) => {
     try {
-        const { brand, series, model, ram, speed, claw } = req.body;
-        
-        const code = Math.floor(100000 + Math.random() * 900000).toString();
-        const accessKey = `XP-${req.vendorId.toUpperCase()}-${code}`;
+        const schema = z.object({
+            brand: z.string().min(1),
+            series: z.string().optional().nullable(),
+            model: z.string().min(1),
+            ram: z.number().int().min(1).max(32),
+            speed: z.string().min(1),
+            claw: z.string().min(1)
+        });
+        const { brand, series, model, ram, speed, claw } = schema.parse(req.body || {});
+
+        const code = Math.floor(1000 + Math.random() * 9000).toString();
+        const accessKey = `XP-${code}-${Math.floor(1000 + Math.random() * 9000)}`;
         const lookupKey = getLookupKey(accessKey);
         const hashed = await bcrypt.hash(accessKey, 10);
-        
         const globalOffset = await getGlobalOffset();
-        
-        // 🧪 Precision Calibration Engine
-        let results;
-        if (brand && model) {
-            results = Calculator.compute({
-                brand,
-                series,
-                model,
-                ram: ram || 8,
-                speed: speed || 'balanced',
-                claw: claw || '2',
-                neuralScale: 5.0 + (Math.random() * 2 - 1) // Slight natural variance
-            }, globalOffset);
-        } else {
-            // Fallback for legacy calls
-            results = {
-                formula_version: Calculator.version,
-                general: Math.round((94 + Math.floor(Math.random() * 6)) * globalOffset),
-                redDot: Math.round((90 + Math.floor(Math.random() * 8)) * globalOffset),
-                scope2x: 85,
-                scope4x: 82,
-                sniper: 50,
-                freeLook: 100,
-                dpi: "440-480",
-                fireButton: "62-66"
-            };
-        }
+        const results = Calculator.compute({
+            brand,
+            series: series || '',
+            model,
+            ram,
+            speed,
+            claw,
+            neuralScale: 5.0
+        }, globalOffset);
 
         await db.run(`
             INSERT INTO sensitivity_keys (entry_code, lookup_key, vendor_id, results_json, status)
@@ -1179,6 +1236,7 @@ router.post('/vendor/generate', authenticateVendor, async (req, res) => {
         res.json({ accessKey });
     } catch (e) {
         console.error('GEN_ERR:', e);
+        if (e instanceof z.ZodError) return fail(res, 'XP_VAL_FAILED', 'INVALID_GENERATION_INPUT', 400, e.errors);
         res.status(500).json({ error: 'VAULT_GENERATION_FAILED' });
     }
 });

@@ -733,88 +733,54 @@
         let gateBusy = false;
         async function checkPass() {
             if (gateBusy) return;
-        async function checkPass() {
             const pass = document.getElementById('adminPass').value.trim();
             const status = document.getElementById('gateStatus');
             if (!pass) {
                 status.textContent = 'MASTER_KEY_REQUIRED';
                 return;
             }
+
             try {
                 gateBusy = true;
                 status.textContent = 'CONNECTING_TO_CORE...';
-                const res = await fetch('/api/vault/admin/login', { 
+
+                let response = await fetch('/api/vault/admin/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ password: pass }),
                     credentials: 'include'
                 });
-                if (res.ok) {
+
+                let payload = {};
+                try { payload = await response.json(); } catch (_e) {}
+
+                if (!response.ok) {
+                    const fallback = await fetch('/api/vault/verify', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ input: pass }),
+                        credentials: 'include'
+                    });
+                    try { payload = await fallback.json(); } catch (_e) { payload = {}; }
+                    response = fallback;
+                }
+
+                if (response.ok && payload.type === 'admin' || (response.ok && payload.token)) {
+                    status.textContent = 'MASTER_ACCESS_GRANTED';
                     unlockAdminPanel();
                     return;
                 }
 
-                // Fallback bridge for legacy/alternate deployments:
-                // use verify endpoint that also grants admin cookie when code matches ADMIN_SECRET.
-                const verifyRes = await fetch('/api/vault/verify', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    credentials: 'include',
-                    body: JSON.stringify({ input: pass })
-                });
-                if (verifyRes.ok) {
-                    const verifyData = await verifyRes.json().catch(() => ({}));
-                    if (verifyData && verifyData.type === 'admin') {
-                        unlockAdminPanel();
-                        return;
-                    }
-                }
-
-                let msg = 'ACCESS_DENIED_PROTECTION_ACTIVE';
-                if (!res.ok) {
-                    try {
-                        const payload = await res.json();
-                        if (payload && payload.error) msg = payload.error;
-                    } catch (_e) {}
-                }
-                }
-
-                // Fallback bridge for legacy/alternate deployments:
-                // use verify endpoint that also grants admin cookie when code matches ADMIN_SECRET.
-                const verifyRes = await fetch('/api/vault/verify', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    credentials: 'include',
-                    body: JSON.stringify({ input: pass })
-                });
-                if (verifyRes.ok) {
-                    const verifyData = await verifyRes.json().catch(() => ({}));
-                    if (verifyData && verifyData.type === 'admin') {
-                        unlockAdminPanel();
-                        return;
-                    }
-                }
-
-                let msg = 'ACCESS_DENIED_PROTECTION_ACTIVE';
-                if (!res.ok) {
-                    document.getElementById('privateGate').classList.add('hidden');
-                    document.getElementById('mainPanel').classList.remove('hidden');
-                    startLongPolling();
-                    loadDashboard();
-                    initTool();
-                } else {
-                    let msg = 'ACCESS_DENIED_PROTECTION_ACTIVE';
-                    try {
-                        const payload = await res.json();
-                        if (payload && payload.error) msg = payload.error;
-                    } catch (_e) {}
-                    status.textContent = msg;
-                    if (window.notify) window.notify('INVALID_MASTER_KEY', 'error');
-                }
+                const msg = payload.error || payload.message || 'ACCESS_DENIED_PROTECTION_ACTIVE';
                 status.textContent = msg;
-                if (window.notify) window.notify('INVALID_MASTER_KEY', 'error');
-            } catch (e) { status.textContent = 'CONNECTION_FAILURE'; }
-            finally { gateBusy = false; }
+                if (window.notify) window.notify(msg, 'error');
+            } catch (e) {
+                console.error('ADMIN_LOGIN_ERR:', e);
+                status.textContent = 'CONNECTION_FAILURE';
+                if (window.notify) window.notify('CONNECTION_FAILURE', 'error');
+            } finally {
+                gateBusy = false;
+            }
         }
 
         async function logoutAdmin() {
