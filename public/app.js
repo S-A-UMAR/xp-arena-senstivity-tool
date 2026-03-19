@@ -232,7 +232,7 @@ const UI = {
             if (window.SFX) window.SFX.play('ping');
 
             setTimeout(async () => {
-                if (data.redirect && data.type === 'user') {
+                if (data.redirect && (data.type === 'user' || data.type === 'code' || data.legacy_type === 'user')) {
                     // 🧬 THE HYPE MACHINE: Tech Scanner Bridge
                     const scanner = document.getElementById('scannerOverlay');
                     const label = document.getElementById('scannerLabel');

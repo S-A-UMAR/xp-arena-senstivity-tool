@@ -50,7 +50,7 @@
         /* 📊 Data Tiles */
         .stat-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(4, 1fr);
             gap: 0.75rem;
             margin: 1rem;
         }
@@ -319,8 +319,25 @@
             <span class="stat-label">HITS</span>
         </div>
         <div class="stat-tile">
+            <span class="stat-val" id="statLikes">--</span>
+            <span class="stat-label">LIKES</span>
+        </div>
+        <div class="stat-tile">
             <span class="stat-val" id="statStatus">OK</span>
             <span class="stat-label">STATUS</span>
+        </div>
+    </div>
+    <div class="glass-panel" style="margin-top: 1rem;">
+        <div id="vendorMeta" style="font-size: 0.7rem; color: var(--text-muted); display: grid; gap: 0.65rem;">
+            <div id="activeUntilText">Active until: --</div>
+            <div>
+                <div id="usageText">Usage: 0 / --</div>
+                <div style="height: 8px; background: rgba(255,255,255,0.06); border-radius: 999px; overflow: hidden; margin-top: 0.4rem;">
+                    <div id="usageBar" style="height: 100%; width: 0%; background: var(--accent-primary);"></div>
+                </div>
+            </div>
+            <button class="btn-primary" type="button" onclick="extendAccessWindow()" style="margin-top: 0; width: auto; padding: 0.6rem 1rem;">EXTEND</button>
+            <div id="dashError" style="display: none; color: #ff6b6b; font-size: 0.65rem;"></div>
         </div>
     </div>
 
@@ -560,31 +577,65 @@
             return payload;
         }
 
+        function escapeHtml(value) {
+            return String(value || '')
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('\"', '&quot;')
+                .replaceAll("'", '&#039;');
+        }
+
+        function showDashError(message) {
+            const el = document.getElementById('dashError');
+            if (!el) return;
+            if (!message) {
+                el.style.display = 'none';
+                el.textContent = '';
+                return;
+            }
+            el.textContent = message;
+            el.style.display = 'block';
+        }
+
         async function init() {
             try {
-                populateBrands(); // Init device lists
-                loadDashboard();
-                loadAnalytics();
-                loadProfile(); // Load branding data
+                populateBrands();
+                await Promise.all([loadDashboard(), loadAnalytics(), loadProfile()]);
             } catch (e) {
-                console.error(e);
+                console.error('INIT_ERR:', e);
+                showDashError(e.message || 'DASHBOARD_BOOT_FAILED');
             }
         }
 
         async function loadDashboard() {
             try {
+                showDashError('');
                 const profile = await api(`${API_BASE}/vendor/profile`);
                 document.getElementById('vendorTitle').textContent = (profile.display_name || profile.vendor_id).toUpperCase();
-                document.getElementById('statCodes').textContent = profile.total_codes;
-                document.getElementById('statHits').textContent = profile.total_hits;
-                
+                document.getElementById('statCodes').textContent = profile.total_codes || 0;
+                document.getElementById('statHits').textContent = profile.total_hits || 0;
+                document.getElementById('statLikes').textContent = profile.total_likes || 0;
+
                 const now = new Date();
-                const isActive = profile.status === 'active' && (!profile.active_until || new Date(profile.active_until) > now);
+                const activeUntil = profile.active_until ? new Date(profile.active_until) : null;
+                const isActive = profile.status === 'active' && (!activeUntil || activeUntil > now);
                 const statStatus = document.getElementById('statStatus');
                 statStatus.textContent = isActive ? 'ONLINE' : 'LOCKED';
                 statStatus.style.color = isActive ? 'var(--accent-primary)' : '#ff4444';
+
+                document.getElementById('activeUntilText').textContent = `Active until: ${activeUntil ? activeUntil.toISOString().slice(0, 10) : 'Perpetual'}`;
+                const usageLimit = profile.usage_limit || 0;
+                const usageText = usageLimit ? `${profile.total_hits || 0} / ${usageLimit}` : `${profile.total_hits || 0} / ∞`;
+                document.getElementById('usageText').textContent = `Usage: ${usageText}`;
+                const usagePct = usageLimit ? Math.min(100, Math.round(((profile.total_hits || 0) / usageLimit) * 100)) : 0;
+                document.getElementById('usageBar').style.width = `${usagePct}%`;
+                document.getElementById('usageBar').style.background = usagePct >= 90 ? '#ff6b6b' : 'var(--accent-primary)';
+                if (usageLimit && usagePct >= 90) showDashError('USAGE LIMIT WARNING: ABOVE 90%');
             } catch (e) {
                 console.error('LOAD_DASH_ERR:', e);
+                showDashError(e.message || 'PROFILE_LOAD_FAILED');
+                throw e;
             }
         }
 
@@ -601,6 +652,7 @@
                 }
             } catch (e) {
                 console.warn('LOAD_PROFILE_ERR:', e);
+                showDashError(e.message || 'PROFILE_LOAD_FAILED');
             }
         }
 
@@ -618,19 +670,18 @@
             try {
                 await api(`${API_BASE}/profile`, 'PUT', data);
                 if (window.notify) window.notify('PROFILE_UPDATED_SYNCED', 'success');
-                loadDashboard(); // Refresh UI
+                await loadDashboard();
             } catch (e) {
-                if (window.notify) window.notify('SYNC_FAILED', 'error');
+                showDashError(e.message || 'PROFILE_SAVE_FAILED');
+                if (window.notify) window.notify(e.message || 'SYNC_FAILED', 'error');
             }
         }
 
         function switchTab(tab, el) {
             document.querySelectorAll('.nav-section').forEach(s => s.classList.add('hidden'));
             document.getElementById(`section-${tab}`).classList.remove('hidden');
-            
             document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-            el.classList.add('active');
-            
+            if (el) el.classList.add('active');
             if (window.SFX) window.SFX.play('click');
         }
 
@@ -646,39 +697,36 @@
                 } else {
                     barChart.innerHTML = '<div style="width:100%; text-align:center; opacity:0.1; font-size:0.6rem;">NO_DATA</div>';
                 }
-            } catch (e) {}
+            } catch (e) {
+                showDashError(e.message || 'ANALYTICS_LOAD_FAILED');
+            }
         }
 
-        // 🕹️ Gaming Architecture Logic
-        let genState = {
-            playstyle: 'balanced',
-            claw: '2'
-        };
+        let genState = { playstyle: 'balanced', claw: '2' };
 
         function populateBrands() {
             const brandSel = document.getElementById('genBrand');
-            if (!window.DEVICES) return;
+            if (!window.DEVICES || !brandSel || brandSel.dataset.loaded === 'true') return;
             window.DEVICES.forEach(b => {
                 const opt = document.createElement('option');
                 opt.value = opt.textContent = b.brand;
                 brandSel.appendChild(opt);
             });
+            brandSel.dataset.loaded = 'true';
         }
 
         function updateSeries() {
             const brand = document.getElementById('genBrand').value;
             const seriesSel = document.getElementById('genSeries');
             const modelSel = document.getElementById('genModel');
-            
             seriesSel.innerHTML = '<option value="">SELECT SERIES</option>';
             modelSel.innerHTML = '<option value="">SELECT MODEL</option>';
             modelSel.disabled = true;
-
+            document.getElementById('graphicsCap').textContent = '---';
             if (!brand) {
                 seriesSel.disabled = true;
                 return;
             }
-
             const data = window.DEVICES.find(d => d.brand === brand);
             if (data) {
                 data.series.forEach(s => {
@@ -694,36 +742,25 @@
             const brand = document.getElementById('genBrand').value;
             const series = document.getElementById('genSeries').value;
             const modelSel = document.getElementById('genModel');
-            
             modelSel.innerHTML = '<option value="">SELECT MODEL</option>';
-            
             if (!series) {
                 modelSel.disabled = true;
                 return;
             }
-
             const brandData = window.DEVICES.find(d => d.brand === brand);
-            if (!brandData) {
+            const seriesData = brandData?.series.find(s => s.name === series);
+            if (!seriesData) {
                 modelSel.disabled = true;
                 return;
             }
-            const seriesData = brandData.series.find(s => s.name === series);
-            
-            if (seriesData) {
-                seriesData.models.forEach(m => {
-                    const opt = document.createElement('option');
-                    opt.value = opt.textContent = m;
-                    modelSel.appendChild(opt);
-                });
-                modelSel.disabled = false;
-                
-                // 📊 Update Graphics Capability Prediction
-                const gCap = document.getElementById('graphicsCap');
-                const isHigh = seriesData.name.toLowerCase().includes('ultra') || 
-                               seriesData.name.toLowerCase().includes('pro max') || 
-                               seriesData.name.toLowerCase().includes('gaming');
-                gCap.textContent = isHigh ? 'ULTRA + MAX' : 'SMOOTH + ULTRA';
-            }
+            seriesData.models.forEach(m => {
+                const opt = document.createElement('option');
+                opt.value = opt.textContent = m;
+                modelSel.appendChild(opt);
+            });
+            modelSel.disabled = false;
+            const isHigh = /ultra|pro max|gaming/i.test(seriesData.name);
+            document.getElementById('graphicsCap').textContent = isHigh ? 'ULTRA + MAX' : 'SMOOTH + ULTRA';
         }
 
         function setSegment(type, el) {
@@ -740,61 +777,74 @@
 
         async function autoGenerate() {
             try {
+                showDashError('');
                 const brand = document.getElementById('genBrand').value;
+                const series = document.getElementById('genSeries').value;
                 const model = document.getElementById('genModel').value;
-                if (!brand || !model) {
-                    if (window.notify) window.notify('SELECT BRAND + MODEL FIRST', 'error');
-                    return;
-                }
+                if (!brand || !model) throw new Error('SELECT BRAND + MODEL FIRST');
                 const body = {
                     brand,
-                    series: document.getElementById('genSeries').value,
+                    series,
                     model,
-                    ram: parseInt(document.getElementById('genRam').value),
+                    ram: parseInt(document.getElementById('genRam').value, 10),
                     speed: genState.playstyle,
                     claw: genState.claw
                 };
-                
                 const res = await api(`${API_BASE}/vendor/generate`, 'POST', body);
                 document.getElementById('genResult').classList.remove('hidden');
                 document.getElementById('accessKeyVal').textContent = res.accessKey;
                 if (window.notify) window.notify('AUTO_CALIBRATED_SUCCESS', 'success');
-                loadDashboard(); // Refresh stats
+                await loadDashboard();
             } catch (e) {
+                showDashError(e.message || 'VAULT_GENERATION_FAILED');
                 if (window.notify) window.notify(e.message || 'VAULT_GENERATION_FAILED', 'error');
             }
         }
 
         async function submitManual() {
             try {
-                const bulkAmount = Math.min(Math.max(parseInt(document.getElementById('mBulk').value) || 1, 1), 10);
+                showDashError('');
+                const bulkAmount = Math.min(Math.max(parseInt(document.getElementById('mBulk').value, 10) || 1, 1), 10);
                 const body = {
-                    general: parseInt(document.getElementById('mGen').value),
-                    redDot: parseInt(document.getElementById('mRed').value),
-                    scope2x: parseInt(document.getElementById('m2x').value),
-                    scope4x: parseInt(document.getElementById('m4x').value),
-                    sniper: parseInt(document.getElementById('mSni').value),
-                    freeLook: parseInt(document.getElementById('mFree').value),
+                    general: parseInt(document.getElementById('mGen').value, 10),
+                    redDot: parseInt(document.getElementById('mRed').value, 10),
+                    scope2x: parseInt(document.getElementById('m2x').value, 10),
+                    scope4x: parseInt(document.getElementById('m4x').value, 10),
+                    sniper: parseInt(document.getElementById('mSni').value, 10),
+                    freeLook: parseInt(document.getElementById('mFree').value, 10),
                     advice: document.getElementById('mAdvice').value
                 };
                 const requiredValues = [body.general, body.redDot, body.scope2x, body.scope4x, body.sniper, body.freeLook];
-                if (requiredValues.some(v => Number.isNaN(v))) {
-                    if (window.notify) window.notify('ENTER ALL SENSITIVITY VALUES', 'error');
-                    return;
-                }
-                
-                let keys = [];
-                for(let i=0; i<bulkAmount; i++) {
+                if (requiredValues.some(v => Number.isNaN(v))) throw new Error('ENTER ALL SENSITIVITY VALUES');
+                const keys = [];
+                for (let i = 0; i < bulkAmount; i += 1) {
                     const res = await api(`${API_BASE}/vendor/manual-entry`, 'POST', body);
                     keys.push(res.accessKey);
                 }
-                
                 toggleSheet(false);
                 document.getElementById('genResult').classList.remove('hidden');
-                document.getElementById('accessKeyVal').innerHTML = keys.join('<br>');
+                document.getElementById('accessKeyVal').innerHTML = keys.map((key) => escapeHtml(key)).join('<br>');
                 if (window.notify) window.notify(`PUBLISHED ${keys.length} KEY(S)`, 'success');
+                await loadDashboard();
             } catch (e) {
+                showDashError(e.message || 'MANUAL_PUBLISH_FAILED');
                 if (window.notify) window.notify(e.message || 'MANUAL_PUBLISH_FAILED', 'error');
+            }
+        }
+
+        async function extendAccessWindow() {
+            const hoursRaw = window.prompt('Extend account by how many hours?', '24');
+            if (!hoursRaw) return;
+            const hours = parseInt(hoursRaw, 10);
+            if (Number.isNaN(hours) || hours <= 0) {
+                showDashError('INVALID_EXTENSION_HOURS');
+                return;
+            }
+            try {
+                await api(`${API_BASE}/vendor/extend-access`, 'POST', { hours });
+                await loadDashboard();
+            } catch (e) {
+                showDashError('EXTEND REQUIRES ADMIN ACCESS');
             }
         }
 
@@ -804,7 +854,10 @@
             if (window.notify) window.notify('COPIED_TO_CLIPBOARD', 'success');
         }
 
-        function handleLogout() {
+        async function handleLogout() {
+            try {
+                await fetch(`${API_BASE}/vendor/logout`, { method: 'POST', credentials: 'include' });
+            } catch (_e) {}
             document.cookie = 'xp_vendor_token=; Max-Age=0; path=/;';
             window.location.href = '/verify.html';
         }

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>XP ARENA | Leaderboard</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body { padding: 2rem 1rem; }
+    .board-shell { max-width: 960px; margin: 0 auto; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 0.9rem 0.7rem; border-bottom: 1px solid #222; text-align: left; font-size: 0.85rem; }
+    .sorts { display:flex; gap:0.75rem; margin:1rem 0 1.5rem; }
+    .sorts button.active { background: var(--accent-primary); color:#000; }
+    .muted { color: var(--text-muted); font-size: 0.78rem; }
+  </style>
+</head>
+<body>
+  <div class="board-shell">
+    <div class="glass-panel">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;">
+        <div>
+          <div class="logo-badge">XP_ARENA</div>
+          <h1 style="margin:0.75rem 0 0.2rem;">Vendor Leaderboard</h1>
+          <div class="muted">Auto-refreshes every 30 seconds.</div>
+        </div>
+        <a class="action-btn" href="/verify.html" style="margin-top:0;">VERIFY CODE</a>
+      </div>
+      <div class="sorts">
+        <button id="sortLikes" class="action-btn active" style="margin-top:0;" onclick="setSort('likes')">Sort by Likes</button>
+        <button id="sortHits" class="action-btn" style="margin-top:0;" onclick="setSort('hits')">Sort by Hits</button>
+      </div>
+      <div id="boardError" class="muted"></div>
+      <table>
+        <thead>
+          <tr><th>Rank</th><th>Vendor</th><th>Hits</th><th>Likes</th><th>Links</th></tr>
+        </thead>
+        <tbody id="boardBody">
+          <tr><td colspan="5" class="muted">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <script>
+    let currentSort = 'likes';
+    let refreshTimer = null;
+    function escapeHtml(value) {
+      return String(value || '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('\"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+    function renderLinks(row) {
+      const links = [];
+      if (row.discord) links.push(`<a href="${row.discord.startsWith('http') ? row.discord : `https://${row.discord}`}" target="_blank">Discord</a>`);
+      if (row.youtube) links.push(`<a href="${row.youtube.startsWith('http') ? row.youtube : `https://${row.youtube}`}" target="_blank">YouTube</a>`);
+      if (row.tiktok) links.push(`<a href="${row.tiktok.startsWith('http') ? row.tiktok : `https://${row.tiktok}`}" target="_blank">TikTok</a>`);
+      return links.length ? links.join(' · ') : '<span class="muted">No links</span>';
+    }
+    async function loadBoard() {
+      try {
+        document.getElementById('boardError').textContent = '';
+        const res = await fetch(`/api/vault/leaderboard?limit=20&sort=${currentSort}`);
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'LEADERBOARD_UNAVAILABLE');
+        document.getElementById('boardBody').innerHTML = data.map(row => `
+          <tr>
+            <td>#${row.rank}</td>
+            <td>${escapeHtml(row.display_name || row.vendor_id)}</td>
+            <td>${row.total_hits || 0}</td>
+            <td>${row.total_likes || 0}</td>
+            <td>${renderLinks(row)}</td>
+          </tr>
+        `).join('') || '<tr><td colspan="5" class="muted">No vendors found.</td></tr>';
+      } catch (e) {
+        document.getElementById('boardError').textContent = e.message || 'LEADERBOARD_UNAVAILABLE';
+      }
+    }
+    function setSort(sort) {
+      currentSort = sort;
+      document.getElementById('sortLikes').classList.toggle('active', sort === 'likes');
+      document.getElementById('sortHits').classList.toggle('active', sort === 'hits');
+      loadBoard();
+    }
+    window.setSort = setSort;
+    loadBoard();
+    refreshTimer = setInterval(loadBoard, 30000);
+  </script>
+</body>
+</html>
