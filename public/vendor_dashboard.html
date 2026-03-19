@@ -554,8 +554,10 @@
             if (body) options.body = JSON.stringify(body);
             const res = await fetch(path, options);
             if (res.status === 401) window.location.href = '/verify.html';
-            if (!res.ok) throw new Error((await res.json()).error || 'API_ERR');
-            return res.json();
+            let payload = {};
+            try { payload = await res.json(); } catch (_e) {}
+            if (!res.ok) throw new Error(payload.error || payload.message || 'API_ERR');
+            return payload;
         }
 
         async function init() {
@@ -759,7 +761,7 @@
                 if (window.notify) window.notify('AUTO_CALIBRATED_SUCCESS', 'success');
                 loadDashboard(); // Refresh stats
             } catch (e) {
-                alert(e.message);
+                if (window.notify) window.notify(e.message || 'VAULT_GENERATION_FAILED', 'error');
             }
         }
 
@@ -792,7 +794,7 @@
                 document.getElementById('accessKeyVal').innerHTML = keys.join('<br>');
                 if (window.notify) window.notify(`PUBLISHED ${keys.length} KEY(S)`, 'success');
             } catch (e) {
-                alert(e.message);
+                if (window.notify) window.notify(e.message || 'MANUAL_PUBLISH_FAILED', 'error');
             }
         }
 

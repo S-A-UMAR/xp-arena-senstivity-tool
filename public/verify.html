@@ -7,11 +7,34 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Outfit:wght@600;800&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
+    <style>
+        .verify-shell { width: 100%; max-width: 760px; }
+        .verify-panel {
+            background: linear-gradient(140deg, rgba(255,255,255,0.03), rgba(0,0,0,0.6));
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 18px;
+            padding: 1.1rem;
+            margin-bottom: 1rem;
+        }
+        .verify-kpi-grid { display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 0.8rem; }
+        .verify-kpi {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 0.75rem;
+        }
+        .verify-help {
+            margin-top: 0.8rem;
+            font-size: 0.62rem;
+            color: var(--text-muted);
+            line-height: 1.55;
+        }
+    </style>
 </head>
 <body style="display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 2rem; background: var(--bg-dark);">
     <div class="ambient-glow"></div>
 
-    <div class="terminal-container reveal">
+    <div class="terminal-container reveal verify-shell">
         <!-- Top Status Bar -->
         <div class="terminal-header">
             <div class="status-bit green">AUTHENTICATOR: ONLINE</div>
@@ -26,8 +49,8 @@
             </h1>
 
             <div id="scanResult" class="hidden">
-                <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; padding: 1.5rem; text-align: left; margin-bottom: 2rem;">
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                <div class="verify-panel">
+                    <div class="verify-kpi-grid">
                         <div class="data-point">
                             <span class="label">ENTRY_CODE</span>
                             <span class="value" id="resCode" style="color: var(--accent-primary); font-size: 0.8rem;">---</span>
@@ -54,6 +77,15 @@
 
             <div id="errorBox" class="hidden" style="color: #ff4444; font-family: var(--font-mono); font-size: 0.7rem; margin-bottom: 2rem; border: 1px solid rgba(255,68,68,0.2); padding: 1rem; border-radius: 12px; background: rgba(255,68,68,0.05);">
                 INVALID_FRAGMENT_ERROR: AUTHENTICATION_FAILED
+            </div>
+
+            <div id="guidanceBox" class="verify-panel hidden">
+                <div class="stat-label">RECOVERY_GUIDE</div>
+                <div id="guidanceTitle" style="font-family: var(--font-heading); font-size: 1rem; margin-top: 0.25rem;">SCAN PARAMETERS REQUIRED</div>
+                <div id="guidanceText" class="verify-help">
+                    Use a valid certificate link from your vendor dashboard, or paste a generated code into the URL query:
+                    <br><span style="font-family: var(--font-mono); color: var(--accent-primary);">/verify.html?code=XP-XXXX-XXXX</span>
+                </div>
             </div>
 
             <button class="action-btn" onclick="window.location.href='index.html'" style="margin-top: 1rem;">RETURN_TO_GATEWAY</button>
@@ -94,9 +126,16 @@
             const title = document.getElementById('verifyTitle');
             const resultBox = document.getElementById('scanResult');
             const errorBox = document.getElementById('errorBox');
+            const guidanceBox = document.getElementById('guidanceBox');
+            const guidanceTitle = document.getElementById('guidanceTitle');
+            const guidanceText = document.getElementById('guidanceText');
 
             if (!code) {
                 title.textContent = "MISSING_FRAGMENT_PARAMETER";
+                title.style.color = '#ffae57';
+                guidanceBox.classList.remove('hidden');
+                guidanceTitle.textContent = 'NO CODE PROVIDED';
+                guidanceText.textContent = 'Add ?code=<ACCESS_CODE> to the URL, or return to gateway and verify via vault input.';
                 return;
             }
 
@@ -112,7 +151,7 @@
                     title.style.color = "#00ff88";
                     resultBox.classList.remove('hidden');
                     
-                    document.getElementById('resCode').textContent = data.entry_code;
+                    document.getElementById('resCode').textContent = code;
                     document.getElementById('resVendor').textContent = (data.vendor_id || 'XP_CORE').toUpperCase();
                     document.getElementById('resStatus').textContent = data.status.toUpperCase();
                     const limit = data.usage_limit || '∞';
@@ -127,11 +166,17 @@
                     title.style.color = "#ff4444";
                     errorBox.classList.remove('hidden');
                     errorBox.textContent = data.error || 'INVALID_FRAGMENT_SIGNATURE';
+                    guidanceBox.classList.remove('hidden');
+                    guidanceTitle.textContent = 'CERTIFICATE VERIFICATION FAILED';
+                    guidanceText.textContent = 'This code may be expired, deactivated, malformed, or generated by another vendor workspace.';
                 }
             } catch (e) {
                 title.textContent = "SYSTEM_UPLINK_FAILURE";
                 errorBox.classList.remove('hidden');
                 errorBox.textContent = "CRITICAL: FAILED_TO_CONNECT_TO_NEURAL_DATABASE";
+                guidanceBox.classList.remove('hidden');
+                guidanceTitle.textContent = 'NETWORK OR BACKEND ISSUE';
+                guidanceText.textContent = 'Retry in a few seconds. If issue persists, verify server env vars and database connectivity.';
             }
         }
 

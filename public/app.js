@@ -19,14 +19,6 @@ const state = {
     manualSens: ''
 };
 
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/service-worker.js')
-            .then(reg => console.log('🚀 SW_REGISTERED'))
-            .catch(err => console.log('❌ SW_ERROR:', err));
-    });
-}
-
 // 🛡️ Global Intelligence: Frontend Error Boundary (10/10 Resilience)
 const SoftRecovery = {
     show(err) {

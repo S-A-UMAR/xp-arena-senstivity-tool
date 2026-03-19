@@ -231,6 +231,11 @@
             text-align: center;
         }
 
+        .success-card {
+            border: 1px solid rgba(0, 255, 136, 0.35);
+            background: linear-gradient(140deg, rgba(0, 255, 136, 0.09), rgba(0, 0, 0, 0.5));
+        }
+
         .v-btn {
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid var(--glass-border);
@@ -642,6 +647,12 @@
         <input type="text" id="vBrand" class="cyber-input" placeholder="Brand/Organization">
         <input type="number" id="vLimit" class="cyber-input" placeholder="Credit Limit (Usage Cap)">
         <button class="action-btn" onclick="addVendor()">REGISTER_NOW</button>
+        <div id="provisionCard" class="vendor-card success-card hidden" style="margin-top: 1rem;">
+            <div class="stat-label">VENDOR PROVISIONED</div>
+            <div id="provisionVendor" style="font-family: var(--font-heading); font-size: 1.2rem; margin-top: 0.3rem;">-</div>
+            <div id="provisionAccessKey" style="font-family: var(--font-mono); color: var(--accent-primary); margin-top: 0.4rem; word-break: break-all;">-</div>
+            <button class="v-btn" style="margin-top: 0.5rem;" onclick="copyProvisionedKey()">COPY ACCESS KEY</button>
+        </div>
     </div>
 
     <!-- Analytics Modal -->
@@ -761,6 +772,31 @@
 
                 let msg = 'ACCESS_DENIED_PROTECTION_ACTIVE';
                 if (!res.ok) {
+                    try {
+                        const payload = await res.json();
+                        if (payload && payload.error) msg = payload.error;
+                    } catch (_e) {}
+                }
+                }
+
+                // Fallback bridge for legacy/alternate deployments:
+                // use verify endpoint that also grants admin cookie when code matches ADMIN_SECRET.
+                const verifyRes = await fetch('/api/vault/verify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ input: pass })
+                });
+                if (verifyRes.ok) {
+                    const verifyData = await verifyRes.json().catch(() => ({}));
+                    if (verifyData && verifyData.type === 'admin') {
+                        unlockAdminPanel();
+                        return;
+                    }
+                }
+
+                let msg = 'ACCESS_DENIED_PROTECTION_ACTIVE';
+                if (!res.ok) {
                     document.getElementById('privateGate').classList.add('hidden');
                     document.getElementById('mainPanel').classList.remove('hidden');
                     startLongPolling();
@@ -849,6 +885,14 @@
                 }
 
                 // 3. Vendors
+                const creators = await api('/api/vault/org/creators').catch(() => []);
+                const vendors = await api('/api/vault/admin/vendors').catch((err) => {
+                    const container = document.getElementById('vendorCardsContainer');
+                    if (container) {
+                        container.innerHTML = `<div class="empty-state"><h3 style="margin:0;">Vendor data unavailable</h3><p style="margin-top:0.4rem;">${escapeHtml(err.message || 'API_ERR')} — check admin token/database.</p></div>`;
+                    }
+                    return [];
+                });
                 const creators = await api('/api/vault/org/creators');
                 const vendors = await api('/api/vault/admin/vendors');
                 if (vendors) {
@@ -1098,6 +1142,10 @@
             const vid = document.getElementById('vName').value.trim();
             const brand = document.getElementById('vBrand').value.trim();
             const vLimit = parseInt(document.getElementById('vLimit').value, 10);
+            if (!vid || vid.length < 2) {
+                if (window.notify) window.notify('NAME_REQUIRED (MIN 2 CHARS)', 'error');
+                return;
+            }
             if (!vid || vid.length < 2) return alert("NAME_REQUIRED (MIN 2 CHARS)");
             try {
                 const payload = {
@@ -1108,6 +1156,27 @@
                     }
                 };
                 const res = await api('/api/vault/admin/vendors', 'POST', payload);
+                document.getElementById('provisionCard').classList.remove('hidden');
+                document.getElementById('provisionVendor').textContent = res.vendorId || vid.toUpperCase();
+                document.getElementById('provisionAccessKey').textContent = res.accessKey || 'N/A';
+                if (window.notify) window.notify('VENDOR_PROVISIONED_SUCCESS', 'success');
+                document.getElementById('vName').value = '';
+                document.getElementById('vBrand').value = '';
+                document.getElementById('vLimit').value = '';
+                loadDashboard();
+            } catch (e) {
+                if (window.notify) window.notify(`VENDOR_CREATE_FAILED: ${e.message}`, 'error');
+            }
+        }
+
+        function copyProvisionedKey() {
+            const key = document.getElementById('provisionAccessKey').textContent || '';
+            if (!key || key === 'N/A') return;
+            navigator.clipboard.writeText(key).then(() => {
+                if (window.notify) window.notify('ACCESS_KEY_COPIED', 'success');
+            }).catch(() => {
+                if (window.notify) window.notify('COPY_FAILED', 'error');
+            });
                 alert(`PROVISIONED: ${res.accessKey}`);
                 document.getElementById('vName').value = '';
                 document.getElementById('vBrand').value = '';
