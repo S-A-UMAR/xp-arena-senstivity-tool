@@ -131,11 +131,16 @@
             const guidanceText = document.getElementById('guidanceText');
 
             if (!code) {
-                title.textContent = "MISSING_FRAGMENT_PARAMETER";
-                title.style.color = '#ffae57';
+                title.textContent = "NEURAL_SCAN_REQUIRED";
+                title.style.color = 'var(--accent-primary)';
                 guidanceBox.classList.remove('hidden');
-                guidanceTitle.textContent = 'NO CODE PROVIDED';
-                guidanceText.textContent = 'Add ?code=<ACCESS_CODE> to the URL, or return to gateway and verify via vault input.';
+                guidanceTitle.textContent = 'ENTER_ACCESS_CODE';
+                guidanceText.innerHTML = `
+                    <div style="margin-top: 1rem;">
+                        <input type="text" id="manualCode" class="cyber-input" style="text-align: center; letter-spacing: 0.2em;" placeholder="XP-XXXX-XXXX">
+                        <button class="action-btn" onclick="location.href='?code=' + document.getElementById('manualCode').value.trim()">START_SCAN</button>
+                    </div>
+                `;
                 return;
             }
 

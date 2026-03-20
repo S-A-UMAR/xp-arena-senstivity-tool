@@ -842,7 +842,9 @@
             try {
                 showDashError('');
                 const profile = await api(`${API_BASE}/profile`);
-                window.vendorName = profile.display_name || profile.vendor_id;
+                if (!profile) throw new Error('PROFILE_DATA_EMPTY');
+
+                window.vendorName = profile.display_name || profile.vendor_id || 'UNKNOWN_VENDOR';
                 document.getElementById('vendorTitle').textContent = window.vendorName.toUpperCase();
                 document.getElementById('statCodes').textContent = profile.total_codes || 0;
                 document.getElementById('statHits').textContent = profile.total_hits || 0;

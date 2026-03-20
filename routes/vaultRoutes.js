@@ -499,23 +499,45 @@ router.post('/vendor/login', async (req, res) => {
 });
 
 // GET /api/vault/profile
+// 🚀 Unified Profile Routing (REPLACING DUPLICATES)
 router.get('/profile', authenticateVendor, async (req, res) => {
     try {
-        const vendor = await db.get(`
-            SELECT v.*, 
-            (SELECT COUNT(*) FROM sensitivity_keys WHERE vendor_id = v.vendor_id) as total_codes,
-            (SELECT COUNT(*) FROM code_activity ca JOIN sensitivity_keys sk ON ca.lookup_key = sk.lookup_key WHERE sk.vendor_id = v.vendor_id) as total_hits,
-            (SELECT COUNT(*) FROM code_activity ca JOIN sensitivity_keys sk ON ca.lookup_key = sk.lookup_key WHERE sk.vendor_id = v.vendor_id AND ca.feedback_rating IS NOT NULL) as total_likes
-            FROM vendors v WHERE v.vendor_id = ?
-        `, [req.vendorId]);
-        
+        const vendor = await db.get('SELECT vendor_id, status, active_until, brand_config, webhook_url, usage_limit FROM vendors WHERE vendor_id = ?', [req.vendorId]);
         if (!vendor) return res.status(404).json({ error: 'VENDOR_NOT_FOUND' });
+
+        const stats = await db.get(`
+            SELECT COUNT(*) as codes, COALESCE(SUM(current_usage), 0) as hits
+            FROM sensitivity_keys 
+            WHERE vendor_id = ?
+        `, [req.vendorId]);
+
+        const likes = await db.get(`
+            SELECT COUNT(*) as likes
+            FROM code_activity ca
+            JOIN sensitivity_keys sk ON ca.lookup_key = sk.lookup_key
+            WHERE sk.vendor_id = ? AND ca.feedback_rating IS NOT NULL
+        `, [req.vendorId]);
+
+        const config = normalizeBranding(vendor.brand_config);
         
-        // Normalize brand_config
-        vendor.brand_config = normalizeBranding(vendor.brand_config);
-        res.json(vendor);
+        res.json({
+            vendor_id: vendor.vendor_id,
+            display_name: config.display_name || vendor.vendor_id,
+            total_codes: stats?.codes || 0,
+            total_hits: stats?.hits || 0,
+            total_likes: likes?.likes || 0,
+            status: vendor.status,
+            webhook_url: vendor.webhook_url || '',
+            youtube: config.youtube || '',
+            tiktok: config.tiktok || '',
+            discord: config.discord || '',
+            active_until: vendor.active_until,
+            usage_limit: vendor.usage_limit ?? null,
+            logo_url: config.logo_url || ''
+        });
     } catch (e) {
-        res.status(500).json({ error: 'PROFILE_LOAD_FAILED' });
+        console.error('VENDOR_PROFILE_ERR:', e);
+        res.status(500).json({ error: 'VENDOR_PROFILE_UNAVAILABLE' });
     }
 });
 
@@ -729,22 +751,6 @@ router.post('/manual-entry', authenticateVendor, async (req, res) => {
 });
 
 // GET /api/vault/profile
-router.get('/profile', authenticateVendor, async (req, res) => {
-    try {
-        const vendor = await db.get(`
-            SELECT v.*, 
-            (SELECT COUNT(*) FROM sensitivity_keys WHERE vendor_id = v.vendor_id) as total_codes,
-            (SELECT COUNT(*) FROM code_activity ca JOIN sensitivity_keys sk ON ca.lookup_key = sk.lookup_key WHERE sk.vendor_id = v.vendor_id) as total_hits,
-            (SELECT COUNT(*) FROM code_activity ca JOIN sensitivity_keys sk ON ca.lookup_key = sk.lookup_key WHERE sk.vendor_id = v.vendor_id AND ca.feedback_rating > 3) as total_likes
-            FROM vendors v WHERE v.vendor_id = ?
-        `, [req.vendorId]);
-        
-        const branding = normalizeBranding(vendor.brand_config);
-        res.json({ ...vendor, ...branding });
-    } catch (e) {
-        res.status(500).json({ error: 'PROFILE_LOAD_FAILED' });
-    }
-});
 
 // PUT /api/vault/profile
 router.put('/profile', authenticateVendor, async (req, res) => {
@@ -1400,41 +1406,6 @@ router.put('/code/:entryCode/deactivate', authenticateVendor, async (req, res) =
         res.json({ success: true });
     } catch (e) {
         res.status(500).json({ error: 'Server error' });
-    }
-});
-router.get('/profile', authenticateVendor, async (req, res) => {
-    try {
-        const vendor = await db.get('SELECT vendor_id, status, active_until, brand_config, webhook_url, usage_limit FROM vendors WHERE vendor_id = ?', [req.vendorId]);
-        const stats = await db.get(`
-            SELECT COUNT(*) as codes, COALESCE(SUM(current_usage), 0) as hits
-            FROM sensitivity_keys 
-            WHERE vendor_id = ?
-        `, [req.vendorId]);
-        const likes = await db.get(`
-            SELECT COUNT(*) as likes
-            FROM code_activity ca
-            JOIN sensitivity_keys sk ON ca.lookup_key = sk.lookup_key
-            WHERE sk.vendor_id = ? AND ca.feedback_rating IS NOT NULL
-        `, [req.vendorId]);
-        const config = normalizeBranding(vendor?.brand_config);
-        res.json({
-            vendor_id: vendor.vendor_id,
-            display_name: config.display_name || vendor.vendor_id,
-            total_codes: stats?.codes || 0,
-            total_hits: stats?.hits || 0,
-            total_likes: likes?.likes || 0,
-            status: vendor.status,
-            webhook_url: vendor.webhook_url || '',
-            youtube: config.youtube || '',
-            tiktok: config.tiktok || '',
-            discord: config.discord || '',
-            active_until: vendor.active_until,
-            usage_limit: vendor.usage_limit ?? null,
-            logo_url: config.logo_url || ''
-        });
-    } catch (e) {
-        console.error('VENDOR_PROFILE_ERR:', e);
-        res.status(500).json({ error: 'VENDOR_PROFILE_UNAVAILABLE' });
     }
 });
 
