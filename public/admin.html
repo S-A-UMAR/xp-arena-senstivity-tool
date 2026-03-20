@@ -1186,11 +1186,10 @@
         }
 
         function toggleActionSheet(show) {
-            document.getElementById('sheetOverlay').classList.toggle('active', show);
-            document.getElementById('vendorSheet').classList.toggle('active', show);
-            if (!show) {
-                document.getElementById('provisionCard').classList.add('hidden');
-            }
+            const overlay = document.getElementById('sheetOverlay');
+            const sheet = document.getElementById('vendorSheet');
+            if (overlay) overlay.classList.toggle('active', show);
+            if (sheet) sheet.classList.toggle('active', show);
         }
 
         // Global Offset
