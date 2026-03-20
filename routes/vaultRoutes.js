@@ -959,10 +959,12 @@ router.post('/admin/vendors', authenticateAdmin, async (req, res) => {
         const schema = z.object({
             vendorId: z.string().min(2).optional(),
             orgId: z.string().optional(),
-            usageLimit: z.number().int().positive().nullable().optional(),
+            usageLimit: z.number().int().min(0).nullable().optional(),
             brandConfig: z.record(z.any()).optional()
         });
-        const { vendorId: requestedId, orgId, usageLimit, brandConfig } = schema.parse(req.body);
+        const { vendorId: requestedId, orgId: rawOrgId, usageLimit, brandConfig } = schema.parse(req.body);
+        
+        const orgId = (rawOrgId || 'XP-CORE-ORG').trim().toUpperCase().replace(/[^A-Z0-9-]/g, '');
         
         // Generate Vendor ID if not provided, or clean up provided one
         const normalizedRequestedId = requestedId
@@ -981,9 +983,11 @@ router.post('/admin/vendors', authenticateAdmin, async (req, res) => {
         const hashedAccessKey = await bcrypt.hash(accessKey, 10);
         const lookupKey = getLookupKey(accessKey);
 
-        // 🛡️ Ensure core org row exists with specific bin collation compatibility
+        // 🛡️ Ensure organization exists (auto-provision custom brands)
+        const orgName = rawOrgId || 'XP ARENA GLOBAL';
         await db.run(
-            "INSERT IGNORE INTO organizations (org_id, org_name, plan_tier) VALUES ('XP-CORE-ORG', 'XP ARENA GLOBAL', 'enterprise')"
+            "INSERT IGNORE INTO organizations (org_id, org_name, plan_tier) VALUES (?, ?, 'enterprise')",
+            [orgId, orgName]
         );
 
         await db.run(`

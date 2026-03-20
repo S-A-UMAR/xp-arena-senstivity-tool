@@ -1459,7 +1459,8 @@
                 if (window.notify) window.notify('VENDOR_PROVISIONED_SUCCESS', 'success');
                 loadDashboard();
             } catch (e) {
-                if (window.notify) window.notify(`VENDOR_CREATE_FAILED: ${e.message}`, 'error');
+                const msg = e.error || e.message || 'UNKNOWN_ERROR';
+                if (window.notify) window.notify(`VENDOR_CREATE_FAILED: ${msg}`, 'error');
             }
         }
 

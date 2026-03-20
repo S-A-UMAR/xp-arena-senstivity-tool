@@ -103,6 +103,14 @@ const UI = {
         this.initLanguage();
         this.initPWA();
         
+        // 🛠️ Developer Bypass (For Auditing/Showcase)
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('dev') === 'true' && (location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.protocol === 'file:')) {
+            console.warn('🔓 DEVELOPER_BYPASS_ACTIVE');
+            this.elements.vaultOverlay.classList.add('hidden');
+            this.elements.appContainer.classList.remove('hidden');
+        }
+
         // Funnel Tracking: Landing View
         this.trackFunnel('landing_view');
         
