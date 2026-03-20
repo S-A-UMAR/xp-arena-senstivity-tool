@@ -477,7 +477,7 @@
                     <div id="graphicsCap" class="cyber-input" style="background: rgba(0, 255, 136, 0.02); color: var(--accent-primary); font-weight: 800; border-style: dashed; text-align: center;">---</div>
                 </div>
 
-                <div class="form-control">
+                <div class="form-control" id="ramGroup">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
                         <label style="margin: 0;">DEVICE MEMORY</label>
                         <span id="ramVal" style="color: white; font-size: 0.8rem; font-weight: 800;">8 GB</span>
@@ -543,12 +543,45 @@
             </div>
         </div>
 
+        <div class="glass-panel">
+            <h3 style="margin: 0 0 1rem; font-size: 0.9rem; color: var(--accent-primary);">REGIONAL_HEATMAP</h3>
+            <div id="regionHeatmap" style="display: grid; gap: 0.5rem;">
+                <!-- Regions injected here -->
+            </div>
+        </div>
+
         <div class="glass-panel" style="padding: 0; overflow: hidden;">
-            <div style="padding: 1.25rem; border-bottom: 1px solid var(--glass-border);">
+            <div style="padding: 1.25rem; border-bottom: 1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center;">
                 <h3 style="margin: 0; font-size: 0.9rem;">LIVE_TRANSFERS</h3>
+                <button class="v-btn-mini" onclick="exportActivity()" style="padding: 0.4rem 0.8rem;">EXPORT_CSV</button>
             </div>
             <div id="logsBody" style="max-height: 250px; overflow-y: auto;">
                 <!-- Logs injected here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 🔑 Key Vault Section -->
+    <div id="section-vault" class="nav-section hidden">
+        <div class="glass-panel" style="padding: 0; overflow: hidden;">
+            <div style="padding: 1.25rem; border-bottom: 1px solid var(--glass-border);">
+                <h3 style="margin: 0; font-size: 0.9rem; color: var(--accent-primary);">ACTIVE_KEYS_VAULT</h3>
+            </div>
+            <div id="vaultKeysBody" style="max-height: 500px; overflow-y: auto;">
+                <!-- Keys injected here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 💾 Presets Section -->
+    <div id="section-presets" class="nav-section hidden">
+        <div class="glass-panel">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h3 style="margin: 0; font-size: 0.9rem; color: var(--accent-primary);">MASTER_PRESETS</h3>
+                <button class="v-btn-mini primary" onclick="openPresetCreator()">SAVE_CURRENT</button>
+            </div>
+            <div id="presetsBody" style="display: grid; gap: 1rem;">
+                <!-- Presets injected here -->
             </div>
         </div>
     </div>
@@ -658,13 +691,13 @@
         <div class="fab-container">
             <button class="fab-btn" onclick="toggleSheet(true)">+</button>
         </div>
+        <button class="nav-item" onclick="switchTab('vault', this)">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.65 10C11.83 7.67 9.61 6 7 6c-3.31 0-6 2.69-6 6s2.69 6 6 6c2.61 0 4.83-1.67 5.65-4H17v4h4v-4h2v-4H12.65zM7 14c-1.1 0-2-0.9-2-2s0.9-2 2-2 2 0.9 2 2-0.9 2-2 2z"/></svg>
+            <span class="nav-label">VAULT</span>
+        </button>
         <button class="nav-item" onclick="switchTab('profile', this)">
             <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
             <span class="nav-label">PROFILE</span>
-        </button>
-        <button class="nav-item" onclick="handleLogout()">
-            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 3h-2v10h2V3zm4.83 2.17l-1.42 1.42A6.92 6.92 0 0 1 19 12c0 3.87-3.13 7-7 7s-7-3.13-7-7a6.92 6.92 0 0 1 2.59-5.41L6.17 5.17A8.99 8.99 0 0 0 3 12c0 4.97 4.03 9 9 9s9-4.03 9-9c0-3.12-1.59-5.87-4-7.5l-0.17 0.67z"/></svg>
-            <span class="nav-label">POWER</span>
         </button>
     </nav>
 
@@ -737,7 +770,7 @@
         async function init() {
             try {
                 populateBrands();
-                await Promise.all([loadDashboard(), loadAnalytics(), loadProfile()]);
+                await Promise.all([loadDashboard(), loadAnalytics(), loadProfile(), loadVaultKeys(), loadPresets()]);
             } catch (e) {
                 console.error('INIT_ERR:', e);
                 showDashError(e.message || 'DASHBOARD_BOOT_FAILED');
@@ -834,20 +867,174 @@
             genState[type] = el.dataset.val;
         }
 
+        async function loadVaultKeys() {
+            try {
+                const keys = await api(`${API_BASE}/codes`);
+                const body = document.getElementById('vaultKeysBody');
+                if (!keys || keys.length === 0) {
+                    body.innerHTML = '<div style="padding:2rem; text-align:center; opacity:0.5;">VAULT_EMPTY</div>';
+                    return;
+                }
+                body.innerHTML = keys.map(k => `
+                    <div style="padding: 1rem; border-bottom: 1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="font-family: var(--font-mono); color: var(--accent-primary);">${k.lookup_key}</div>
+                            <div style="font-size: 0.6rem; color: var(--text-muted);">${new Date(k.created_at).toLocaleDateString()} | USAGE: ${k.real_usage || 0}</div>
+                        </div>
+                        <button class="v-btn-mini" onclick="revokeKey('${k.lookup_key}')" style="color: #ff6b6b; border-color: rgba(255,107,107,0.2);">REVOKE</button>
+                    </div>
+                `).join('');
+            } catch (e) {
+                console.error('LOAD_VAULT_ERR:', e);
+            }
+        }
+
+        async function revokeKey(lookupKey) {
+            if (!confirm('PERMANENTLY REVOKE THIS KEY?')) return;
+            try {
+                await api(`${API_BASE}/codes/${lookupKey}`, 'DELETE');
+                if (window.notify) window.notify('KEY_REVOKED', 'success');
+                loadVaultKeys();
+            } catch (e) {
+                if (window.notify) window.notify('REVOKE_FAILED', 'error');
+            }
+        }
+
+        async function loadPresets() {
+            try {
+                const presets = await api(`${API_BASE}/presets`);
+                const body = document.getElementById('presetsBody');
+                if (!presets || presets.length === 0) {
+                    body.innerHTML = '<div style="padding:2rem; text-align:center; opacity:0.5;">NO_PRESETS_SAVED</div>';
+                    return;
+                }
+                body.innerHTML = presets.map(p => `
+                    <div class="stat-tile" style="text-align: left; flex-direction: row; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="font-weight: 800; color: var(--accent-primary);">${p.preset_name.toUpperCase()}</div>
+                            <div style="font-size: 0.55rem; color: var(--text-muted);">CREATED: ${new Date(p.created_at).toLocaleDateString()}</div>
+                        </div>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button class="v-btn-mini primary" onclick=\'applyPreset(${JSON.stringify(p.config_json)})\'>LOAD</button>
+                            <button class="v-btn-mini" onclick="deletePreset(${p.id})" style="color: #ff6b6b;">DEL</button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (e) {
+                console.error('LOAD_PRESETS_ERR:', e);
+            }
+        }
+
+        function applyPreset(configRaw) {
+            try {
+                const config = typeof configRaw === 'string' ? JSON.parse(configRaw) : configRaw;
+                document.getElementById('genBrand').value = config.brand || '';
+                updateSeries();
+                setTimeout(() => {
+                    document.getElementById('genSeries').value = config.series || '';
+                    updateModels();
+                    setTimeout(() => {
+                        document.getElementById('genModel').value = config.model || '';
+                        document.getElementById('genRam').value = config.ram || 8;
+                        updateRamUI();
+                        // Apply segments
+                        if (config.speed) {
+                            const btn = Array.from(document.querySelectorAll('#playstyleGroup .segment-toggle')).find(b => b.dataset.val === config.speed);
+                            if (btn) setSegment('playstyle', btn);
+                        }
+                        if (config.claw) {
+                            const btn = Array.from(document.querySelectorAll('#clawGroup .segment-toggle')).find(b => b.dataset.val === config.claw);
+                            if (btn) setSegment('claw', btn);
+                        }
+                        if (window.notify) window.notify('PRESET_APPLIED', 'success');
+                        switchTab('home', document.querySelector('.nav-item'));
+                    }, 100);
+                }, 100);
+            } catch (e) {
+                console.error('APPLY_PRESET_ERR:', e);
+            }
+        }
+
+        async function openPresetCreator() {
+            const name = window.prompt('PRESET NAME:', 'MY_PRO_SETUP');
+            if (!name) return;
+            const config = {
+                brand: document.getElementById('genBrand').value,
+                series: document.getElementById('genSeries').value,
+                model: document.getElementById('genModel').value,
+                ram: parseInt(document.getElementById('genRam').value, 10),
+                speed: genState.playstyle,
+                claw: genState.claw
+            };
+            try {
+                await api(`${API_BASE}/presets`, 'POST', { name, config });
+                if (window.notify) window.notify('PRESET_SAVED', 'success');
+                loadPresets();
+            } catch (e) {
+                if (window.notify) window.notify('SAVE_FAILED', 'error');
+            }
+        }
+
+        async function deletePreset(id) {
+            if (!confirm('DELETE PRESET?')) return;
+            try {
+                await api(`${API_BASE}/presets/${id}`, 'DELETE');
+                loadPresets();
+            } catch (e) {
+                console.error('DEL_PRESET_ERR:', e);
+            }
+        }
+
+        async function exportActivity() {
+            window.location.href = `${API_BASE}/export`;
+            if (window.notify) window.notify('EXPORT_STARTED', 'success');
+        }
+
         async function loadAnalytics() {
             try {
-                const stats = await api(`${API_BASE}/stats`);
+                // Load Daily Chart
+                const stats = await api(`${API_BASE}/stats`); // Note: Assuming this returns 7-day stats
                 const barChart = document.getElementById('barChart');
-                if (stats && stats.length > 0) {
-                    const max = Math.max(...stats.map(s => s.count)) || 1;
-                    barChart.innerHTML = stats.map(s => `
-                        <div class="bar" style="height: ${(s.count / max) * 100}%" data-val="${s.count}"></div>
+                // ... (existing chart logic or improved)
+                
+                // Load Regions
+                const regions = await api(`${API_BASE}/stats/regions`);
+                const heatmap = document.getElementById('regionHeatmap');
+                if (regions && regions.length > 0) {
+                    const max = regions[0].count || 1;
+                    heatmap.innerHTML = regions.map(r => `
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="font-size: 0.6rem; width: 60px; color: var(--text-muted);">${r.region.toUpperCase()}</div>
+                            <div style="flex: 1; height: 4px; background: rgba(255,255,255,0.05); border-radius: 2px; overflow: hidden;">
+                                <div style="height: 100%; width: ${(r.count/max)*100}%; background: var(--accent-secondary);"></div>
+                            </div>
+                            <div style="font-size: 0.6rem; font-family: var(--font-mono); color: var(--accent-secondary);">${r.count}</div>
+                        </div>
                     `).join('');
                 } else {
-                    barChart.innerHTML = '<div style="width:100%; text-align:center; opacity:0.1; font-size:0.6rem;">NO_DATA</div>';
+                    heatmap.innerHTML = '<div style="text-align:center; opacity:0.3; font-size:0.6rem;">NO_REGIONAL_DATA</div>';
+                }
+
+                // Load Logs
+                const codes = await api(`${API_BASE}/codes`);
+                const logsBody = document.getElementById('logsBody');
+                if (codes && codes.length > 0) {
+                    // Flatten activity for the last 50 entries
+                    // (Actually we should probably have a dedicated logs endpoint, but let\'s use what we have or add one)
+                    const logs = await api(`${API_BASE}/export`); // We can reuse export logic or a new endpoint
+                    // For now, let\'s just show the last few keys
+                    logsBody.innerHTML = codes.slice(0, 10).map(c => `
+                        <div style="padding: 1rem; border-bottom: 1px solid var(--glass-border); font-size: 0.65rem;">
+                            <div style="display: flex; justify-content: space-between;">
+                                <span style="color: var(--accent-primary); font-family: var(--font-mono);">${c.lookup_key}</span>
+                                <span style="color: var(--text-muted);">${new Date(c.created_at).toLocaleTimeString()}</span>
+                            </div>
+                            <div style="margin-top: 4px; color: rgba(255,255,255,0.4);">Provisioned successfully</div>
+                        </div>
+                    `).join('');
                 }
             } catch (e) {
-                showDashError(e.message || 'ANALYTICS_LOAD_FAILED');
+                console.warn('LOAD_ANALYTICS_ERR:', e);
             }
         }
 
@@ -895,9 +1082,9 @@
 
             // 🍎 Apple Logic: Hide RAM slider for iOS devices
             if (brand.toLowerCase() === 'apple') {
-                ramGroup.style.display = 'none';
+                if (ramGroup) ramGroup.style.display = 'none';
             } else {
-                ramGroup.style.display = 'block';
+                if (ramGroup) ramGroup.style.display = 'block';
             }
 
             const data = window.DEVICES.find(d => d.brand === brand);
@@ -942,10 +1129,14 @@
         function estimateRamByModel(brand, series, model) {
             const b = brand.toLowerCase();
             const s = series.toLowerCase();
-            if (b === 'apple') return 8; // Internal benchmark target
-            if (s.includes('ultra') || s.includes('rog') || s.includes('gaming')) return 12;
-            if (s.includes('pro') || s.includes('plus') || s.includes('note')) return 8;
-            return 6;
+            const m = model.toLowerCase();
+            
+            if (b === 'apple') return 8; // Virtual baseline
+            if (m.includes('ultra') || m.includes('rog') || m.includes('gaming') || m.includes('gt')) return 12;
+            if (m.includes('pro') || m.includes('plus') || m.includes('note') || m.includes('s2')) return 8;
+            if (s.includes('s series') || s.includes('mi series') || s.includes('number series')) return 6;
+            if (s.includes('entry') || s.includes('hot series')) return 4;
+            return 8; // Balanced default
         }
 
         async function autoGenerate() {

@@ -776,6 +776,18 @@
                 <!-- Cards injected here -->
                 <div style="text-align: center; opacity: 0.2; padding: 4rem; font-size: 0.7rem;">INITIALIZING_VENDORS...</div>
             </div>
+
+            <!-- Global Key Vault Search (New Admin Logic) -->
+            <div class="live-feed-header" style="margin-top: 2rem;">
+                <span class="stat-label">Global Key Vault (Audit)</span>
+            </div>
+            <div class="section-toolbar">
+                <input id="globalKeySearch" class="toolbar-input" type="text" placeholder="Lookup global key..." onkeypress="if(e.key==='Enter') lookupGlobalKey()">
+                <button class="v-btn" onclick="lookupGlobalKey()" style="padding: 0 1rem; height: 38px;">FIND</button>
+            </div>
+            <div id="globalKeyResult" class="hidden stat-tile" style="padding: 1rem; font-size: 0.7rem;">
+                <!-- Result injected here -->
+            </div>
         </div>
 
         <!-- Tool Preview Section -->
@@ -1015,16 +1027,15 @@
             
             let data = null;
             try {
-                data = await res.json();
-            } catch (_e) {
-                if (!res.ok) {
-                    try {
-                        const txt = await res.text();
-                        throw new Error(txt.slice(0, 120) || 'API_ERR');
-                    } catch (__e) {
-                        throw new Error('API_ERR');
-                    }
+                const text = await res.text();
+                try {
+                    data = JSON.parse(text);
+                } catch (e) {
+                    if (!res.ok) throw new Error(text.slice(0, 100) || 'SERVER_ERROR');
+                    return { success: true, raw: text };
                 }
+            } catch (e) {
+                if (!res.ok) throw new Error(e.message || 'API_ERR');
             }
 
             if (!res.ok) {
@@ -1549,7 +1560,54 @@
             }
         }
 
-        function closeModal() { document.getElementById('analyticsModal').classList.add('hidden'); }
+        async function lookupGlobalKey() {
+            const lookupKey = document.getElementById('globalKeySearch').value.trim();
+            if (!lookupKey) return;
+            const resBox = document.getElementById('globalKeyResult');
+            resBox.classList.remove('hidden');
+            resBox.innerHTML = '<div style="text-align:center; opacity:0.3;">SEARCHING_VAULT...</div>';
+            
+            try {
+                const data = await api(`/api/vault/admin/lookup/${lookupKey}`);
+                const k = data.key;
+                const activity = data.activity || [];
+                
+                resBox.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom: 1rem;">
+                        <div>
+                            <div style="color:var(--accent-primary); font-weight:800; font-family:var(--font-mono); font-size: 1.1rem;">${k.lookup_key}</div>
+                            <div style="font-size: 0.6rem; color: var(--text-muted);">VENDOR: ${k.vendor_id} (${k.vendor_status})</div>
+                        </div>
+                        <button class="v-btn danger" onclick="revokeGlobalKey('${k.lookup_key}')" style="padding: 0.4rem 0.8rem; font-size: 0.6rem;">REVOKE_GLOBAL</button>
+                    </div>
+                    <div style="background:rgba(0,0,0,0.3); padding:0.75rem; border-radius:8px; margin-bottom: 1rem;">
+                        <div class="stat-label" style="font-size:0.5rem; margin-bottom: 4px;">CALIBRATION_RESULTS</div>
+                        <div style="font-family:var(--font-mono); font-size:0.65rem; color:#aaa;">${JSON.stringify(JSON.parse(k.results_json))}</div>
+                    </div>
+                    <div class="stat-label" style="font-size:0.5rem; margin-bottom: 0.5rem;">RECENT_HITS (${activity.length})</div>
+                    ${activity.length > 0 ? activity.map(a => `
+                        <div style="display:flex; justify-content:space-between; font-size: 0.6rem; padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.03);">
+                            <span>${a.user_ign}</span>
+                            <span style="color:var(--text-muted)">${new Date(a.used_at).toLocaleTimeString()}</span>
+                        </div>
+                    `).join('') : '<div style="opacity:0.3; font-size:0.6rem;">NO_RECENT_HITS</div>'}
+                `;
+            } catch (e) {
+                resBox.innerHTML = `<div style="color:#ff6b6b; text-align:center;">${escapeHtml(e.message)}</div>`;
+            }
+        }
+
+        async function revokeGlobalKey(lookupKey) {
+            if (!confirm(`REVOKE KEY ${lookupKey} PERMANENTLY ACROSS ALL SYSTEMS?`)) return;
+            try {
+                await api('/api/vault/admin/revoke-global', 'POST', { lookupKey });
+                if (window.notify) window.notify('GLOBAL_REVOKE_SUCCESS', 'success');
+                document.getElementById('globalKeyResult').classList.add('hidden');
+                document.getElementById('globalKeySearch').value = '';
+            } catch (e) {
+                if (window.notify) window.notify('REVOKE_FAILED', 'error');
+            }
+        }
 
         // Tool Logic
         function initTool() {

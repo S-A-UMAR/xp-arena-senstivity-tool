@@ -99,6 +99,18 @@ async function migrate() {
             await connection.query(`ALTER TABLE organizations ADD COLUMN IF NOT EXISTS status ENUM('active', 'trial', 'suspended') DEFAULT 'active'`);
             await connection.query(`ALTER TABLE organizations ADD COLUMN IF NOT EXISTS plan_tier ENUM('basic', 'pro', 'enterprise') DEFAULT 'pro'`);
 
+            await connection.query(`CREATE TABLE IF NOT EXISTS vendor_presets (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                vendor_id VARCHAR(50) NOT NULL,
+                preset_name VARCHAR(100) NOT NULL,
+                config_json JSON NOT NULL,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                FOREIGN KEY (vendor_id) REFERENCES vendors(vendor_id) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin`);
+
+            await connection.query(`ALTER TABLE vendors ADD COLUMN IF NOT EXISTS last_login_at DATETIME NULL`);
+
             await connection.query(`INSERT IGNORE INTO organizations (org_id, org_name) VALUES ('XP-CORE-ORG', 'XP ARENA GLOBAL')`);
             await connection.query(`INSERT IGNORE INTO system_settings (setting_key, setting_value) VALUES ('global_sensitivity_offset', '1.0')`);
 

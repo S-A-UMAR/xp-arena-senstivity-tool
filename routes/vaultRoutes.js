@@ -148,6 +148,9 @@ async function authenticateVendor(req, res, next) {
             return fail(res, 'XP_AUTH_SUSPENDED', 'VENDOR_ACCOUNT_LOCKED_OR_EXPIRED', 403);
         }
 
+        // 🕒 Track Last Login (Live Feed Data)
+        await db.run('UPDATE vendors SET last_login_at = ? WHERE vendor_id = ?', [now, payload.vendor_id]);
+
         req.vendorId = payload.vendor_id;
         next();
     } catch (e) {
@@ -386,6 +389,18 @@ router.post('/verify', async (req, res) => {
             await db.run('UPDATE sensitivity_keys SET current_usage = current_usage + 1 WHERE id = ?', [keyData.id]);
             await db.run('INSERT INTO code_activity (entry_code, lookup_key, user_ign, user_region) VALUES (?, ?, ?, ?)', [input, prefix, user_ign || 'Anonymous', user_region || 'Unknown']);
 
+        const io = req.app.get('io');
+        if (io) {
+            io.emit('live_event', {
+                type: 'verify',
+                vendor_id: keyData.vendor_id,
+                user_ign: user_ign || 'Anonymous',
+                region: user_region || 'Unknown',
+                device: `${keyData.results_json.brand || ''} ${keyData.results_json.model || ''}`.trim(),
+                timestamp: new Date().toISOString()
+            });
+        }
+
             const verifyPayload = await buildVerificationPayload({ ...keyData, current_usage: (keyData.current_usage || 0) + 1 });
 
             await dispatchVendorWebhook(keyData.vendor_id, 'code_used', {
@@ -515,6 +530,176 @@ router.get('/codes', authenticateVendor, async (req, res) => {
     } catch (e) {
         console.error('GET /codes error:', e);
         res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// DELETE /api/vault/codes/:lookupKey
+router.delete('/codes/:lookupKey', authenticateVendor, async (req, res) => {
+    try {
+        const { lookupKey } = req.params;
+        const vendorId = req.vendorId;
+
+        const key = await db.get('SELECT id FROM sensitivity_keys WHERE lookup_key = ? AND vendor_id = ?', [lookupKey, vendorId]);
+        if (!key) return res.status(404).json({ error: 'KEY_NOT_FOUND' });
+
+        await db.run('DELETE FROM sensitivity_keys WHERE lookup_key = ? AND vendor_id = ?', [lookupKey, vendorId]);
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ error: 'REVOKE_FAILED' });
+    }
+});
+
+// GET /api/vault/presets
+router.get('/presets', authenticateVendor, async (req, res) => {
+    try {
+        const presets = await db.all('SELECT * FROM vendor_presets WHERE vendor_id = ? ORDER BY created_at DESC', [req.vendorId]);
+        res.json(presets);
+    } catch (e) {
+        res.status(500).json({ error: 'PRESETS_LOAD_FAILED' });
+    }
+});
+
+// POST /api/vault/presets
+router.post('/presets', authenticateVendor, async (req, res) => {
+    try {
+        const schema = z.object({
+            name: z.string().min(1).max(50),
+            config: z.record(z.any())
+        });
+        const { name, config } = schema.parse(req.body);
+        await db.run('INSERT INTO vendor_presets (vendor_id, preset_name, config_json) VALUES (?, ?, ?)', 
+            [req.vendorId, name, JSON.stringify(config)]);
+        res.json({ success: true });
+    } catch (e) {
+        res.status(400).json({ error: 'PRESET_SAVE_FAILED' });
+    }
+});
+
+// DELETE /api/vault/presets/:id
+router.delete('/presets/:id', authenticateVendor, async (req, res) => {
+    try {
+        await db.run('DELETE FROM vendor_presets WHERE id = ? AND vendor_id = ?', [req.params.id, req.vendorId]);
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ error: 'PRESET_DELETE_FAILED' });
+    }
+});
+
+// GET /api/vault/stats/regions
+router.get('/stats/regions', authenticateVendor, async (req, res) => {
+    try {
+        const regions = await db.all(`
+            SELECT user_region as region, COUNT(*) as count 
+            FROM code_activity ca
+            JOIN sensitivity_keys sk ON ca.lookup_key = sk.lookup_key
+            WHERE sk.vendor_id = ?
+            GROUP BY user_region
+            ORDER BY count DESC
+        `, [req.vendorId]);
+        res.json(regions);
+    } catch (e) {
+        res.status(500).json({ error: 'REGION_STATS_FAILED' });
+    }
+});
+
+// GET /api/vault/export
+router.get('/export', authenticateVendor, async (req, res) => {
+    try {
+        const logs = await db.all(`
+            SELECT ca.used_at, ca.user_ign, ca.user_region, ca.entry_code, ca.feedback_rating
+            FROM code_activity ca
+            JOIN sensitivity_keys sk ON ca.lookup_key = sk.lookup_key
+            WHERE sk.vendor_id = ?
+            ORDER BY ca.used_at DESC
+        `, [req.vendorId]);
+
+        let csv = 'Timestamp,IGN,Region,Key,Rating\n';
+        logs.forEach(l => {
+            csv += `${l.used_at},"${l.user_ign}","${l.user_region}",${l.entry_code},${l.feedback_rating || ''}\n`;
+        });
+
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', `attachment; filename=XP_ARENA_EXPORT_${req.vendorId}.csv`);
+        res.send(csv);
+    } catch (e) {
+        res.status(500).send('EXPORT_FAILED');
+    }
+});
+
+// POST /api/vault/generate (Auto-Generator)
+router.post('/generate', authenticateVendor, async (req, res) => {
+    try {
+        const schema = z.object({
+            brand: z.string(),
+            series: z.string(),
+            model: z.string(),
+            ram: z.number().int(),
+            speed: z.string(),
+            claw: z.string()
+        });
+        const input = schema.parse(req.body);
+        const offset = await getGlobalOffset();
+        const results = Calculator.compute(input, offset);
+
+        const entryCode = Math.floor(100000 + Math.random() * 900000).toString();
+        const hashedCode = await bcrypt.hash(entryCode, 10);
+        const lookupKey = getLookupKey(entryCode);
+
+        await db.run(`
+            INSERT INTO sensitivity_keys (entry_code, lookup_key, vendor_id, results_json, status)
+            VALUES (?, ?, ?, ?, 'active')
+        `, [hashedCode, lookupKey, req.vendorId, JSON.stringify(results)]);
+
+        res.json({ accessKey: entryCode });
+    } catch (e) {
+        res.status(400).json({ error: 'GENERATION_FAILED' });
+    }
+});
+
+// POST /api/vault/manual-entry
+router.post('/manual-entry', authenticateVendor, async (req, res) => {
+    try {
+        const schema = z.object({
+            general: z.number().int(),
+            redDot: z.number().int(),
+            scope2x: z.number().int(),
+            scope4x: z.number().int(),
+            sniper: z.number().int(),
+            freeLook: z.number().int(),
+            advice: z.string().optional()
+        });
+        const results = schema.parse(req.body);
+
+        const entryCode = Math.floor(100000 + Math.random() * 900000).toString();
+        const hashedCode = await bcrypt.hash(entryCode, 10);
+        const lookupKey = getLookupKey(entryCode);
+
+        await db.run(`
+            INSERT INTO sensitivity_keys (entry_code, lookup_key, vendor_id, results_json, creator_advice, status)
+            VALUES (?, ?, ?, ?, ?, 'active')
+        `, [hashedCode, lookupKey, req.vendorId, JSON.stringify(results), results.advice || null]);
+
+        res.json({ accessKey: entryCode });
+    } catch (e) {
+        res.status(400).json({ error: 'MANUAL_PUBLISH_FAILED' });
+    }
+});
+
+// GET /api/vault/profile
+router.get('/profile', authenticateVendor, async (req, res) => {
+    try {
+        const vendor = await db.get(`
+            SELECT v.*, 
+            (SELECT COUNT(*) FROM sensitivity_keys WHERE vendor_id = v.vendor_id) as total_codes,
+            (SELECT COUNT(*) FROM code_activity ca JOIN sensitivity_keys sk ON ca.lookup_key = sk.lookup_key WHERE sk.vendor_id = v.vendor_id) as total_hits,
+            (SELECT COUNT(*) FROM code_activity ca JOIN sensitivity_keys sk ON ca.lookup_key = sk.lookup_key WHERE sk.vendor_id = v.vendor_id AND ca.feedback_rating > 3) as total_likes
+            FROM vendors v WHERE v.vendor_id = ?
+        `, [req.vendorId]);
+        
+        const branding = normalizeBranding(vendor.brand_config);
+        res.json({ ...vendor, ...branding });
+    } catch (e) {
+        res.status(500).json({ error: 'PROFILE_LOAD_FAILED' });
     }
 });
 
@@ -653,6 +838,37 @@ router.get('/admin/stats', authenticateAdmin, async (req, res) => {
     }
 });
 
+// GET /api/vault/admin/lookup/:lookupKey
+router.get('/admin/lookup/:lookupKey', authenticateAdmin, async (req, res) => {
+    try {
+        const { lookupKey } = req.params;
+        const key = await db.get(`
+            SELECT k.*, v.vendor_id, v.status as vendor_status
+            FROM sensitivity_keys k
+            LEFT JOIN vendors v ON k.vendor_id = v.vendor_id
+            WHERE k.lookup_key = ?
+        `, [lookupKey]);
+        
+        if (!key) return res.status(404).json({ error: 'KEY_NOT_FOUND' });
+        
+        const activity = await db.all('SELECT * FROM code_activity WHERE lookup_key = ? ORDER BY used_at DESC LIMIT 10', [lookupKey]);
+        res.json({ key, activity });
+    } catch (e) {
+        res.status(500).json({ error: 'LOOKUP_FAILED' });
+    }
+});
+
+// POST /api/vault/admin/revoke-global
+router.post('/admin/revoke-global', authenticateAdmin, async (req, res) => {
+    try {
+        const { lookupKey } = req.body;
+        await db.run('DELETE FROM sensitivity_keys WHERE lookup_key = ?', [lookupKey]);
+        await logAudit('admin', 'SYSTEM', 'GLOBAL_REVOKE', { lookupKey }, getClientIp(req));
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ error: 'REVOKE_FAILED' });
+    }
+});
 // GET /api/vault/admin/vendors
 // List all vendors for Master Admin
 router.get('/admin/vendors', authenticateAdmin, async (req, res) => {
@@ -736,19 +952,14 @@ router.post('/admin/vendors', authenticateAdmin, async (req, res) => {
 
         res.json({ success: true, message: 'VENDOR REGISTERED SUCCESSFULLY', vendorId, accessKey });
     } catch (e) {
-        console.error('POST /admin/vendors error:', e);
-        if (e instanceof z.ZodError) return res.status(400).json({ error: 'Invalid input' });
-        if (e && e.code === 'ER_DUP_ENTRY') return res.status(409).json({ error: 'VENDOR_ALREADY_EXISTS' });
-        res.status(500).json({ error: 'Server error' });
         console.error('🚫 VENDOR_REGISTRATION_CRITICAL_FAILURE:', e);
         if (e instanceof z.ZodError) return res.status(400).json({ error: 'INVALID_INPUT_DATA', details: e.errors });
+        if (e && e.code === 'ER_DUP_ENTRY') return res.status(409).json({ error: 'VENDOR_ALREADY_EXISTS' });
         
         // 💡 Specialized Debugging for Database Schema Mismatches
         let errorMsg = 'SERVER_ERROR_DURING_REGISTRATION';
         if (e.message.includes('Unknown column') || e.message.includes('Table')) {
             errorMsg = `DATABASE_SCHEMA_OUTDATED: ${e.message}. Please run 'npm run migrate' on the live server or manually update tables using unified_schema.sql.`;
-        } else if (e.code === 'ER_DUP_ENTRY') {
-            return res.status(409).json({ error: 'VENDOR_ID_ALREADY_EXISTS' });
         } else if (e.message.includes('connect') || e.message.includes('Access denied')) {
             errorMsg = `DATABASE_CONNECTION_ERROR: ${e.message}. Check your Vercel Environment Variables.`;
         } else {
@@ -1271,6 +1482,120 @@ router.post('/manual-entry', authenticateVendor, async (req, res) => {
         res.json({ accessKey });
     } catch (e) {
         res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// --- PRO VENDOR FEATURES ---
+
+// 1. Key Vault: List all keys for vendor
+router.get('/keys', authenticateVendor, async (req, res) => {
+    try {
+        const keys = await db.all(`
+            SELECT lookup_key, current_usage, usage_limit, status, expires_at, created_at, results_json
+            FROM sensitivity_keys 
+            WHERE vendor_id = ?
+            ORDER BY created_at DESC
+        `, [req.vendorId]);
+        res.json(keys);
+    } catch (e) {
+        res.status(500).json({ error: 'FAILED_TO_FETCH_KEYS' });
+    }
+});
+
+// 2. Revoke Key
+router.delete('/keys/:lookupKey', authenticateVendor, async (req, res) => {
+    try {
+        await db.run('DELETE FROM sensitivity_keys WHERE lookup_key = ? AND vendor_id = ?', [req.params.lookupKey, req.vendorId]);
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ error: 'REVOKE_FAILED' });
+    }
+});
+
+// 3. Presets: List
+router.get('/presets', authenticateVendor, async (req, res) => {
+    try {
+        const presets = await db.all('SELECT id, preset_name, config_json, created_at FROM vendor_presets WHERE vendor_id = ?', [req.vendorId]);
+        res.json(presets);
+    } catch (e) {
+        res.status(500).json({ error: 'FETCH_PRESETS_FAILED' });
+    }
+});
+
+// 4. Presets: Save
+router.post('/presets', authenticateVendor, async (req, res) => {
+    try {
+        const schema = z.object({
+            name: z.string().min(1).max(100),
+            config: z.record(z.any())
+        });
+        const { name, config } = schema.parse(req.body);
+        await db.run('INSERT INTO vendor_presets (vendor_id, preset_name, config_json) VALUES (?, ?, ?)', [req.vendorId, name, JSON.stringify(config)]);
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ error: 'SAVE_PRESET_FAILED' });
+    }
+});
+
+// 5. Presets: Delete
+router.delete('/presets/:id', authenticateVendor, async (req, res) => {
+    try {
+        await db.run('DELETE FROM vendor_presets WHERE id = ? AND vendor_id = ?', [req.params.id, req.vendorId]);
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ error: 'DELETE_PRESET_FAILED' });
+    }
+});
+
+// 6. Webhook Update
+router.post('/webhook', authenticateVendor, async (req, res) => {
+    try {
+        const { url } = z.object({ url: z.string().url().nullable() }).parse(req.body);
+        await db.run('UPDATE vendors SET webhook_url = ? WHERE vendor_id = ?', [url, req.vendorId]);
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ error: 'WEBHOOK_UPDATE_FAILED' });
+    }
+});
+
+// 7. Regional Heatmap
+router.get('/analytics/regions', authenticateVendor, async (req, res) => {
+    try {
+        const stats = await db.all(`
+            SELECT user_region as region, COUNT(*) as count
+            FROM code_activity ca
+            JOIN sensitivity_keys k ON ca.lookup_key = k.lookup_key
+            WHERE k.vendor_id = ?
+            GROUP BY user_region
+            ORDER BY count DESC
+        `, [req.vendorId]);
+        res.json(stats);
+    } catch (e) {
+        res.status(500).json({ error: 'ANALYTICS_FAILED' });
+    }
+});
+
+// 8. Export Activity CSV
+router.get('/export', authenticateVendor, async (req, res) => {
+    try {
+        const logs = await db.all(`
+            SELECT ca.used_at, ca.user_ign, ca.user_region, ca.ip_address, k.lookup_key
+            FROM code_activity ca
+            JOIN sensitivity_keys k ON ca.lookup_key = k.lookup_key
+            WHERE k.vendor_id = ?
+            ORDER BY ca.used_at DESC
+        `, [req.vendorId]);
+        
+        let csv = 'TIMESTAMP,IGN,REGION,IP,KEY\n';
+        logs.forEach(l => {
+            csv += `${l.used_at},${l.user_ign},${l.user_region},${l.ip_address},${l.lookup_key}\n`;
+        });
+        
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', `attachment; filename=xp_activity_${req.vendorId}.csv`);
+        res.status(200).send(csv);
+    } catch (e) {
+        res.status(500).json({ error: 'EXPORT_FAILED' });
     }
 });
 

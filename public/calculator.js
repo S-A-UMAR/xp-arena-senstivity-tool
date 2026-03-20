@@ -30,8 +30,11 @@ window.Calculator = {
 
         const createRange = (val, variation = 3) => {
             const v = Math.round(val);
-            const low = Math.max(0, v - 3);
-            const high = Math.min(200, v + 3);
+            // Dynamic variation based on speed
+            const speedVarMap = { slow: 2, balanced: 4, fast: 6 };
+            const vMod = speedVarMap[state.speed] || 3;
+            const low = Math.max(0, v - vMod);
+            const high = Math.min(200, v + vMod);
             return `${low}-${high}`;
         };
 

@@ -108,6 +108,17 @@ CREATE TABLE IF NOT EXISTS system_settings (
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- 9. Vendor Presets Table (Saved Configurations)
+CREATE TABLE IF NOT EXISTS vendor_presets (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    vendor_id VARCHAR(50) NOT NULL,
+    preset_name VARCHAR(100) NOT NULL,
+    config_json JSON NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (vendor_id) REFERENCES vendors(vendor_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
 -- ############################################################################
 -- # SEED INITIAL SYSTEM DATA
 -- ############################################################################
