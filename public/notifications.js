@@ -1,4 +1,4 @@
-window.notify = function(message, type = 'info', duration = 3000) {
+window.notify = function(message, type = 'info', duration = 4000) {
     let container = document.getElementById('notify-container');
     if (!container) {
         container = document.createElement('div');
@@ -8,13 +8,13 @@ window.notify = function(message, type = 'info', duration = 3000) {
             top: 2rem;
             left: 50%;
             transform: translateX(-50%);
-            z-index: 99999;
+            z-index: 1000000;
             display: flex;
             flex-direction: column;
-            gap: 0.75rem;
+            gap: 1rem;
             pointer-events: none;
             width: 90%;
-            max-width: 400px;
+            max-width: 420px;
         `;
         document.body.appendChild(container);
     }
@@ -22,63 +22,125 @@ window.notify = function(message, type = 'info', duration = 3000) {
     const toast = document.createElement('div');
     const colors = {
         success: '#00f0ff',
-        error: '#ff4444',
+        error: '#ff3366',
         warning: '#ffaa00',
         info: '#ffffff',
         haptic: '#00f0ff'
     };
     
     const color = colors[type] || colors.info;
-    const isHaptic = type === 'haptic';
+    const isError = type === 'error';
     
-    toast.className = isHaptic ? 'haptic' : '';
+    toast.className = `xp-toast ${type}`;
     toast.style.cssText = `
-        background: ${isHaptic ? 'rgba(0, 240, 255, 0.1)' : 'rgba(8, 10, 14, 0.95)'};
-        backdrop-filter: blur(12px);
-        border: 1px solid ${isHaptic ? 'var(--accent-primary)' : color + '33'};
-        border-left: 4px solid ${color};
-        padding: 1rem 1.25rem;
-        border-radius: 14px;
+        background: rgba(8, 10, 15, 0.85);
+        backdrop-filter: blur(20px) saturate(180%);
+        border: 1px solid ${color}44;
+        border-top: 2px solid ${color};
+        padding: 1.25rem;
+        border-radius: 16px;
         color: #fff;
-        font-family: ${isHaptic ? "'JetBrains Mono', monospace" : "'Inter', sans-serif"};
+        font-family: 'JetBrains Mono', monospace;
         font-weight: 800;
         font-size: 0.75rem;
-        box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+        box-shadow: 0 20px 50px rgba(0,0,0,0.6), inset 0 0 20px ${color}11;
         pointer-events: auto;
-        animation: toastSlideIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+        animation: toastEntrance 0.6s cubic-bezier(0.2, 1, 0.3, 1) both;
+        position: relative;
+        overflow: hidden;
         display: flex;
-        justify-content: space-between;
-        align-items: center;
-        letter-spacing: 0.05em;
-        margin-bottom: 0.5rem;
+        flex-direction: column;
+        gap: 8px;
     `;
 
+    // Sparkles / Glitch Effect for Errors
+    const effects = isError ? `
+        <div class="glitch-line"></div>
+        <div class="sparkles"></div>
+    ` : '';
+
     toast.innerHTML = `
-        <div style="display:flex; align-items:center; gap: 10px;">
-            <div style="width: 8px; height: 8px; border-radius: 50%; background: ${color}; box-shadow: 0 0 8px ${color};"></div>
-            <span>${message.toUpperCase()}</span>
+        ${effects}
+        <div style="display:flex; align-items:center; justify-content:space-between;">
+            <div style="display:flex; align-items:center; gap: 12px;">
+                <div class="status-indicator" style="background: ${color}; box-shadow: 0 0 15px ${color};"></div>
+                <span style="letter-spacing: 0.1em; text-shadow: 0 0 10px ${color}44;">${message.toUpperCase()}</span>
+            </div>
+            <div class="toast-type-tag">${type.toUpperCase()}</div>
         </div>
-        <div style="font-size: 0.55rem; opacity: 0.4; font-family: 'JetBrains Mono'; letter-spacing: 0.1em;">${isHaptic ? 'HAPTIC' : 'UPLINK'}</div>
+        <div class="toast-progress-bar" style="background: ${color}"></div>
     `;
+
+    // Add Sparkles randomly if error
+    if (isError) {
+        for(let i=0; i<15; i++) {
+            const s = document.createElement('div');
+            s.className = 'sparkle';
+            s.style.left = Math.random() * 100 + '%';
+            s.style.top = Math.random() * 100 + '%';
+            s.style.animationDelay = Math.random() * 2 + 's';
+            toast.appendChild(s);
+        }
+    }
 
     container.appendChild(toast);
 
     setTimeout(() => {
-        toast.style.animation = 'toastSlideOut 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards';
+        toast.style.animation = 'toastExit 0.5s cubic-bezier(0.2, 1, 0.3, 1) forwards';
         setTimeout(() => toast.remove(), 500);
     }, duration);
 };
 
-// Add animations to document
+// Advanced Styles for Notifications
 const style = document.createElement('style');
 style.textContent = `
-    @keyframes toastSlideIn {
-        from { opacity: 0; transform: translateY(-20px) scale(0.95); }
-        to { opacity: 1; transform: translateY(0) scale(1); }
+    @keyframes toastEntrance {
+        0% { opacity: 0; transform: translateY(-30px) scale(0.9) rotateX(-10deg); filter: blur(10px); }
+        100% { opacity: 1; transform: translateY(0) scale(1) rotateX(0); filter: blur(0); }
     }
-    @keyframes toastSlideOut {
-        from { opacity: 1; transform: translateY(0) scale(1); }
-        to { opacity: 0; transform: translateY(-20px) scale(0.95); }
+    @keyframes toastExit {
+        to { opacity: 0; transform: translateY(-20px) scale(0.95); filter: blur(10px); }
+    }
+    .xp-toast .status-indicator {
+        width: 10px; height: 10px; border-radius: 50%;
+        animation: pulseIndicator 2s infinite;
+    }
+    @keyframes pulseIndicator {
+        0%, 100% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.3); opacity: 0.6; }
+    }
+    .toast-type-tag {
+        font-size: 0.5rem; opacity: 0.4; padding: 2px 6px; 
+        border: 1px solid rgba(255,255,255,0.1); border-radius: 4px;
+    }
+    .toast-progress-bar {
+        position: absolute; bottom: 0; left: 0; height: 2px; width: 100%;
+        transform-origin: left;
+        animation: toastProgress 4s linear forwards;
+    }
+    @keyframes toastProgress {
+        from { transform: scaleX(1); }
+        to { transform: scaleX(0); }
+    }
+    .sparkle {
+        position: absolute; width: 2px; height: 2px; background: #fff;
+        border-radius: 50%; opacity: 0;
+        animation: sparkleAnim 2s infinite;
+    }
+    @keyframes sparkleAnim {
+        0% { transform: scale(0); opacity: 0; }
+        50% { transform: scale(1.5); opacity: 0.8; }
+        100% { transform: scale(0); opacity: 0; }
+    }
+    .glitch-line {
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        background: linear-gradient(transparent, rgba(255,51,102,0.05), transparent);
+        animation: glitchMove 4s infinite linear;
+        pointer-events: none;
+    }
+    @keyframes glitchMove {
+        0% { transform: translateY(-100%); }
+        100% { transform: translateY(100%); }
     }
 `;
 document.head.appendChild(style);

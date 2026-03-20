@@ -820,6 +820,20 @@
             if (window.SFX) window.SFX.play('click');
         }
 
+        function toggleSheet(show) {
+            const overlay = document.getElementById('overlay');
+            const manualSheet = document.getElementById('manualSheet');
+            if (overlay) overlay.classList.toggle('active', show);
+            if (manualSheet) manualSheet.classList.toggle('active', show);
+        }
+
+        function setSegment(type, el) {
+            const parent = el.parentElement;
+            parent.querySelectorAll('.segment-toggle').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+            genState[type] = el.dataset.val;
+        }
+
         async function loadAnalytics() {
             try {
                 const stats = await api(`${API_BASE}/stats`);
