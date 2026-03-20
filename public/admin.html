@@ -955,7 +955,7 @@
         <h2 style="font-family: var(--font-heading); margin-bottom: 1.5rem;">Register Vendor</h2>
         <input type="text" id="vName" class="cyber-input" placeholder="Vendor Name (e.g. SKY-NET)">
         <input type="text" id="vBrand" class="cyber-input" placeholder="Brand/Organization">
-        <input type="number" id="vLimit" class="cyber-input" placeholder="Credit Limit (Usage Cap)">
+        <input type="number" id="vDuration" class="cyber-input" placeholder="Access Duration (Days) [e.g. 30]">
         
         <div style="margin-top: 1rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 1rem;">
             <p class="stat-label" style="margin-bottom: 0.5rem;">VENDOR_BRANDING (OPTIONAL)</p>
@@ -1393,8 +1393,13 @@
                                 <div class="stat-mini-val">${v.total_codes || 0}</div>
                             </div>
                             <div class="stat-mini">
-                                <div class="stat-mini-label">HITS</div>
-                                <div class="stat-mini-val" style="color:var(--accent-primary)">${v.total_usage || 0}</div>
+                                <div class="stat-mini-label">LIFE_REMAINING</div>
+                                <div class="stat-mini-val" style="color:var(--accent-primary)">
+                                    ${v.seconds_left !== null ? 
+                                        (v.seconds_left > 86400 ? Math.floor(v.seconds_left / 86400) + 'D' : 
+                                         v.seconds_left > 3600 ? Math.floor(v.seconds_left / 3600) + 'H' : 
+                                         Math.floor(v.seconds_left / 60) + 'M') : 'PERPETUAL'}
+                                </div>
                             </div>
                         </div>
 
@@ -1411,7 +1416,7 @@
         async function addVendor() {
             const vid = document.getElementById('vName').value.trim();
             const brand = document.getElementById('vBrand').value.trim();
-            const vLimit = parseInt(document.getElementById('vLimit').value, 10);
+            const vDays = parseInt(document.getElementById('vDuration').value, 10);
             
             const logo = document.getElementById('vLogo').value.trim();
             const youtube = document.getElementById('vYT').value.trim();
@@ -1427,7 +1432,7 @@
                 const payload = {
                     vendorId: vid,
                     orgId: brand || 'XP-CORE-ORG',
-                    usageLimit: Number.isFinite(vLimit) ? vLimit : null,
+                    durationDays: Number.isFinite(vDays) ? vDays : null,
                     brandConfig: {
                         logo_url: logo || null,
                         youtube: youtube || null,
@@ -1446,7 +1451,7 @@
                 toggleActionSheet(false);
                 document.getElementById('vName').value = '';
                 document.getElementById('vBrand').value = '';
-                document.getElementById('vLimit').value = '';
+                document.getElementById('vDuration').value = '';
                 document.getElementById('vLogo').value = '';
                 document.getElementById('vYT').value = '';
                 document.getElementById('vTT').value = '';

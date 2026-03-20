@@ -311,6 +311,7 @@ router.post('/verify', async (req, res) => {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === 'production',
                 sameSite: 'Lax',
+                path: '/',
                 maxAge: 24 * 60 * 60 * 1000
             });
             return res.json({
@@ -347,6 +348,7 @@ router.post('/verify', async (req, res) => {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === 'production',
                 sameSite: 'Lax',
+                path: '/',
                 maxAge: 7 * 24 * 60 * 60 * 1000
             });
             const branding = normalizeBranding(vendor.brand_config);
@@ -520,6 +522,9 @@ router.get('/profile', authenticateVendor, async (req, res) => {
 
         const config = normalizeBranding(vendor.brand_config);
         
+        const now = new Date();
+        const seconds_left = vendor.active_until ? Math.max(0, Math.floor((new Date(vendor.active_until) - now) / 1000)) : null;
+
         res.json({
             vendor_id: vendor.vendor_id,
             display_name: config.display_name || vendor.vendor_id,
@@ -527,6 +532,8 @@ router.get('/profile', authenticateVendor, async (req, res) => {
             total_hits: stats?.hits || 0,
             total_likes: likes?.likes || 0,
             status: vendor.status,
+            active_until: vendor.active_until,
+            seconds_left,
             webhook_url: vendor.webhook_url || '',
             youtube: config.youtube || '',
             tiktok: config.tiktok || '',
@@ -924,6 +931,7 @@ router.get('/admin/vendors', authenticateAdmin, async (req, res) => {
     try {
         const vendors = await db.all(`
             SELECT v.*, 
+            TIMESTAMPDIFF(SECOND, NOW(), v.active_until) as seconds_left,
             (SELECT COUNT(*) FROM sensitivity_keys WHERE vendor_id = v.vendor_id) as total_codes,
             (SELECT COUNT(*) FROM code_activity ca JOIN sensitivity_keys sk ON ca.lookup_key = sk.lookup_key WHERE sk.vendor_id = v.vendor_id) as total_usage
             FROM vendors v
@@ -966,9 +974,10 @@ router.post('/admin/vendors', authenticateAdmin, async (req, res) => {
             vendorId: z.string().min(2).optional(),
             orgId: z.string().optional(),
             usageLimit: z.number().int().min(0).nullable().optional(),
+            durationDays: z.number().int().min(1).optional(),
             brandConfig: z.record(z.any()).optional()
         });
-        const { vendorId: requestedId, orgId: rawOrgId, usageLimit, brandConfig } = schema.parse(req.body);
+        const { vendorId: requestedId, orgId: rawOrgId, usageLimit, durationDays, brandConfig } = schema.parse(req.body);
         
         const orgId = (rawOrgId || 'XP-CORE-ORG').trim().toUpperCase().replace(/[^A-Z0-9-]/g, '');
         
@@ -989,6 +998,14 @@ router.post('/admin/vendors', authenticateAdmin, async (req, res) => {
         const hashedAccessKey = await bcrypt.hash(accessKey, 10);
         const lookupKey = getLookupKey(accessKey);
 
+        // 🕒 Calculate Expiration
+        let activeUntil = null;
+        if (durationDays) {
+            const date = new Date();
+            date.setDate(date.getDate() + durationDays);
+            activeUntil = date.toISOString().slice(0, 19).replace('T', ' '); // MySQL/TiDB Format
+        }
+
         // 🛡️ Ensure organization exists (auto-provision custom brands)
         const orgName = rawOrgId || 'XP ARENA GLOBAL';
         await db.run(
@@ -997,9 +1014,17 @@ router.post('/admin/vendors', authenticateAdmin, async (req, res) => {
         );
 
         await db.run(`
-            INSERT INTO vendors (org_id, vendor_id, access_key, lookup_key, usage_limit, brand_config, status)
-            VALUES (?, ?, ?, ?, ?, ?, 'active')
-        `, [orgId || 'XP-CORE-ORG', vendorId, hashedAccessKey, lookupKey, usageLimit || null, typeof brandConfig === 'string' ? brandConfig : JSON.stringify(brandConfig || {})]);
+            INSERT INTO vendors (org_id, vendor_id, access_key, lookup_key, usage_limit, active_until, brand_config, status)
+            VALUES (?, ?, ?, ?, ?, ?, ?, 'active')
+        `, [
+            orgId || 'XP-CORE-ORG', 
+            vendorId, 
+            hashedAccessKey, 
+            lookupKey, 
+            usageLimit || null, 
+            activeUntil,
+            typeof brandConfig === 'string' ? brandConfig : JSON.stringify(brandConfig || {})
+        ]);
 
         await logAudit('admin', 'SYSTEM', 'VENDOR_REGISTER', { vendorId, accessKey }, getClientIp(req));
 

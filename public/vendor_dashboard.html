@@ -465,8 +465,8 @@
             <span class="stat-label">LIKES</span>
         </div>
         <div class="stat-tile">
-            <span class="stat-val" id="statStatus">OK</span>
-            <span class="stat-label">STATUS</span>
+            <span class="stat-val" id="statTime">--</span>
+            <span class="stat-label">EXPIRY</span>
         </div>
     </div>
     <div class="glass-panel" style="margin-top: 1rem;">
@@ -786,6 +786,8 @@
             const res = await fetch(fullPath, options);
             
             if (res.status === 401) {
+                if (window._isRedirecting) return;
+                window._isRedirecting = true;
                 if (window.notify) window.notify('SESSION_EXPIRED // RE-AUTHENTICATE', 'error');
                 setTimeout(() => window.location.href = 'index.html', 1500);
                 return;
@@ -849,27 +851,79 @@
                 document.getElementById('statCodes').textContent = profile.total_codes || 0;
                 document.getElementById('statHits').textContent = profile.total_hits || 0;
                 document.getElementById('statLikes').textContent = profile.total_likes || 0;
+                
+                // Start Countdown
+                if (typeof startCountdown === 'function') {
+                    startCountdown(profile.seconds_left);
+                }
 
-                const now = new Date();
                 const activeUntil = profile.active_until ? new Date(profile.active_until) : null;
-                const isActive = profile.status === 'active' && (!activeUntil || activeUntil > now);
-                const statStatus = document.getElementById('statStatus');
-                statStatus.textContent = isActive ? 'ONLINE' : 'LOCKED';
-                statStatus.style.color = isActive ? 'var(--accent-primary)' : '#ff4444';
-
-                document.getElementById('activeUntilText').textContent = `Active until: ${activeUntil ? activeUntil.toISOString().slice(0, 10) : 'Perpetual'}`;
-                const usageLimit = profile.usage_limit || 0;
-                const usageText = usageLimit ? `${profile.total_hits || 0} / ${usageLimit}` : `${profile.total_hits || 0} / ∞`;
-                document.getElementById('usageText').textContent = `Usage: ${usageText}`;
-                const usagePct = usageLimit ? Math.min(100, Math.round(((profile.total_hits || 0) / usageLimit) * 100)) : 0;
-                document.getElementById('usageBar').style.width = `${usagePct}%`;
-                document.getElementById('usageBar').style.background = usagePct >= 90 ? '#ff6b6b' : 'var(--accent-primary)';
-                if (usageLimit && usagePct >= 90) showDashError('USAGE LIMIT WARNING: ABOVE 90%');
+                document.getElementById('activeUntilText').textContent = `UPLINK_UNTIL: ${activeUntil ? activeUntil.toISOString().slice(0, 10).replace(/-/g, '/') : 'PERPETUAL'}`;
+                
+                const usageLimit = profile.usage_limit;
+                const usageProgress = document.getElementById('usageText').parentElement;
+                if (!usageLimit) {
+                    if (usageProgress) usageProgress.style.display = 'none';
+                } else {
+                    if (usageProgress) usageProgress.style.display = 'block';
+                    const usageText = `${profile.total_hits || 0} / ${usageLimit}`;
+                    document.getElementById('usageText').textContent = `Usage: ${usageText}`;
+                    const usagePct = Math.min(100, Math.round(((profile.total_hits || 0) / usageLimit) * 100));
+                    document.getElementById('usageBar').style.width = `${usagePct}%`;
+                    document.getElementById('usageBar').style.background = usagePct >= 90 ? '#ff6b6b' : 'var(--accent-primary)';
+                }
             } catch (e) {
                 console.error('LOAD_DASH_ERR:', e);
                 showDashError(e.message || 'PROFILE_LOAD_FAILED');
                 throw e;
             }
+        }
+
+        let countdownInterval = null;
+        function startCountdown(seconds) {
+            if (countdownInterval) clearInterval(countdownInterval);
+            if (seconds === null) {
+                document.getElementById('statTime').textContent = '∞';
+                return;
+            }
+
+            let current = seconds;
+            const updateUI = () => {
+                if (current <= 0) {
+                    document.getElementById('statTime').textContent = '0s';
+                    document.getElementById('statTime').style.color = '#ff4444';
+                    return;
+                }
+                
+                const d = Math.floor(current / 86400);
+                const h = Math.floor((current % 86400) / 3600);
+                const m = Math.floor((current % 3600) / 60);
+                const s = current % 60;
+
+                let display = '';
+                if (d > 0) display = `${d}D`;
+                else if (h > 0) display = `${h}H`;
+                else if (m > 0) display = `${m}M`;
+                else display = `${s}S`;
+
+                document.getElementById('statTime').textContent = display;
+                
+                // Panic mode (under 1 hour)
+                if (current < 3600) {
+                    document.getElementById('statTime').style.color = '#ffaa00';
+                    document.getElementById('statTime').classList.add('flicker');
+                } else {
+                    document.getElementById('statTime').style.color = 'var(--accent-primary)';
+                    document.getElementById('statTime').classList.remove('flicker');
+                }
+            };
+
+            updateUI();
+            countdownInterval = setInterval(() => {
+                current--;
+                updateUI();
+                if (current <= 0) clearInterval(countdownInterval);
+            }, 1000);
         }
 
         async function loadProfile() {
