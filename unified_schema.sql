@@ -119,6 +119,15 @@ CREATE TABLE IF NOT EXISTS vendor_presets (
     FOREIGN KEY (vendor_id) REFERENCES vendors(vendor_id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
+-- 10. Transient Cache Table (Replaces memory HotCache for serverless consistency)
+CREATE TABLE IF NOT EXISTS transient_cache (
+    cache_key VARCHAR(255) PRIMARY KEY,
+    cache_value JSON NOT NULL,
+    expires_at DATETIME NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    INDEX (expires_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
 -- ############################################################################
 -- # SEED INITIAL SYSTEM DATA
 -- ############################################################################

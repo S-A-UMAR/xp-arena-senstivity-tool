@@ -675,10 +675,53 @@
         .modal-overlay.active .modal-content {
             transform: scale(1);
         }
+
+        /* 🌐 Global Pulse Ticker */
+        .pulse-ticker {
+            position: sticky;
+            top: 0;
+            width: 100%;
+            background: rgba(0, 255, 136, 0.1);
+            border-bottom: 1px solid rgba(0, 255, 136, 0.2);
+            overflow: hidden;
+            white-space: nowrap;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            z-index: 4000;
+            backdrop-filter: blur(10px);
+        }
+
+        .pulse-marquee {
+            display: inline-block;
+            padding-left: 100%;
+            animation: marquee 30s linear infinite;
+            font-family: var(--font-mono);
+            font-size: 0.6rem;
+            color: var(--accent-primary);
+            text-transform: uppercase;
+        }
+
+        .pulse-item {
+            display: inline-block;
+            margin-right: 3rem;
+        }
+
+        @keyframes marquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-100%); }
+        }
     </style>
 </head>
 <body>
     <div class="ambient-glow"></div>
+
+    <!-- 🌐 Global Pulse Ticker -->
+    <div id="globalPulseTicker" class="pulse-ticker hidden">
+        <div class="pulse-marquee" id="pulseMarquee">
+            <span class="pulse-item">UPLINKING_GLOBAL_PULSE_STREAM...</span>
+        </div>
+    </div>
 
     <!-- Security Gate -->
     <div id="privateGate" class="vault-root">
@@ -1682,9 +1725,48 @@
             e.preventDefault();
             checkPass();
         });
+
+        // 🌐 Global Pulse Real-time Ticker Logic
+        function updateGlobalPulse(data) {
+            const marquee = document.getElementById('pulseMarquee');
+            if (!marquee) return;
+            
+            let text = '';
+            if (data.type === 'calculate' || data.type === 'verify') {
+                const device = data.device || 'NEURAL_UNIT';
+                text = `[${data.type.toUpperCase()}] ${data.user_ign} (${data.region}) CALIBRATED ${device} @ ${new Date(data.timestamp).toLocaleTimeString()}`;
+            } else if (data.type === 'feedback') {
+                text = `[FEEDBACK] ${data.user_ign} RATED ${data.rating}/5: "${data.feedback}"`;
+            }
+
+            if (!text) return;
+
+            const span = document.createElement('span');
+            span.className = 'pulse-item';
+            span.textContent = text;
+            marquee.appendChild(span);
+
+            // Keep only last 20 items to prevent DOM bloat
+            const items = marquee.getElementsByClassName('pulse-item');
+            if (items.length > 20) marquee.removeChild(items[0]);
+            
+            // Show ticker if it was hidden
+            document.getElementById('globalPulseTicker')?.classList.remove('hidden');
+        }
+
+        // Initialize Socket.io for Live Pulse
+        const socketScript = document.createElement('script');
+        socketScript.src = '/socket.io/socket.io.js';
+        socketScript.onload = () => {
+            if (typeof io !== 'undefined') {
+                const socket = io();
+                socket.on('live_event', updateGlobalPulse);
+                console.log('--- GLOBAL_PULSE_LINK_ESTABLISHED ---');
+            }
+        };
+        document.head.appendChild(socketScript);
     </script>
     <script src="devices.js"></script>
-    <script src="calculator.js"></script>
     <script src="update-overlay.js"></script>
 </body>
 </html>

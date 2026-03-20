@@ -58,6 +58,33 @@ const databaseHelper = {
     },
     async getOrg(orgId) {
         return this.get('SELECT * FROM organizations WHERE org_id = ?', [orgId]);
+    },
+    async setCache(key, value, ttlSeconds = 3600) {
+        try {
+            const expiresAt = new Date(Date.now() + ttlSeconds * 1000);
+            await this.run('REPLACE INTO transient_cache (cache_key, cache_value, expires_at) VALUES (?, ?, ?)', 
+                [key, JSON.stringify(value), expiresAt]);
+        } catch (e) {
+            console.warn('⚠️ CACHE_SET_FAILED:', e.message);
+        }
+    },
+    async getCache(key) {
+        try {
+            const row = await this.get('SELECT cache_value, expires_at FROM transient_cache WHERE cache_key = ?', [key]);
+            if (!row) return null;
+            if (new Date(row.expires_at) < new Date()) {
+                // Background cleanup (no await to avoid latency)
+                this.run('DELETE FROM transient_cache WHERE cache_key = ?', [key]).catch(() => {});
+                return null;
+            }
+            return typeof row.cache_value === 'string' ? JSON.parse(row.cache_value) : row.cache_value;
+        } catch (e) {
+            console.warn('⚠️ CACHE_GET_FAILED:', e.message);
+            return null;
+        }
+    },
+    async clearExpiredCache() {
+        return this.run('DELETE FROM transient_cache WHERE expires_at < NOW()').catch(() => {});
     }
 };
 

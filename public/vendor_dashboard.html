@@ -396,9 +396,51 @@
             cursor: pointer;
             box-shadow: 0 0 10px var(--accent-primary-glow);
         }
+
+        /* 🌐 Global Pulse Ticker */
+        .pulse-ticker {
+            position: sticky;
+            top: 0;
+            width: 100%;
+            background: rgba(0, 255, 136, 0.1);
+            border-bottom: 1px solid rgba(0, 255, 136, 0.2);
+            overflow: hidden;
+            white-space: nowrap;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            z-index: 4000;
+            backdrop-filter: blur(10px);
+        }
+
+        .pulse-marquee {
+            display: inline-block;
+            padding-left: 100%;
+            animation: marquee 30s linear infinite;
+            font-family: var(--font-mono);
+            font-size: 0.6rem;
+            color: var(--accent-primary);
+            text-transform: uppercase;
+        }
+
+        .pulse-item {
+            display: inline-block;
+            margin-right: 3rem;
+        }
+
+        @keyframes marquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-100%); }
+        }
     </style>
 </head>
 <body>
+    <!-- 🌐 Global Pulse Ticker -->
+    <div id="globalPulseTicker" class="pulse-ticker">
+        <div class="pulse-marquee" id="pulseMarquee">
+            <span class="pulse-item">INITIALIZING_GLOBAL_PULSE_COMMUNICATIONS...</span>
+        </div>
+    </div>
 
     <header style="padding: 1.5rem 1rem 0.5rem; display: flex; justify-content: space-between; align-items: center;">
         <div>
@@ -623,6 +665,25 @@
             </div>
 
             <button class="btn-primary" onclick="saveProfile()" style="margin-top: 1rem;">UPDATE_PRO_PROFILE</button>
+
+            <h3 style="margin: 2rem 0 1rem; font-size: 0.9rem; color: var(--accent-secondary);">ULTRA_WHITELABEL_SaaS</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-control">
+                    <label>SECONDARY COLOR</label>
+                    <input type="color" id="cssSecColor" class="cyber-input" style="height: 45px; padding: 5px;" value="#b300ff">
+                </div>
+                <div class="form-control">
+                    <label>BORDER RADIUS</label>
+                    <select id="cssRadius" class="cyber-input">
+                        <option value="8px">Industrial (8px)</option>
+                        <option value="16px" selected>Balanced (16px)</option>
+                        <option value="24px">Elite (24px)</option>
+                        <option value="0px">Cyber (Sharp)</option>
+                    </select>
+                </div>
+            </div>
+            <p style="font-size: 0.55rem; color: var(--text-muted); margin-top: -0.5rem;">These settings inject dynamic CSS variables directly into the end-user UI.</p>
+            <button class="btn-primary" onclick="saveUltraBranding()" style="margin-top: 0.5rem; background: var(--accent-secondary); box-shadow: 0 0 15px rgba(0, 242, 254, 0.3);">SAVE_ULTRA_CONFIG</button>
         </div>
 
         <div class="glass-panel" style="background: rgba(255, 255, 255, 0.01);">
@@ -1249,6 +1310,70 @@
             document.cookie = 'xp_vendor_token=; Max-Age=0; path=/;';
             window.location.href = '/verify.html';
         }
+
+        // 🚀 Ultra Branding Logic
+        async function saveUltraBranding() {
+            try {
+                const secColor = document.getElementById('cssSecColor').value;
+                const radius = document.getElementById('cssRadius').value;
+                
+                // Get current brand config
+                const profile = await api(`${API_BASE}/profile`);
+                const config = profile.brand_config || {};
+                
+                // Inject new CSS Variables
+                config.css_vars = {
+                    '--accent-secondary': secColor,
+                    '--accent-secondary-glow': `${secColor}4d`, // 30% alpha
+                    '--radius-md': radius,
+                    '--radius-lg': radius === '24px' ? '32px' : radius === '16px' ? '24px' : radius
+                };
+
+                await api(`${API_BASE}/profile`, 'POST', { brand_config: config });
+                if (window.notify) window.notify('ULTRA_BRANDING_SYNCED', 'success');
+                
+                // Live apply to dashboard
+                document.documentElement.style.setProperty('--accent-secondary', secColor);
+                document.documentElement.style.setProperty('--radius-md', radius);
+            } catch (e) {
+                if (window.notify) window.notify('BRAND_SYNC_FAILED', 'error');
+            }
+        }
+
+        // 🌐 Global Pulse Ticker Logic
+        function updateGlobalPulse(data) {
+            const marquee = document.getElementById('pulseMarquee');
+            if (!marquee) return;
+            
+            let text = '';
+            if (data.type === 'calculate' || data.type === 'verify') {
+                const device = data.device || 'NEURAL_UNIT';
+                text = `[${data.type.toUpperCase()}] ${data.user_ign} (${data.region}) CALIBRATED ${device} @ ${new Date(data.timestamp).toLocaleTimeString()}`;
+            } else if (data.type === 'feedback') {
+                text = `[FEEDBACK] ${data.user_ign} RATED ${data.rating}/5: "${data.feedback}"`;
+            }
+
+            if (!text) return;
+
+            const span = document.createElement('span');
+            span.className = 'pulse-item';
+            span.textContent = text;
+            marquee.appendChild(span);
+
+            const items = marquee.getElementsByClassName('pulse-item');
+            if (items.length > 20) marquee.removeChild(items[0]);
+        }
+
+        // Initialize Socket
+        const socketScript = document.createElement('script');
+        socketScript.src = '/socket.io/socket.io.js';
+        socketScript.onload = () => {
+            if (typeof io !== 'undefined') {
+                const socket = io();
+                socket.on('live_event', updateGlobalPulse);
+            }
+        };
+        document.head.appendChild(socketScript);
 
         setTimeout(populateBrands, 500); // Wait for devices.js
         init();

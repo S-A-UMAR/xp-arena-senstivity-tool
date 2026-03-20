@@ -227,9 +227,23 @@ const UI = {
                 return;
             }
 
-            status.textContent = 'ACCESS_GRANTED_DECRYPTING...';
+            status.textContent = 'ACCESS_GRANTED. INITIALIZING NEURAL LINK...';
             status.style.color = 'var(--accent-primary)';
             if (window.SFX) window.SFX.play('ping');
+            
+            // 🛡️ Integrity Check Overlay (UX Enhancement)
+            const integrityOverlay = document.createElement('div');
+            integrityOverlay.className = 'integrity-check reveal';
+            integrityOverlay.innerHTML = `
+                <div class="glass-card" style="padding: 2rem; text-align: center; border: 1px solid var(--accent-primary);">
+                    <div class="spinner"></div>
+                    <div style="margin-top: 1.5rem; font-family: var(--font-mono); font-size: 0.7rem; color: var(--accent-primary);">
+                        CHECKING_SYSTEM_INTEGRITY...<br>
+                        <span style="font-size: 0.5rem; color: var(--text-secondary);">VERIFYING_NEURAL_STABILITY_AND_LATENCY</span>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(integrityOverlay);
 
             // 💡 Fix: Direct redirection based on response type
             if (data.redirect) {
@@ -249,9 +263,10 @@ const UI = {
                     this.elements.vaultOverlay.classList.add('hidden');
                     this.elements.appContainer.classList.remove('hidden');
                     this.elements.scannerOverlay.classList.add('hidden');
+                    integrityOverlay.remove();
                     this.applyBranding(data.branding);
                     this.verifying = false;
-                }, 2000);
+                }, 2500);
             }, 800);
 
         } catch (e) {
@@ -569,8 +584,22 @@ const UI = {
 
     applyBranding(config) {
         if (!config) return;
+        
+        // 🎨 Standard Branding: Primary Color
         if (config.colors && config.colors.primary) {
             document.documentElement.style.setProperty('--accent-primary', config.colors.primary);
+        }
+
+        // 🚀 Ultra Branding: Dynamic CSS Variables (Full SaaS Whitelabeling)
+        // config.css_vars = { '--accent-secondary': '#ff0000', '--radius-md': '4px', ... }
+        if (config.css_vars && typeof config.css_vars === 'object') {
+            console.log('--- APPLYING_ULTRA_BRANDING_OVERLAY ---');
+            Object.entries(config.css_vars).forEach(([key, val]) => {
+                // Security: Only allow valid CSS variable keys starting with --
+                if (key.startsWith('--') && typeof val === 'string' && val.length < 50) {
+                    document.documentElement.style.setProperty(key, val);
+                }
+            });
         }
     }
 };

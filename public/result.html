@@ -88,6 +88,14 @@
                         </div>
                     </div>
                     <div class="id-stat-box">
+                        <div class="id-stat-label">ADS_PRECISION_ZOOM</div>
+                        <div class="id-stat-val range-display">
+                            <span id="rAds1">--</span>
+                            <span class="range-sep">—</span>
+                            <span id="rAds2">--</span>
+                        </div>
+                    </div>
+                    <div class="id-stat-box">
                         <div class="id-stat-label">SNIPER_CALIBRATION</div>
                         <div class="id-stat-val range-display">
                             <span id="rSni1">--</span>
@@ -304,6 +312,7 @@
             paintRange('r2x1', 'r2x2', results.scope2x);
             paintRange('r4x1', 'r4x2', results.scope4x);
             paintRange('rSni1', 'rSni2', results.sniperScope || results.sniper);
+            paintRange('rAds1', 'rAds2', results.ads);
             document.getElementById('idDPI').textContent = results.dpi || 'DEFAULT';
             setExpiryState(hydrated.validUntil);
 

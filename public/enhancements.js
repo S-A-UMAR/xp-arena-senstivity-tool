@@ -1,82 +1,116 @@
 /**
- * XP ARENA - Premium Enhancements Engine
+ * XP ARENA | ELITE ENHANCEMENTS ENGINE
+ * High-performance 3D & Interactive Logic
  */
 
-const XP_ENHANCE = {
-    init() {
-        this.detectDevice();
-        this.initPulseTicker();
-        this.initRecoilPreview();
-        this.setupPWAInstall();
-    },
+class EliteEnhancements {
+    constructor() {
+        this.canvas = document.getElementById('neural-canvas');
+        if (this.canvas) {
+            this.ctx = this.canvas.getContext('2d');
+            this.particles = [];
+            this.initParticles();
+            this.animateParticles();
+        }
+        this.initTilt();
+        this.initGlitchTrigger();
+    }
 
-    detectDevice() {
-        const ua = navigator.userAgent;
-        let model = "MOBILE_UNIT_DETECTED";
+    initParticles() {
+        this.width = this.canvas.width = window.innerWidth;
+        this.height = this.canvas.height = window.innerHeight;
+        this.particles = [];
+        const count = Math.min(window.innerWidth / 12, 120);
         
-        if (ua.match(/iPhone/i)) model = "IPHONE_STATION_ACTIVE";
-        else if (ua.match(/iPad/i)) model = "IPAD_STATION_ACTIVE";
-        else if (ua.match(/Android/i)) model = "ANDROID_OS_DETECTED";
+        for (let i = 0; i < count; i++) {
+            this.particles.push({
+                x: Math.random() * this.width,
+                y: Math.random() * this.height,
+                vx: (Math.random() - 0.5) * 0.8,
+                vy: (Math.random() - 0.5) * 0.8,
+                size: Math.random() * 2 + 0.5,
+                color: i % 3 === 0 ? '#00f0ff' : i % 3 === 1 ? '#b300ff' : '#00ff88',
+                alpha: Math.random() * 0.5 + 0.2
+            });
+        }
+    }
+
+    animateParticles() {
+        this.ctx.clearRect(0, 0, this.width, this.height);
         
-        const sig = document.getElementById('sigModel');
-        if (sig) sig.textContent = `[HARDWARE: ${model}]`;
-    },
-
-    initPulseTicker() {
-        const ticker = document.getElementById('pulseTicker');
-        if (!ticker) return;
-
-        const regions = ['NA', 'EU', 'AS', 'SA', 'AF'];
-        const creators = ['G101', 'XP_USER', 'ELITE_PRO', 'GHOST', 'RAZOR'];
-        
-        const generateItem = () => {
-            const r = regions[Math.floor(Math.random() * regions.length)];
-            const c = creators[Math.floor(Math.random() * creators.length)];
-            const code = Math.floor(Math.random() * 900000 + 100000);
-            return `<span class="ticker-item"><b>[${r}]</b> CREATOR_${c} generated Elite Code: <b>${code}</b> ...</span>`;
-        };
-
-        let content = "";
-        for (let i = 0; i < 15; i++) content += generateItem();
-        ticker.innerHTML = content + content; // Duplicate for seamless loop
-    },
-
-    initRecoilPreview() {
-        const standard = document.getElementById('standardSpread');
-        const xp = document.getElementById('xpSpread');
-        if (!standard || !xp) return;
-
-        const createDots = (container, scatter) => {
-            for (let i = 0; i < 20; i++) {
-                const dot = document.createElement('div');
-                dot.className = 'dot';
-                const x = 20 + (Math.random() - 0.5) * scatter;
-                const y = 20 + (Math.random() - 0.5) * scatter;
-                dot.style.left = `${x}px`;
-                dot.style.top = `${y}px`;
-                container.appendChild(dot);
+        // 🕸️ Draw Neural Connections
+        this.ctx.lineWidth = 0.4;
+        for (let i = 0; i < this.particles.length; i++) {
+            for (let j = i + 1; j < this.particles.length; j++) {
+                const dx = this.particles[i].x - this.particles[j].x;
+                const dy = this.particles[i].y - this.particles[j].y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                
+                if (dist < 180) {
+                    const opacity = (1 - dist / 180) * 0.2;
+                    this.ctx.strokeStyle = `rgba(179, 0, 255, ${opacity})`;
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(this.particles[i].x, this.particles[i].y);
+                    this.ctx.lineTo(this.particles[j].x, this.particles[j].y);
+                    this.ctx.stroke();
+                }
             }
-        };
+        }
 
-        createDots(standard, 30);
-        createDots(xp, 8);
-    },
+        // 💠 Draw Nodes
+        this.particles.forEach(p => {
+            this.ctx.globalAlpha = p.alpha;
+            this.ctx.fillStyle = p.color;
+            this.ctx.beginPath();
+            this.ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            this.ctx.fill();
 
-    setupPWAInstall() {
-        let deferredPrompt;
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            // Show custom install UI if user is on the main dashboard
-            console.log('PWA Install Ready');
+            p.x += p.vx;
+            p.y += p.vy;
+
+            if (p.x < 0 || p.x > this.width) p.vx *= -1;
+            if (p.y < 0 || p.y > this.height) p.vy *= -1;
         });
-        // Global Sound Trigger
-        document.addEventListener('click', (e) => {
-            if (e.target.closest('button')) {
-                if (window.NEURAL_AUDIO) window.NEURAL_AUDIO.play('ping');
+        
+        this.ctx.globalAlpha = 1;
+        requestAnimationFrame(() => this.animateParticles());
+    }
+
+    initTilt() {
+        // Universal 3D Tilt Logic
+        document.addEventListener('mousemove', (e) => {
+            const cards = document.querySelectorAll('.premium-card, .glass-card');
+            const x = (window.innerWidth / 2 - e.pageX) / 25;
+            const y = (window.innerHeight / 2 - e.pageY) / 25;
+            
+            cards.forEach(card => {
+                card.style.transform = `rotateY(${x}deg) rotateX(${y}deg)`;
+            });
+            
+            // Background Parallax
+            const bgGlow = document.querySelector('.premium-shell::before');
+            if (bgGlow) {
+                bgGlow.style.transform = `translate(${x * 2}px, ${y * 2}px)`;
             }
         });
     }
-};
 
-document.addEventListener('DOMContentLoaded', () => XP_ENHANCE.init());
+    initGlitchTrigger() {
+        const headers = document.querySelectorAll('.hero-headline, h1');
+        headers.forEach(h => {
+            h.addEventListener('mouseover', () => {
+                h.classList.add('glitch-active');
+                setTimeout(() => h.classList.remove('glitch-active'), 500);
+            });
+        });
+    }
+}
+
+// 🔋 Ignite Engine
+window.addEventListener('DOMContentLoaded', () => {
+    window.Elite = new EliteEnhancements();
+});
+
+window.addEventListener('resize', () => {
+    if (window.Elite) window.Elite.initParticles();
+});

@@ -132,6 +132,7 @@
             margin: .8rem 0 .8rem;
             background: linear-gradient(to bottom, #fff 40%, rgba(255,255,255,0.6));
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
         }
         .hero-sub {
@@ -172,6 +173,9 @@
             border-radius: 14px;
             background: rgba(255,255,255,.01);
         }
+        
+        /* 🎭 Layout-specific Fixes */
+        .app-container { transition: var(--transition-slow); }
     </style>
 </head>
 <body>
@@ -209,7 +213,7 @@
 
     <!-- Main Calibration UI -->
     <div id="appContainer" class="app-container hidden premium-shell">
-        <header class="premium-card" style="text-align: center; margin-bottom: var(--space-lg); position: relative; padding: 1.3rem 1rem 1.2rem;">
+        <header class="premium-card neon-border card-3d" style="text-align: center; margin-bottom: var(--space-lg); position: relative; padding: 1.3rem 1rem 1.2rem;">
             <div class="sens-icon-float">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <circle cx="12" cy="12" r="3"></circle>
@@ -219,7 +223,7 @@
             </div>
             <button id="pwaInstallBtn" class="logo-badge" style="display: none; border-color: var(--accent-primary); color: var(--accent-primary); cursor: pointer; margin-bottom: 1rem; position: absolute; right: 0; top: 0; font-size: 0.6rem;">INSTALL APP</button>
             <div class="logo-badge" style="margin-top: .2rem;">SYSTEM ENGINE V4.0</div>
-            <h1 class="title-main hero-headline" data-i18n="title">NEURAL<br>CALIBRATION</h1>
+            <h1 class="title-main hero-headline glitch-header" data-i18n="title">NEURAL<br>CALIBRATION</h1>
             <p data-i18n="heroSubtitle" class="hero-sub">Optimizing benchmarks for your specific hardware architecture.</p>
             <div class="kpi-row">
                 <div class="kpi"><span class="val">AI V4</span><span class="label">Predictive Core</span></div>
@@ -231,7 +235,7 @@
         <main>
             <!-- Device Profiling -->
             <div id="hardwareSection">
-                <section class="glass-card reveal">
+                <section class="glass-card neon-border card-3d reveal">
                     <div class="form-group">
                         <label class="form-label" data-i18n="brandLabel">Hardware Signature</label>
                         <div class="select-container">
@@ -273,7 +277,7 @@
             </div>
 
             <!-- Biometric / Grip Profile -->
-            <section class="glass-card reveal" style="animation-delay: 0.1s;">
+            <section class="glass-card neon-border card-3d reveal" style="animation-delay: 0.1s;">
                 <div class="slider-group">
                     <div class="slider-header">
                         <label class="form-label" data-i18n="title">Neural Sensitivity</label>
@@ -314,7 +318,7 @@
                 </div>
             </section>
 
-            <button id="calculateBtn" class="action-btn reveal premium-card" data-i18n="calcBtn" style="animation-delay: 0.3s; border-radius: 18px;">
+            <button id="calculateBtn" class="action-btn scan-btn reveal neon-border" data-i18n="calcBtn" style="animation-delay: 0.3s; border-radius: 18px;">
                 GENERATE OPTIMIZED GUIDE
             </button>
         </main>
@@ -348,104 +352,9 @@
     <script src="notifications.js"></script>
     <script src="settings.js"></script>
     <script src="analytics.js"></script>
+    <script src="enhancements.js"></script>
     <script src="app.js"></script>
     <script>
-        // 🕒 Terminal Real-time Logic
-        function updateTerminal() {
-            const clock = document.getElementById('terminalClock');
-            if (clock) {
-                const now = new Date();
-                clock.textContent = now.toTimeString().split(' ')[0];
-            }
-        }
-        setInterval(updateTerminal, 1000);
-        updateTerminal();
-
-        // 🌌 3D Neural Particles Background
-        const canvas = document.getElementById('neural-canvas');
-        const ctx = canvas.getContext('2d');
-        let particles = [];
-        let width, height;
-
-        function initParticles() {
-            width = canvas.width = window.innerWidth;
-            height = canvas.height = window.innerHeight;
-            particles = [];
-            const count = Math.min(window.innerWidth / 15, 80);
-            for (let i = 0; i < count; i++) {
-                particles.push({
-                    x: Math.random() * width,
-                    y: Math.random() * height,
-                    vx: (Math.random() - 0.5) * 0.5,
-                    vy: (Math.random() - 0.5) * 0.5,
-                    size: Math.random() * 2 + 1,
-                    color: i % 2 === 0 ? '#00f0ff' : '#7000ff'
-                });
-            }
-        }
-
-        function drawParticles() {
-            ctx.clearRect(0, 0, width, height);
-            
-            // Draw connections
-            ctx.lineWidth = 0.5;
-            for (let i = 0; i < particles.length; i++) {
-                for (let j = i + 1; j < particles.length; j++) {
-                    const dx = particles[i].x - particles[j].x;
-                    const dy = particles[i].y - particles[j].y;
-                    const dist = Math.sqrt(dx * dx + dy * dy);
-                    if (dist < 150) {
-                        ctx.strokeStyle = `rgba(112, 0, 255, ${0.15 * (1 - dist / 150)})`;
-                        ctx.beginPath();
-                        ctx.moveTo(particles[i].x, particles[i].y);
-                        ctx.lineTo(particles[j].x, particles[j].y);
-                        ctx.stroke();
-                    }
-                }
-            }
-
-            // Draw dots
-            particles.forEach(p => {
-                ctx.fillStyle = p.color;
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-                ctx.fill();
-
-                p.x += p.vx;
-                p.y += p.vy;
-
-                if (p.x < 0 || p.x > width) p.vx *= -1;
-                if (p.y < 0 || p.y > height) p.vy *= -1;
-            });
-
-            requestAnimationFrame(drawParticles);
-        }
-
-        window.addEventListener('resize', initParticles);
-        initParticles();
-        drawParticles();
-
-        // ✨ Ambient Glow Parallax
-        document.addEventListener('mousemove', (e) => {
-            const glow = document.querySelector('.ambient-glow');
-            if (!glow) return;
-            const x = (e.clientX / window.innerWidth - 0.5) * 20; // max 10px move
-            const y = (e.clientY / window.innerHeight - 0.5) * 20;
-            glow.style.transform = `translate(${x}px, ${y}px)`;
-        });
-
-        // 🛰️ Mock IP Fetch
-        fetch('https://api.ipify.org?format=json')
-            .then(res => res.json())
-            .then(data => {
-                const ipEl = document.getElementById('userIP');
-                if (ipEl) ipEl.textContent = data.ip;
-            })
-            .catch(() => {
-                const ipEl = document.getElementById('userIP');
-                if (ipEl) ipEl.textContent = '127.0.0.1';
-            });
-
         // 🛡️ Hidden Admin Access (Triple Click Logo)
         let logoClicks = 0;
         const vaultLogo = document.querySelector('.vault-root .logo-badge');

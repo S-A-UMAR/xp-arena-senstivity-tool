@@ -7,19 +7,14 @@ const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const Calculator = require('../lib/calculator');
 
-// ⚡ HotCache: In-Memory Express Lane (10/10 Speed)
-const HotCache = {
-    _cache: new Map(),
-    get(key) {
-        const item = this._cache.get(key);
-        if (item && item.expiry > Date.now()) return item.data;
-        this._cache.delete(key);
-        return null;
-    },
-    set(key, data, ttl = 300000) { // Default 5 mins
-        this._cache.set(key, { data, expiry: Date.now() + ttl });
+// ⚡ Cache cleanup middleware
+router.use(async (req, res, next) => {
+    // Periodic cleanup (10% of requests)
+    if (Math.random() < 0.1) {
+        db.clearExpiredCache();
     }
-};
+    next();
+});
 
 function getLookupKey(code) {
     return crypto.createHash('sha1').update(code).digest('hex').substring(0, 10);
@@ -335,7 +330,7 @@ router.post('/verify', async (req, res) => {
         });
         if (blocked || res.headersSent) return;
 
-        const cached = HotCache.get(`verify_${input}`);
+        const cached = await db.getCache(`verify_${input}`);
         if (cached) return res.json(cached);
 
         const prefix = getLookupKey(input);
@@ -412,7 +407,7 @@ router.post('/verify', async (req, res) => {
             }
 
             const responsePayload = { ...verifyPayload, legacy_type: 'user' };
-            HotCache.set(`verify_${input}`, responsePayload);
+            await db.setCache(`verify_${input}`, responsePayload, 300); // 5 mins
             return res.json(responsePayload);
         }
 
@@ -439,7 +434,8 @@ router.post('/admin/login', async (req, res, next) => {
         const schema = z.object({ password: z.string().min(4) });
         const { password } = schema.parse(req.body || {});
         if (!password) return res.status(400).json({ error: 'Missing password' });
-        if (password !== adminSecret) return res.status(401).json({ error: 'Unauthorized' });
+        const isMatch = password === adminSecret || await bcrypt.compare(password, adminSecret);
+        if (!isMatch) return res.status(401).json({ error: 'Unauthorized' });
         const token = jwt.sign({ role: 'admin' }, adminSecret, { expiresIn: '1d' });
         res.cookie('xp_admin_token', token, {
             httpOnly: true,
@@ -499,6 +495,63 @@ router.post('/vendor/login', async (req, res) => {
         console.error('[VENDOR_LOGIN_CRITICAL_ERR]:', e);
         if (e instanceof z.ZodError) return res.status(400).json({ error: 'Invalid input' });
         res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// GET /api/vault/profile
+router.get('/profile', authenticateVendor, async (req, res) => {
+    try {
+        const vendor = await db.get(`
+            SELECT v.*, 
+            (SELECT COUNT(*) FROM sensitivity_keys WHERE vendor_id = v.vendor_id) as total_codes,
+            (SELECT COUNT(*) FROM code_activity ca JOIN sensitivity_keys sk ON ca.lookup_key = sk.lookup_key WHERE sk.vendor_id = v.vendor_id) as total_hits,
+            (SELECT COUNT(*) FROM code_activity ca JOIN sensitivity_keys sk ON ca.lookup_key = sk.lookup_key WHERE sk.vendor_id = v.vendor_id AND ca.feedback_rating IS NOT NULL) as total_likes
+            FROM vendors v WHERE v.vendor_id = ?
+        `, [req.vendorId]);
+        
+        if (!vendor) return res.status(404).json({ error: 'VENDOR_NOT_FOUND' });
+        
+        // Normalize brand_config
+        vendor.brand_config = normalizeBranding(vendor.brand_config);
+        res.json(vendor);
+    } catch (e) {
+        res.status(500).json({ error: 'PROFILE_LOAD_FAILED' });
+    }
+});
+
+// POST /api/vault/profile
+router.post('/profile', authenticateVendor, async (req, res) => {
+    try {
+        const schema = z.object({
+            display_name: z.string().optional(),
+            brand_config: z.record(z.any()).optional(),
+            webhook_url: z.string().url().optional().or(z.literal(''))
+        });
+        const data = schema.parse(req.body);
+        
+        const updates = [];
+        const params = [];
+        
+        if (data.display_name) {
+            updates.push('display_name = ?');
+            params.push(data.display_name);
+        }
+        if (data.brand_config) {
+            updates.push('brand_config = ?');
+            params.push(JSON.stringify(data.brand_config));
+        }
+        if (data.webhook_url !== undefined) {
+            updates.push('webhook_url = ?');
+            params.push(data.webhook_url || null);
+        }
+        
+        if (updates.length === 0) return res.json({ success: true, message: 'NO_CHANGES' });
+        
+        params.push(req.vendorId);
+        await db.run(`UPDATE vendors SET ${updates.join(', ')} WHERE vendor_id = ?`, params);
+        res.json({ success: true });
+    } catch (e) {
+        res.status(400).json({ error: 'PROFILE_UPDATE_FAILED', detail: e.message });
     }
 });
 
@@ -1071,9 +1124,9 @@ router.post('/admin/update-master-key', authenticateAdmin, async (req, res) => {
     try {
         const schema = z.object({ newKey: z.string().min(4) });
         const { newKey } = schema.parse(req.body);
-        
-        await db.run('REPLACE INTO system_settings (setting_key, setting_value) VALUES (?, ?)', ['admin_secret', newKey]);
-        await logAudit('admin', 'MASTER', 'CHANGE_MASTER_KEY', { action: 'updated' }, getClientIp(req));
+        const hashedKey = await bcrypt.hash(newKey, 10);
+        await db.run('REPLACE INTO system_settings (setting_key, setting_value) VALUES (?, ?)', ['admin_secret', hashedKey]);
+        await logAudit('admin', 'MASTER', 'CHANGE_MASTER_KEY', { action: 'updated_secure' }, getClientIp(req));
         
         res.json({ success: true, message: 'MASTER_KEY_UPDATED' });
     } catch (e) {
@@ -1101,6 +1154,18 @@ router.post('/calculate', async (req, res) => {
         // Log initial activity
         await db.run('INSERT INTO code_activity (entry_code, lookup_key, user_ign, user_region) VALUES (?, ?, ?, ?)', 
             [entry_code, lookupKey, req.body.ign || 'Guest', req.body.rank || 'Global']);
+
+        const io = req.app.get('io');
+        if (io) {
+            io.emit('live_event', {
+                type: 'calculate',
+                vendor_id: 'XP-PUBLIC',
+                user_ign: req.body.ign || 'Guest',
+                region: req.body.rank || 'Global',
+                device: `${results.brand || ''} ${results.model || ''}`.trim(),
+                timestamp: new Date().toISOString()
+            });
+        }
 
         res.json({ results, entry_code });
     } catch (e) {
@@ -1192,15 +1257,18 @@ router.post('/feedback', async (req, res) => {
 
         await db.run('UPDATE code_activity SET feedback_rating = ?, feedback_comment = ? WHERE id = ?', [payload.rating, feedbackText, activity.id]);
         const likesCount = await db.get('SELECT COUNT(*) as likes_count FROM code_activity WHERE lookup_key = ? AND feedback_rating IS NOT NULL', [lookupKey]);
-        HotCache._cache.delete(`verify_${entryCode}`);
+        await db.run('DELETE FROM transient_cache WHERE cache_key = ?', [`verify_${entryCode}`]);
 
         const io = req.app.get('io');
         if (io) {
             io.emit('live_event', {
                 type: 'feedback',
-                entry_code: entryCode,
+                lookup_key: lookupKey,
                 rating: payload.rating,
-                feedback: feedbackText || 'No comment'
+                feedback: feedbackText || 'No comment',
+                user_ign: activity?.user_ign || 'Anonymous',
+                region: activity?.user_region || 'Unknown',
+                timestamp: new Date().toISOString()
             });
         }
 
