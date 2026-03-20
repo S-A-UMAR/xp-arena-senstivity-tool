@@ -786,8 +786,8 @@
             const res = await fetch(fullPath, options);
             
             if (res.status === 401) {
-                // 💡 Fix: Direct redirect to verify.html if unauthorized
-                window.location.href = '/verify.html';
+                if (window.notify) window.notify('SESSION_EXPIRED // RE-AUTHENTICATE', 'error');
+                setTimeout(() => window.location.href = 'index.html', 1500);
                 return;
             }
             

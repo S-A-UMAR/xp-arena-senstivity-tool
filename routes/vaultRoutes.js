@@ -310,7 +310,7 @@ router.post('/verify', async (req, res) => {
             res.cookie('xp_admin_token', token, {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === 'production',
-                sameSite: 'strict',
+                sameSite: 'Lax',
                 maxAge: 24 * 60 * 60 * 1000
             });
             return res.json({
@@ -346,7 +346,7 @@ router.post('/verify', async (req, res) => {
             res.cookie('xp_vendor_token', token, {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === 'production',
-                sameSite: 'strict',
+                sameSite: 'Lax',
                 maxAge: 7 * 24 * 60 * 60 * 1000
             });
             const branding = normalizeBranding(vendor.brand_config);
@@ -1345,7 +1345,7 @@ router.post('/vendor/logout', authenticateVendor, async (req, res) => {
     res.clearCookie('xp_vendor_token', {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
+        sameSite: 'Lax',
         path: '/'
     });
     res.json({ success: true });
