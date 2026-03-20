@@ -19,44 +19,29 @@ async function migrate() {
 
     try {
         console.log('--- XP ARENA DATABASE INITIALIZATION ---');
-        console.log('Connecting to TiDB...');
+        console.log('Connecting to TiDB: ', process.env.DB_HOST);
         
         const dbName = process.env.DB_NAME || 'xp_sensitivity_tool';
         await connection.query(`CREATE DATABASE IF NOT EXISTS \`${dbName}\``);
         await connection.query(`USE \`${dbName}\``);
-
-        const [existing] = await connection.query(
-            `SELECT COUNT(*) AS c
-             FROM information_schema.tables
-             WHERE table_schema = ? AND table_name = 'vendors'`,
-            [dbName]
-        );
-
-        if (!existing[0] || existing[0].c === 0) {
-            let sql = fs.readFileSync(path.join(__dirname, 'vault.sql'), 'utf8');
-            sql = sql.replace(/CREATE DATABASE IF NOT EXISTS\s+\w+;/i, `CREATE DATABASE IF NOT EXISTS \`${dbName}\`;`);
-            sql = sql.replace(/USE\s+\w+;/i, `USE \`${dbName}\`;`);
-            console.log('Fresh database detected. Executing full migration script...');
-            await connection.query(sql);
-        } else {
-            console.log('Existing database detected. Skipping full seed script (non-destructive mode).');
-        }
-
- 
-        // ⚡ CRITICAL FIX: Recreate organizations table with correct collation for FK compatibility
-        try {
-            await connection.query(`DROP TABLE IF EXISTS organizations`);
-            console.log('✅ Dropped organizations for collation realignment.');
-        } catch (e) {
-            console.error('Failed to drop organizations:', e.message);
-        }
 
         console.log('Synchronizing schema with unified_schema.sql...');
         let sql = fs.readFileSync(path.join(__dirname, 'unified_schema.sql'), 'utf8');
         // Ensure the correct database is used in the script
         sql = sql.replace(/CREATE DATABASE IF NOT EXISTS\s+[\w`]+;/i, `CREATE DATABASE IF NOT EXISTS \`${dbName}\`;`);
         sql = sql.replace(/USE\s+[\w`]+;/i, `USE \`${dbName}\`;`);
-        await connection.query(sql);
+        
+        // Split by semicolon but ignore inside JSON or strings
+        const statements = sql.split(/;(?=(?:[^']*'[^']*')*[^']*$)/).filter(s => s.trim());
+        for (const s of statements) {
+            try {
+                await connection.query(s);
+            } catch (e) {
+                if (!e.message.includes('already exists') && !e.message.includes('Duplicate column')) {
+                    console.warn(`Migration step warning: ${e.message}`);
+                }
+            }
+        }
         console.log('✅ Schema base layer synchronized.');
 
         console.log('Schema alignment + seed normalization...');

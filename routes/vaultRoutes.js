@@ -928,9 +928,9 @@ router.post('/admin/vendors', authenticateAdmin, async (req, res) => {
         const hashedAccessKey = await bcrypt.hash(accessKey, 10);
         const lookupKey = getLookupKey(accessKey);
 
-        // Ensure core org row exists before FK-bound vendor insert
+        // 🛡️ Ensure core org row exists with specific bin collation compatibility
         await db.run(
-            "INSERT IGNORE INTO organizations (org_id, org_name) VALUES ('XP-CORE-ORG', 'XP ARENA GLOBAL')"
+            "INSERT IGNORE INTO organizations (org_id, org_name, plan_tier) VALUES ('XP-CORE-ORG', 'XP ARENA GLOBAL', 'enterprise')"
         );
 
         await db.run(`
