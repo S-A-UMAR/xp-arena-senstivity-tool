@@ -32,7 +32,17 @@ function parseBearer(header) {
 }
 
 async function getJwtSecret() {
-    return process.env.JWT_SECRET || await getAdminSecret();
+    const secret = process.env.JWT_SECRET || process.env.ADMIN_SECRET;
+    if (secret) return secret;
+    
+    // Fallback to database hash (Risky: Invalidates sessions on password change)
+    const dbSecret = await getAdminSecret();
+    if (dbSecret) {
+        console.warn('⚠️ SECURITY_WARNING: Falling back to database-backed JWT secret. Vendor sessions will be invalidated if the Master Key is changed.');
+        return dbSecret;
+    }
+    
+    return 'XP_SECURE_FALLBACK_STATION_2026';
 }
 
 async function getAdminSecret() {
@@ -129,18 +139,27 @@ async function authenticateVendor(req, res, next) {
         
         let payload;
         try {
-            payload = jwt.verify(token, await getJwtSecret());
-        } catch (_e) {
+            const secret = await getJwtSecret();
+            payload = jwt.verify(token, secret);
+        } catch (jwtErr) {
+            console.warn(`[AUTH_VENDOR_FAIL] JWT_VERIFY_FAILED: ${jwtErr.message}`);
             return fail(res, 'XP_AUTH_INVALID', 'SESSION_EXPIRED_OR_CORRUPT', 401);
         }
 
         // Enforce vendor status and activation window
         const vendor = await db.get('SELECT status, active_until FROM vendors WHERE vendor_id = ?', [payload.vendor_id]);
+        if (!vendor) {
+            console.warn(`[AUTH_VENDOR_FAIL] VENDOR_NOT_FOUND: ${payload.vendor_id}`);
+            return fail(res, 'XP_AUTH_INVALID', 'VENDOR_PROFILE_DELETED', 401);
+        }
+
         const now = new Date();
-        const activeUntilOk = !vendor?.active_until || new Date(vendor.active_until) > now;
+        const activeUntilOk = !vendor.active_until || new Date(vendor.active_until) > now;
         
-        if (!vendor || vendor.status !== 'active' || !activeUntilOk) {
-            return fail(res, 'XP_AUTH_SUSPENDED', 'VENDOR_ACCOUNT_LOCKED_OR_EXPIRED', 403);
+        if (vendor.status !== 'active' || !activeUntilOk) {
+            const reason = vendor.status !== 'active' ? 'ACCOUNT_SUSPENDED' : 'ACCOUNT_EXPIRED';
+            console.warn(`[AUTH_VENDOR_FAIL] ${reason}: ${payload.vendor_id}`);
+            return fail(res, 'XP_AUTH_SUSPENDED', `VENDOR_${reason}`, 403);
         }
 
         // 🕒 Track Last Login (Live Feed Data)
