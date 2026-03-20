@@ -93,6 +93,11 @@ app.set('io', io);
 const vaultRoutes = require('./routes/vaultRoutes');
 app.use('/api/vault', vaultRoutes);
 
+// ⚡ Auto-Migration for Vercel (Optional)
+if (process.env.AUTO_MIGRATE === 'true') {
+    require('./migrate');
+}
+
 // Error Handling
 app.use((err, req, res, next) => {
     console.error('SERVER_ERROR:', err.stack);

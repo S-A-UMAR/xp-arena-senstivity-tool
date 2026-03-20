@@ -389,18 +389,6 @@ router.post('/verify', async (req, res) => {
             await db.run('UPDATE sensitivity_keys SET current_usage = current_usage + 1 WHERE id = ?', [keyData.id]);
             await db.run('INSERT INTO code_activity (entry_code, lookup_key, user_ign, user_region) VALUES (?, ?, ?, ?)', [input, prefix, user_ign || 'Anonymous', user_region || 'Unknown']);
 
-        const io = req.app.get('io');
-        if (io) {
-            io.emit('live_event', {
-                type: 'verify',
-                vendor_id: keyData.vendor_id,
-                user_ign: user_ign || 'Anonymous',
-                region: user_region || 'Unknown',
-                device: `${keyData.results_json.brand || ''} ${keyData.results_json.model || ''}`.trim(),
-                timestamp: new Date().toISOString()
-            });
-        }
-
             const verifyPayload = await buildVerificationPayload({ ...keyData, current_usage: (keyData.current_usage || 0) + 1 });
 
             await dispatchVendorWebhook(keyData.vendor_id, 'code_used', {
@@ -417,6 +405,7 @@ router.post('/verify', async (req, res) => {
                     type: 'verify',
                     vendor_id: keyData.vendor_id,
                     user_ign: user_ign || 'Anonymous',
+                    region: user_region || 'Unknown',
                     device: `${verifyPayload.sensitivity.brand || ''} ${verifyPayload.sensitivity.model || ''}`.trim(),
                     timestamp: new Date().toISOString()
                 });
@@ -518,9 +507,10 @@ router.get('/codes', authenticateVendor, async (req, res) => {
     try {
         const vendorId = req.vendorId;
 
+        // 💡 Logic Fix: Use lookup_key for usage counts as entry_code is a hash
         const codes = await db.all(`
             SELECT k.*, 
-            (SELECT COUNT(*) FROM code_activity WHERE entry_code = k.entry_code) as real_usage
+            (SELECT COUNT(*) FROM code_activity WHERE lookup_key = k.lookup_key) as real_usage
             FROM sensitivity_keys k 
             WHERE k.vendor_id = ? 
             ORDER BY k.created_at DESC
@@ -529,7 +519,7 @@ router.get('/codes', authenticateVendor, async (req, res) => {
         res.json(codes);
     } catch (e) {
         console.error('GET /codes error:', e);
-        res.status(500).json({ error: 'Server error' });
+        res.status(500).json({ error: 'DATABASE_QUERY_FAILED', debug: e.message });
     }
 });
 
@@ -1141,9 +1131,15 @@ router.get('/admin/audit-logs', authenticateAdmin, async (req, res) => {
 });
 router.get('/admin/security-logs', authenticateAdmin, async (req, res) => {
     try {
-        const logs = await db.all('SELECT * FROM security_logs ORDER BY created_at DESC LIMIT 100');
+        const logs = await db.all(`
+            SELECT id, ip_address, event_type, details, created_at
+            FROM security_logs
+            ORDER BY created_at DESC
+            LIMIT 100
+        `);
         res.json(logs);
     } catch (e) {
+        console.error('SECURITY_LOGS_ERR:', e);
         res.status(500).json({ error: 'SECURITY_LOGS_UNAVAILABLE' });
     }
 });
@@ -1172,21 +1168,6 @@ router.get('/admin/live-feed', authenticateAdmin, async (req, res) => {
     } catch (e) {
         console.error('LIVE_FEED_ERR:', e);
         res.status(500).json({ error: 'LIVE_FEED_UNAVAILABLE' });
-    }
-});
-
-router.get('/admin/security-logs', authenticateAdmin, async (req, res) => {
-    try {
-        const logs = await db.all(`
-            SELECT id, ip_address, event_type, details, created_at
-            FROM security_logs
-            ORDER BY created_at DESC
-            LIMIT 100
-        `);
-        res.json(logs);
-    } catch (e) {
-        console.error('SECURITY_LOGS_ERR:', e);
-        res.status(500).json({ error: 'SECURITY_LOGS_UNAVAILABLE' });
     }
 });
 

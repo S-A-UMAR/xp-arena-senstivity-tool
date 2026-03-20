@@ -16,7 +16,7 @@ const pool = mysql.createPool({
     keepAliveInitialDelay: 10000,
     ssl: {
         minVersion: 'TLSv1.2',
-        rejectUnauthorized: process.env.NODE_ENV === 'production' ? true : false
+        rejectUnauthorized: false // ⚡ Resilient for TiDB Cloud / Vercel
     }
 });
 
