@@ -185,6 +185,39 @@ body {
     animation: laserSweep 0.8s ease-in-out forwards;
 }
 
+/* 📺 CRT Scanline Effect (Requested "Wow" Factor) */
+.crt-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background: linear-gradient(
+        rgba(18, 16, 16, 0) 50%, 
+        rgba(0, 0, 0, 0.1) 50%
+    ), linear-gradient(
+        90deg, 
+        rgba(255, 0, 0, 0.03), 
+        rgba(0, 255, 0, 0.01), 
+        rgba(0, 0, 255, 0.03)
+    );
+    background-size: 100% 3px, 3px 100%;
+    pointer-events: none;
+    z-index: 9999;
+}
+
+.flicker {
+    animation: flicker 0.15s infinite;
+}
+@keyframes flicker {
+    0% { opacity: 0.97; }
+    5% { opacity: 0.95; }
+    10% { opacity: 0.9; }
+    15% { opacity: 0.95; }
+    20% { opacity: 0.98; }
+    25% { opacity: 0.95; }
+    30% { opacity: 0.9; }
+    100% { opacity: 1; }
+}
+
 /* Layout Framework */
 .app-container {
     padding: var(--space-md);
