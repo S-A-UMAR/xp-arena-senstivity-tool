@@ -668,10 +668,18 @@
             return `xp_liked_${String(code || '').toUpperCase()}`;
         }
 
+        function t(key, fallback) {
+            const lang = localStorage.getItem('xp_lang') || 'en';
+            const fallbackDict = (window.LANGUAGES && window.LANGUAGES.en) || {};
+            const currentDict = (window.LANGUAGES && window.LANGUAGES[lang]) || {};
+            return currentDict[key] || fallbackDict[key] || fallback;
+        }
+
         function setLikeButtonState(liked, count) {
             const likeBtn = document.getElementById('likeBtn');
             if (!likeBtn) return;
-            likeBtn.textContent = liked ? `💚 LIKED (${count || 0})` : `❤️ LIKE (${count || 0})`;
+            const actionLabel = liked ? t('likedLabel', 'LIKED') : t('likeLabel', 'LIKE');
+            likeBtn.textContent = `${liked ? '💚' : '❤️'} ${actionLabel} (${count || 0})`;
             likeBtn.classList.toggle('liked', liked);
             likeBtn.setAttribute('aria-pressed', liked ? 'true' : 'false');
         }
@@ -775,14 +783,14 @@
 
         async function copyPlainText(value, successMessage) {
             await navigator.clipboard.writeText(value);
-            if (window.notify) window.notify(successMessage, 'success');
+            if (window.notify) window.notify(t('accessCodeCopied', successMessage), 'success');
         }
 
         async function submitLike() {
             if (!currentCode || likeInFlight) return;
             const alreadyLiked = localStorage.getItem(likedStorageKey(currentCode)) === 'true';
             if (alreadyLiked) {
-                if (window.notify) window.notify('LIKE_ALREADY_RECORDED', 'info');
+                if (window.notify) window.notify(t('likeAlreadyRecorded', 'LIKE_ALREADY_RECORDED'), 'info');
                 return;
             }
             try {
@@ -796,7 +804,7 @@
                 if (!response.ok) throw new Error(payload.error || payload.message || 'LIKE_FAILED');
                 localStorage.setItem(likedStorageKey(currentCode), 'true');
                 setLikeButtonState(true, payload.likes_count || 0);
-                if (window.notify) window.notify('LIKE_RECORDED', 'success');
+                if (window.notify) window.notify(t('likeRecorded', 'LIKE_RECORDED'), 'success');
             } catch (e) {
                 if (window.notify) window.notify(e.message || 'LIKE_FAILED', 'error');
             } finally {
@@ -852,14 +860,6 @@
             const code = currentCode || 'FREE-GEN';
             const displayName = branding.display_name || hydrated.displayName || hydrated.vendorId || 'XP_CORE';
             const modelText = `${results.brand || state.brand || 'GENERIC'} ${results.model || state.model || 'DEVICE'}`.toUpperCase();
-            const getDict = () => {
-                const lang = localStorage.getItem('xp_lang') || 'en';
-                return (window.LANGUAGES && window.LANGUAGES[lang]) || window.LANGUAGES?.en || {};
-            };
-            const t = (key, fallback) => {
-                const d = getDict();
-                return d[key] || fallback;
-            };
 
             if (window.SaaSAnalytics) window.SaaSAnalytics.track('result_view');
             try {
