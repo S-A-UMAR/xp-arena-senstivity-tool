@@ -32,6 +32,53 @@
         });
     }
 
+
+
+    function closeActivePanels() {
+        let closed = false;
+        if (typeof window.toggleSheet === 'function') {
+            window.toggleSheet(false);
+            closed = true;
+        }
+        if (typeof window.toggleActionSheet === 'function') {
+            window.toggleActionSheet(false);
+            closed = true;
+        }
+        if (typeof window.closeSuccessOverlay === 'function') {
+            window.closeSuccessOverlay();
+            closed = true;
+        }
+        if (typeof window.closeModal === 'function') {
+            window.closeModal();
+            closed = true;
+        }
+        document.querySelectorAll('.sheet-overlay.active, .action-sheet.active, .modal.active, .success-overlay.active, .hub-panel:not(.hidden)').forEach((node) => {
+            if (node.classList.contains('hub-panel')) {
+                node.classList.add('hidden');
+                document.getElementById('hub-trigger')?.classList.remove('active');
+            } else {
+                node.classList.remove('active');
+            }
+            closed = true;
+        });
+        return closed;
+    }
+
+    function getBackTarget() {
+        const pathName = window.location.pathname.split('/').pop() || 'index.html';
+        if (pathName === 'result.html') {
+            return sessionStorage.getItem('xp_nav_origin') === 'vendor_dashboard.html' ? '/vendor_dashboard.html' : '/verify.html';
+        }
+        if (pathName === 'verify.html') return '/index.html';
+        if (pathName === 'admin.html') return '/verify.html';
+        return null;
+    }
+
+    function shouldShowBackButton() {
+        const pathName = window.location.pathname.split('/').pop() || 'index.html';
+        return ['result.html', 'verify.html', 'admin.html'].includes(pathName);
+    }
+
     function applyLang(langCode) {
         localStorage.setItem('xp_lang', langCode);
         document.querySelectorAll('.lang-item').forEach(item => {
@@ -169,7 +216,33 @@
         }
         .lang-item:hover { background: rgba(255,255,255,0.05); color: white; }
         .lang-item.active { background: var(--accent-primary-glow); color: var(--accent-primary); font-weight: 700; }
+
         .lang-item .flag { font-size: 1.1rem; }
+
+        #xp-nav-hub {
+            position: fixed;
+            top: max(1rem, env(safe-area-inset-top, 0px) + 0.5rem);
+            left: 1rem;
+            z-index: 10001;
+            display: flex;
+            gap: 0.65rem;
+        }
+        .xp-nav-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            border: 1px solid rgba(255,255,255,0.12);
+            background: rgba(6, 12, 18, 0.84);
+            backdrop-filter: blur(14px);
+            color: #f3f8ff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 14px 30px rgba(0,0,0,0.22);
+            cursor: pointer;
+        }
+        .xp-nav-btn.hidden { display: none; }
+        .xp-nav-btn svg { width: 20px; height: 20px; }
     `;
 
     document.head.appendChild(style);
@@ -196,6 +269,56 @@
     // Language Logic
     document.querySelectorAll('.lang-item').forEach(item => {
         item.addEventListener('click', () => applyLang(item.dataset.lang));
+    });
+
+
+
+    // App navigation helper
+    const navHub = document.createElement('div');
+    navHub.id = 'xp-nav-hub';
+    navHub.innerHTML = `
+        <button class="xp-nav-btn hidden" id="xpBackBtn" type="button" aria-label="Go back">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/><path d="M21 12H9"/></svg>
+        </button>
+        <button class="xp-nav-btn hidden" id="xpCloseBtn" type="button" aria-label="Close panel">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg>
+        </button>
+    `;
+    document.body.appendChild(navHub);
+
+    const backBtn = document.getElementById('xpBackBtn');
+    const closeBtn = document.getElementById('xpCloseBtn');
+
+    function syncNavButtons() {
+        const closable = document.querySelector('.sheet-overlay.active, .action-sheet.active, .modal.active, .success-overlay.active, .hub-panel:not(.hidden)');
+        closeBtn.classList.toggle('hidden', !closable);
+        backBtn.classList.toggle('hidden', closable || !shouldShowBackButton());
+    }
+
+    backBtn?.addEventListener('click', () => {
+        const target = getBackTarget();
+        if (window.history.length > 1 && !target) {
+            window.history.back();
+            return;
+        }
+        if (target) {
+            window.location.href = target;
+        }
+    });
+
+    closeBtn?.addEventListener('click', () => {
+        closeActivePanels();
+        syncNavButtons();
+    });
+
+    document.addEventListener('click', () => {
+        window.requestAnimationFrame(syncNavButtons);
+    });
+    window.addEventListener('DOMContentLoaded', syncNavButtons);
+    window.addEventListener('keyup', (event) => {
+        if (event.key === 'Escape' && closeActivePanels()) {
+            syncNavButtons();
+        }
     });
 
     // Global Overrides
