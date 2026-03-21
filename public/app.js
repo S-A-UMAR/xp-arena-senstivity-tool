@@ -107,7 +107,10 @@ const UI = {
 
     async trackFunnel(type) {
         try {
-            const sessionId = localStorage.getItem('xp_session_id') || crypto.randomUUID();
+            const generatedId = (window.crypto && typeof window.crypto.randomUUID === 'function')
+                ? window.crypto.randomUUID()
+                : `xp-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+            const sessionId = localStorage.getItem('xp_session_id') || generatedId;
             localStorage.setItem('xp_session_id', sessionId);
             await fetch('/api/vault/track', {
                 method: 'POST',
