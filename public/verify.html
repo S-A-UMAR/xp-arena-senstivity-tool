@@ -118,7 +118,10 @@
         setInterval(updateClock, 1000); updateClock();
 
         // 🛰️ IP
-        fetch('https://api.ipify.org?format=json').then(r => r.json()).then(d => document.getElementById('userIP').textContent = d.ip);
+        fetch('https://api.ipify.org?format=json')
+            .then(r => r.json())
+            .then(d => document.getElementById('userIP').textContent = d.ip)
+            .catch(() => { document.getElementById('userIP').textContent = 'OFFLINE'; });
 
         async function initScan() {
             const p = new URLSearchParams(window.location.search);
@@ -138,7 +141,7 @@
                 guidanceText.innerHTML = `
                     <div style="margin-top: 1rem;">
                         <input type="text" id="manualCode" class="cyber-input" style="text-align: center; letter-spacing: 0.2em;" placeholder="XP-XXXX-XXXX">
-                        <button class="action-btn" onclick="location.href='?code=' + document.getElementById('manualCode').value.trim()">START_SCAN</button>
+                        <button class="action-btn" onclick="location.href='?code=' + encodeURIComponent(document.getElementById('manualCode').value.trim().toUpperCase())">START_SCAN</button>
                     </div>
                 `;
                 return;

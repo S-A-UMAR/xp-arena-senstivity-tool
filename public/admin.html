@@ -1557,7 +1557,7 @@
             if (vendor && vendor.lookup_key) {
                 document.getElementById('vendorCardHistory').classList.remove('hidden');
                 document.getElementById('historyVendorName').textContent = id.toUpperCase();
-                document.getElementById('historyAccessKey').textContent = `RECOVERY_KEY: ${vendor.lookup_key}****`;
+                document.getElementById('historyAccessKey').textContent = `LOOKUP_PREFIX: ${vendor.lookup_key} • FULL KEY CAN'T BE RECOVERED`;
             } else {
                 document.getElementById('vendorCardHistory').classList.add('hidden');
             }
@@ -1589,7 +1589,7 @@
             const vid = document.getElementById('historyVendorName').textContent;
             const vendor = allVendorsCache.find(v => v.vendor_id === vid);
             if (vendor && vendor.lookup_key) {
-                navigator.clipboard.writeText(`XP-${vid}-${vendor.lookup_key}`);
+                navigator.clipboard.writeText(vendor.lookup_key);
                 if (window.notify) window.notify('LOOKUP_PREFIX_COPIED', 'success');
             }
         }
