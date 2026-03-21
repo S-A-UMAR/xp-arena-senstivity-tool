@@ -8,110 +8,714 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;800&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
     <style>
-        /* Result Page Specific Overrides */
-        body { padding-bottom: 120px; overflow-x: hidden; }
-        .app-container { max-width: 460px; position: relative; }
-        .status-banner { margin: 1rem 0; padding: 0.85rem 1rem; border: 1px solid #222; border-radius: 12px; font-size: 0.72rem; }
-        .status-banner.warn { color: #ffd166; border-color: rgba(255,209,102,0.35); background: rgba(255,209,102,0.07); }
-        .status-banner.expired { color: #ff6b6b; border-color: rgba(255,107,107,0.35); background: rgba(255,107,107,0.07); }
+        body {
+            padding-bottom: 146px;
+            overflow-x: hidden;
+            background:
+                radial-gradient(circle at top, rgba(82, 150, 211, 0.22), transparent 34%),
+                radial-gradient(circle at 15% 30%, rgba(36, 219, 192, 0.14), transparent 28%),
+                linear-gradient(180deg, #071019 0%, #0a141d 42%, #091018 100%);
+        }
         .result-shell::before {
             content: '';
             position: fixed;
             inset: 0;
-            background:
-                radial-gradient(circle at top left, rgba(0,255,136,0.18), transparent 30%),
-                radial-gradient(circle at bottom right, rgba(0,242,254,0.14), transparent 28%),
-                linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0));
             pointer-events: none;
-            animation: resultAtmosphere 9s ease-in-out infinite alternate;
+            background:
+                linear-gradient(rgba(132, 178, 214, 0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(132, 178, 214, 0.04) 1px, transparent 1px),
+                radial-gradient(circle at center, rgba(133, 202, 255, 0.08), transparent 46%);
+            background-size: 26px 26px, 26px 26px, auto;
+            opacity: 0.5;
         }
-        @keyframes resultAtmosphere {
-            from { transform: scale(1) translateY(0); opacity: 0.85; }
-            to { transform: scale(1.06) translateY(-12px); opacity: 1; }
+        .app-container {
+            max-width: 520px;
+            position: relative;
+            z-index: 1;
         }
-        .result-stage {
+        .result-intro {
+            margin-bottom: 1.2rem;
             display: grid;
-            gap: 1rem;
-            margin-bottom: 1.25rem;
+            gap: 0.9rem;
         }
-        .result-chip-row {
+        .result-overview {
             display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
             gap: 0.75rem;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
         }
-        .result-chip {
-            background: rgba(255,255,255,0.04);
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 16px;
-            padding: 0.85rem;
-            backdrop-filter: blur(18px);
-            box-shadow: 0 18px 40px rgba(0,0,0,0.22);
+        .overview-chip {
+            border-radius: 18px;
+            padding: 0.9rem;
+            border: 1px solid rgba(142, 183, 214, 0.22);
+            background: linear-gradient(180deg, rgba(17, 28, 40, 0.92), rgba(13, 20, 28, 0.94));
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), 0 18px 38px rgba(0,0,0,0.28);
         }
-        .result-chip .label {
+        .overview-chip .label {
             display: block;
-            font-size: 0.55rem;
-            color: var(--text-muted);
-            letter-spacing: 0.16em;
+            font-size: 0.58rem;
+            letter-spacing: 0.18em;
             text-transform: uppercase;
-            margin-bottom: 0.35rem;
+            color: #8fa4b8;
+            margin-bottom: 0.3rem;
         }
-        .result-chip .value {
+        .overview-chip .value {
             display: block;
-            color: #fff;
+            color: #f6fbff;
+            font-size: 0.9rem;
             font-family: var(--font-heading);
-            font-size: 0.92rem;
-            letter-spacing: -0.02em;
         }
-        .insight-banner {
+        .hero-banner {
             position: relative;
             overflow: hidden;
-            padding: 1rem 1rem 1.05rem;
-            border-radius: 18px;
-            border: 1px solid rgba(255,255,255,0.08);
-            background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
-            backdrop-filter: blur(16px);
+            border-radius: 24px;
+            padding: 1.15rem 1.2rem;
+            border: 1px solid rgba(145, 190, 226, 0.2);
+            background: linear-gradient(135deg, rgba(18, 31, 44, 0.95), rgba(13, 22, 31, 0.92));
+            box-shadow: 0 24px 50px rgba(0,0,0,0.34);
         }
-        .insight-banner::after {
+        .hero-banner::after {
             content: '';
             position: absolute;
             inset: 0;
-            background: linear-gradient(120deg, transparent 20%, rgba(255,255,255,0.12) 50%, transparent 80%);
+            background: linear-gradient(120deg, transparent 15%, rgba(180, 228, 255, 0.08) 48%, transparent 82%);
             transform: translateX(-120%);
-            animation: shimmer 4.8s linear infinite;
+            animation: sheen 5s linear infinite;
             pointer-events: none;
         }
-        @keyframes shimmer {
+        @keyframes sheen {
             to { transform: translateX(120%); }
         }
+        .hero-banner p {
+            margin: 0.45rem 0 0;
+            color: #b7c7d8;
+            font-size: 0.76rem;
+            line-height: 1.65;
+        }
         .card-stage {
-            perspective: 1400px;
+            perspective: 1600px;
+            margin-top: 1rem;
         }
         .card-stage.ready #captureArea {
-            animation: profileLift 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+            animation: profileLift 0.85s cubic-bezier(0.16, 1, 0.3, 1);
         }
         @keyframes profileLift {
-            0% { transform: translateY(24px) rotateX(10deg) scale(0.97); opacity: 0; }
+            0% { transform: translateY(20px) rotateX(9deg) scale(0.98); opacity: 0; }
             100% { transform: translateY(0) rotateX(0) scale(1); opacity: 1; }
         }
+        .intel-card {
+            position: relative;
+            overflow: hidden;
+            border-radius: 28px;
+            padding: 1.1rem;
+            border: 1px solid rgba(146, 194, 228, 0.2);
+            background:
+                linear-gradient(180deg, rgba(14, 25, 36, 0.98), rgba(9, 18, 27, 0.98)),
+                radial-gradient(circle at top right, rgba(104, 160, 199, 0.18), transparent 22%);
+            box-shadow: 0 28px 64px rgba(0,0,0,0.38), inset 0 1px 0 rgba(255,255,255,0.08);
+            transform-style: preserve-3d;
+        }
+        .intel-card::before {
+            content: '';
+            position: absolute;
+            inset: 18px;
+            border-radius: 20px;
+            border: 1px solid rgba(145, 187, 216, 0.08);
+            pointer-events: none;
+        }
+        .intel-topbar {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            gap: 1rem;
+            align-items: start;
+            margin-bottom: 1rem;
+        }
+        .brand-mark {
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+        }
+        .brand-mark img {
+            width: 44px;
+            height: 44px;
+            object-fit: cover;
+            border-radius: 12px;
+            border: 1px solid rgba(162, 198, 225, 0.18);
+            background: rgba(255,255,255,0.04);
+            box-shadow: 0 10px 18px rgba(0,0,0,0.25);
+        }
+        .brand-lockup {
+            font-family: var(--font-mono);
+            color: #edf6ff;
+        }
+        .brand-lockup .primary {
+            font-size: clamp(1.45rem, 5vw, 2rem);
+            letter-spacing: 0.06em;
+        }
+        .brand-lockup .secondary {
+            margin-top: 0.2rem;
+            font-size: 0.8rem;
+            color: #8aa3b6;
+            letter-spacing: 0.12em;
+        }
+        .telemetry-panel {
+            display: grid;
+            gap: 0.35rem;
+            justify-items: end;
+            font-family: var(--font-mono);
+            color: #dce9f5;
+            font-size: 0.75rem;
+        }
+        .telemetry-panel .row {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+        }
+        .telemetry-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #5ad48f;
+            box-shadow: 0 0 12px rgba(90, 212, 143, 0.8);
+        }
+        .telemetry-bar {
+            width: 100%;
+            height: 14px;
+            border-radius: 999px;
+            border: 1px solid rgba(161, 199, 222, 0.15);
+            background: rgba(121, 159, 189, 0.12);
+            overflow: hidden;
+        }
+        .telemetry-bar span {
+            display: block;
+            height: 100%;
+            width: 0%;
+            border-radius: inherit;
+            background: linear-gradient(90deg, rgba(133, 197, 236, 0.9), rgba(97, 241, 211, 0.85));
+            transition: width 0.35s ease;
+        }
+        .device-access {
+            border-radius: 22px;
+            border: 1px solid rgba(145, 190, 226, 0.16);
+            background: linear-gradient(180deg, rgba(16, 28, 41, 0.92), rgba(12, 19, 28, 0.88));
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+            margin-bottom: 1rem;
+        }
+        .device-access-header {
+            display: inline-flex;
+            margin: -1px 0 0 -1px;
+            padding: 0.72rem 1rem 0.68rem;
+            border-radius: 22px 0 18px 0;
+            background: linear-gradient(135deg, rgba(74, 110, 145, 0.42), rgba(40, 56, 74, 0.85));
+            border-right: 1px solid rgba(145, 190, 226, 0.18);
+            border-bottom: 1px solid rgba(145, 190, 226, 0.18);
+            font-family: var(--font-mono);
+            letter-spacing: 0.08em;
+            color: #edf6ff;
+            font-size: 0.7rem;
+        }
+        .device-access-body {
+            padding: 1rem;
+            display: grid;
+            gap: 0.95rem;
+        }
+        .device-profile-row {
+            display: grid;
+            grid-template-columns: 72px 1fr;
+            gap: 1rem;
+            align-items: center;
+        }
+        .device-thumb {
+            width: 72px;
+            height: 104px;
+            border-radius: 18px;
+            background: linear-gradient(180deg, rgba(187, 213, 230, 0.32), rgba(104, 132, 157, 0.14));
+            border: 1px solid rgba(182, 208, 226, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.14);
+            overflow: hidden;
+        }
+        .device-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .device-meta {
+            display: grid;
+            gap: 0.35rem;
+            font-family: var(--font-mono);
+        }
+        .device-meta .subtle {
+            font-size: 0.7rem;
+            color: #90a8ba;
+            letter-spacing: 0.06em;
+        }
+        .device-meta .headline {
+            color: #ffffff;
+            font-size: clamp(1rem, 3vw, 1.28rem);
+            line-height: 1.35;
+        }
+        .code-rail {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 0.8rem;
+            align-items: center;
+            border-radius: 18px;
+            background: rgba(74, 96, 120, 0.18);
+            border: 1px solid rgba(151, 190, 218, 0.16);
+            overflow: hidden;
+        }
+        .code-icon {
+            height: 100%;
+            min-height: 58px;
+            padding: 0 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(100, 132, 158, 0.24);
+            color: #dff0ff;
+        }
+        .code-content {
+            min-width: 0;
+            padding: 0.95rem 0;
+            font-family: var(--font-mono);
+            color: #f8fbff;
+            font-size: 0.84rem;
+            letter-spacing: 0.05em;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .code-copy-btn {
+            margin-right: 0.3rem;
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            border: 1px solid rgba(166, 196, 219, 0.16);
+            background: rgba(255,255,255,0.03);
+            color: #d8e6f3;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .code-copy-btn:hover { background: rgba(255,255,255,0.08); }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.95rem;
+            margin: 1rem 0;
+        }
+        .stat-card {
+            position: relative;
+            min-height: 148px;
+            padding: 1rem;
+            border-radius: 22px;
+            border: 1px solid rgba(150, 190, 219, 0.16);
+            background: linear-gradient(180deg, rgba(16, 21, 26, 0.96), rgba(12, 16, 21, 0.92));
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), 0 16px 30px rgba(0,0,0,0.16);
+            display: grid;
+            gap: 0.45rem;
+            align-content: space-between;
+        }
+        .stat-card::before,
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            top: -1px;
+            width: 42px;
+            height: 16px;
+            border-top: 1px solid rgba(151, 193, 223, 0.28);
+        }
+        .stat-card::before {
+            left: 18px;
+            border-left: 1px solid rgba(151, 193, 223, 0.28);
+            border-top-left-radius: 14px;
+        }
+        .stat-card::after {
+            right: 18px;
+            border-right: 1px solid rgba(151, 193, 223, 0.28);
+            border-top-right-radius: 14px;
+        }
+        .stat-card .label {
+            color: #a6b6c5;
+            font-family: var(--font-mono);
+            font-size: 0.58rem;
+            letter-spacing: 0.14em;
+        }
+        .stat-card .value {
+            color: #ffffff;
+            font-family: var(--font-mono);
+            font-size: clamp(1.55rem, 6vw, 2.3rem);
+            line-height: 1.02;
+            letter-spacing: 0.03em;
+        }
+        .stat-card .trend {
+            color: #9fb3c6;
+            font-family: var(--font-mono);
+            font-size: 0.6rem;
+            letter-spacing: 0.08em;
+        }
+        .stat-card .signal {
+            position: absolute;
+            right: 0.9rem;
+            top: 0.8rem;
+            font-size: 2rem;
+            opacity: 0.9;
+        }
+        .stat-card .signal.up { color: #63d8a3; }
+        .stat-card .signal.down { color: #ff7f83; }
+        .stat-card .signal.flat { color: #87e4ea; }
+        .notes-panel {
+            border-radius: 22px;
+            border: 1px solid rgba(146, 190, 225, 0.18);
+            background: linear-gradient(180deg, rgba(18, 24, 31, 0.95), rgba(11, 18, 24, 0.93));
+            padding: 1rem;
+            display: grid;
+            gap: 1rem;
+        }
+        .notes-header {
+            display: grid;
+            grid-template-columns: 84px 1fr auto;
+            gap: 0.9rem;
+            align-items: center;
+        }
+        .notes-avatar {
+            width: 84px;
+            height: 84px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 1px solid rgba(164, 193, 219, 0.18);
+            background: radial-gradient(circle at top, rgba(158, 113, 214, 0.38), rgba(45, 26, 66, 0.78));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 12px 24px rgba(0,0,0,0.24);
+        }
+        .notes-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .verified-pill {
+            justify-self: end;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            border-radius: 999px;
+            padding: 0.35rem 0.7rem;
+            border: 1px solid rgba(99, 216, 163, 0.24);
+            background: rgba(40, 97, 81, 0.24);
+            color: #8cf0b8;
+            font-family: var(--font-mono);
+            font-size: 0.62rem;
+            letter-spacing: 0.08em;
+        }
+        .notes-copy {
+            color: #f8fbff;
+            font-family: var(--font-mono);
+            font-size: 0.82rem;
+            line-height: 1.65;
+            white-space: pre-wrap;
+        }
+        .status-banner {
+            margin: 0;
+            padding: 0.82rem 0.95rem;
+            border-radius: 16px;
+            border: 1px solid rgba(151, 190, 218, 0.15);
+            background: rgba(255,255,255,0.04);
+            font-size: 0.7rem;
+            color: #dbe7f3;
+        }
+        .status-banner.warn { color: #ffe291; border-color: rgba(255,209,102,0.35); background: rgba(255,209,102,0.08); }
+        .status-banner.expired { color: #ff8b97; border-color: rgba(255,107,107,0.35); background: rgba(255,107,107,0.08); }
         .action-grid {
             display: grid;
             grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 1rem;
-            margin-top: 1.5rem;
+            gap: 0.95rem;
+            margin-top: 1.3rem;
         }
+        .action-btn.secondary-tone {
+            background: rgba(255,255,255,0.05);
+            color: #fff;
+            border: 1px solid rgba(151, 190, 218, 0.16);
+            box-shadow: none;
+        }
+        .action-btn.like-tone {
+            background: rgba(255, 123, 160, 0.12);
+            color: #ff9fbe;
+            border: 1px solid rgba(255, 123, 160, 0.25);
+            box-shadow: none;
+        }
+        .action-btn.like-tone.liked {
+            background: rgba(99, 216, 163, 0.14);
+            color: #8cf0b8;
+            border-color: rgba(99, 216, 163, 0.28);
+        }
+
+        .share-card-export-shell {
+            position: fixed;
+            left: -99999px;
+            top: 0;
+            width: 1080px;
+            height: 1080px;
+            pointer-events: none;
+            opacity: 0;
+        }
+        .share-card-export {
+            width: 1080px;
+            height: 1080px;
+            padding: 56px;
+            box-sizing: border-box;
+            border-radius: 48px;
+            overflow: hidden;
+            background:
+                radial-gradient(circle at top right, rgba(79, 165, 230, 0.24), transparent 28%),
+                radial-gradient(circle at bottom left, rgba(80, 241, 214, 0.14), transparent 24%),
+                linear-gradient(180deg, #08111b 0%, #0c1622 52%, #09121c 100%);
+            border: 1px solid rgba(164, 210, 238, 0.16);
+            color: #f4fbff;
+            font-family: var(--font-mono);
+            position: relative;
+        }
+        .share-card-export::before {
+            content: '';
+            position: absolute;
+            inset: 24px;
+            border-radius: 32px;
+            border: 1px solid rgba(173, 213, 234, 0.08);
+            pointer-events: none;
+        }
+        .share-export-grid {
+            display: grid;
+            grid-template-rows: auto auto 1fr auto;
+            gap: 24px;
+            height: 100%;
+            position: relative;
+            z-index: 1;
+        }
+        .share-topline,
+        .share-device-row,
+        .share-footer {
+            display: grid;
+            gap: 18px;
+        }
+        .share-topline {
+            grid-template-columns: 1.2fr 1fr;
+            align-items: start;
+        }
+        .share-brand {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+        }
+        .share-brand img,
+        .share-footer img {
+            width: 78px;
+            height: 78px;
+            border-radius: 22px;
+            object-fit: cover;
+            border: 1px solid rgba(174, 212, 234, 0.18);
+            background: rgba(255,255,255,0.04);
+        }
+        .share-brand .name {
+            font-size: 2.1rem;
+            letter-spacing: 0.08em;
+        }
+        .share-brand .sub {
+            color: #91a8bc;
+            font-size: 0.95rem;
+            letter-spacing: 0.18em;
+            margin-top: 0.35rem;
+        }
+        .share-telemetry {
+            display: grid;
+            gap: 10px;
+            justify-items: end;
+            font-size: 1rem;
+            color: #cdddec;
+        }
+        .share-bar {
+            width: 100%;
+            height: 16px;
+            border-radius: 999px;
+            background: rgba(143, 180, 209, 0.14);
+            overflow: hidden;
+            border: 1px solid rgba(173, 212, 234, 0.12);
+        }
+        .share-bar span {
+            display: block;
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #8fd6ff, #72f0d8);
+        }
+        .share-device-row {
+            grid-template-columns: 120px 1fr;
+            align-items: center;
+            padding: 24px;
+            border-radius: 28px;
+            background: rgba(99, 132, 158, 0.12);
+            border: 1px solid rgba(168, 205, 227, 0.12);
+        }
+        .share-device-preview {
+            width: 120px;
+            height: 150px;
+            border-radius: 28px;
+            overflow: hidden;
+            border: 1px solid rgba(171, 209, 233, 0.14);
+            background: linear-gradient(180deg, rgba(150, 190, 215, 0.24), rgba(105, 128, 152, 0.1));
+        }
+        .share-device-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .share-device-meta {
+            display: grid;
+            gap: 10px;
+        }
+        .share-device-meta .eyebrow,
+        .share-code-label,
+        .share-stat .label,
+        .share-footer-copy .eyebrow {
+            color: #91a8bc;
+            font-size: 0.92rem;
+            letter-spacing: 0.14em;
+        }
+        .share-device-meta .headline {
+            font-size: 2.35rem;
+            line-height: 1.14;
+            color: #fff;
+        }
+        .share-device-meta .unit {
+            font-size: 1.2rem;
+            color: #d9e8f5;
+        }
+        .share-code-strip {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 16px;
+            align-items: center;
+            padding: 22px 24px;
+            border-radius: 24px;
+            background: rgba(85, 114, 137, 0.16);
+            border: 1px solid rgba(165, 205, 227, 0.12);
+        }
+        .share-code-main {
+            display: grid;
+            gap: 8px;
+        }
+        .share-code-main .value {
+            font-size: 1.6rem;
+            color: #fff;
+            letter-spacing: 0.06em;
+        }
+        .share-code-pill {
+            padding: 12px 16px;
+            border-radius: 999px;
+            border: 1px solid rgba(104, 230, 183, 0.24);
+            background: rgba(49, 109, 91, 0.2);
+            color: #91f0c2;
+            font-size: 0.95rem;
+            letter-spacing: 0.12em;
+        }
+        .share-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 18px;
+        }
+        .share-stat {
+            border-radius: 26px;
+            padding: 22px 24px;
+            background: linear-gradient(180deg, rgba(15, 21, 27, 0.95), rgba(8, 14, 19, 0.92));
+            border: 1px solid rgba(156, 197, 221, 0.12);
+            display: grid;
+            gap: 12px;
+            align-content: space-between;
+            min-height: 165px;
+            position: relative;
+        }
+        .share-stat .value {
+            font-size: 3rem;
+            line-height: 1.03;
+            color: #fff;
+        }
+        .share-stat .trend {
+            color: #99aec1;
+            font-size: 0.92rem;
+        }
+        .share-stat .icon {
+            position: absolute;
+            right: 20px;
+            top: 18px;
+            font-size: 2.1rem;
+        }
+        .share-footer {
+            grid-template-columns: 100px 1fr auto;
+            align-items: center;
+            padding: 22px 24px;
+            border-radius: 28px;
+            background: rgba(11, 18, 25, 0.96);
+            border: 1px solid rgba(156, 197, 221, 0.12);
+        }
+        .share-footer-copy {
+            display: grid;
+            gap: 10px;
+        }
+        .share-footer-copy .main {
+            font-size: 1.25rem;
+            color: #fff;
+            line-height: 1.45;
+        }
+        .share-verified-pill {
+            padding: 12px 18px;
+            border-radius: 999px;
+            border: 1px solid rgba(109, 230, 185, 0.22);
+            background: rgba(43, 92, 78, 0.22);
+            color: #96f0c6;
+            font-size: 0.95rem;
+            letter-spacing: 0.12em;
+        }
+
         .motion-note {
             margin-top: 0.9rem;
             font-size: 0.62rem;
-            line-height: 1.6;
-            color: var(--text-muted);
+            line-height: 1.65;
+            color: #9bb0c2;
             text-align: center;
             letter-spacing: 0.08em;
             text-transform: uppercase;
         }
-        @media (max-width: 520px) {
-            .result-chip-row,
-            .action-grid {
+        @media (max-width: 560px) {
+            .result-overview,
+            .action-grid,
+            .stats-grid {
                 grid-template-columns: 1fr;
+            }
+            .intel-topbar,
+            .notes-header {
+                grid-template-columns: 1fr;
+            }
+            .telemetry-panel {
+                justify-items: start;
+            }
+            .device-profile-row {
+                grid-template-columns: 1fr;
+            }
+            .device-thumb {
+                width: 92px;
+                height: 120px;
+            }
+            .code-rail {
+                grid-template-columns: auto 1fr;
+            }
+            .code-copy-btn {
+                width: calc(100% - 0.6rem);
+                margin: 0 0.3rem 0.3rem;
+                grid-column: 1 / -1;
             }
         }
     </style>
@@ -120,150 +724,210 @@
     <div class="ambient-glow"></div>
 
     <div class="app-container">
-        <header style="text-align: center; margin-bottom: 2rem;" class="reveal">
-            <div class="logo-badge">SCAN_COMPLETE</div>
-            <h1 class="title-main" style="font-size: 1.5rem; margin-top: 0.5rem;">AUTHORIZATION_SUCCESS</h1>
+        <header class="result-intro reveal">
+            <div class="hero-banner">
+                <div class="logo-badge">SCAN_COMPLETE</div>
+                <h1 class="title-main" style="font-size: 1.6rem; margin: 0.55rem 0 0;">AUTHORIZATION_SUCCESS</h1>
+                <p>Your creator card is now brighter, easier to read, and ready for export, sharing, quick likes, and direct code copy.</p>
+            </div>
+            <div class="result-overview">
+                <div class="overview-chip">
+                    <span class="label">Verification</span>
+                    <span class="value" id="chipStatus">SECURE LINK</span>
+                </div>
+                <div class="overview-chip">
+                    <span class="label">Provider</span>
+                    <span class="value" id="chipVendor">XP_CORE</span>
+                </div>
+                <div class="overview-chip">
+                    <span class="label">Mode</span>
+                    <span class="value" id="chipMode">VIEW / EXPORT</span>
+                </div>
+            </div>
         </header>
 
-        <main class="reveal" style="animation-delay: 0.2s;">
-            <section class="result-stage reveal" style="animation-delay: 0.16s;">
-                <div class="insight-banner">
-                    <div class="logo-badge" style="margin-bottom: 0.7rem;">VERIFIED_VENDOR_PROFILE</div>
-                    <div style="font-family: var(--font-heading); font-size: 1.1rem; margin-bottom: 0.35rem;">Your creator card is live and ready to export.</div>
-                    <div style="font-size: 0.72rem; line-height: 1.65; color: var(--text-secondary);">Review the sensitivity profile below, save the card, copy the summary, or jump to the creator’s socials.</div>
-                </div>
-                <div class="result-chip-row">
-                    <div class="result-chip">
-                        <span class="label">Verification</span>
-                        <span class="value" id="chipStatus">SECURE LINK</span>
-                    </div>
-                    <div class="result-chip">
-                        <span class="label">Provider</span>
-                        <span class="value" id="chipVendor">XP_CORE</span>
-                    </div>
-                    <div class="result-chip">
-                        <span class="label">Card Mode</span>
-                        <span class="value" id="chipMode">VIEW / EXPORT</span>
-                    </div>
-                </div>
-            </section>
-
-            <!-- 🪪 THE MILITARY ID CARD -->
+        <main class="reveal" style="animation-delay: 0.18s;">
             <div class="card-stage">
-            <div id="captureArea" class="glass-card military-id">
-                <div class="id-header" style="position: relative;">
-                    <div style="display: flex; align-items: center; gap: 0.75rem;">
-                        <img id="creatorLogo" src="favicon.png" style="width: 32px; height: 32px; filter: grayscale(1) brightness(200%);" alt="L">
-                        <div>
-                            <div style="font-size: 0.5rem; color: #444; letter-spacing: 0.1em;">UNIT_ID</div>
-                            <div style="font-size: 0.7rem; color: #fff; font-weight: 800;" id="creatorName">XP_CORE</div>
+                <section id="captureArea" class="intel-card">
+                    <div class="intel-topbar">
+                        <div class="brand-mark">
+                            <img id="creatorLogo" src="favicon.png" alt="Creator logo">
+                            <div class="brand-lockup">
+                                <div class="primary">XP_ARENA</div>
+                                <div class="secondary">TACTICAL RESULT DOSSIER</div>
+                            </div>
                         </div>
-                    </div>
-                    <div style="text-align: right;">
-                        <div style="font-size: 0.5rem; color: #444; letter-spacing: 0.1em;">EXPIRY</div>
-                        <div style="font-size: 0.7rem; color: var(--accent-primary); font-weight: 800;" id="expiryValue">NEVER</div>
-                    </div>
-                </div>
-
-                <div class="id-body">
-                    <div class="id-row">
-                        <span class="id-label">SUBJECT_MODEL</span>
-                        <span class="id-value" id="idModel">UNKNOWN_HARDWARE</span>
+                        <div class="telemetry-panel">
+                            <div class="row"><span>CURRENT UTC:</span><strong id="currentUtcLabel">--</strong></div>
+                            <div class="row"><span>EXPIRY:</span><strong id="expiryValue">NEVER</strong></div>
+                            <div class="row"><span class="telemetry-dot"></span><span>NETWORK: STABLE</span></div>
+                            <div class="telemetry-bar"><span id="efficiencyBar"></span></div>
+                            <div class="row"><span>PROFILE_EFFICIENCY:</span><strong id="profileEfficiency">--%</strong></div>
+                        </div>
                     </div>
 
-                    <div class="id-row">
-                        <span class="id-label">ACCESS_CODE</span>
-                        <span class="id-value" id="idCode">XP-000-000</span>
-                    </div>
+                    <section class="device-access">
+                        <div class="device-access-header">DEVICE &amp; ACCESS</div>
+                        <div class="device-access-body">
+                            <div class="device-profile-row">
+                                <div class="device-thumb">
+                                    <img id="devicePreview" src="favicon.png" alt="Device preview">
+                                </div>
+                                <div class="device-meta">
+                                    <div class="subtle">DEVICE_PROFILE</div>
+                                    <div class="headline" id="idModel">UNKNOWN_HARDWARE</div>
+                                    <div class="subtle">UNIT_ID: <span id="creatorName">XP_CORE</span></div>
+                                </div>
+                            </div>
+                            <div class="code-rail">
+                                <div class="code-icon" aria-hidden="true">
+                                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                                </div>
+                                <div class="code-content" id="codeRailText">[REDACTED_CODE]</div>
+                                <button class="code-copy-btn" id="copyCodeBtn" type="button" aria-label="Copy access code">
+                                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="11" height="11" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                                </button>
+                            </div>
+                        </div>
+                    </section>
 
-                <!-- Sensitivity Matrix -->
-                <div class="id-stats-grid">
-                    <div class="id-stat-box">
-                        <div class="id-stat-label">GENERAL_SENS</div>
-                        <div class="id-stat-val range-display">
-                            <span id="rGen1">--</span>
-                            <span class="range-sep">—</span>
-                            <span id="rGen2">--</span>
-                        </div>
+                    <div class="stats-grid">
+                        <article class="stat-card">
+                            <div class="signal up">↑</div>
+                            <div class="label">GENERAL_SENS</div>
+                            <div class="value"><span id="rGen1">--</span> — <span id="rGen2">--</span></div>
+                            <div class="trend" id="trendGeneral">TREND: OPTIMIZING</div>
+                        </article>
+                        <article class="stat-card">
+                            <div class="signal down">↑</div>
+                            <div class="label">RED_DOT_PRECISION</div>
+                            <div class="value"><span id="rRed1">--</span> — <span id="rRed2">--</span></div>
+                            <div class="trend" id="trendRed">TREND: STABLE</div>
+                        </article>
+                        <article class="stat-card">
+                            <div class="signal down">↓</div>
+                            <div class="label">2X_SCOPE_ZOOM</div>
+                            <div class="value"><span id="r2x1">--</span> — <span id="r2x2">--</span></div>
+                            <div class="trend" id="trend2x">TREND: FINE-TUNING</div>
+                        </article>
+                        <article class="stat-card">
+                            <div class="signal flat">↘</div>
+                            <div class="label">4X_SCOPE_ZOOM</div>
+                            <div class="value"><span id="r4x1">--</span> — <span id="r4x2">--</span></div>
+                            <div class="trend" id="trend4x">TREND: CONSISTENT</div>
+                        </article>
+                        <article class="stat-card">
+                            <div class="signal up">↑</div>
+                            <div class="label">ADS_PRECISION_ZOOM</div>
+                            <div class="value"><span id="rAds1">--</span> — <span id="rAds2">--</span></div>
+                            <div class="trend" id="trendAds">TREND: OPTIMIZING</div>
+                        </article>
+                        <article class="stat-card">
+                            <div class="signal down">↓</div>
+                            <div class="label">SNIPER_CALIBRATION</div>
+                            <div class="value"><span id="rSni1">--</span> — <span id="rSni2">--</span></div>
+                            <div class="trend" id="trendSni">TREND: STABLE</div>
+                        </article>
+                        <article class="stat-card">
+                            <div class="signal flat">◫</div>
+                            <div class="label">DPI_BENCHMARK</div>
+                            <div class="value" id="idDPI">--</div>
+                            <div class="trend">TREND: INPUT_RESPONSE</div>
+                        </article>
+                        <article class="stat-card">
+                            <div class="signal flat">◎</div>
+                            <div class="label">PROFILE_EFFICIENCY</div>
+                            <div class="value" id="profileEfficiencyCard">--%</div>
+                            <div class="trend">TREND: LIVE_SYNCED</div>
+                        </article>
                     </div>
-                    <div class="id-stat-box">
-                        <div class="id-stat-label">RED_DOT_PRECISION</div>
-                        <div class="id-stat-val range-display">
-                            <span id="rRed1">--</span>
-                            <span class="range-sep">—</span>
-                            <span id="rRed2">--</span>
-                        </div>
-                    </div>
-                    <div class="id-stat-box">
-                        <div class="id-stat-label">2X_SCOPE_ZOOM</div>
-                        <div class="id-stat-val range-display">
-                            <span id="r2x1">--</span>
-                            <span class="range-sep">—</span>
-                            <span id="r2x2">--</span>
-                        </div>
-                    </div>
-                    <div class="id-stat-box">
-                        <div class="id-stat-label">4X_SCOPE_ZOOM</div>
-                        <div class="id-stat-val range-display">
-                            <span id="r4x1">--</span>
-                            <span class="range-sep">—</span>
-                            <span id="r4x2">--</span>
-                        </div>
-                    </div>
-                    <div class="id-stat-box">
-                        <div class="id-stat-label">ADS_PRECISION_ZOOM</div>
-                        <div class="id-stat-val range-display">
-                            <span id="rAds1">--</span>
-                            <span class="range-sep">—</span>
-                            <span id="rAds2">--</span>
-                        </div>
-                    </div>
-                    <div class="id-stat-box">
-                        <div class="id-stat-label">SNIPER_CALIBRATION</div>
-                        <div class="id-stat-val range-display">
-                            <span id="rSni1">--</span>
-                            <span class="range-sep">—</span>
-                            <span id="rSni2">--</span>
-                        </div>
-                    </div>
-                    <div class="id-stat-box">
-                        <div class="id-stat-label">DPI_BENCHMARK</div>
-                        <div class="id-stat-val" id="idDPI" style="font-size: 1.1rem; color: var(--accent-primary);">--</div>
-                    </div>
-                </div>
 
                     <div class="status-banner hidden" id="expiryWarning"></div>
-                    <div style="margin-top: 2rem; padding: 1rem; border: 1px dashed #222; text-align: center;">
-                        <div style="font-size: 0.5rem; color: #444; margin-bottom: 5px;">SETTINGS_BY</div>
-                        <div style="font-size: 0.75rem; color: #fff; line-height: 1.4; margin-bottom: 0.7rem;" id="settingsBy">Settings by: XP_CORE 👾</div>
-                        <div style="font-size: 0.5rem; color: #444; margin-bottom: 5px;">ADDITIONAL_NOTES</div>
-                        <div style="font-size: 0.65rem; color: #888; line-height: 1.4;" id="creatorAdvice">NO_EXTRA_ADVICE_PROVIDED</div>
-                        <div style="font-size: 0.65rem; color: #9fe870; line-height: 1.4; margin-top: 0.8rem;" id="followHint"></div>
-                    </div>
-                </div>
 
-                <!-- Decorative Elements -->
-                <div style="position: absolute; bottom: 10px; right: 10px; opacity: 0.05; transform: rotate(-15deg); font-size: 3rem; font-weight: 900; pointer-events: none;">XP_ARENA</div>
-                <div class="scan-line"></div>
-            </div>
+                    <section class="notes-panel">
+                        <div class="notes-header">
+                            <div class="notes-avatar">
+                                <img id="notesAvatar" src="favicon.png" alt="Creator avatar">
+                            </div>
+                            <div>
+                                <div class="label" style="font-family: var(--font-mono); color:#96aab9; font-size:0.58rem; letter-spacing:0.14em;">SETTINGS_BY</div>
+                                <div style="color:#fff; font-family:var(--font-mono); font-size:1rem; line-height:1.5;" id="settingsBy">Settings by: XP_CORE 👾</div>
+                                <div style="margin-top:0.55rem; color:#96aab9; font-family:var(--font-mono); font-size:0.58rem; letter-spacing:0.14em;">ADDITIONAL_NOTES</div>
+                            </div>
+                            <div class="verified-pill">VERIFIED <span id="verifiedEfficiency">--%</span></div>
+                        </div>
+                        <div class="notes-copy" id="creatorAdvice">NO_EXTRA_ADVICE_PROVIDED</div>
+                        <div class="notes-copy" id="followHint" style="color:#8fc8dc; font-size:0.72rem;"></div>
+                    </section>
+                </section>
             </div>
 
-            <!-- Actions -->
             <div class="action-grid">
-                <button class="action-btn" id="downloadBtn" style="margin-top: 0; background: #fff; color: #000; box-shadow: none;">DOWNLOAD_ID</button>
-                <button class="action-btn" id="copyBtn" style="margin-top: 0; background: var(--bg-card); color: #fff; border: 1px solid #222; box-shadow: none;">COPY_TEXT</button>
-                <button class="action-btn" id="likeBtn" onclick="submitLike()" style="margin-top: 0; background: #1b0f14; color: #ff7aa2; border: 1px solid #4b2130; box-shadow: none;">❤️ LIKE (0)</button>
+                <button class="action-btn" id="downloadBtn" style="margin-top: 0; background: #e7f4ff; color: #061019; box-shadow: none;">DOWNLOAD_ID</button>
+                <button class="action-btn secondary-tone" id="copyBtn" style="margin-top: 0;">COPY_TEXT / SHARE</button>
+                <button class="action-btn like-tone" id="likeBtn" type="button" onclick="submitLike()" style="margin-top: 0;">❤️ LIKE (0)</button>
             </div>
-            <div class="motion-note">This card is view-only for end users. Sensitivity generation is locked to vendor workspaces.</div>
+            <div class="motion-note">This card is view-only for end users. Sensitivity generation stays locked to vendor workspaces.</div>
         </main>
     </div>
 
-    <!-- 🔗 Follow Creator Fixed Bar -->
-    <div class="follow-creator-bar reveal" style="animation-delay: 0.5s;">
-        <div id="socialLinks" style="display: flex; gap: 1rem; margin-bottom: 1rem; justify-content: center;">
-            <!-- Social Icons injected here -->
-        </div>
+    <div class="follow-creator-bar reveal" style="animation-delay: 0.45s;">
+        <div id="socialLinks" style="display:flex; gap:1rem; margin-bottom:1rem; justify-content:center; flex-wrap:wrap;"></div>
         <button class="btn-follow" id="followBtn">FOLLOW_CREATOR</button>
+    </div>
+
+
+    <div class="share-card-export-shell" aria-hidden="true">
+        <section id="shareCaptureArea" class="share-card-export">
+            <div class="share-export-grid">
+                <div class="share-topline">
+                    <div class="share-brand">
+                        <img id="shareLogo" src="favicon.png" alt="Brand logo">
+                        <div>
+                            <div class="name">XP_ARENA</div>
+                            <div class="sub">PREMIUM SHARE CARD</div>
+                        </div>
+                    </div>
+                    <div class="share-telemetry">
+                        <div id="shareUtc">CURRENT UTC: --</div>
+                        <div id="shareExpiry">EXPIRY: NEVER</div>
+                        <div class="share-bar"><span id="shareEfficiencyBar"></span></div>
+                        <div id="shareEfficiencyLabel">PROFILE_EFFICIENCY: --%</div>
+                    </div>
+                </div>
+                <div class="share-device-row">
+                    <div class="share-device-preview"><img id="shareDevicePreview" src="favicon.png" alt="Device preview"></div>
+                    <div class="share-device-meta">
+                        <div class="eyebrow">DEVICE_PROFILE</div>
+                        <div class="headline" id="shareDeviceModel">UNKNOWN_HARDWARE</div>
+                        <div class="unit" id="shareCreatorName">UNIT_ID: XP_CORE</div>
+                    </div>
+                </div>
+                <div style="display:grid; gap:18px;">
+                    <div class="share-code-strip">
+                        <div class="share-code-main">
+                            <div class="share-code-label">ACCESS_CODE</div>
+                            <div class="value" id="shareAccessCode">XP-0000-0000</div>
+                        </div>
+                        <div class="share-code-pill">SYNCED_PROFILE</div>
+                    </div>
+                    <div class="share-stats-grid">
+                        <div class="share-stat"><div class="icon" style="color:#7bf2c9;">↑</div><div class="label">GENERAL_SENS</div><div class="value" id="shareGeneral">--</div><div class="trend" id="shareTrendGeneral">TREND: OPTIMIZING</div></div>
+                        <div class="share-stat"><div class="icon" style="color:#ff8d9c;">↑</div><div class="label">RED_DOT_PRECISION</div><div class="value" id="shareRedDot">--</div><div class="trend" id="shareTrendRed">TREND: STABLE</div></div>
+                        <div class="share-stat"><div class="icon" style="color:#8de3ff;">↘</div><div class="label">2X / 4X_SCOPE</div><div class="value" id="shareScope">--</div><div class="trend" id="shareTrendScope">TREND: CONSISTENT</div></div>
+                        <div class="share-stat"><div class="icon" style="color:#9df0e1;">◎</div><div class="label">DPI / EFFICIENCY</div><div class="value" id="shareDpiEff">--</div><div class="trend">TREND: LIVE_SYNCED</div></div>
+                    </div>
+                </div>
+                <div class="share-footer">
+                    <img id="shareFooterLogo" src="favicon.png" alt="Creator logo">
+                    <div class="share-footer-copy">
+                        <div class="eyebrow">SETTINGS_BY</div>
+                        <div class="main" id="shareAdvice">NO_EXTRA_ADVICE_PROVIDED</div>
+                    </div>
+                    <div class="share-verified-pill" id="shareVerified">VERIFIED 94%</div>
+                </div>
+            </div>
+        </section>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -276,6 +940,61 @@
         let currentCode = '';
         let currentVerifyPayload = null;
         let expiryTimer = null;
+        let currentEfficiency = 94;
+        let likeInFlight = false;
+
+        function likedStorageKey(code) {
+            return `xp_liked_${String(code || '').toUpperCase()}`;
+        }
+
+        function t(key, fallback) {
+            const lang = localStorage.getItem('xp_lang') || 'en';
+            const fallbackDict = (window.LANGUAGES && window.LANGUAGES.en) || {};
+            const currentDict = (window.LANGUAGES && window.LANGUAGES[lang]) || {};
+            return currentDict[key] || fallbackDict[key] || fallback;
+        }
+
+        function setLikeButtonState(liked, count) {
+            const likeBtn = document.getElementById('likeBtn');
+            if (!likeBtn) return;
+            const actionLabel = liked ? t('likedLabel', 'LIKED') : t('likeLabel', 'LIKE');
+            likeBtn.textContent = `${liked ? '💚' : '❤️'} ${actionLabel} (${count || 0})`;
+            likeBtn.classList.toggle('liked', liked);
+            likeBtn.setAttribute('aria-pressed', liked ? 'true' : 'false');
+        }
+
+        function updateUtcClock() {
+            const el = document.getElementById('currentUtcLabel');
+            if (!el) return;
+            const now = new Date();
+            el.textContent = now.toISOString().replace('T', ' ').slice(0, 16) + ' UTC';
+        }
+
+        function clamp(num, min, max) {
+            return Math.max(min, Math.min(max, num));
+        }
+
+        function setEfficiency(value) {
+            const safeValue = clamp(Math.round(value || 0), 0, 100);
+            currentEfficiency = safeValue;
+            document.getElementById('profileEfficiency').textContent = `${safeValue}%`;
+            document.getElementById('profileEfficiencyCard').textContent = `${safeValue}%`;
+            document.getElementById('verifiedEfficiency').textContent = `${safeValue}%`;
+            document.getElementById('efficiencyBar').style.width = `${safeValue}%`;
+        }
+
+        function inferEfficiency(results) {
+            const keys = ['general', 'redDot', 'scope2x', 'scope4x', 'ads', 'sniperScope'];
+            const scores = keys.map((key) => {
+                const raw = results[key] || results[key === 'sniperScope' ? 'sniper' : key];
+                const parsed = parseRange(raw);
+                if (!Array.isArray(parsed) || parsed[0] === '--') return 88;
+                const midpoint = (parsed[0] + parsed[1]) / 2;
+                const spread = Math.abs(parsed[1] - parsed[0]);
+                return clamp(100 - Math.abs(170 - midpoint) * 0.12 - spread * 0.9, 82, 99);
+            });
+            return scores.length ? scores.reduce((sum, item) => sum + item, 0) / scores.length : 94;
+        }
 
         function setExpiryState(validUntil) {
             const expiryValue = document.getElementById('expiryValue');
@@ -284,6 +1003,7 @@
             if (!validUntil) {
                 expiryValue.textContent = 'NEVER';
                 warning.classList.add('hidden');
+                warning.textContent = '';
                 return;
             }
             const expiryDate = new Date(validUntil);
@@ -340,9 +1060,20 @@
             }
         }
 
+        async function copyPlainText(value, successMessage) {
+            await navigator.clipboard.writeText(value);
+            if (window.notify) window.notify(t('accessCodeCopied', successMessage), 'success');
+        }
+
         async function submitLike() {
-            if (!currentCode) return;
+            if (!currentCode || likeInFlight) return;
+            const alreadyLiked = localStorage.getItem(likedStorageKey(currentCode)) === 'true';
+            if (alreadyLiked) {
+                if (window.notify) window.notify(t('likeAlreadyRecorded', 'LIKE_ALREADY_RECORDED'), 'info');
+                return;
+            }
             try {
+                likeInFlight = true;
                 const response = await fetch('/api/vault/feedback', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -350,15 +1081,71 @@
                 });
                 const payload = await response.json();
                 if (!response.ok) throw new Error(payload.error || payload.message || 'LIKE_FAILED');
-                document.getElementById('likeBtn').textContent = `❤️ LIKE (${payload.likes_count || 0})`;
-                if (window.notify) window.notify('LIKE_RECORDED', 'success');
+                localStorage.setItem(likedStorageKey(currentCode), 'true');
+                setLikeButtonState(true, payload.likes_count || 0);
+                if (window.notify) window.notify(t('likeRecorded', 'LIKE_RECORDED'), 'success');
             } catch (e) {
                 if (window.notify) window.notify(e.message || 'LIKE_FAILED', 'error');
+            } finally {
+                likeInFlight = false;
             }
         }
         window.submitLike = submitLike;
 
+        function parseRange(v) {
+            if (typeof v === 'number' && Number.isFinite(v)) return [Math.max(0, v - 3), Math.min(200, v + 3)];
+            if (typeof v === 'string') {
+                const m = v.match(/^\s*(\d+)\s*-\s*(\d+)\s*$/);
+                if (m) return [parseInt(m[1], 10), parseInt(m[2], 10)];
+                const n = Number.parseFloat(v);
+                if (Number.isFinite(n)) return [Math.max(0, Math.round(n - 3)), Math.min(200, Math.round(n + 3))];
+            }
+            return ['--', '--'];
+        }
+
+        function paintRange(id1, id2, val) {
+            const [a, b] = parseRange(val);
+            document.getElementById(id1).textContent = a;
+            document.getElementById(id2).textContent = b;
+        }
+
+        function applyTrendLine(id, values) {
+            const [a, b] = parseRange(values);
+            const el = document.getElementById(id);
+            if (!el || a === '--') return;
+            const avg = (a + b) / 2;
+            if (avg >= 170) el.textContent = 'TREND: OPTIMIZING';
+            else if (avg >= 145) el.textContent = 'TREND: STABLE';
+            else el.textContent = 'TREND: FINE-TUNING';
+        }
+
+
+        function updateShareCard(details) {
+            document.getElementById('shareLogo').src = details.logo;
+            document.getElementById('shareFooterLogo').src = details.logo;
+            document.getElementById('shareDevicePreview').src = details.logo;
+            document.getElementById('shareUtc').textContent = `CURRENT UTC: ${new Date().toISOString().replace('T', ' ').slice(0, 16)} UTC`;
+            document.getElementById('shareExpiry').textContent = `EXPIRY: ${details.expiry}`;
+            document.getElementById('shareEfficiencyBar').style.width = `${details.efficiency}%`;
+            document.getElementById('shareEfficiencyLabel').textContent = `PROFILE_EFFICIENCY: ${details.efficiency}%`;
+            document.getElementById('shareDeviceModel').textContent = details.model;
+            document.getElementById('shareCreatorName').textContent = `UNIT_ID: ${details.creator}`;
+            document.getElementById('shareAccessCode').textContent = details.code;
+            document.getElementById('shareGeneral').textContent = details.general;
+            document.getElementById('shareRedDot').textContent = details.redDot;
+            document.getElementById('shareScope').textContent = details.scope;
+            document.getElementById('shareDpiEff').textContent = `${details.dpi} • ${details.efficiency}%`;
+            document.getElementById('shareTrendGeneral').textContent = details.trendGeneral;
+            document.getElementById('shareTrendRed').textContent = details.trendRed;
+            document.getElementById('shareTrendScope').textContent = details.trendScope;
+            document.getElementById('shareAdvice').textContent = `SETTINGS BY ${details.creator}: ${details.advice}`;
+            document.getElementById('shareVerified').textContent = `VERIFIED ${details.efficiency}%`;
+        }
+
         document.addEventListener('DOMContentLoaded', async () => {
+            updateUtcClock();
+            setInterval(updateUtcClock, 1000);
+
             const params = new URLSearchParams(window.location.search);
             const fallbackResults = JSON.parse(localStorage.getItem('xp_sensitivity_profile_last_result') || '{}');
             const state = JSON.parse(localStorage.getItem('xp_sensitivity_profile') || '{}');
@@ -371,15 +1158,11 @@
                 window.location.href = 'index.html';
                 return;
             }
+
             const code = currentCode || 'FREE-GEN';
-            const getDict = () => {
-                const lang = localStorage.getItem('xp_lang') || 'en';
-                return (window.LANGUAGES && window.LANGUAGES[lang]) || window.LANGUAGES?.en || {};
-            };
-            const t = (key, fallback) => {
-                const d = getDict();
-                return d[key] || fallback;
-            };
+            const displayName = branding.display_name || hydrated.displayName || hydrated.vendorId || 'XP_CORE';
+            const modelText = `${results.brand || state.brand || 'GENERIC'} ${results.model || state.model || 'DEVICE'}`.toUpperCase();
+
             if (window.SaaSAnalytics) window.SaaSAnalytics.track('result_view');
             try {
                 fetch('/api/vault/track', {
@@ -401,39 +1184,26 @@
                 if (downloadBtn) downloadBtn.textContent = t('downloadBtn', 'DOWNLOAD_ID');
                 const copyBtn = document.getElementById('copyBtn');
                 if (copyBtn) copyBtn.textContent = `${t('copyBtn', 'COPY_TEXT')} / SHARE`;
-                
-                // Labels
-                const adviceLabel = document.querySelector('div[style*="font-size: 0.5rem; color: #444; margin-bottom: 5px;"]:nth-of-type(2)');
-                if (adviceLabel) adviceLabel.textContent = t('adviceLabel', 'ADDITIONAL_NOTES');
             };
             applyResultLang();
             window.addEventListener('xp:language-change', applyResultLang);
 
-            const parseRange = (v) => {
-                if (typeof v === 'number' && Number.isFinite(v)) return [Math.max(0, v - 3), Math.min(200, v + 3)];
-                if (typeof v === 'string') {
-                    const m = v.match(/^\s*(\d+)\s*-\s*(\d+)\s*$/);
-                    if (m) return [parseInt(m[1], 10), parseInt(m[2], 10)];
-                    const n = Number.parseFloat(v);
-                    if (Number.isFinite(n)) return [Math.max(0, Math.round(n - 3)), Math.min(200, Math.round(n + 3))];
-                }
-                return ['--', '--'];
-            };
-            const paintRange = (id1, id2, val) => {
-                const [a, b] = parseRange(val);
-                document.getElementById(id1).textContent = a;
-                document.getElementById(id2).textContent = b;
-            };
-
-            document.getElementById('idModel').textContent = `${results.brand || state.brand || 'GENERIC'} ${results.model || state.model || 'DEVICE'}`.toUpperCase();
-            document.getElementById('idCode').textContent = code;
-            document.getElementById('creatorName').textContent = branding.display_name || hydrated.displayName || branding.name || 'XP_CORE';
-            document.getElementById('settingsBy').textContent = `Settings by: ${branding.display_name || hydrated.displayName || hydrated.vendorId || 'XP_CORE'} 👾`;
-            document.getElementById('chipVendor').textContent = (branding.display_name || hydrated.displayName || hydrated.vendorId || 'XP_CORE').toUpperCase();
+            document.getElementById('idModel').textContent = modelText;
+            document.getElementById('codeRailText').textContent = `[REDACTED_CODE] or ${code}`;
+            document.getElementById('creatorName').textContent = displayName;
+            document.getElementById('settingsBy').textContent = `Settings by: ${displayName} 👾`;
+            document.getElementById('chipVendor').textContent = displayName.toUpperCase();
             document.getElementById('chipStatus').textContent = hydrated.validUntil ? 'ACTIVE / TIMED' : 'ACTIVE / OPEN';
+            document.getElementById('devicePreview').src = branding.logo_url || branding.logo || 'favicon.png';
+            document.getElementById('notesAvatar').src = branding.logo_url || branding.logo || 'favicon.png';
             if (branding.logo_url || branding.logo) document.getElementById('creatorLogo').src = branding.logo_url || branding.logo;
-            document.getElementById('creatorAdvice').textContent = hydrated.advice ? `💡 ${t('adviceLabel', 'Advice')}: ${hydrated.advice}` : t('noAdvice', 'NO_EXTRA_ADVICE_PROVIDED');
-            document.getElementById('likeBtn').textContent = `❤️ LIKE (${hydrated.likes || 0})`;
+            document.getElementById('creatorAdvice').textContent = hydrated.advice
+                ? `PROFILE NOTES: OPTIMIZED FOR COMPETITIVE PLAY — ${hydrated.advice}`
+                : 'PROFILE NOTES: OPTIMIZED FOR COMPETITIVE PLAY — [NO_EXTRA_ADVICE_PROVIDED]';
+
+            const liked = localStorage.getItem(likedStorageKey(code)) === 'true';
+            setLikeButtonState(liked, hydrated.likes || 0);
+
             paintRange('rGen1', 'rGen2', results.general);
             paintRange('rRed1', 'rRed2', results.redDot);
             paintRange('r2x1', 'r2x2', results.scope2x);
@@ -441,7 +1211,34 @@
             paintRange('rSni1', 'rSni2', results.sniperScope || results.sniper);
             paintRange('rAds1', 'rAds2', results.ads);
             document.getElementById('idDPI').textContent = results.dpi || 'DEFAULT';
+            applyTrendLine('trendGeneral', results.general);
+            applyTrendLine('trendRed', results.redDot);
+            applyTrendLine('trend2x', results.scope2x);
+            applyTrendLine('trend4x', results.scope4x);
+            applyTrendLine('trendAds', results.ads);
+            applyTrendLine('trendSni', results.sniperScope || results.sniper);
+            setEfficiency(inferEfficiency(results));
             setExpiryState(hydrated.validUntil);
+
+            const generalRange = `${document.getElementById('rGen1').textContent} — ${document.getElementById('rGen2').textContent}`;
+            const redDotRange = `${document.getElementById('rRed1').textContent} — ${document.getElementById('rRed2').textContent}`;
+            const scopeRange = `${document.getElementById('r2x1').textContent} — ${document.getElementById('r4x2').textContent}`;
+            updateShareCard({
+                logo: branding.logo_url || branding.logo || 'favicon.png',
+                expiry: hydrated.validUntil ? document.getElementById('expiryValue').textContent : 'NEVER',
+                efficiency: currentEfficiency,
+                model: modelText,
+                creator: displayName,
+                code,
+                general: generalRange,
+                redDot: redDotRange,
+                scope: scopeRange,
+                dpi: results.dpi || 'DEFAULT',
+                trendGeneral: document.getElementById('trendGeneral').textContent,
+                trendRed: document.getElementById('trendRed').textContent,
+                trendScope: document.getElementById('trend4x').textContent,
+                advice: hydrated.advice || 'OPTIMIZED FOR COMPETITIVE PLAY'
+            });
 
             const socialBox = document.getElementById('socialLinks');
             const socialsObj = branding.socials || {};
@@ -469,7 +1266,7 @@
             if (tiktok) document.getElementById('followHint').textContent = `Follow ${tiktok.link} on TikTok`;
 
             const followBtn = document.getElementById('followBtn');
-            const primarySocial = socials.find(s => s.link)?.link;
+            const primarySocial = socials.find((s) => s.link)?.link;
             if (primarySocial || branding.social_link) {
                 const primaryLink = primarySocial || branding.social_link;
                 followBtn.onclick = () => window.open(primaryLink.startsWith('http') ? primaryLink : `https://${primaryLink}`, '_blank');
@@ -477,36 +1274,32 @@
                 followBtn.textContent = 'JOIN_COMMUNITY';
                 followBtn.onclick = () => window.open('https://discord.gg/xparena', '_blank');
             }
+
             if (branding.colors && branding.colors.primary) document.documentElement.style.setProperty('--accent-primary', branding.colors.primary);
             if (branding.colors && branding.colors.secondary) document.documentElement.style.setProperty('--accent-secondary', branding.colors.secondary);
             if (branding.css_vars && typeof branding.css_vars === 'object') {
                 Object.entries(branding.css_vars).forEach(([key, value]) => {
-                    if (typeof value === 'string') {
-                        document.documentElement.style.setProperty(key, value);
-                    }
+                    if (typeof value === 'string') document.documentElement.style.setProperty(key, value);
                 });
             }
 
-            document.getElementById('downloadBtn').onclick = () => {
-                const area = document.getElementById('captureArea');
-                html2canvas(area, { scale: 3, backgroundColor: '#0a0a0a' }).then(canvas => {
-                    const link = document.createElement('a');
-                    link.download = `xp-id-${code}.png`;
-                    link.href = canvas.toDataURL();
-                    link.click();
-                    if (window.notify) window.notify('ID_CARD_EXPORTED', 'success');
-                });
+            document.getElementById('downloadBtn').onclick = async () => {
+                const area = document.getElementById('shareCaptureArea');
+                const canvas = await html2canvas(area, { scale: 2, backgroundColor: '#0b1620' });
+                const link = document.createElement('a');
+                link.download = `xp-id-${code}.png`;
+                link.href = canvas.toDataURL();
+                link.click();
+                if (window.notify) window.notify('ID_CARD_EXPORTED', 'success');
             };
+
+            document.getElementById('copyCodeBtn').onclick = () => copyPlainText(code, 'ACCESS_CODE_COPIED');
 
             document.getElementById('copyBtn').onclick = () => {
                 const general = `${document.getElementById('rGen1').textContent}-${document.getElementById('rGen2').textContent}`;
                 const redDot = `${document.getElementById('rRed1').textContent}-${document.getElementById('rRed2').textContent}`;
-                const text = `XP ARENA ACCESS PROFILE
-DEVICE: ${results.brand || state.brand || 'UNKNOWN'} ${results.model || state.model || 'DEVICE'}
-GENERAL: ${general}
-RED DOT: ${redDot}
-CODE: ${code}`;
-                const doAfter = () => {
+                const text = `XP ARENA ACCESS PROFILE\nDEVICE: ${modelText}\nGENERAL: ${general}\nRED DOT: ${redDot}\nDPI: ${results.dpi || 'DEFAULT'}\nEFFICIENCY: ${currentEfficiency}%\nCODE: ${code}`;
+                const afterCopy = () => {
                     try {
                         fetch('/api/vault/action', {
                             method: 'POST',
@@ -517,9 +1310,9 @@ CODE: ${code}`;
                     if (window.notify) window.notify('PROFILE_COPIED_TO_CLIPBOARD', 'haptic');
                 };
                 if (navigator.share) {
-                    navigator.share({ title: 'XP ARENA Calibration Profile', text }).then(doAfter).catch(() => navigator.clipboard.writeText(text).then(doAfter));
+                    navigator.share({ title: 'XP ARENA Calibration Profile', text }).then(afterCopy).catch(() => navigator.clipboard.writeText(text).then(afterCopy));
                 } else {
-                    navigator.clipboard.writeText(text).then(doAfter);
+                    navigator.clipboard.writeText(text).then(afterCopy);
                 }
             };
 
@@ -529,8 +1322,8 @@ CODE: ${code}`;
                 const area = document.getElementById('captureArea');
                 area?.addEventListener('pointermove', (event) => {
                     const rect = area.getBoundingClientRect();
-                    const rotateX = ((event.clientY - rect.top) / rect.height - 0.5) * -8;
-                    const rotateY = ((event.clientX - rect.left) / rect.width - 0.5) * 8;
+                    const rotateX = ((event.clientY - rect.top) / rect.height - 0.5) * -4;
+                    const rotateY = ((event.clientX - rect.left) / rect.width - 0.5) * 4;
                     area.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
                 });
                 area?.addEventListener('pointerleave', () => {
