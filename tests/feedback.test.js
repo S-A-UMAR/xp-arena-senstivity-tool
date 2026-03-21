@@ -4,9 +4,12 @@ process.env.NODE_ENV = 'test';
 
 jest.mock('../db', () => {
   const db = {
+    getCache: jest.fn(),
     get: jest.fn(),
     all: jest.fn(),
-    run: jest.fn()
+    run: jest.fn(),
+    clearExpiredCache: jest.fn(),
+    setCache: jest.fn()
   };
   return { db, pool: {} };
 });

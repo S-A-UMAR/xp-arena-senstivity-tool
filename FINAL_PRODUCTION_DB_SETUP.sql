@@ -27,6 +27,8 @@ CREATE TABLE IF NOT EXISTS vendors (
     active_until DATETIME DEFAULT NULL,
     webhook_url VARCHAR(500) DEFAULT NULL,
     brand_config JSON NOT NULL, 
+    usage_limit INT DEFAULT NULL,
+    last_login_at DATETIME DEFAULT NULL,
     status ENUM('active', 'suspended') DEFAULT 'active',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -104,6 +106,26 @@ CREATE TABLE IF NOT EXISTS system_settings (
     setting_key VARCHAR(50) PRIMARY KEY,
     setting_value VARCHAR(255) NOT NULL,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 9. Vendor Presets Table
+CREATE TABLE IF NOT EXISTS vendor_presets (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    vendor_id VARCHAR(50) NOT NULL,
+    preset_name VARCHAR(100) NOT NULL,
+    config_json JSON NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (vendor_id) REFERENCES vendors(vendor_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 10. Transient Cache Table
+CREATE TABLE IF NOT EXISTS transient_cache (
+    cache_key VARCHAR(255) PRIMARY KEY,
+    cache_value JSON NOT NULL,
+    expires_at DATETIME NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    INDEX (expires_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ############################################################################
