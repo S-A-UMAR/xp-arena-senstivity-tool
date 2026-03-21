@@ -28,6 +28,7 @@ CREATE TABLE IF NOT EXISTS vendors (
     webhook_url VARCHAR(500) DEFAULT NULL,
     brand_config JSON NOT NULL, 
     usage_limit INT DEFAULT NULL,
+    last_login_at DATETIME DEFAULT NULL,
     status ENUM('active', 'suspended') DEFAULT 'active',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
