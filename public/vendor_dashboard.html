@@ -283,8 +283,61 @@
             font-family: var(--font-mono);
             outline: none;
             box-sizing: border-box;
+            transition: border-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
         }
-        .cyber-input:focus { border-color: var(--accent-primary); }
+        .cyber-input:focus { border-color: var(--accent-primary); box-shadow: 0 0 0 4px rgba(0,255,136,0.08); transform: translateY(-1px); }
+        select.cyber-input {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image:
+                linear-gradient(45deg, transparent 50%, var(--accent-primary) 50%),
+                linear-gradient(135deg, var(--accent-primary) 50%, transparent 50%);
+            background-position:
+                calc(100% - 18px) calc(50% - 3px),
+                calc(100% - 12px) calc(50% - 3px);
+            background-size: 6px 6px, 6px 6px;
+            background-repeat: no-repeat;
+            padding-right: 3rem;
+        }
+        .gen-transition-overlay {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(2, 6, 23, 0.88);
+            backdrop-filter: blur(14px);
+            z-index: 3000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .gen-transition-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .gen-transition-card {
+            width: min(88vw, 360px);
+            padding: 1.6rem;
+            border-radius: 24px;
+            border: 1px solid rgba(0,255,136,0.2);
+            background: linear-gradient(145deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+            text-align: center;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.4);
+        }
+        .gen-spinner {
+            width: 68px;
+            height: 68px;
+            margin: 0 auto 1rem;
+            border-radius: 50%;
+            border: 4px solid rgba(0,255,136,0.12);
+            border-top-color: var(--accent-primary);
+            animation: genSpin 1s linear infinite;
+        }
+        @keyframes genSpin {
+            to { transform: rotate(360deg); }
+        }
 
         .btn-primary {
             width: 100%;
@@ -830,6 +883,25 @@
             el.style.display = 'block';
         }
 
+        async function transitionToResult(code, statusText = 'OPENING_RESULT_CARD') {
+            if (!code) return;
+            const overlay = document.createElement('div');
+            overlay.className = 'gen-transition-overlay active';
+            overlay.innerHTML = `
+                <div class="gen-transition-card">
+                    <div class="gen-spinner"></div>
+                    <div class="logo-badge" style="margin-bottom: 0.8rem;">CARD_READY</div>
+                    <div style="font-size: 1rem; font-weight: 800; margin-bottom: 0.35rem;">${statusText}</div>
+                    <div style="font-size: 0.7rem; color: var(--text-muted); line-height: 1.6;">Syncing branding, sensitivity profile, and creator identity before preview.</div>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+            localStorage.setItem('xp_last_entry_code', code);
+            setTimeout(() => {
+                window.location.href = `/result.html?code=${encodeURIComponent(code)}`;
+            }, 950);
+        }
+
         async function init() {
             try {
                 populateBrands();
@@ -1283,6 +1355,7 @@
                 
                 if (window.notify) window.notify('NEURAL_KEY_GENERATED', 'success');
                 await loadDashboard();
+                await transitionToResult(res.accessKey, 'GENERATED_PROFILE_READY');
             } catch (e) {
                 showDashError(e.message || 'VAULT_GENERATION_FAILED');
                 if (window.notify) window.notify(e.message || 'VAULT_GENERATION_FAILED', 'error');
@@ -1329,6 +1402,9 @@
                 document.getElementById('accessKeyVal').innerHTML = keys.map((key) => escapeHtml(key)).join('<br>');
                 if (window.notify) window.notify(`PUBLISHED ${keys.length} KEY(S)`, 'success');
                 await loadDashboard();
+                if (keys.length === 1) {
+                    await transitionToResult(keys[0], 'MANUAL_PROFILE_READY');
+                }
             } catch (e) {
                 showDashError(e.message || 'MANUAL_PUBLISH_FAILED');
                 if (window.notify) window.notify(e.message || 'MANUAL_PUBLISH_FAILED', 'error');

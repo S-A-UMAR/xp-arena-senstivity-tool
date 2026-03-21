@@ -788,10 +788,10 @@ router.post('/generate', authenticateVendor, async (req, res) => {
             brand: z.string().min(1),
             series: z.string().optional().nullable(),
             model: z.string().min(1),
-            ram: z.number().int().min(1).max(32),
+            ram: z.coerce.number().int().min(1).max(32),
             speed: z.string().min(1),
             claw: z.string().min(1),
-            neuralScale: z.number().min(1).max(10).optional()
+            neuralScale: z.coerce.number().min(1).max(10).optional()
         }).parse(req.body || {});
 
         const results = Calculator.compute({
@@ -817,13 +817,13 @@ router.post('/generate', authenticateVendor, async (req, res) => {
 router.post('/manual-entry', authenticateVendor, async (req, res) => {
     try {
         const data = z.object({
-            general: z.number().min(0).max(200),
-            redDot: z.number().min(0).max(200),
-            scope2x: z.number().min(0).max(200),
-            scope4x: z.number().min(0).max(200),
-            sniper: z.number().min(0).max(200),
-            freeLook: z.number().min(0).max(200),
-            ads: z.number().min(0).max(200).optional(),
+            general: z.coerce.number().min(0).max(200),
+            redDot: z.coerce.number().min(0).max(200),
+            scope2x: z.coerce.number().min(0).max(200),
+            scope4x: z.coerce.number().min(0).max(200),
+            sniper: z.coerce.number().min(0).max(200),
+            freeLook: z.coerce.number().min(0).max(200),
+            ads: z.coerce.number().min(0).max(200).optional(),
             dpi: z.union([z.string(), z.number()]).optional(),
             fireButton: z.union([z.string(), z.number()]).optional(),
             advice: z.string().max(500).optional()

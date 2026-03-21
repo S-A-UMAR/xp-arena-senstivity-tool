@@ -478,6 +478,14 @@
                 followBtn.onclick = () => window.open('https://discord.gg/xparena', '_blank');
             }
             if (branding.colors && branding.colors.primary) document.documentElement.style.setProperty('--accent-primary', branding.colors.primary);
+            if (branding.colors && branding.colors.secondary) document.documentElement.style.setProperty('--accent-secondary', branding.colors.secondary);
+            if (branding.css_vars && typeof branding.css_vars === 'object') {
+                Object.entries(branding.css_vars).forEach(([key, value]) => {
+                    if (typeof value === 'string') {
+                        document.documentElement.style.setProperty(key, value);
+                    }
+                });
+            }
 
             document.getElementById('downloadBtn').onclick = () => {
                 const area = document.getElementById('captureArea');
