@@ -455,6 +455,231 @@
             color: #8cf0b8;
             border-color: rgba(99, 216, 163, 0.28);
         }
+
+        .share-card-export-shell {
+            position: fixed;
+            left: -99999px;
+            top: 0;
+            width: 1080px;
+            height: 1080px;
+            pointer-events: none;
+            opacity: 0;
+        }
+        .share-card-export {
+            width: 1080px;
+            height: 1080px;
+            padding: 56px;
+            box-sizing: border-box;
+            border-radius: 48px;
+            overflow: hidden;
+            background:
+                radial-gradient(circle at top right, rgba(79, 165, 230, 0.24), transparent 28%),
+                radial-gradient(circle at bottom left, rgba(80, 241, 214, 0.14), transparent 24%),
+                linear-gradient(180deg, #08111b 0%, #0c1622 52%, #09121c 100%);
+            border: 1px solid rgba(164, 210, 238, 0.16);
+            color: #f4fbff;
+            font-family: var(--font-mono);
+            position: relative;
+        }
+        .share-card-export::before {
+            content: '';
+            position: absolute;
+            inset: 24px;
+            border-radius: 32px;
+            border: 1px solid rgba(173, 213, 234, 0.08);
+            pointer-events: none;
+        }
+        .share-export-grid {
+            display: grid;
+            grid-template-rows: auto auto 1fr auto;
+            gap: 24px;
+            height: 100%;
+            position: relative;
+            z-index: 1;
+        }
+        .share-topline,
+        .share-device-row,
+        .share-footer {
+            display: grid;
+            gap: 18px;
+        }
+        .share-topline {
+            grid-template-columns: 1.2fr 1fr;
+            align-items: start;
+        }
+        .share-brand {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+        }
+        .share-brand img,
+        .share-footer img {
+            width: 78px;
+            height: 78px;
+            border-radius: 22px;
+            object-fit: cover;
+            border: 1px solid rgba(174, 212, 234, 0.18);
+            background: rgba(255,255,255,0.04);
+        }
+        .share-brand .name {
+            font-size: 2.1rem;
+            letter-spacing: 0.08em;
+        }
+        .share-brand .sub {
+            color: #91a8bc;
+            font-size: 0.95rem;
+            letter-spacing: 0.18em;
+            margin-top: 0.35rem;
+        }
+        .share-telemetry {
+            display: grid;
+            gap: 10px;
+            justify-items: end;
+            font-size: 1rem;
+            color: #cdddec;
+        }
+        .share-bar {
+            width: 100%;
+            height: 16px;
+            border-radius: 999px;
+            background: rgba(143, 180, 209, 0.14);
+            overflow: hidden;
+            border: 1px solid rgba(173, 212, 234, 0.12);
+        }
+        .share-bar span {
+            display: block;
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #8fd6ff, #72f0d8);
+        }
+        .share-device-row {
+            grid-template-columns: 120px 1fr;
+            align-items: center;
+            padding: 24px;
+            border-radius: 28px;
+            background: rgba(99, 132, 158, 0.12);
+            border: 1px solid rgba(168, 205, 227, 0.12);
+        }
+        .share-device-preview {
+            width: 120px;
+            height: 150px;
+            border-radius: 28px;
+            overflow: hidden;
+            border: 1px solid rgba(171, 209, 233, 0.14);
+            background: linear-gradient(180deg, rgba(150, 190, 215, 0.24), rgba(105, 128, 152, 0.1));
+        }
+        .share-device-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .share-device-meta {
+            display: grid;
+            gap: 10px;
+        }
+        .share-device-meta .eyebrow,
+        .share-code-label,
+        .share-stat .label,
+        .share-footer-copy .eyebrow {
+            color: #91a8bc;
+            font-size: 0.92rem;
+            letter-spacing: 0.14em;
+        }
+        .share-device-meta .headline {
+            font-size: 2.35rem;
+            line-height: 1.14;
+            color: #fff;
+        }
+        .share-device-meta .unit {
+            font-size: 1.2rem;
+            color: #d9e8f5;
+        }
+        .share-code-strip {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 16px;
+            align-items: center;
+            padding: 22px 24px;
+            border-radius: 24px;
+            background: rgba(85, 114, 137, 0.16);
+            border: 1px solid rgba(165, 205, 227, 0.12);
+        }
+        .share-code-main {
+            display: grid;
+            gap: 8px;
+        }
+        .share-code-main .value {
+            font-size: 1.6rem;
+            color: #fff;
+            letter-spacing: 0.06em;
+        }
+        .share-code-pill {
+            padding: 12px 16px;
+            border-radius: 999px;
+            border: 1px solid rgba(104, 230, 183, 0.24);
+            background: rgba(49, 109, 91, 0.2);
+            color: #91f0c2;
+            font-size: 0.95rem;
+            letter-spacing: 0.12em;
+        }
+        .share-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 18px;
+        }
+        .share-stat {
+            border-radius: 26px;
+            padding: 22px 24px;
+            background: linear-gradient(180deg, rgba(15, 21, 27, 0.95), rgba(8, 14, 19, 0.92));
+            border: 1px solid rgba(156, 197, 221, 0.12);
+            display: grid;
+            gap: 12px;
+            align-content: space-between;
+            min-height: 165px;
+            position: relative;
+        }
+        .share-stat .value {
+            font-size: 3rem;
+            line-height: 1.03;
+            color: #fff;
+        }
+        .share-stat .trend {
+            color: #99aec1;
+            font-size: 0.92rem;
+        }
+        .share-stat .icon {
+            position: absolute;
+            right: 20px;
+            top: 18px;
+            font-size: 2.1rem;
+        }
+        .share-footer {
+            grid-template-columns: 100px 1fr auto;
+            align-items: center;
+            padding: 22px 24px;
+            border-radius: 28px;
+            background: rgba(11, 18, 25, 0.96);
+            border: 1px solid rgba(156, 197, 221, 0.12);
+        }
+        .share-footer-copy {
+            display: grid;
+            gap: 10px;
+        }
+        .share-footer-copy .main {
+            font-size: 1.25rem;
+            color: #fff;
+            line-height: 1.45;
+        }
+        .share-verified-pill {
+            padding: 12px 18px;
+            border-radius: 999px;
+            border: 1px solid rgba(109, 230, 185, 0.22);
+            background: rgba(43, 92, 78, 0.22);
+            color: #96f0c6;
+            font-size: 0.95rem;
+            letter-spacing: 0.12em;
+        }
+
         .motion-note {
             margin-top: 0.9rem;
             font-size: 0.62rem;
@@ -651,6 +876,60 @@
         <button class="btn-follow" id="followBtn">FOLLOW_CREATOR</button>
     </div>
 
+
+    <div class="share-card-export-shell" aria-hidden="true">
+        <section id="shareCaptureArea" class="share-card-export">
+            <div class="share-export-grid">
+                <div class="share-topline">
+                    <div class="share-brand">
+                        <img id="shareLogo" src="favicon.png" alt="Brand logo">
+                        <div>
+                            <div class="name">XP_ARENA</div>
+                            <div class="sub">PREMIUM SHARE CARD</div>
+                        </div>
+                    </div>
+                    <div class="share-telemetry">
+                        <div id="shareUtc">CURRENT UTC: --</div>
+                        <div id="shareExpiry">EXPIRY: NEVER</div>
+                        <div class="share-bar"><span id="shareEfficiencyBar"></span></div>
+                        <div id="shareEfficiencyLabel">PROFILE_EFFICIENCY: --%</div>
+                    </div>
+                </div>
+                <div class="share-device-row">
+                    <div class="share-device-preview"><img id="shareDevicePreview" src="favicon.png" alt="Device preview"></div>
+                    <div class="share-device-meta">
+                        <div class="eyebrow">DEVICE_PROFILE</div>
+                        <div class="headline" id="shareDeviceModel">UNKNOWN_HARDWARE</div>
+                        <div class="unit" id="shareCreatorName">UNIT_ID: XP_CORE</div>
+                    </div>
+                </div>
+                <div style="display:grid; gap:18px;">
+                    <div class="share-code-strip">
+                        <div class="share-code-main">
+                            <div class="share-code-label">ACCESS_CODE</div>
+                            <div class="value" id="shareAccessCode">XP-0000-0000</div>
+                        </div>
+                        <div class="share-code-pill">SYNCED_PROFILE</div>
+                    </div>
+                    <div class="share-stats-grid">
+                        <div class="share-stat"><div class="icon" style="color:#7bf2c9;">↑</div><div class="label">GENERAL_SENS</div><div class="value" id="shareGeneral">--</div><div class="trend" id="shareTrendGeneral">TREND: OPTIMIZING</div></div>
+                        <div class="share-stat"><div class="icon" style="color:#ff8d9c;">↑</div><div class="label">RED_DOT_PRECISION</div><div class="value" id="shareRedDot">--</div><div class="trend" id="shareTrendRed">TREND: STABLE</div></div>
+                        <div class="share-stat"><div class="icon" style="color:#8de3ff;">↘</div><div class="label">2X / 4X_SCOPE</div><div class="value" id="shareScope">--</div><div class="trend" id="shareTrendScope">TREND: CONSISTENT</div></div>
+                        <div class="share-stat"><div class="icon" style="color:#9df0e1;">◎</div><div class="label">DPI / EFFICIENCY</div><div class="value" id="shareDpiEff">--</div><div class="trend">TREND: LIVE_SYNCED</div></div>
+                    </div>
+                </div>
+                <div class="share-footer">
+                    <img id="shareFooterLogo" src="favicon.png" alt="Creator logo">
+                    <div class="share-footer-copy">
+                        <div class="eyebrow">SETTINGS_BY</div>
+                        <div class="main" id="shareAdvice">NO_EXTRA_ADVICE_PROVIDED</div>
+                    </div>
+                    <div class="share-verified-pill" id="shareVerified">VERIFIED 94%</div>
+                </div>
+            </div>
+        </section>
+    </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="analytics.js"></script>
     <script src="translations.js"></script>
@@ -840,6 +1119,29 @@
             else el.textContent = 'TREND: FINE-TUNING';
         }
 
+
+        function updateShareCard(details) {
+            document.getElementById('shareLogo').src = details.logo;
+            document.getElementById('shareFooterLogo').src = details.logo;
+            document.getElementById('shareDevicePreview').src = details.logo;
+            document.getElementById('shareUtc').textContent = `CURRENT UTC: ${new Date().toISOString().replace('T', ' ').slice(0, 16)} UTC`;
+            document.getElementById('shareExpiry').textContent = `EXPIRY: ${details.expiry}`;
+            document.getElementById('shareEfficiencyBar').style.width = `${details.efficiency}%`;
+            document.getElementById('shareEfficiencyLabel').textContent = `PROFILE_EFFICIENCY: ${details.efficiency}%`;
+            document.getElementById('shareDeviceModel').textContent = details.model;
+            document.getElementById('shareCreatorName').textContent = `UNIT_ID: ${details.creator}`;
+            document.getElementById('shareAccessCode').textContent = details.code;
+            document.getElementById('shareGeneral').textContent = details.general;
+            document.getElementById('shareRedDot').textContent = details.redDot;
+            document.getElementById('shareScope').textContent = details.scope;
+            document.getElementById('shareDpiEff').textContent = `${details.dpi} • ${details.efficiency}%`;
+            document.getElementById('shareTrendGeneral').textContent = details.trendGeneral;
+            document.getElementById('shareTrendRed').textContent = details.trendRed;
+            document.getElementById('shareTrendScope').textContent = details.trendScope;
+            document.getElementById('shareAdvice').textContent = `SETTINGS BY ${details.creator}: ${details.advice}`;
+            document.getElementById('shareVerified').textContent = `VERIFIED ${details.efficiency}%`;
+        }
+
         document.addEventListener('DOMContentLoaded', async () => {
             updateUtcClock();
             setInterval(updateUtcClock, 1000);
@@ -918,6 +1220,26 @@
             setEfficiency(inferEfficiency(results));
             setExpiryState(hydrated.validUntil);
 
+            const generalRange = `${document.getElementById('rGen1').textContent} — ${document.getElementById('rGen2').textContent}`;
+            const redDotRange = `${document.getElementById('rRed1').textContent} — ${document.getElementById('rRed2').textContent}`;
+            const scopeRange = `${document.getElementById('r2x1').textContent} — ${document.getElementById('r4x2').textContent}`;
+            updateShareCard({
+                logo: branding.logo_url || branding.logo || 'favicon.png',
+                expiry: hydrated.validUntil ? document.getElementById('expiryValue').textContent : 'NEVER',
+                efficiency: currentEfficiency,
+                model: modelText,
+                creator: displayName,
+                code,
+                general: generalRange,
+                redDot: redDotRange,
+                scope: scopeRange,
+                dpi: results.dpi || 'DEFAULT',
+                trendGeneral: document.getElementById('trendGeneral').textContent,
+                trendRed: document.getElementById('trendRed').textContent,
+                trendScope: document.getElementById('trend4x').textContent,
+                advice: hydrated.advice || 'OPTIMIZED FOR COMPETITIVE PLAY'
+            });
+
             const socialBox = document.getElementById('socialLinks');
             const socialsObj = branding.socials || {};
             const socials = [
@@ -962,8 +1284,8 @@
             }
 
             document.getElementById('downloadBtn').onclick = async () => {
-                const area = document.getElementById('captureArea');
-                const canvas = await html2canvas(area, { scale: 3, backgroundColor: '#0b1620' });
+                const area = document.getElementById('shareCaptureArea');
+                const canvas = await html2canvas(area, { scale: 2, backgroundColor: '#0b1620' });
                 const link = document.createElement('a');
                 link.download = `xp-id-${code}.png`;
                 link.href = canvas.toDataURL();
