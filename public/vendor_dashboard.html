@@ -896,6 +896,7 @@
             document.body.appendChild(overlay);
             localStorage.setItem('xp_last_entry_code', code);
             localStorage.setItem('xp_vendor_last_code', code);
+            sessionStorage.setItem('xp_nav_origin', 'vendor_dashboard.html');
             await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
             window.location.href = `/result.html?code=${encodeURIComponent(code)}`;
         }

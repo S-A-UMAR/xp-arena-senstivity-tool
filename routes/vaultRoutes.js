@@ -1260,10 +1260,22 @@ router.post('/feedback', async (req, res) => {
 
         const entryCode = payload.code || payload.entry_code;
         const lookupKey = getLookupKey(entryCode);
-        const activity = await db.get('SELECT id, user_ign, user_region FROM code_activity WHERE lookup_key = ? ORDER BY used_at DESC LIMIT 1', [lookupKey]);
-        if (!activity) return fail(res, 'XP_VAL_NOT_FOUND', 'SESSION_NOT_FOUND', 404);
+        let activity = await db.get('SELECT id, user_ign, user_region FROM code_activity WHERE lookup_key = ? ORDER BY used_at DESC LIMIT 1', [lookupKey]);
 
-        await db.run('UPDATE code_activity SET feedback_rating = ?, feedback_comment = ? WHERE id = ?', [payload.rating, payload.feedback ?? payload.feedback_text ?? null, activity.id]);
+        if (!activity) {
+            const inserted = await db.run(
+                'INSERT INTO code_activity (entry_code, lookup_key, user_ign, user_region, feedback_rating, feedback_comment) VALUES (?, ?, ?, ?, ?, ?)',
+                [entryCode, lookupKey, 'Anonymous', 'Unknown', payload.rating, payload.feedback ?? payload.feedback_text ?? null]
+            );
+            activity = {
+                id: inserted?.lastID || null,
+                user_ign: 'Anonymous',
+                user_region: 'Unknown'
+            };
+        } else {
+            await db.run('UPDATE code_activity SET feedback_rating = ?, feedback_comment = ? WHERE id = ?', [payload.rating, payload.feedback ?? payload.feedback_text ?? null, activity.id]);
+        }
+
         const likesCount = await db.get('SELECT COUNT(*) as likes_count FROM code_activity WHERE lookup_key = ? AND feedback_rating IS NOT NULL', [lookupKey]);
         if (typeof db.run === 'function') {
             await db.run('DELETE FROM transient_cache WHERE cache_key = ?', [`verify_${entryCode}`]).catch(() => {});
