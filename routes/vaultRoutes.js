@@ -8,6 +8,77 @@ const Calculator = require('../lib/calculator');
 
 const router = express.Router();
 
+
+const REQUIRED_COLUMN_LENGTHS = {
+    vendors: { access_key: 100, lookup_key: 20 },
+    sensitivity_keys: { entry_code: 100, lookup_key: 16 },
+    code_activity: { entry_code: 100, lookup_key: 16 }
+};
+
+let schemaCapacityCheckedAt = 0;
+let schemaCapacityPromise = null;
+
+async function ensureKeyStorageCapacity(force = false) {
+    const now = Date.now();
+    if (!force && schemaCapacityPromise) return schemaCapacityPromise;
+    if (!force && schemaCapacityCheckedAt && now - schemaCapacityCheckedAt < 10 * 60 * 1000) return;
+
+    schemaCapacityPromise = (async () => {
+        try {
+            if (typeof db.all !== 'function' || typeof db.run !== 'function') return;
+
+            const rows = await db.all(`
+                SELECT TABLE_NAME, COLUMN_NAME, CHARACTER_MAXIMUM_LENGTH as max_length
+                FROM information_schema.COLUMNS
+                WHERE TABLE_SCHEMA = DATABASE()
+                  AND TABLE_NAME IN ('vendors', 'sensitivity_keys', 'code_activity')
+                  AND COLUMN_NAME IN ('access_key', 'entry_code', 'lookup_key')
+            `);
+
+            const currentLengths = rows.reduce((acc, row) => {
+                acc[row.TABLE_NAME] = acc[row.TABLE_NAME] || {};
+                acc[row.TABLE_NAME][row.COLUMN_NAME] = Number(row.max_length || 0);
+                return acc;
+            }, {});
+
+            const alterStatements = [];
+            if ((currentLengths.vendors?.access_key || 0) > 0 && currentLengths.vendors.access_key < REQUIRED_COLUMN_LENGTHS.vendors.access_key) {
+                alterStatements.push(`ALTER TABLE vendors MODIFY COLUMN access_key VARCHAR(${REQUIRED_COLUMN_LENGTHS.vendors.access_key}) NOT NULL`);
+            }
+            if ((currentLengths.vendors?.lookup_key || 0) > 0 && currentLengths.vendors.lookup_key < REQUIRED_COLUMN_LENGTHS.vendors.lookup_key) {
+                alterStatements.push(`ALTER TABLE vendors MODIFY COLUMN lookup_key VARCHAR(${REQUIRED_COLUMN_LENGTHS.vendors.lookup_key}) NULL`);
+            }
+            if ((currentLengths.sensitivity_keys?.entry_code || 0) > 0 && currentLengths.sensitivity_keys.entry_code < REQUIRED_COLUMN_LENGTHS.sensitivity_keys.entry_code) {
+                alterStatements.push(`ALTER TABLE sensitivity_keys MODIFY COLUMN entry_code VARCHAR(${REQUIRED_COLUMN_LENGTHS.sensitivity_keys.entry_code}) NOT NULL`);
+            }
+            if ((currentLengths.sensitivity_keys?.lookup_key || 0) > 0 && currentLengths.sensitivity_keys.lookup_key < REQUIRED_COLUMN_LENGTHS.sensitivity_keys.lookup_key) {
+                alterStatements.push(`ALTER TABLE sensitivity_keys MODIFY COLUMN lookup_key VARCHAR(${REQUIRED_COLUMN_LENGTHS.sensitivity_keys.lookup_key}) NOT NULL`);
+            }
+            if ((currentLengths.code_activity?.entry_code || 0) > 0 && currentLengths.code_activity.entry_code < REQUIRED_COLUMN_LENGTHS.code_activity.entry_code) {
+                alterStatements.push(`ALTER TABLE code_activity MODIFY COLUMN entry_code VARCHAR(${REQUIRED_COLUMN_LENGTHS.code_activity.entry_code}) NOT NULL`);
+            }
+            if ((currentLengths.code_activity?.lookup_key || 0) > 0 && currentLengths.code_activity.lookup_key < REQUIRED_COLUMN_LENGTHS.code_activity.lookup_key) {
+                alterStatements.push(`ALTER TABLE code_activity MODIFY COLUMN lookup_key VARCHAR(${REQUIRED_COLUMN_LENGTHS.code_activity.lookup_key}) NOT NULL`);
+            }
+
+            for (const sql of alterStatements) {
+                await db.run(sql);
+            }
+
+            if (alterStatements.length > 0) {
+                console.log(`SCHEMA_CAPACITY_ALIGNED: ${alterStatements.length} column(s) widened for hashed keys.`);
+            }
+        } catch (err) {
+            console.warn('SCHEMA_CAPACITY_CHECK_FAILED:', err.message);
+        } finally {
+            schemaCapacityCheckedAt = Date.now();
+            schemaCapacityPromise = null;
+        }
+    })();
+
+    return schemaCapacityPromise;
+}
+
 router.use(async (_req, _res, next) => {
     try {
         if (typeof db.clearExpiredCache === 'function' && Math.random() < 0.1) {
@@ -262,6 +333,7 @@ async function getCodeStatusPayload(rawCode) {
 }
 
 async function createVendorCode(vendorId, results, creatorAdvice = null, preferredCode = null) {
+    await ensureKeyStorageCapacity();
     const rawCode = preferredCode || `XP-${vendorId.toUpperCase()}-${Math.floor(100000 + Math.random() * 900000)}`;
     const lookupKey = getLookupKey(rawCode);
     const hashedCode = await bcrypt.hash(rawCode, 10);
@@ -1004,6 +1076,8 @@ router.post('/admin/vendors', authenticateAdmin, async (req, res) => {
 
         const existing = await db.get('SELECT vendor_id FROM vendors WHERE vendor_id = ?', [vendorId]);
         if (existing) return res.status(409).json({ error: 'VENDOR_ALREADY_EXISTS' });
+
+        await ensureKeyStorageCapacity();
 
         const randomDigits = Math.floor(1000 + Math.random() * 9000);
         const accessKey = `XP-${vendorId}-${randomDigits}`;

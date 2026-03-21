@@ -896,9 +896,8 @@
             document.body.appendChild(overlay);
             localStorage.setItem('xp_last_entry_code', code);
             localStorage.setItem('xp_vendor_last_code', code);
-            setTimeout(() => {
-                window.location.href = `/result.html?code=${encodeURIComponent(code)}`;
-            }, 450);
+            await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+            window.location.href = `/result.html?code=${encodeURIComponent(code)}`;
         }
 
         function copyLastResultLink() {

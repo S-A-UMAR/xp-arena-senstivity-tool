@@ -158,9 +158,8 @@ const UI = {
             status.style.color = 'var(--accent-primary)';
             window.SFX?.play?.('ping');
 
-            setTimeout(() => {
-                window.location.href = payload.redirect || `/result.html?code=${encodeURIComponent(code)}`;
-            }, 900);
+            await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+            window.location.href = payload.redirect || `/result.html?code=${encodeURIComponent(code)}`;
         } catch (err) {
             status.textContent = err.message || 'INVALID ACCESS KEY';
             status.style.color = '#ff6b6b';
