@@ -2,6 +2,7 @@ const request = require('supertest');
 
 jest.mock('../db', () => {
   const mockDb = {
+    getCache: jest.fn(async () => null),
     get: jest.fn(async (sql) => {
       if (sql.includes('FROM vendors) as vendors')) {
         return { vendors: 2, codes: 5, usage_total: 14, global_accuracy: 4.6 };
@@ -33,7 +34,9 @@ jest.mock('../db', () => {
       }
       return [];
     }),
-    run: jest.fn(async () => ({ changes: 1, lastID: 1 }))
+    run: jest.fn(async () => ({ changes: 1, lastID: 1 })),
+    clearExpiredCache: jest.fn(async () => ({ changes: 0 })),
+    setCache: jest.fn(async () => undefined)
   };
 
   return {

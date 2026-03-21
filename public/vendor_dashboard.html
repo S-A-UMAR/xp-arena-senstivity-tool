@@ -1136,17 +1136,15 @@
                 const codes = await api(`${API_BASE}/codes`);
                 const logsBody = document.getElementById('logsBody');
                 if (codes && codes.length > 0) {
-                    // Flatten activity for the last 50 entries
-                    // (Actually we should probably have a dedicated logs endpoint, but let\'s use what we have or add one)
-                    const logs = await api(`${API_BASE}/export`); // We can reuse export logic or a new endpoint
-                    // For now, let\'s just show the last few keys
-                    logsBody.innerHTML = codes.slice(0, 10).map(c => `
+                    const logs = await api(`${API_BASE}/activity`).catch(() => []);
+                    const recentItems = logs.length > 0 ? logs : codes.slice(0, 10);
+                    logsBody.innerHTML = recentItems.slice(0, 10).map(c => `
                         <div style="padding: 1rem; border-bottom: 1px solid var(--glass-border); font-size: 0.65rem;">
                             <div style="display: flex; justify-content: space-between;">
                                 <span style="color: var(--accent-primary); font-family: var(--font-mono);">${c.lookup_key}</span>
-                                <span style="color: var(--text-muted);">${new Date(c.created_at).toLocaleTimeString()}</span>
+                                <span style="color: var(--text-muted);">${new Date(c.used_at || c.created_at).toLocaleTimeString()}</span>
                             </div>
-                            <div style="margin-top: 4px; color: rgba(255,255,255,0.4);">Provisioned successfully</div>
+                            <div style="margin-top: 4px; color: rgba(255,255,255,0.4);">${c.user_ign ? `${escapeHtml(c.user_ign)} • ${escapeHtml(c.user_region || 'Unknown')}` : 'Provisioned successfully'}</div>
                         </div>
                     `).join('');
                 }
@@ -1361,7 +1359,7 @@
 
         async function handleLogout() {
             try {
-                await fetch(`${API_BASE}/logout`, { method: 'POST', credentials: 'include' });
+                await fetch(`${API_BASE}/vendor/logout`, { method: 'POST', credentials: 'include' });
             } catch (_e) {}
             document.cookie = 'xp_vendor_token=; Max-Age=0; path=/;';
             window.location.href = '/verify.html';
