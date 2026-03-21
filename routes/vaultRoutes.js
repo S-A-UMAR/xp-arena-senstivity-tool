@@ -810,7 +810,7 @@ router.post('/generate', authenticateVendor, async (req, res) => {
     } catch (err) {
         console.error('GEN_ERR:', err);
         if (err instanceof z.ZodError) return fail(res, 'XP_VAL_FAILED', 'INVALID_GENERATION_INPUT', 400, err.errors);
-        return res.status(500).json({ error: 'VAULT_GENERATION_FAILED' });
+        return res.status(500).json({ error: err.message || 'VAULT_GENERATION_FAILED' });
     }
 });
 
@@ -850,23 +850,12 @@ router.post('/manual-entry', authenticateVendor, async (req, res) => {
         return res.json({ accessKey: created.accessKey, lookupKey: created.lookupKey, results });
     } catch (err) {
         if (err instanceof z.ZodError) return res.status(400).json({ error: 'MANUAL_PUBLISH_FAILED', details: err.errors });
-        return res.status(500).json({ error: 'MANUAL_PUBLISH_FAILED' });
+        return res.status(500).json({ error: err.message || 'MANUAL_PUBLISH_FAILED' });
     }
 });
 
 router.post('/vendor/extend-access', authenticateVendor, async (req, res) => {
-    try {
-        const { hours } = z.object({ hours: z.number().int().min(1).max(24 * 365) }).parse(req.body || {});
-        const vendor = await db.get('SELECT active_until FROM vendors WHERE vendor_id = ?', [req.vendorId]);
-        const now = new Date();
-        const base = vendor?.active_until && new Date(vendor.active_until) > now ? new Date(vendor.active_until) : now;
-        const activeUntil = new Date(base.getTime() + hours * 60 * 60 * 1000);
-        await db.run('UPDATE vendors SET active_until = ?, status = ? WHERE vendor_id = ?', [activeUntil, 'active', req.vendorId]);
-        return res.json({ success: true, active_until: activeUntil.toISOString() });
-    } catch (err) {
-        if (err instanceof z.ZodError) return fail(res, 'XP_VAL_FAILED', 'INVALID_EXTEND_PARAMS', 400, err.errors);
-        return res.status(500).json({ error: 'EXTEND_FAILED' });
-    }
+    return res.status(403).json({ error: 'ACCESS_EXTENSION_ADMIN_ONLY' });
 });
 
 router.post('/webhook', authenticateVendor, async (req, res) => {

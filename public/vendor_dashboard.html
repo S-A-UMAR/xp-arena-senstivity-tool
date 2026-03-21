@@ -531,7 +531,7 @@
                     <div id="usageBar" style="height: 100%; width: 0%; background: var(--accent-primary);"></div>
                 </div>
             </div>
-            <button class="btn-primary" type="button" onclick="extendAccessWindow()" style="margin-top: 0; width: auto; padding: 0.6rem 1rem;">EXTEND</button>
+            <button class="btn-primary" type="button" onclick="copyLastResultLink()" style="margin-top: 0; width: auto; padding: 0.6rem 1rem;">COPY LAST CARD LINK</button>
             <div id="dashError" style="display: none; color: #ff6b6b; font-size: 0.65rem;"></div>
         </div>
     </div>
@@ -819,8 +819,6 @@
     <script src="notifications.js"></script>
     <script src="settings.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="notifications.js"></script>
-    <script src="settings.js"></script>
     <script src="update-overlay.js"></script>
     <script>
         // ⚡ Master Creator Logic
@@ -897,9 +895,24 @@
             `;
             document.body.appendChild(overlay);
             localStorage.setItem('xp_last_entry_code', code);
+            localStorage.setItem('xp_vendor_last_code', code);
             setTimeout(() => {
                 window.location.href = `/result.html?code=${encodeURIComponent(code)}`;
-            }, 950);
+            }, 450);
+        }
+
+        function copyLastResultLink() {
+            const lastCode = localStorage.getItem('xp_vendor_last_code');
+            if (!lastCode) {
+                showDashError('GENERATE A CARD FIRST TO COPY ITS LINK');
+                if (window.notify) window.notify('GENERATE_A_CARD_FIRST', 'error');
+                return;
+            }
+            const base = window.location.origin || '';
+            const url = `${base}/result.html?code=${encodeURIComponent(lastCode)}`;
+            navigator.clipboard.writeText(url);
+            showDashError('');
+            if (window.notify) window.notify('RESULT_LINK_COPIED', 'success');
         }
 
         async function init() {
@@ -1354,8 +1367,8 @@
                 document.getElementById('genResult').classList.remove('hidden');
                 
                 if (window.notify) window.notify('NEURAL_KEY_GENERATED', 'success');
-                await loadDashboard();
                 await transitionToResult(res.accessKey, 'GENERATED_PROFILE_READY');
+                loadDashboard().catch(() => {});
             } catch (e) {
                 showDashError(e.message || 'VAULT_GENERATION_FAILED');
                 if (window.notify) window.notify(e.message || 'VAULT_GENERATION_FAILED', 'error');
@@ -1401,29 +1414,13 @@
                 document.getElementById('genResult').classList.remove('hidden');
                 document.getElementById('accessKeyVal').innerHTML = keys.map((key) => escapeHtml(key)).join('<br>');
                 if (window.notify) window.notify(`PUBLISHED ${keys.length} KEY(S)`, 'success');
-                await loadDashboard();
                 if (keys.length === 1) {
                     await transitionToResult(keys[0], 'MANUAL_PROFILE_READY');
                 }
+                loadDashboard().catch(() => {});
             } catch (e) {
                 showDashError(e.message || 'MANUAL_PUBLISH_FAILED');
                 if (window.notify) window.notify(e.message || 'MANUAL_PUBLISH_FAILED', 'error');
-            }
-        }
-
-        async function extendAccessWindow() {
-            const hoursRaw = window.prompt('Extend account by how many hours?', '24');
-            if (!hoursRaw) return;
-            const hours = parseInt(hoursRaw, 10);
-            if (Number.isNaN(hours) || hours <= 0) {
-                showDashError('INVALID_EXTENSION_HOURS');
-                return;
-            }
-            try {
-                await api(`${API_BASE}/vendor/extend-access`, 'POST', { hours });
-                await loadDashboard();
-            } catch (e) {
-                showDashError('EXTEND REQUIRES ADMIN ACCESS');
             }
         }
 
