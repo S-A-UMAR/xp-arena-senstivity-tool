@@ -7,537 +7,264 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;800&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
-    <style>
-        /* Result Page Specific Overrides */
-        body { padding-bottom: 120px; overflow-x: hidden; }
-        .app-container { max-width: 460px; position: relative; }
-        .status-banner { margin: 1rem 0; padding: 0.85rem 1rem; border: 1px solid #222; border-radius: 12px; font-size: 0.72rem; }
-        .status-banner.warn { color: #ffd166; border-color: rgba(255,209,102,0.35); background: rgba(255,209,102,0.07); }
-        .status-banner.expired { color: #ff6b6b; border-color: rgba(255,107,107,0.35); background: rgba(255,107,107,0.07); }
-        .result-shell::before {
-            content: '';
-            position: fixed;
-            inset: 0;
-            background:
-                radial-gradient(circle at top left, rgba(0,255,136,0.18), transparent 30%),
-                radial-gradient(circle at bottom right, rgba(0,242,254,0.14), transparent 28%),
-                linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0));
-            pointer-events: none;
-            animation: resultAtmosphere 9s ease-in-out infinite alternate;
-        }
-        @keyframes resultAtmosphere {
-            from { transform: scale(1) translateY(0); opacity: 0.85; }
-            to { transform: scale(1.06) translateY(-12px); opacity: 1; }
-        }
-        .result-stage {
-            display: grid;
-            gap: 1rem;
-            margin-bottom: 1.25rem;
-        }
-        .result-chip-row {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 0.75rem;
-        }
-        .result-chip {
-            background: rgba(255,255,255,0.04);
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 16px;
-            padding: 0.85rem;
-            backdrop-filter: blur(18px);
-            box-shadow: 0 18px 40px rgba(0,0,0,0.22);
-        }
-        .result-chip .label {
-            display: block;
-            font-size: 0.55rem;
-            color: var(--text-muted);
-            letter-spacing: 0.16em;
-            text-transform: uppercase;
-            margin-bottom: 0.35rem;
-        }
-        .result-chip .value {
-            display: block;
-            color: #fff;
-            font-family: var(--font-heading);
-            font-size: 0.92rem;
-            letter-spacing: -0.02em;
-        }
-        .insight-banner {
-            position: relative;
-            overflow: hidden;
-            padding: 1rem 1rem 1.05rem;
-            border-radius: 18px;
-            border: 1px solid rgba(255,255,255,0.08);
-            background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
-            backdrop-filter: blur(16px);
-        }
-        .insight-banner::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(120deg, transparent 20%, rgba(255,255,255,0.12) 50%, transparent 80%);
-            transform: translateX(-120%);
-            animation: shimmer 4.8s linear infinite;
-            pointer-events: none;
-        }
-        @keyframes shimmer {
-            to { transform: translateX(120%); }
-        }
-        .card-stage {
-            perspective: 1400px;
-        }
-        .card-stage.ready #captureArea {
-            animation: profileLift 0.9s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        @keyframes profileLift {
-            0% { transform: translateY(24px) rotateX(10deg) scale(0.97); opacity: 0; }
-            100% { transform: translateY(0) rotateX(0) scale(1); opacity: 1; }
-        }
-        .action-grid {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 1rem;
-            margin-top: 1.5rem;
-        }
-        .motion-note {
-            margin-top: 0.9rem;
-            font-size: 0.62rem;
-            line-height: 1.6;
-            color: var(--text-muted);
-            text-align: center;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-        }
-        @media (max-width: 520px) {
-            .result-chip-row,
-            .action-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="result.css">
+
 </head>
 <body class="result-shell">
     <div class="ambient-glow"></div>
 
     <div class="app-container">
-        <header style="text-align: center; margin-bottom: 2rem;" class="reveal">
-            <div class="logo-badge">SCAN_COMPLETE</div>
-            <h1 class="title-main" style="font-size: 1.5rem; margin-top: 0.5rem;">AUTHORIZATION_SUCCESS</h1>
+        <header class="result-intro reveal">
+            <div class="hero-banner">
+                <div class="logo-badge">SCAN_COMPLETE</div>
+                <h1 class="title-main" style="font-size: 1.6rem; margin: 0.55rem 0 0;">AUTHORIZATION_SUCCESS</h1>
+                <p>Your creator card is now brighter, easier to read, and ready for export, sharing, quick likes, and direct code copy.</p>
+            </div>
+            <div class="result-overview">
+                <div class="overview-chip">
+                    <span class="label">Verification</span>
+                    <span class="value" id="chipStatus">SECURE LINK</span>
+                </div>
+                <div class="overview-chip">
+                    <span class="label">Provider</span>
+                    <span class="value" id="chipVendor">XP_CORE</span>
+                </div>
+                <div class="overview-chip">
+                    <span class="label">Mode</span>
+                    <span class="value" id="chipMode">VIEW / EXPORT</span>
+                </div>
+            </div>
         </header>
 
-        <main class="reveal" style="animation-delay: 0.2s;">
-            <section class="result-stage reveal" style="animation-delay: 0.16s;">
-                <div class="insight-banner">
-                    <div class="logo-badge" style="margin-bottom: 0.7rem;">VERIFIED_VENDOR_PROFILE</div>
-                    <div style="font-family: var(--font-heading); font-size: 1.1rem; margin-bottom: 0.35rem;">Your creator card is live and ready to export.</div>
-                    <div style="font-size: 0.72rem; line-height: 1.65; color: var(--text-secondary);">Review the sensitivity profile below, save the card, copy the summary, or jump to the creator’s socials.</div>
-                </div>
-                <div class="result-chip-row">
-                    <div class="result-chip">
-                        <span class="label">Verification</span>
-                        <span class="value" id="chipStatus">SECURE LINK</span>
-                    </div>
-                    <div class="result-chip">
-                        <span class="label">Provider</span>
-                        <span class="value" id="chipVendor">XP_CORE</span>
-                    </div>
-                    <div class="result-chip">
-                        <span class="label">Card Mode</span>
-                        <span class="value" id="chipMode">VIEW / EXPORT</span>
-                    </div>
-                </div>
-            </section>
-
-            <!-- 🪪 THE MILITARY ID CARD -->
+        <main class="reveal" style="animation-delay: 0.18s;">
             <div class="card-stage">
-            <div id="captureArea" class="glass-card military-id">
-                <div class="id-header" style="position: relative;">
-                    <div style="display: flex; align-items: center; gap: 0.75rem;">
-                        <img id="creatorLogo" src="favicon.png" style="width: 32px; height: 32px; filter: grayscale(1) brightness(200%);" alt="L">
-                        <div>
-                            <div style="font-size: 0.5rem; color: #444; letter-spacing: 0.1em;">UNIT_ID</div>
-                            <div style="font-size: 0.7rem; color: #fff; font-weight: 800;" id="creatorName">XP_CORE</div>
+                <section id="captureArea" class="intel-card">
+                    <div class="intel-topbar">
+                        <div class="brand-mark">
+                            <img id="creatorLogo" src="favicon.png" alt="Creator logo">
+                            <div class="brand-lockup">
+                                <div class="primary">XP_ARENA</div>
+                                <div class="secondary" data-i18n="tacticalResultDossier">TACTICAL RESULT DOSSIER</div>
+                            </div>
                         </div>
-                    </div>
-                    <div style="text-align: right;">
-                        <div style="font-size: 0.5rem; color: #444; letter-spacing: 0.1em;">EXPIRY</div>
-                        <div style="font-size: 0.7rem; color: var(--accent-primary); font-weight: 800;" id="expiryValue">NEVER</div>
-                    </div>
-                </div>
-
-                <div class="id-body">
-                    <div class="id-row">
-                        <span class="id-label">SUBJECT_MODEL</span>
-                        <span class="id-value" id="idModel">UNKNOWN_HARDWARE</span>
+                        <div class="telemetry-panel">
+                            <div class="row"><span>CURRENT UTC:</span><strong id="currentUtcLabel">--</strong></div>
+                            <div class="row"><span>EXPIRY:</span><strong id="expiryValue">NEVER</strong></div>
+                            <div class="row"><span class="telemetry-dot"></span><span>NETWORK: STABLE</span></div>
+                            <div class="telemetry-bar"><span id="efficiencyBar"></span></div>
+                            <div class="row"><span>PROFILE_EFFICIENCY:</span><strong id="profileEfficiency">--%</strong></div>
+                        </div>
                     </div>
 
-                    <div class="id-row">
-                        <span class="id-label">ACCESS_CODE</span>
-                        <span class="id-value" id="idCode">XP-000-000</span>
-                    </div>
+                    <section class="device-access">
+                        <div class="device-access-header">DEVICE &amp; ACCESS</div>
+                        <div class="device-access-body">
+                            <div class="device-profile-row">
+                                <div class="device-thumb">
+                                    <img id="devicePreview" src="favicon.png" alt="Device preview">
+                                </div>
+                                <div class="device-meta">
+                                    <div class="subtle">DEVICE_PROFILE</div>
+                                    <div class="headline" id="idModel">UNKNOWN_HARDWARE</div>
+                                    <div class="subtle">UNIT_ID: <span id="creatorName">XP_CORE</span></div>
+                                </div>
+                            </div>
+                            <div class="code-rail">
+                                <div class="code-icon" aria-hidden="true">
+                                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                                </div>
+                                <div class="code-content" id="codeRailText">[REDACTED_CODE]</div>
+                                <button class="code-copy-btn" id="copyCodeBtn" type="button" aria-label="Copy access code">
+                                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="11" height="11" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                                </button>
+                            </div>
+                        </div>
+                    </section>
 
-                <!-- Sensitivity Matrix -->
-                <div class="id-stats-grid">
-                    <div class="id-stat-box">
-                        <div class="id-stat-label">GENERAL_SENS</div>
-                        <div class="id-stat-val range-display">
-                            <span id="rGen1">--</span>
-                            <span class="range-sep">—</span>
-                            <span id="rGen2">--</span>
-                        </div>
+                    <div class="stats-grid">
+                        <article class="stat-card">
+                            <div class="signal up">↑</div>
+                            <div class="label">GENERAL_SENS</div>
+                            <div class="value"><span id="rGen1">--</span> — <span id="rGen2">--</span></div>
+                            <div class="trend" id="trendGeneral">TREND: OPTIMIZING</div>
+                        </article>
+                        <article class="stat-card">
+                            <div class="signal down">↑</div>
+                            <div class="label">RED_DOT_PRECISION</div>
+                            <div class="value"><span id="rRed1">--</span> — <span id="rRed2">--</span></div>
+                            <div class="trend" id="trendRed">TREND: STABLE</div>
+                        </article>
+                        <article class="stat-card">
+                            <div class="signal down">↓</div>
+                            <div class="label">2X_SCOPE_ZOOM</div>
+                            <div class="value"><span id="r2x1">--</span> — <span id="r2x2">--</span></div>
+                            <div class="trend" id="trend2x">TREND: FINE-TUNING</div>
+                        </article>
+                        <article class="stat-card">
+                            <div class="signal flat">↘</div>
+                            <div class="label">4X_SCOPE_ZOOM</div>
+                            <div class="value"><span id="r4x1">--</span> — <span id="r4x2">--</span></div>
+                            <div class="trend" id="trend4x">TREND: CONSISTENT</div>
+                        </article>
+                        <article class="stat-card">
+                            <div class="signal up">↑</div>
+                            <div class="label">ADS_PRECISION_ZOOM</div>
+                            <div class="value"><span id="rAds1">--</span> — <span id="rAds2">--</span></div>
+                            <div class="trend" id="trendAds">TREND: OPTIMIZING</div>
+                        </article>
+                        <article class="stat-card">
+                            <div class="signal down">↓</div>
+                            <div class="label">SNIPER_CALIBRATION</div>
+                            <div class="value"><span id="rSni1">--</span> — <span id="rSni2">--</span></div>
+                            <div class="trend" id="trendSni">TREND: STABLE</div>
+                        </article>
+                        <article class="stat-card">
+                            <div class="signal flat">◫</div>
+                            <div class="label">DPI_BENCHMARK</div>
+                            <div class="value" id="idDPI">--</div>
+                            <div class="trend">TREND: INPUT_RESPONSE</div>
+                        </article>
+                        <article class="stat-card">
+                            <div class="signal flat">◎</div>
+                            <div class="label">PROFILE_EFFICIENCY</div>
+                            <div class="value" id="profileEfficiencyCard">--%</div>
+                            <div class="trend">TREND: LIVE_SYNCED</div>
+                        </article>
                     </div>
-                    <div class="id-stat-box">
-                        <div class="id-stat-label">RED_DOT_PRECISION</div>
-                        <div class="id-stat-val range-display">
-                            <span id="rRed1">--</span>
-                            <span class="range-sep">—</span>
-                            <span id="rRed2">--</span>
-                        </div>
-                    </div>
-                    <div class="id-stat-box">
-                        <div class="id-stat-label">2X_SCOPE_ZOOM</div>
-                        <div class="id-stat-val range-display">
-                            <span id="r2x1">--</span>
-                            <span class="range-sep">—</span>
-                            <span id="r2x2">--</span>
-                        </div>
-                    </div>
-                    <div class="id-stat-box">
-                        <div class="id-stat-label">4X_SCOPE_ZOOM</div>
-                        <div class="id-stat-val range-display">
-                            <span id="r4x1">--</span>
-                            <span class="range-sep">—</span>
-                            <span id="r4x2">--</span>
-                        </div>
-                    </div>
-                    <div class="id-stat-box">
-                        <div class="id-stat-label">ADS_PRECISION_ZOOM</div>
-                        <div class="id-stat-val range-display">
-                            <span id="rAds1">--</span>
-                            <span class="range-sep">—</span>
-                            <span id="rAds2">--</span>
-                        </div>
-                    </div>
-                    <div class="id-stat-box">
-                        <div class="id-stat-label">SNIPER_CALIBRATION</div>
-                        <div class="id-stat-val range-display">
-                            <span id="rSni1">--</span>
-                            <span class="range-sep">—</span>
-                            <span id="rSni2">--</span>
-                        </div>
-                    </div>
-                    <div class="id-stat-box">
-                        <div class="id-stat-label">DPI_BENCHMARK</div>
-                        <div class="id-stat-val" id="idDPI" style="font-size: 1.1rem; color: var(--accent-primary);">--</div>
-                    </div>
-                </div>
 
                     <div class="status-banner hidden" id="expiryWarning"></div>
-                    <div style="margin-top: 2rem; padding: 1rem; border: 1px dashed #222; text-align: center;">
-                        <div style="font-size: 0.5rem; color: #444; margin-bottom: 5px;">SETTINGS_BY</div>
-                        <div style="font-size: 0.75rem; color: #fff; line-height: 1.4; margin-bottom: 0.7rem;" id="settingsBy">Settings by: XP_CORE 👾</div>
-                        <div style="font-size: 0.5rem; color: #444; margin-bottom: 5px;">ADDITIONAL_NOTES</div>
-                        <div style="font-size: 0.65rem; color: #888; line-height: 1.4;" id="creatorAdvice">NO_EXTRA_ADVICE_PROVIDED</div>
-                        <div style="font-size: 0.65rem; color: #9fe870; line-height: 1.4; margin-top: 0.8rem;" id="followHint"></div>
-                    </div>
-                </div>
 
-                <!-- Decorative Elements -->
-                <div style="position: absolute; bottom: 10px; right: 10px; opacity: 0.05; transform: rotate(-15deg); font-size: 3rem; font-weight: 900; pointer-events: none;">XP_ARENA</div>
-                <div class="scan-line"></div>
-            </div>
+                    <section class="notes-panel">
+                        <div class="notes-header">
+                            <div class="notes-avatar">
+                                <img id="notesAvatar" src="favicon.png" alt="Creator avatar">
+                            </div>
+                            <div>
+                                <div class="label" style="font-family: var(--font-mono); color:#96aab9; font-size:0.58rem; letter-spacing:0.14em;">SETTINGS_BY</div>
+                                <div style="color:#fff; font-family:var(--font-mono); font-size:1rem; line-height:1.5;" id="settingsBy">Settings by: XP_CORE 👾</div>
+                                <div style="margin-top:0.55rem; color:#96aab9; font-family:var(--font-mono); font-size:0.58rem; letter-spacing:0.14em;">ADDITIONAL_NOTES</div>
+                            </div>
+                            <div class="verified-pill">VERIFIED <span id="verifiedEfficiency">--%</span></div>
+                        </div>
+                        <div class="notes-copy" id="creatorAdvice">NO_EXTRA_ADVICE_PROVIDED</div>
+                        <div class="notes-copy" id="followHint" style="color:#8fc8dc; font-size:0.72rem;"></div>
+                    </section>
+                </section>
             </div>
 
-            <!-- Actions -->
             <div class="action-grid">
-                <button class="action-btn" id="downloadBtn" style="margin-top: 0; background: #fff; color: #000; box-shadow: none;">DOWNLOAD_ID</button>
-                <button class="action-btn" id="copyBtn" style="margin-top: 0; background: var(--bg-card); color: #fff; border: 1px solid #222; box-shadow: none;">COPY_TEXT</button>
-                <button class="action-btn" id="likeBtn" onclick="submitLike()" style="margin-top: 0; background: #1b0f14; color: #ff7aa2; border: 1px solid #4b2130; box-shadow: none;">❤️ LIKE (0)</button>
+                <button class="action-btn" id="downloadBtn" style="margin-top: 0; background: #e7f4ff; color: #061019; box-shadow: none;">DOWNLOAD_ID</button>
+                <button class="action-btn secondary-tone" id="copyBtn" style="margin-top: 0;">COPY_TEXT / SHARE</button>
+                <button class="action-btn like-tone" id="likeBtn" type="button" style="margin-top: 0;">❤️ LIKE (0)</button>
             </div>
-            <div class="motion-note">This card is view-only for end users. Sensitivity generation is locked to vendor workspaces.</div>
+            <div class="motion-note">This card is view-only for end users. Sensitivity generation stays locked to vendor workspaces.</div>
+
+            <section class="feedback-panel reveal" style="animation-delay: 0.3s;">
+                <div class="feedback-panel-head">
+                    <div>
+                        <div class="label" data-i18n="profileFeedback">PROFILE_FEEDBACK</div>
+                        <h2 data-i18n="fineTuneProfile">Fine-tune this profile response</h2>
+                    </div>
+                    <div id="feedbackStatus" class="feedback-status" aria-live="polite"></div>
+                </div>
+                <p class="feedback-copy" data-i18n="feedbackPanelCopy">Send one structured reaction so creators can improve unstable profiles without bloating likes or fake engagement.</p>
+                <div class="feedback-chip-grid">
+                    <button class="feedback-chip active" type="button" data-feedback-tag="feels_good" data-i18n="feelsGood">FEELS_GOOD</button>
+                    <button class="feedback-chip" type="button" data-feedback-tag="too_high" data-i18n="tooHigh">TOO_HIGH</button>
+                    <button class="feedback-chip" type="button" data-feedback-tag="too_low" data-i18n="tooLow">TOO_LOW</button>
+                    <button class="feedback-chip" type="button" data-feedback-tag="device_mismatch" data-i18n="deviceMismatch">DEVICE_MISMATCH</button>
+                    <button class="feedback-chip" type="button" data-feedback-tag="scope_unstable" data-i18n="scopeUnstable">SCOPE_UNSTABLE</button>
+                </div>
+                <div class="feedback-form-grid">
+                    <label class="feedback-field">
+                        <span data-i18n="ratingLabel">RATING</span>
+                        <select id="feedbackRating">
+                            <option value="5">5 / EXCELLENT</option>
+                            <option value="4" selected>4 / GOOD</option>
+                            <option value="3">3 / MID</option>
+                            <option value="2">2 / OFF</option>
+                            <option value="1">1 / BAD</option>
+                        </select>
+                    </label>
+                    <label class="feedback-field feedback-field-wide">
+                        <span data-i18n="optionalNote">OPTIONAL_NOTE</span>
+                        <textarea id="feedbackText" maxlength="500" data-i18n-placeholder="feedbackHint" placeholder="Tell the creator what felt off or what worked well."></textarea>
+                    </label>
+                </div>
+                <div class="feedback-actions">
+                    <button class="action-btn secondary-tone" id="submitFeedbackBtn" type="button" data-i18n="submitFeedback">SEND_FEEDBACK</button>
+                    <div class="feedback-share-hint" id="shareLinkHint"></div>
+                </div>
+            </section>
         </main>
     </div>
 
-    <!-- 🔗 Follow Creator Fixed Bar -->
-    <div class="follow-creator-bar reveal" style="animation-delay: 0.5s;">
-        <div id="socialLinks" style="display: flex; gap: 1rem; margin-bottom: 1rem; justify-content: center;">
-            <!-- Social Icons injected here -->
-        </div>
+    <div class="follow-creator-bar reveal" style="animation-delay: 0.45s;">
+        <div id="socialLinks" style="display:flex; gap:1rem; margin-bottom:1rem; justify-content:center; flex-wrap:wrap;"></div>
         <button class="btn-follow" id="followBtn">FOLLOW_CREATOR</button>
+    </div>
+
+
+    <div class="share-card-export-shell" aria-hidden="true">
+        <section id="shareCaptureArea" class="share-card-export">
+            <div class="share-export-grid">
+                <div class="share-topline">
+                    <div class="share-brand">
+                        <img id="shareLogo" src="favicon.png" alt="Brand logo">
+                        <div>
+                            <div class="name">XP_ARENA</div>
+                            <div class="sub" data-i18n="premiumShareCard">PREMIUM SHARE CARD</div>
+                        </div>
+                    </div>
+                    <div class="share-telemetry">
+                        <div id="shareUtc">CURRENT UTC: --</div>
+                        <div id="shareExpiry">EXPIRY: NEVER</div>
+                        <div class="share-bar"><span id="shareEfficiencyBar"></span></div>
+                        <div id="shareEfficiencyLabel">PROFILE_EFFICIENCY: --%</div>
+                    </div>
+                </div>
+                <div class="share-device-row">
+                    <div class="share-device-preview"><img id="shareDevicePreview" src="favicon.png" alt="Device preview"></div>
+                    <div class="share-device-meta">
+                        <div class="eyebrow">DEVICE_PROFILE</div>
+                        <div class="headline" id="shareDeviceModel">UNKNOWN_HARDWARE</div>
+                        <div class="unit" id="shareCreatorName">UNIT_ID: XP_CORE</div>
+                    </div>
+                </div>
+                <div style="display:grid; gap:18px;">
+                    <div class="share-code-strip">
+                        <div class="share-code-main">
+                            <div class="share-code-label">ACCESS_CODE</div>
+                            <div class="value" id="shareAccessCode">XP-0000-0000</div>
+                        </div>
+                        <div class="share-code-pill" data-i18n="syncedProfile">SYNCED_PROFILE</div>
+                    </div>
+                    <div class="share-stats-grid">
+                        <div class="share-stat"><div class="icon" style="color:#7bf2c9;">↑</div><div class="label">GENERAL_SENS</div><div class="value" id="shareGeneral">--</div><div class="trend" id="shareTrendGeneral">TREND: OPTIMIZING</div></div>
+                        <div class="share-stat"><div class="icon" style="color:#ff8d9c;">↑</div><div class="label">RED_DOT_PRECISION</div><div class="value" id="shareRedDot">--</div><div class="trend" id="shareTrendRed">TREND: STABLE</div></div>
+                        <div class="share-stat"><div class="icon" style="color:#8de3ff;">↘</div><div class="label">2X / 4X_SCOPE</div><div class="value" id="shareScope">--</div><div class="trend" id="shareTrendScope">TREND: CONSISTENT</div></div>
+                        <div class="share-stat"><div class="icon" style="color:#9df0e1;">◎</div><div class="label">DPI / EFFICIENCY</div><div class="value" id="shareDpiEff">--</div><div class="trend">TREND: LIVE_SYNCED</div></div>
+                    </div>
+                </div>
+                <div class="share-footer">
+                    <img id="shareFooterLogo" src="favicon.png" alt="Creator logo">
+                    <div class="share-footer-copy">
+                        <div class="eyebrow">SETTINGS_BY</div>
+                        <div class="main" id="shareAdvice">NO_EXTRA_ADVICE_PROVIDED</div>
+                    </div>
+                    <div class="share-verified-pill" id="shareVerified">VERIFIED 94%</div>
+                </div>
+            </div>
+        </section>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="analytics.js"></script>
     <script src="translations.js"></script>
     <script src="notifications.js"></script>
+    <script src="result-utils.js"></script>
     <script src="settings.js"></script>
     <script src="update-overlay.js"></script>
-    <script>
-        let currentCode = '';
-        let currentVerifyPayload = null;
-        let expiryTimer = null;
-
-        function setExpiryState(validUntil) {
-            const expiryValue = document.getElementById('expiryValue');
-            const warning = document.getElementById('expiryWarning');
-            if (expiryTimer) clearInterval(expiryTimer);
-            if (!validUntil) {
-                expiryValue.textContent = 'NEVER';
-                warning.classList.add('hidden');
-                return;
-            }
-            const expiryDate = new Date(validUntil);
-            expiryValue.textContent = expiryDate.toISOString().replace('T', ' ').slice(0, 16) + ' UTC';
-            const render = () => {
-                const diff = expiryDate.getTime() - Date.now();
-                if (diff <= 0) {
-                    warning.className = 'status-banner expired';
-                    warning.textContent = '❌ CODE EXPIRED';
-                    return;
-                }
-                const hours = Math.floor(diff / (1000 * 60 * 60));
-                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-                if (diff <= 24 * 60 * 60 * 1000) {
-                    warning.className = 'status-banner warn';
-                    warning.textContent = `⏰ CODE EXPIRES IN ${hours} HOURS ${minutes} MINUTES`;
-                } else {
-                    warning.classList.add('hidden');
-                    warning.textContent = '';
-                }
-            };
-            render();
-            expiryTimer = setInterval(render, 1000);
-        }
-
-        async function hydrateFromStatus(code, fallbackResults, fallbackBranding) {
-            try {
-                const response = await fetch(`/api/vault/code/${encodeURIComponent(code)}/status`);
-                const payload = await response.json();
-                if (!response.ok) throw new Error(payload.error || payload.message || 'STATUS_REFRESH_FAILED');
-                currentVerifyPayload = payload;
-                localStorage.setItem('xp_sensitivity_profile_last_result', JSON.stringify({ ...(payload.sensitivity || payload.results || {}), advice: payload.advice || payload.sensitivity?.advice || '' }));
-                localStorage.setItem('xp_last_branding', JSON.stringify(payload.branding || fallbackBranding || {}));
-                return {
-                    results: payload.sensitivity || payload.results || fallbackResults || {},
-                    branding: payload.branding || fallbackBranding || {},
-                    likes: payload.likes || 0,
-                    validUntil: payload.valid_until || null,
-                    advice: payload.advice || payload.sensitivity?.advice || '',
-                    displayName: payload.display_name || '',
-                    vendorId: payload.vendor_id || ''
-                };
-            } catch (e) {
-                console.warn('STATUS_REFRESH_ERR:', e);
-                return {
-                    results: fallbackResults || {},
-                    branding: fallbackBranding || {},
-                    likes: 0,
-                    validUntil: null,
-                    advice: fallbackResults?.advice || '',
-                    displayName: fallbackBranding?.display_name || '',
-                    vendorId: fallbackBranding?.vendor_id || ''
-                };
-            }
-        }
-
-        async function submitLike() {
-            if (!currentCode) return;
-            try {
-                const response = await fetch('/api/vault/feedback', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ code: currentCode, rating: 5 })
-                });
-                const payload = await response.json();
-                if (!response.ok) throw new Error(payload.error || payload.message || 'LIKE_FAILED');
-                document.getElementById('likeBtn').textContent = `❤️ LIKE (${payload.likes_count || 0})`;
-                if (window.notify) window.notify('LIKE_RECORDED', 'success');
-            } catch (e) {
-                if (window.notify) window.notify(e.message || 'LIKE_FAILED', 'error');
-            }
-        }
-        window.submitLike = submitLike;
-
-        document.addEventListener('DOMContentLoaded', async () => {
-            const params = new URLSearchParams(window.location.search);
-            const fallbackResults = JSON.parse(localStorage.getItem('xp_sensitivity_profile_last_result') || '{}');
-            const state = JSON.parse(localStorage.getItem('xp_sensitivity_profile') || '{}');
-            const fallbackBranding = JSON.parse(localStorage.getItem('xp_last_branding') || '{}');
-            currentCode = params.get('code') || localStorage.getItem('xp_last_entry_code') || '';
-            const hydrated = await hydrateFromStatus(currentCode, fallbackResults, fallbackBranding);
-            const results = hydrated.results;
-            const branding = hydrated.branding;
-            if (!results.general) {
-                window.location.href = 'index.html';
-                return;
-            }
-            const code = currentCode || 'FREE-GEN';
-            const getDict = () => {
-                const lang = localStorage.getItem('xp_lang') || 'en';
-                return (window.LANGUAGES && window.LANGUAGES[lang]) || window.LANGUAGES?.en || {};
-            };
-            const t = (key, fallback) => {
-                const d = getDict();
-                return d[key] || fallback;
-            };
-            if (window.SaaSAnalytics) window.SaaSAnalytics.track('result_view');
-            try {
-                fetch('/api/vault/track', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        event_type: 'result_view',
-                        vendor_id: hydrated.vendorId || branding.id || 'XP-PUBLIC',
-                        session_id: localStorage.getItem('xp_session_id'),
-                        device: /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ? 'mobile' : 'desktop'
-                    })
-                });
-            } catch (_e) {}
-
-            const applyResultLang = () => {
-                const title = document.querySelector('.title-main');
-                if (title) title.textContent = t('resultsTitle', 'AUTHORIZATION_SUCCESS');
-                const downloadBtn = document.getElementById('downloadBtn');
-                if (downloadBtn) downloadBtn.textContent = t('downloadBtn', 'DOWNLOAD_ID');
-                const copyBtn = document.getElementById('copyBtn');
-                if (copyBtn) copyBtn.textContent = `${t('copyBtn', 'COPY_TEXT')} / SHARE`;
-                
-                // Labels
-                const adviceLabel = document.querySelector('div[style*="font-size: 0.5rem; color: #444; margin-bottom: 5px;"]:nth-of-type(2)');
-                if (adviceLabel) adviceLabel.textContent = t('adviceLabel', 'ADDITIONAL_NOTES');
-            };
-            applyResultLang();
-            window.addEventListener('xp:language-change', applyResultLang);
-
-            const parseRange = (v) => {
-                if (typeof v === 'number' && Number.isFinite(v)) return [Math.max(0, v - 3), Math.min(200, v + 3)];
-                if (typeof v === 'string') {
-                    const m = v.match(/^\s*(\d+)\s*-\s*(\d+)\s*$/);
-                    if (m) return [parseInt(m[1], 10), parseInt(m[2], 10)];
-                    const n = Number.parseFloat(v);
-                    if (Number.isFinite(n)) return [Math.max(0, Math.round(n - 3)), Math.min(200, Math.round(n + 3))];
-                }
-                return ['--', '--'];
-            };
-            const paintRange = (id1, id2, val) => {
-                const [a, b] = parseRange(val);
-                document.getElementById(id1).textContent = a;
-                document.getElementById(id2).textContent = b;
-            };
-
-            document.getElementById('idModel').textContent = `${results.brand || state.brand || 'GENERIC'} ${results.model || state.model || 'DEVICE'}`.toUpperCase();
-            document.getElementById('idCode').textContent = code;
-            document.getElementById('creatorName').textContent = branding.display_name || hydrated.displayName || branding.name || 'XP_CORE';
-            document.getElementById('settingsBy').textContent = `Settings by: ${branding.display_name || hydrated.displayName || hydrated.vendorId || 'XP_CORE'} 👾`;
-            document.getElementById('chipVendor').textContent = (branding.display_name || hydrated.displayName || hydrated.vendorId || 'XP_CORE').toUpperCase();
-            document.getElementById('chipStatus').textContent = hydrated.validUntil ? 'ACTIVE / TIMED' : 'ACTIVE / OPEN';
-            if (branding.logo_url || branding.logo) document.getElementById('creatorLogo').src = branding.logo_url || branding.logo;
-            document.getElementById('creatorAdvice').textContent = hydrated.advice ? `💡 ${t('adviceLabel', 'Advice')}: ${hydrated.advice}` : t('noAdvice', 'NO_EXTRA_ADVICE_PROVIDED');
-            document.getElementById('likeBtn').textContent = `❤️ LIKE (${hydrated.likes || 0})`;
-            paintRange('rGen1', 'rGen2', results.general);
-            paintRange('rRed1', 'rRed2', results.redDot);
-            paintRange('r2x1', 'r2x2', results.scope2x);
-            paintRange('r4x1', 'r4x2', results.scope4x);
-            paintRange('rSni1', 'rSni2', results.sniperScope || results.sniper);
-            paintRange('rAds1', 'rAds2', results.ads);
-            document.getElementById('idDPI').textContent = results.dpi || 'DEFAULT';
-            setExpiryState(hydrated.validUntil);
-
-            const socialBox = document.getElementById('socialLinks');
-            const socialsObj = branding.socials || {};
-            const socials = [
-                { id: 'youtube', icon: 'YouTube', link: branding.youtube || socialsObj.yt },
-                { id: 'tiktok', icon: 'TikTok', link: branding.tiktok || socialsObj.tiktok || socialsObj.tt },
-                { id: 'discord', icon: 'Discord', link: branding.discord || socialsObj.discord || socialsObj.dc }
-            ];
-            const socialIcons = {
-                youtube: `<svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>`,
-                tiktok: `<svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.06-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.9-.32-1.98-.23-2.81.31-.75.42-1.24 1.25-1.33 2.1-.1.7-.01 1.42.24 2.08.41.82 1.25 1.39 2.16 1.47 1.05.07 2.13-.37 2.74-1.23.33-.42.5-1.01.51-1.54-.01-4.73.01-9.46-.02-14.2z"/></svg>`,
-                discord: `<svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.052-.102.001-.226-.106-.267a12.865 12.865 0 0 1-1.887-.899.08.08 0 0 1-.006-.136c.125-.094.252-.192.372-.29a.078.078 0 0 1 .082-.011 13.973 13.973 0 0 0 12.244 0 .078.078 0 0 1 .082.011c.12.098.247.196.373.29a.08.08 0 0 1-.006.136 12.655 12.655 0 0 1-1.887.899.076.076 0 0 0-.105.268c.352.699.765 1.362 1.227 1.993a.076.076 0 0 0 .084.029 19.835 19.835 0 0 0 6.002-3.03.077.077 0 0 0 .032-.055c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>`
-            };
-            socials.forEach((s) => {
-                if (s.link) {
-                    const a = document.createElement('a');
-                    a.href = s.link.startsWith('http') ? s.link : `https://${s.link}`;
-                    a.target = '_blank';
-                    a.className = `social-link ${s.id}`;
-                    a.innerHTML = `${socialIcons[s.id]}<span>${s.icon}</span>`;
-                    socialBox.appendChild(a);
-                }
-            });
-            const tiktok = socials.find((s) => s.id === 'tiktok' && s.link);
-            if (tiktok) document.getElementById('followHint').textContent = `Follow ${tiktok.link} on TikTok`;
-
-            const followBtn = document.getElementById('followBtn');
-            const primarySocial = socials.find(s => s.link)?.link;
-            if (primarySocial || branding.social_link) {
-                const primaryLink = primarySocial || branding.social_link;
-                followBtn.onclick = () => window.open(primaryLink.startsWith('http') ? primaryLink : `https://${primaryLink}`, '_blank');
-            } else {
-                followBtn.textContent = 'JOIN_COMMUNITY';
-                followBtn.onclick = () => window.open('https://discord.gg/xparena', '_blank');
-            }
-            if (branding.colors && branding.colors.primary) document.documentElement.style.setProperty('--accent-primary', branding.colors.primary);
-            if (branding.colors && branding.colors.secondary) document.documentElement.style.setProperty('--accent-secondary', branding.colors.secondary);
-            if (branding.css_vars && typeof branding.css_vars === 'object') {
-                Object.entries(branding.css_vars).forEach(([key, value]) => {
-                    if (typeof value === 'string') {
-                        document.documentElement.style.setProperty(key, value);
-                    }
-                });
-            }
-
-            document.getElementById('downloadBtn').onclick = () => {
-                const area = document.getElementById('captureArea');
-                html2canvas(area, { scale: 3, backgroundColor: '#0a0a0a' }).then(canvas => {
-                    const link = document.createElement('a');
-                    link.download = `xp-id-${code}.png`;
-                    link.href = canvas.toDataURL();
-                    link.click();
-                    if (window.notify) window.notify('ID_CARD_EXPORTED', 'success');
-                });
-            };
-
-            document.getElementById('copyBtn').onclick = () => {
-                const general = `${document.getElementById('rGen1').textContent}-${document.getElementById('rGen2').textContent}`;
-                const redDot = `${document.getElementById('rRed1').textContent}-${document.getElementById('rRed2').textContent}`;
-                const text = `XP ARENA ACCESS PROFILE
-DEVICE: ${results.brand || state.brand || 'UNKNOWN'} ${results.model || state.model || 'DEVICE'}
-GENERAL: ${general}
-RED DOT: ${redDot}
-CODE: ${code}`;
-                const doAfter = () => {
-                    try {
-                        fetch('/api/vault/action', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ action: 'copy_text', code })
-                        });
-                    } catch (_e) {}
-                    if (window.notify) window.notify('PROFILE_COPIED_TO_CLIPBOARD', 'haptic');
-                };
-                if (navigator.share) {
-                    navigator.share({ title: 'XP ARENA Calibration Profile', text }).then(doAfter).catch(() => navigator.clipboard.writeText(text).then(doAfter));
-                } else {
-                    navigator.clipboard.writeText(text).then(doAfter);
-                }
-            };
-
-            const stage = document.querySelector('.card-stage');
-            if (stage) {
-                requestAnimationFrame(() => stage.classList.add('ready'));
-                const area = document.getElementById('captureArea');
-                area?.addEventListener('pointermove', (event) => {
-                    const rect = area.getBoundingClientRect();
-                    const rotateX = ((event.clientY - rect.top) / rect.height - 0.5) * -8;
-                    const rotateY = ((event.clientX - rect.left) / rect.width - 0.5) * 8;
-                    area.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
-                });
-                area?.addEventListener('pointerleave', () => {
-                    area.style.transform = 'rotateX(0deg) rotateY(0deg)';
-                });
-            }
-        });
-    </script>
+    <script src="result.js"></script>
 </body>
 </html>
