@@ -402,6 +402,7 @@ async function getCodeStatusFromShareToken(shareToken) {
 }
 
 async function createVendorCode(vendorId, results, creatorAdvice = null, preferredCode = null) {
+    await ensureKeyStorageCapacity();
     const rawCode = preferredCode || `XP-${vendorId.toUpperCase()}-${Math.floor(100000 + Math.random() * 900000)}`;
     const lookupKey = getLookupKey(rawCode);
     const hashedCode = await bcrypt.hash(rawCode, 10);
@@ -1206,6 +1207,8 @@ router.post('/admin/vendors', authenticateAdmin, async (req, res) => {
 
         const existing = await db.get('SELECT vendor_id FROM vendors WHERE vendor_id = ?', [vendorId]);
         if (existing) return res.status(409).json({ error: 'VENDOR_ALREADY_EXISTS' });
+
+        await ensureKeyStorageCapacity();
 
         const randomDigits = Math.floor(1000 + Math.random() * 9000);
         const accessKey = `XP-${vendorId}-${randomDigits}`;

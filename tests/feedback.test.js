@@ -104,6 +104,27 @@ describe('POST /api/vault/feedback', () => {
     expect(db.run).not.toHaveBeenCalled();
   });
 
+
+  it('creates a feedback activity row when none exists yet', async () => {
+    db.get
+      .mockResolvedValueOnce(undefined)
+      .mockResolvedValueOnce({ likes_count: 1 });
+    db.run
+      .mockResolvedValueOnce({ lastID: 77, changes: 1 })
+      .mockResolvedValueOnce({ changes: 1 });
+
+    const res = await request(app)
+      .post('/api/vault/feedback')
+      .send({ code: 'XP-NEW-1000', rating: 5, feedback: 'Fresh like' });
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ success: true, likes_count: 1 });
+    expect(db.run).toHaveBeenCalledWith(
+      expect.stringContaining('INSERT INTO code_activity'),
+      expect.arrayContaining(['XP-NEW-1000'])
+    );
+  });
+
   it('rejects invalid feedback payload', async () => {
     const res = await request(app)
       .post('/api/vault/feedback')
