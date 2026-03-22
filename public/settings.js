@@ -20,6 +20,168 @@
         { code: 'tr', name: 'Türkçe', flag: '🇹🇷' },
         { code: 'ru', name: 'Русский', flag: '🇷🇺' }
     ];
+    const STORAGE_KEYS = {
+        theme: 'xp_preferred_theme',
+        lang: 'xp_lang',
+        reduceMotion: 'xp_reduce_motion',
+        highContrast: 'xp_high_contrast',
+        largeText: 'xp_large_text',
+        compactMode: 'xp_compact_mode'
+    };
+    const SAFE_HTML_TRANSLATION_KEYS = new Set(['heroTitle']);
+    const preferenceToggles = [
+        { id: 'reduce-motion-toggle', key: STORAGE_KEYS.reduceMotion, label: 'reduceMotion', attr: 'reduceMotion' },
+        { id: 'contrast-toggle', key: STORAGE_KEYS.highContrast, label: 'highContrast', attr: 'highContrast' },
+        { id: 'large-text-toggle', key: STORAGE_KEYS.largeText, label: 'largeText', attr: 'largeText' },
+        { id: 'compact-mode-toggle', key: STORAGE_KEYS.compactMode, label: 'compactMode', attr: 'compactMode' }
+    ];
+
+
+    function getDictionary(langCode) {
+        const fallback = (window.LANGUAGES && window.LANGUAGES.en) || {};
+        return { ...fallback, ...((window.LANGUAGES && window.LANGUAGES[langCode]) || {}) };
+    }
+
+    function translateValue(key, langCode, fallback = '') {
+        const dict = getDictionary(langCode || localStorage.getItem(STORAGE_KEYS.lang) || 'en');
+        return dict[key] || fallback || key;
+    }
+
+    const selectorTranslationMap = {
+        'index.html': [
+            ['.hero-headline', 'heroTitle', 'html'],
+            ['.hero-sub', 'heroSubtitleFull'],
+            ['#vaultOverlay h1', 'vaultTitle'],
+            ['#vaultInput', 'vaultPlaceholder', 'placeholder'],
+            ['#vaultAuthBtn', 'openPortal'],
+            ['#vaultStatus', 'secureAccessOnly'],
+            ['.vault-helper:nth-of-type(1) strong', 'authorized'],
+            ['.vault-helper:nth-of-type(2) strong', 'creators'],
+            ['.vault-helper:nth-of-type(3) strong', 'players'],
+            ['.vault-helper:nth-of-type(1) span', 'authorizedHint'],
+            ['.vault-helper:nth-of-type(2) span', 'creatorsHint'],
+            ['.vault-helper:nth-of-type(3) span', 'playersHint'],
+            ['label[for="brandSelect"], .form-label[data-i18n="brandLabel"]', 'hardwareSignature'],
+            ['label[data-i18n="title"]', 'neuralSensitivityLabel'],
+            ['label[data-i18n="clawLabel"]', 'gripArchitecture'],
+            ['#brandSelect option[value=""]', 'selectBrand'],
+            ['#seriesSelect option[value=""]', 'selectSeries'],
+            ['#modelSelect option[value=""]', 'selectModel'],
+            ['#manualMastering .form-label', 'manualExistingBase'],
+            ['#manualSens', 'manualPlaceholder', 'placeholder'],
+            ['#standardMastering button', 'manualModeOn'],
+            ['#standardMastering p', 'manualModeHint'],
+            ['#manualMastering button', 'manualModeOff'],
+            ['#manualMastering p', 'manualHelp'],
+            ['#calculateBtn', 'generateGuide'],
+            ['#perfBtn', 'fullNeuralMode'],
+            ['footer a:nth-of-type(1)', 'privacy'],
+            ['footer a:nth-of-type(2)', 'terms'],
+            ['footer a:nth-of-type(3)', 'support'],
+            ['.premium-footer-note p', 'poweredBy']
+        ],
+        'verify.html': [
+            ['#guidanceBox .stat-label', 'verificationGuide'],
+            ['.terminal-content .action-btn', 'returnToGateway']
+        ],
+        'result.html': [
+            ['.hero-banner p', 'resultHeroText'],
+            ['.device-access-header', 'deviceAccess'],
+            ['#followBtn', 'followCreator']
+        ]
+    };
+
+    const autoTranslateSelectors = 'button, label, h1, h2, h3, h4, p, span, a, small, option';
+
+    function normalizeText(value) {
+        return String(value || '').replace(/\s+/g, ' ').trim();
+    }
+
+    function canRenderHtml(key, mode, value) {
+        return mode === 'html' && SAFE_HTML_TRANSLATION_KEYS.has(key) && /<br\s*\/?>/i.test(value);
+    }
+
+    function translateElement(el, key, langCode, fallback, mode) {
+        const value = translateValue(key, langCode, fallback);
+        if (mode === 'placeholder') {
+            el.setAttribute('placeholder', value);
+            return;
+        }
+        if (canRenderHtml(key, mode, value)) {
+            el.innerHTML = value;
+            return;
+        }
+        el.textContent = normalizeText(value);
+    }
+
+    function primeAutoTranslationKeys() {
+        const reverseMap = Object.entries(getDictionary('en')).reduce((acc, [key, value]) => {
+            const normalized = normalizeText(value).replace(/<br\s*\/?/gi, ' ').replace(/>/g, '');
+            if (normalized) acc[normalized] = key;
+            return acc;
+        }, {});
+
+        document.querySelectorAll(autoTranslateSelectors).forEach((el) => {
+            if (el.dataset.i18n || el.dataset.i18nAuto) return;
+            if (el.children.length > 0) return;
+            const current = normalizeText(el.textContent);
+            const matchedKey = reverseMap[current];
+            if (matchedKey) el.dataset.i18nAuto = matchedKey;
+        });
+
+        document.querySelectorAll('input[placeholder], textarea[placeholder]').forEach((el) => {
+            if (el.dataset.i18nPlaceholder) return;
+            const current = normalizeText(el.getAttribute('placeholder'));
+            const matchedKey = reverseMap[current];
+            if (matchedKey) el.dataset.i18nPlaceholder = matchedKey;
+        });
+    }
+
+    function applySelectorTranslations(langCode) {
+        const page = window.location.pathname.split('/').pop() || 'index.html';
+        (selectorTranslationMap[page] || []).forEach(([selector, key, mode]) => {
+            document.querySelectorAll(selector).forEach((el) => {
+                translateElement(el, key, langCode, el.textContent, mode);
+            });
+        });
+    }
+
+    function applyDomTranslations(langCode) {
+        primeAutoTranslationKeys();
+        document.documentElement.lang = langCode;
+        document.querySelectorAll('[data-i18n]').forEach((el) => {
+            translateElement(el, el.dataset.i18n, langCode, el.textContent, el.dataset.i18nMode);
+        });
+        document.querySelectorAll('[data-i18n-auto]').forEach((el) => {
+            translateElement(el, el.dataset.i18nAuto, langCode, el.textContent, null);
+        });
+        document.querySelectorAll('[data-i18n-placeholder]').forEach((el) => {
+            translateElement(el, el.dataset.i18nPlaceholder, langCode, el.getAttribute('placeholder'), 'placeholder');
+        });
+        applySelectorTranslations(langCode);
+    }
+
+    function applyAccessibilityPreferences() {
+        const prefersReduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+        const states = {
+            reduceMotion: localStorage.getItem(STORAGE_KEYS.reduceMotion) === 'true' || prefersReduced,
+            highContrast: localStorage.getItem(STORAGE_KEYS.highContrast) === 'true',
+            largeText: localStorage.getItem(STORAGE_KEYS.largeText) === 'true',
+            compactMode: localStorage.getItem(STORAGE_KEYS.compactMode) === 'true'
+        };
+        Object.entries(states).forEach(([attr, enabled]) => {
+            document.documentElement.dataset[attr] = enabled ? 'true' : 'false';
+            document.body?.setAttribute(`data-${attr.replace(/[A-Z]/g, (m) => `-${m.toLowerCase()}`)}`, enabled ? 'true' : 'false');
+        });
+        preferenceToggles.forEach(({ id, key }) => {
+            const pressed = localStorage.getItem(key) === 'true' || (key === STORAGE_KEYS.reduceMotion && prefersReduced && localStorage.getItem(key) !== 'false');
+            const button = document.getElementById(id);
+            if (button) {
+                button.classList.toggle('active', pressed);
+                button.setAttribute('aria-pressed', pressed ? 'true' : 'false');
+            }
+        });
+    }
 
 
     function getDictionary(langCode) {
@@ -140,7 +302,7 @@
         const theme = themes[themeKey] || themes.cyan;
         document.documentElement.style.setProperty('--accent-primary', theme.primary);
         document.documentElement.style.setProperty('--accent-primary-glow', theme.glow);
-        localStorage.setItem('xp_preferred_theme', themeKey);
+        localStorage.setItem(STORAGE_KEYS.theme, themeKey);
         
         document.querySelectorAll('.theme-dot').forEach(dot => {
             dot.classList.toggle('active', dot.dataset.theme === themeKey);
@@ -196,7 +358,7 @@
     }
 
     function applyLang(langCode) {
-        localStorage.setItem('xp_lang', langCode);
+        localStorage.setItem(STORAGE_KEYS.lang, langCode);
         document.querySelectorAll('.lang-item').forEach(item => {
             item.classList.toggle('active', item.dataset.lang === langCode);
         });
@@ -205,6 +367,13 @@
             window.UI.applyLang();
         }
         window.dispatchEvent(new CustomEvent('xp:language-change', { detail: { lang: langCode } }));
+    }
+
+    function togglePreference(storageKey) {
+        const nextValue = localStorage.getItem(storageKey) === 'true' ? 'false' : 'true';
+        localStorage.setItem(storageKey, nextValue);
+        applyAccessibilityPreferences();
+        window.dispatchEvent(new CustomEvent('xp:accessibility-change', { detail: { key: storageKey, value: nextValue === 'true' } }));
     }
 
     // Inject Settings Hub UI
@@ -231,11 +400,20 @@
                 <label data-i18n="systemLanguage">SYSTEM_LANGUAGE</label>
                 <div class="lang-list">
                     ${langs.map(l => `
-                        <div class="lang-item ${localStorage.getItem('xp_lang') === l.code ? 'active' : ''}" data-lang="${l.code}">
+                        <div class="lang-item ${localStorage.getItem(STORAGE_KEYS.lang) === l.code ? 'active' : ''}" data-lang="${l.code}">
                             <span class="flag">${l.flag}</span>
                             <span class="name">${l.name}</span>
                         </div>
                     `).join('')}
+                </div>
+            </div>
+            <div class="hub-section">
+                <label data-i18n="accessibilityTitle">ACCESSIBILITY</label>
+                <div class="pref-grid">
+                    <button class="pref-toggle" id="reduce-motion-toggle" type="button" data-i18n="reduceMotion">REDUCE_MOTION</button>
+                    <button class="pref-toggle" id="contrast-toggle" type="button" data-i18n="highContrast">HIGH_CONTRAST</button>
+                    <button class="pref-toggle" id="large-text-toggle" type="button" data-i18n="largeText">LARGE_TEXT</button>
+                    <button class="pref-toggle" id="compact-mode-toggle" type="button" data-i18n="compactMode">COMPACT_MODE</button>
                 </div>
             </div>
         </div>
@@ -385,6 +563,43 @@
         .lang-item.active { background: var(--accent-primary-glow); color: var(--accent-primary); font-weight: 700; }
 
         .lang-item .flag { font-size: 1.1rem; }
+        .pref-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.5rem;
+        }
+        .pref-toggle {
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px;
+            background: rgba(255,255,255,0.03);
+            color: #cde5f5;
+            padding: 0.8rem 0.7rem;
+            font: inherit;
+            font-size: 0.72rem;
+            letter-spacing: 0.06em;
+        }
+        .pref-toggle.active {
+            background: var(--accent-primary-glow);
+            color: var(--accent-primary);
+            border-color: rgba(255,255,255,0.16);
+        }
+
+        :root[data-high-contrast="true"] {
+            filter: contrast(1.08) saturate(1.05);
+        }
+        :root[data-large-text="true"] {
+            font-size: 18px;
+        }
+        :root[data-compact-mode="true"] .glass-panel,
+        :root[data-compact-mode="true"] .app-container,
+        :root[data-compact-mode="true"] .result-intro,
+        :root[data-compact-mode="true"] .feedback-panel {
+            --compact-scale: 0.96;
+        }
+        :root[data-compact-mode="true"] body {
+            font-size: 15px;
+            letter-spacing: -0.01em;
+        }
 
         #xp-nav-hub {
             position: fixed;
@@ -416,8 +631,9 @@
     document.body.appendChild(hub);
 
     // Initial State
-    const savedTheme = localStorage.getItem('xp_preferred_theme') || 'cyan';
+    const savedTheme = localStorage.getItem(STORAGE_KEYS.theme) || 'cyan';
     applyTheme(savedTheme);
+    applyAccessibilityPreferences();
 
     // Trigger Logic
     const trigger = document.getElementById('hub-trigger');
@@ -437,6 +653,59 @@
     // Language Logic
     document.querySelectorAll('.lang-item').forEach(item => {
         item.addEventListener('click', () => applyLang(item.dataset.lang));
+    });
+    preferenceToggles.forEach(({ id, key }) => {
+        document.getElementById(id)?.addEventListener('click', () => togglePreference(key));
+    });
+
+
+
+    // App navigation helper
+    const navHub = document.createElement('div');
+    navHub.id = 'xp-nav-hub';
+    navHub.innerHTML = `
+        <button class="xp-nav-btn hidden" id="xpBackBtn" type="button" aria-label="Go back">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/><path d="M21 12H9"/></svg>
+        </button>
+        <button class="xp-nav-btn hidden" id="xpCloseBtn" type="button" aria-label="Close panel">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg>
+        </button>
+    `;
+    document.body.appendChild(navHub);
+
+    const backBtn = document.getElementById('xpBackBtn');
+    const closeBtn = document.getElementById('xpCloseBtn');
+
+    function syncNavButtons() {
+        const closable = document.querySelector('.sheet-overlay.active, .action-sheet.active, .modal.active, .success-overlay.active, .hub-panel:not(.hidden)');
+        closeBtn.classList.toggle('hidden', !closable);
+        backBtn.classList.toggle('hidden', closable || !shouldShowBackButton());
+    }
+
+    backBtn?.addEventListener('click', () => {
+        const target = getBackTarget();
+        if (window.history.length > 1 && !target) {
+            window.history.back();
+            return;
+        }
+        if (target) {
+            window.location.href = target;
+        }
+    });
+
+    closeBtn?.addEventListener('click', () => {
+        closeActivePanels();
+        syncNavButtons();
+    });
+
+    document.addEventListener('click', () => {
+        window.requestAnimationFrame(syncNavButtons);
+    });
+    window.addEventListener('DOMContentLoaded', syncNavButtons);
+    window.addEventListener('keyup', (event) => {
+        if (event.key === 'Escape' && closeActivePanels()) {
+            syncNavButtons();
+        }
     });
 
 
@@ -491,15 +760,24 @@
 
     // Global Overrides
     let translationObserver = null;
+    function mutationNeedsTranslation(mutations) {
+        return mutations.some((mutation) => Array.from(mutation.addedNodes || []).some((node) => {
+            if (node.nodeType !== 1) return false;
+            if (node.id === 'settings-hub' || node.id === 'xp-nav-hub') return false;
+            return !node.closest?.('#settings-hub, #xp-nav-hub');
+        }));
+    }
     window.addEventListener('DOMContentLoaded', () => {
-        const lang = localStorage.getItem('xp_lang') || 'en';
-        applyTheme(localStorage.getItem('xp_preferred_theme') || 'cyan');
+        const lang = localStorage.getItem(STORAGE_KEYS.lang) || 'en';
+        applyTheme(localStorage.getItem(STORAGE_KEYS.theme) || 'cyan');
+        applyAccessibilityPreferences();
         applyDomTranslations(lang);
         if (!translationObserver) {
             let rafId = null;
-            translationObserver = new MutationObserver(() => {
+            translationObserver = new MutationObserver((mutations) => {
+                if (!mutationNeedsTranslation(mutations)) return;
                 if (rafId) cancelAnimationFrame(rafId);
-                rafId = requestAnimationFrame(() => applyDomTranslations(localStorage.getItem('xp_lang') || 'en'));
+                rafId = requestAnimationFrame(() => applyDomTranslations(localStorage.getItem(STORAGE_KEYS.lang) || 'en'));
             });
             translationObserver.observe(document.body, { childList: true, subtree: true });
         }

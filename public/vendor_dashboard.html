@@ -599,7 +599,7 @@
                 </div>
             </div>
 
-            <button class="btn-primary" onclick="autoGenerate()" style="margin-top: 1rem;">GENERATE CODE</button>
+            <button class="btn-primary" onclick="autoGenerate()" style="margin-top: 1rem;" data-i18n="generateCode">GENERATE CODE</button>
         </div>
 
         <div id="genResult" class="hidden">
@@ -642,6 +642,25 @@
             <h3 style="margin: 0 0 1rem; font-size: 0.9rem; color: var(--accent-primary);">REGIONAL_HEATMAP</h3>
             <div id="regionHeatmap" style="display: grid; gap: 0.5rem;">
                 <!-- Regions injected here -->
+            </div>
+        </div>
+
+        <div class="glass-panel">
+            <h3 style="margin: 0 0 1rem; font-size: 0.9rem; color: var(--accent-secondary);" data-i18n="profileInsights">PROFILE_INSIGHTS</h3>
+            <div style="display:grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.75rem; margin-bottom: 1rem;">
+                <div class="stat-tile"><div class="stat-val" id="insightConversion">0%</div><div class="stat-label" data-i18n="feedbackConversion">FEEDBACK_CONVERSION</div></div>
+                <div class="stat-tile"><div class="stat-val" id="insightAvgRating">0.0</div><div class="stat-label" data-i18n="avgRating">AVG_RATING</div></div>
+                <div class="stat-tile"><div class="stat-val" id="insightTopRegion">--</div><div class="stat-label" data-i18n="topRegion">TOP_REGION</div></div>
+            </div>
+            <div style="display:grid; gap: 0.9rem;">
+                <div>
+                    <div style="font-size:0.62rem; letter-spacing:0.14em; color:var(--text-muted); margin-bottom:0.55rem;" data-i18n="topProfiles">TOP_PROFILES</div>
+                    <div id="insightTopProfiles" style="display:grid; gap:0.55rem;"></div>
+                </div>
+                <div>
+                    <div style="font-size:0.62rem; letter-spacing:0.14em; color:var(--text-muted); margin-bottom:0.55rem;" data-i18n="feedbackBreakdown">FEEDBACK_BREAKDOWN</div>
+                    <div id="insightFeedbackBreakdown" style="display:grid; gap:0.55rem;"></div>
+                </div>
             </div>
         </div>
 
@@ -717,7 +736,7 @@
                 <input type="url" id="profWebhook" class="cyber-input" placeholder="https://example.com/webhook">
             </div>
 
-            <button class="btn-primary" onclick="saveProfile()" style="margin-top: 1rem;">UPDATE_PRO_PROFILE</button>
+            <button class="btn-primary" onclick="saveProfile()" style="margin-top: 1rem;" data-i18n="updateProProfile">UPDATE_PRO_PROFILE</button>
 
             <h3 style="margin: 2rem 0 1rem; font-size: 0.9rem; color: var(--accent-secondary);">ULTRA_WHITELABEL_SaaS</h3>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
@@ -796,11 +815,11 @@
     <nav class="bottom-nav">
         <button class="nav-item active" onclick="switchTab('home', this)">
             <svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
-            <span class="nav-label">HOME</span>
+            <span class="nav-label" data-i18n="homeNav">HOME</span>
         </button>
         <button class="nav-item" onclick="switchTab('stats', this)">
             <svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 9.2h3V19H5V9.2zM10.6 5h2.8v14h-2.8V5zm5.6 8H19v6h-2.8v-6z"/></svg>
-            <span class="nav-label">STATS</span>
+            <span class="nav-label" data-i18n="statsNav">STATS</span>
         </button>
         <div class="fab-container">
             <button class="fab-btn" onclick="toggleSheet(true)">+</button>
@@ -811,7 +830,7 @@
         </button>
         <button class="nav-item" onclick="switchTab('profile', this)">
             <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-            <span class="nav-label">PROFILE</span>
+            <span class="nav-label" data-i18n="profileNav">PROFILE</span>
         </button>
     </nav>
 
@@ -908,11 +927,21 @@
                 if (window.notify) window.notify('GENERATE_A_CARD_FIRST', 'error');
                 return;
             }
-            const base = window.location.origin || '';
-            const url = `${base}/result.html?code=${encodeURIComponent(lastCode)}`;
-            navigator.clipboard.writeText(url);
-            showDashError('');
-            if (window.notify) window.notify('RESULT_LINK_COPIED', 'success');
+            (async () => {
+                try {
+                    const base = window.location.origin || '';
+                    const status = await api(`${API_BASE}/code/${encodeURIComponent(lastCode)}/status`);
+                    const url = status.share_token
+                        ? `${base}/result.html?share=${encodeURIComponent(status.share_token)}`
+                        : `${base}/result.html?code=${encodeURIComponent(lastCode)}`;
+                    await navigator.clipboard.writeText(url);
+                    showDashError('');
+                    if (window.notify) window.notify('RESULT_LINK_COPIED', 'success');
+                } catch (e) {
+                    showDashError(e.message || 'LINK_COPY_FAILED');
+                    if (window.notify) window.notify(e.message || 'LINK_COPY_FAILED', 'error');
+                }
+            })();
         }
 
         async function init() {
@@ -1206,7 +1235,7 @@
                     const max = regions[0].count || 1;
                     heatmap.innerHTML = regions.map(r => `
                         <div style="display: flex; align-items: center; gap: 10px;">
-                            <div style="font-size: 0.6rem; width: 60px; color: var(--text-muted);">${r.region.toUpperCase()}</div>
+                            <div style="font-size: 0.6rem; width: 60px; color: var(--text-muted);">${escapeHtml((r.region || 'unknown').toUpperCase())}</div>
                             <div style="flex: 1; height: 4px; background: rgba(255,255,255,0.05); border-radius: 2px; overflow: hidden;">
                                 <div style="height: 100%; width: ${(r.count/max)*100}%; background: var(--accent-secondary);"></div>
                             </div>
@@ -1216,6 +1245,30 @@
                 } else {
                     heatmap.innerHTML = '<div style="text-align:center; opacity:0.3; font-size:0.6rem;">NO_REGIONAL_DATA</div>';
                 }
+
+                const insights = await api(`${API_BASE}/insights`);
+                document.getElementById('insightConversion').textContent = `${insights.feedback_conversion_pct || 0}%`;
+                document.getElementById('insightAvgRating').textContent = insights.average_rating ? Number(insights.average_rating).toFixed(1) : '0.0';
+                document.getElementById('insightTopRegion').textContent = (insights.top_regions?.[0]?.region || '--').toUpperCase();
+                document.getElementById('insightTopProfiles').innerHTML = (insights.top_profiles || []).length
+                    ? insights.top_profiles.map((profile) => `
+                        <div style=\"display:flex; justify-content:space-between; gap:0.75rem; font-size:0.68rem; border:1px solid var(--glass-border); border-radius:12px; padding:0.75rem;\">
+                            <div>
+                                <div style=\"font-family:var(--font-mono); color:var(--accent-primary);\">${escapeHtml(profile.lookup_key || '--')}</div>
+                                <div style=\"color:var(--text-muted); margin-top:0.25rem;\">VIEWS ${profile.total_views || 0} • FEEDBACK ${profile.feedback_count || 0}</div>
+                            </div>
+                            <div style=\"font-family:var(--font-mono); color:var(--accent-secondary);\">${profile.average_rating || 0}</div>
+                        </div>
+                    `).join('')
+                    : '<div style=\"font-size:0.62rem; color:var(--text-muted);\">NO_PROFILE_SIGNAL_YET</div>';
+                document.getElementById('insightFeedbackBreakdown').innerHTML = (insights.feedback_breakdown || []).length
+                    ? insights.feedback_breakdown.map((row) => `
+                        <div style=\"display:flex; justify-content:space-between; gap:0.75rem; font-size:0.68rem;\">
+                            <span style=\"color:#dfefff;\">${escapeHtml(row.tag || 'unclassified').toUpperCase()}</span>
+                            <span style=\"font-family:var(--font-mono); color:var(--accent-secondary);\">${row.count}</span>
+                        </div>
+                    `).join('')
+                    : '<div style=\"font-size:0.62rem; color:var(--text-muted);\">NO_FEEDBACK_BREAKDOWN</div>';
 
                 // Load Logs
                 const codes = await api(`${API_BASE}/codes`);

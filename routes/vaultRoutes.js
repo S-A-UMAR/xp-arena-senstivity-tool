@@ -14,11 +14,16 @@ const REQUIRED_COLUMN_LENGTHS = {
     sensitivity_keys: { entry_code: 100, lookup_key: 16 },
     code_activity: { entry_code: 100, lookup_key: 16 }
 };
+const RUNTIME_SCHEMA_ALTER_ENABLED = process.env.ALLOW_RUNTIME_SCHEMA_ALTER === 'true';
+const FEEDBACK_ALLOWED_TAGS = ['too_high', 'too_low', 'feels_good', 'device_mismatch', 'scope_unstable'];
+const FEEDBACK_SOURCES = ['quick_like', 'structured_feedback', 'share_card', 'result_page'];
+const FEEDBACK_COOLDOWN_SECONDS = 6 * 60 * 60;
 
 let schemaCapacityCheckedAt = 0;
 let schemaCapacityPromise = null;
 
-async function ensureKeyStorageCapacity(force = false) {
+async function ensureKeyStorageCapacity(options = {}) {
+    const { force = false, mutate = RUNTIME_SCHEMA_ALTER_ENABLED } = options;
     const now = Date.now();
     if (!force && schemaCapacityPromise) return schemaCapacityPromise;
     if (!force && schemaCapacityCheckedAt && now - schemaCapacityCheckedAt < 10 * 60 * 1000) return;
@@ -61,12 +66,15 @@ async function ensureKeyStorageCapacity(force = false) {
                 alterStatements.push(`ALTER TABLE code_activity MODIFY COLUMN lookup_key VARCHAR(${REQUIRED_COLUMN_LENGTHS.code_activity.lookup_key}) NOT NULL`);
             }
 
-            for (const sql of alterStatements) {
-                await db.run(sql);
-            }
-
             if (alterStatements.length > 0) {
-                console.log(`SCHEMA_CAPACITY_ALIGNED: ${alterStatements.length} column(s) widened for hashed keys.`);
+                if (mutate) {
+                    for (const sql of alterStatements) {
+                        await db.run(sql);
+                    }
+                    console.log(`SCHEMA_CAPACITY_ALIGNED: ${alterStatements.length} column(s) widened for hashed keys.`);
+                } else {
+                    console.warn(`SCHEMA_CAPACITY_MISMATCH: ${alterStatements.length} column(s) require migration. Runtime ALTER skipped.`);
+                }
             }
         } catch (err) {
             console.warn('SCHEMA_CAPACITY_CHECK_FAILED:', err.message);
@@ -77,6 +85,10 @@ async function ensureKeyStorageCapacity(force = false) {
     })();
 
     return schemaCapacityPromise;
+}
+
+if (process.env.NODE_ENV !== 'test') {
+    ensureKeyStorageCapacity().catch(() => {});
 }
 
 router.use(async (_req, _res, next) => {
@@ -90,6 +102,15 @@ router.use(async (_req, _res, next) => {
 
 function getLookupKey(code) {
     return crypto.createHash('sha1').update(String(code)).digest('hex').substring(0, 10);
+}
+
+function getFeedbackFingerprint(req, lookupKey = '') {
+    const ua = String(req.headers['user-agent'] || 'unknown-agent');
+    return crypto
+        .createHash('sha256')
+        .update(`${getClientIp(req)}|${ua}|${lookupKey}`)
+        .digest('hex')
+        .substring(0, 32);
 }
 
 function fail(res, code, message, status = 400, details = null) {
@@ -150,6 +171,22 @@ async function getJwtSecret() {
     const dbSecret = await getAdminSecret();
     if (dbSecret) return dbSecret;
     return 'XP_SECURE_FALLBACK_STATION_2026';
+}
+
+async function createShareToken(entryCode) {
+    return jwt.sign(
+        { type: 'share', code: entryCode },
+        await getJwtSecret(),
+        { expiresIn: '14d' }
+    );
+}
+
+async function getCodeRecordFromShareToken(shareToken) {
+    const payload = jwt.verify(shareToken, await getJwtSecret());
+    if (payload?.type !== 'share' || !payload?.code) {
+        throw new Error('INVALID_SHARE_TOKEN');
+    }
+    return getCodeRecordByRawCode(payload.code);
 }
 
 async function getGlobalOffset() {
@@ -267,7 +304,13 @@ async function authenticateVendor(req, res, next) {
     }
 }
 
-async function buildVerificationPayload(keyData, rawCode = null) {
+async function buildVerificationPayload(keyData, rawCode = null, options = {}) {
+    const {
+        includeEntryCode = true,
+        includeShareToken = Boolean(rawCode),
+        shareTokenOverride = null,
+        redirectOverride = null
+    } = options;
     let finalResults = jsonOrObject(keyData.results_json, {});
     const custom = jsonOrObject(keyData.custom_results_json, null);
     if (custom) finalResults = { ...finalResults, ...custom };
@@ -279,10 +322,14 @@ async function buildVerificationPayload(keyData, rawCode = null) {
         : null;
     const likesRow = await db.get('SELECT COUNT(*) as likes FROM code_activity WHERE lookup_key = ? AND feedback_rating IS NOT NULL', [keyData.lookup_key]);
 
+    const shareToken = shareTokenOverride || (includeShareToken && rawCode ? await createShareToken(rawCode) : null);
+    const redirect = redirectOverride || (shareToken
+        ? `/result.html?share=${encodeURIComponent(shareToken)}`
+        : (rawCode ? `/result.html?code=${encodeURIComponent(rawCode)}` : '/result.html'));
     return {
         type: 'code',
-        redirect: rawCode ? `/result.html?code=${encodeURIComponent(rawCode)}` : '/result.html',
-        entry_code: rawCode || null,
+        redirect,
+        entry_code: includeEntryCode ? (rawCode || null) : null,
         vendor_id: keyData.vendor_id,
         display_name: branding.display_name || keyData.vendor_id || 'XP_CORE',
         sensitivity: finalResults,
@@ -298,7 +345,8 @@ async function buildVerificationPayload(keyData, rawCode = null) {
             youtube: branding.youtube || '',
             tiktok: branding.tiktok || '',
             discord: branding.discord || ''
-        }
+        },
+        share_token: shareToken
     };
 }
 
@@ -321,6 +369,27 @@ async function getCodeStatusPayload(rawCode) {
     if (!found) return null;
     const { keyData, lookupKey } = found;
     const payload = await buildVerificationPayload(keyData, rawCode);
+    return {
+        ...payload,
+        status: keyData.status,
+        vendor_status: keyData.vendor_status,
+        lookup_key: lookupKey,
+        current_usage: keyData.current_usage || 0,
+        real_usage: keyData.current_usage || 0,
+        expires_at: keyData.expires_at || null
+    };
+}
+
+async function getCodeStatusFromShareToken(shareToken) {
+    const found = await getCodeRecordFromShareToken(shareToken);
+    if (!found) return null;
+    const { keyData, lookupKey } = found;
+    const payload = await buildVerificationPayload(keyData, null, {
+        includeEntryCode: false,
+        includeShareToken: true,
+        shareTokenOverride: shareToken,
+        redirectOverride: `/result.html?share=${encodeURIComponent(shareToken)}`
+    });
     return {
         ...payload,
         status: keyData.status,
@@ -820,7 +889,7 @@ router.get('/stats', authenticateVendor, async (req, res) => {
 router.get('/activity', authenticateVendor, async (req, res) => {
     try {
         const rows = await db.all(`
-            SELECT ca.used_at, ca.user_ign, ca.user_region, ca.feedback_rating, sk.lookup_key
+            SELECT ca.used_at, ca.user_ign, ca.user_region, ca.feedback_rating, ca.feedback_tag, ca.feedback_comment, sk.lookup_key
             FROM code_activity ca
             JOIN sensitivity_keys sk ON ca.lookup_key = sk.lookup_key
             WHERE sk.vendor_id = ?
@@ -836,21 +905,83 @@ router.get('/activity', authenticateVendor, async (req, res) => {
 router.get('/export', authenticateVendor, async (req, res) => {
     try {
         const logs = await db.all(`
-            SELECT ca.used_at, ca.user_ign, ca.user_region, ca.entry_code, ca.feedback_rating, sk.lookup_key
+            SELECT ca.used_at, ca.user_ign, ca.user_region, ca.entry_code, ca.feedback_rating, ca.feedback_tag, ca.feedback_comment, sk.lookup_key
             FROM code_activity ca
             JOIN sensitivity_keys sk ON ca.lookup_key = sk.lookup_key
             WHERE sk.vendor_id = ?
             ORDER BY ca.used_at DESC
         `, [req.vendorId]);
-        let csv = 'TIMESTAMP,IGN,REGION,ENTRY_CODE,LOOKUP_KEY,RATING\n';
+        let csv = 'TIMESTAMP,IGN,REGION,ENTRY_CODE,LOOKUP_KEY,RATING,FEEDBACK_TAG,FEEDBACK_COMMENT\n';
         logs.forEach((row) => {
-            csv += `${row.used_at},"${row.user_ign || ''}","${row.user_region || ''}","${row.entry_code || ''}",${row.lookup_key || ''},${row.feedback_rating || ''}\n`;
+            csv += `${row.used_at},"${row.user_ign || ''}","${row.user_region || ''}","${row.entry_code || ''}",${row.lookup_key || ''},${row.feedback_rating || ''},"${row.feedback_tag || ''}","${String(row.feedback_comment || '').replaceAll('"', '""')}"\n`;
         });
         res.setHeader('Content-Type', 'text/csv');
         res.setHeader('Content-Disposition', `attachment; filename=xp_activity_${req.vendorId}.csv`);
         return res.status(200).send(csv);
     } catch (_err) {
         return res.status(500).json({ error: 'EXPORT_FAILED' });
+    }
+});
+
+router.get('/insights', authenticateVendor, async (req, res) => {
+    try {
+        const overview = await db.get(`
+            SELECT
+                COUNT(DISTINCT sk.lookup_key) as total_profiles,
+                COUNT(ca.id) as total_views,
+                COALESCE(SUM(CASE WHEN ca.feedback_rating IS NOT NULL THEN 1 ELSE 0 END), 0) as total_feedback,
+                ROUND(AVG(ca.feedback_rating), 2) as average_rating
+            FROM sensitivity_keys sk
+            LEFT JOIN code_activity ca ON ca.lookup_key = sk.lookup_key
+            WHERE sk.vendor_id = ?
+        `, [req.vendorId]);
+        const topProfiles = await db.all(`
+            SELECT
+                sk.lookup_key,
+                sk.created_at,
+                COALESCE(COUNT(ca.id), 0) as total_views,
+                COALESCE(SUM(CASE WHEN ca.feedback_rating IS NOT NULL THEN 1 ELSE 0 END), 0) as feedback_count,
+                ROUND(AVG(ca.feedback_rating), 2) as average_rating
+            FROM sensitivity_keys sk
+            LEFT JOIN code_activity ca ON ca.lookup_key = sk.lookup_key
+            WHERE sk.vendor_id = ?
+            GROUP BY sk.lookup_key, sk.created_at
+            ORDER BY feedback_count DESC, total_views DESC, sk.created_at DESC
+            LIMIT 5
+        `, [req.vendorId]);
+        const topRegions = await db.all(`
+            SELECT ca.user_region as region, COUNT(*) as count
+            FROM code_activity ca
+            JOIN sensitivity_keys sk ON ca.lookup_key = sk.lookup_key
+            WHERE sk.vendor_id = ?
+            GROUP BY ca.user_region
+            ORDER BY count DESC
+            LIMIT 5
+        `, [req.vendorId]);
+        const feedbackBreakdown = await db.all(`
+            SELECT COALESCE(ca.feedback_tag, 'unclassified') as tag, COUNT(*) as count
+            FROM code_activity ca
+            JOIN sensitivity_keys sk ON ca.lookup_key = sk.lookup_key
+            WHERE sk.vendor_id = ? AND ca.feedback_rating IS NOT NULL
+            GROUP BY COALESCE(ca.feedback_tag, 'unclassified')
+            ORDER BY count DESC
+        `, [req.vendorId]);
+
+        const totalViews = Number(overview?.total_views || 0);
+        const totalFeedback = Number(overview?.total_feedback || 0);
+        return res.json({
+            total_profiles: Number(overview?.total_profiles || 0),
+            total_views: totalViews,
+            total_feedback: totalFeedback,
+            average_rating: Number(overview?.average_rating || 0),
+            feedback_conversion_pct: totalViews > 0 ? Math.round((totalFeedback / totalViews) * 1000) / 10 : 0,
+            top_profiles: topProfiles,
+            top_regions: topRegions,
+            feedback_breakdown: feedbackBreakdown
+        });
+    } catch (err) {
+        console.error('INSIGHTS_ERR:', err);
+        return res.status(500).json({ error: 'INSIGHTS_UNAVAILABLE' });
     }
 });
 
@@ -1253,32 +1384,60 @@ router.post('/feedback', async (req, res) => {
         const payload = z.object({
             code: z.string().min(1).optional(),
             entry_code: z.string().min(1).optional(),
+            share_token: z.string().min(1).optional(),
             rating: z.number().int().min(1).max(5),
             feedback: z.string().max(500).optional(),
-            feedback_text: z.string().max(500).optional()
-        }).refine((data) => data.code || data.entry_code, 'CODE_REQUIRED').parse(req.body || {});
+            feedback_text: z.string().max(500).optional(),
+            feedback_tag: z.enum(FEEDBACK_ALLOWED_TAGS).optional(),
+            feedback_source: z.enum(FEEDBACK_SOURCES).optional()
+        }).refine((data) => data.code || data.entry_code || data.share_token, 'CODE_REQUIRED').parse(req.body || {});
 
-        const entryCode = payload.code || payload.entry_code;
-        const lookupKey = getLookupKey(entryCode);
-        let activity = await db.get('SELECT id, user_ign, user_region FROM code_activity WHERE lookup_key = ? ORDER BY used_at DESC LIMIT 1', [lookupKey]);
+        const entryCode = payload.code || payload.entry_code || null;
+        const found = payload.share_token
+            ? await getCodeRecordFromShareToken(payload.share_token)
+            : await getCodeRecordByRawCode(entryCode);
+        if (!found) return fail(res, 'XP_AUTH_INVALID', 'UNKNOWN_OR_INVALID_CODE', 404);
+
+        const { keyData, lookupKey } = found;
+        const fingerprint = getFeedbackFingerprint(req, lookupKey);
+        const feedbackComment = payload.feedback ?? payload.feedback_text ?? null;
+        let activity = await db.get(
+            'SELECT id, user_ign, user_region FROM code_activity WHERE lookup_key = ? AND feedback_fingerprint = ? ORDER BY used_at DESC LIMIT 1',
+            [lookupKey, fingerprint]
+        );
 
         if (!activity) {
+            const cacheKey = `feedback_${lookupKey}_${fingerprint}`;
+            const recentFeedback = typeof db.getCache === 'function' ? await db.getCache(cacheKey) : null;
+            if (recentFeedback?.blocked) {
+                return fail(res, 'XP_RATE_LIMITED', 'FEEDBACK_ALREADY_CAPTURED_RECENTLY', 429);
+            }
             const inserted = await db.run(
-                'INSERT INTO code_activity (entry_code, lookup_key, user_ign, user_region, feedback_rating, feedback_comment) VALUES (?, ?, ?, ?, ?, ?)',
-                [entryCode, lookupKey, 'Anonymous', 'Unknown', payload.rating, payload.feedback ?? payload.feedback_text ?? null]
+                `INSERT INTO code_activity
+                    (entry_code, lookup_key, user_ign, user_region, feedback_rating, feedback_comment, feedback_tag, feedback_source, feedback_fingerprint)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                [entryCode || 'SHARED_LINK', lookupKey, 'Anonymous', 'Unknown', payload.rating, feedbackComment, payload.feedback_tag || null, payload.feedback_source || 'result_page', fingerprint]
             );
             activity = {
                 id: inserted?.lastID || null,
                 user_ign: 'Anonymous',
                 user_region: 'Unknown'
             };
+            if (typeof db.setCache === 'function') {
+                await db.setCache(cacheKey, { blocked: true }, FEEDBACK_COOLDOWN_SECONDS);
+            }
         } else {
-            await db.run('UPDATE code_activity SET feedback_rating = ?, feedback_comment = ? WHERE id = ?', [payload.rating, payload.feedback ?? payload.feedback_text ?? null, activity.id]);
+            await db.run(
+                'UPDATE code_activity SET feedback_rating = ?, feedback_comment = ?, feedback_tag = ?, feedback_source = ? WHERE id = ?',
+                [payload.rating, feedbackComment, payload.feedback_tag || null, payload.feedback_source || 'result_page', activity.id]
+            );
         }
 
         const likesCount = await db.get('SELECT COUNT(*) as likes_count FROM code_activity WHERE lookup_key = ? AND feedback_rating IS NOT NULL', [lookupKey]);
         if (typeof db.run === 'function') {
-            await db.run('DELETE FROM transient_cache WHERE cache_key = ?', [`verify_${entryCode}`]).catch(() => {});
+            if (entryCode) {
+                await db.run('DELETE FROM transient_cache WHERE cache_key = ?', [`verify_${entryCode}`]).catch(() => {});
+            }
         }
 
         const io = req.app.get('io');
@@ -1287,7 +1446,8 @@ router.post('/feedback', async (req, res) => {
                 type: 'feedback',
                 lookup_key: lookupKey,
                 rating: payload.rating,
-                feedback: payload.feedback ?? payload.feedback_text ?? 'No comment',
+                feedback: feedbackComment ?? 'No comment',
+                feedback_tag: payload.feedback_tag || null,
                 user_ign: activity.user_ign || 'Anonymous',
                 region: activity.user_region || 'Unknown',
                 timestamp: new Date().toISOString()
@@ -1348,6 +1508,21 @@ router.get('/code/:code/status', async (req, res) => {
         return res.json(payload);
     } catch (err) {
         console.error('CODE_STATUS_ERR:', err);
+        return res.status(500).json({ error: 'Server error' });
+    }
+});
+
+router.get('/share/:token/status', async (req, res) => {
+    try {
+        if (!req.params.token) return res.status(400).json({ error: 'Missing share token' });
+        const payload = await getCodeStatusFromShareToken(req.params.token);
+        if (!payload) return res.status(404).json({ error: 'Not found' });
+        return res.json(payload);
+    } catch (err) {
+        if (err?.name === 'JsonWebTokenError' || err?.name === 'TokenExpiredError' || err?.message === 'INVALID_SHARE_TOKEN') {
+            return res.status(401).json({ error: 'INVALID_SHARE_TOKEN' });
+        }
+        console.error('SHARE_STATUS_ERR:', err);
         return res.status(500).json({ error: 'Server error' });
     }
 });

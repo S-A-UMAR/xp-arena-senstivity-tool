@@ -76,7 +76,11 @@ async function migrate() {
             await connection.query(`ALTER TABLE code_activity ADD COLUMN IF NOT EXISTS lookup_key VARCHAR(16) NOT NULL`);
             await connection.query(`ALTER TABLE code_activity ADD COLUMN IF NOT EXISTS feedback_rating INT NULL`);
             await connection.query(`ALTER TABLE code_activity ADD COLUMN IF NOT EXISTS feedback_comment TEXT NULL`);
+            await connection.query(`ALTER TABLE code_activity ADD COLUMN IF NOT EXISTS feedback_tag VARCHAR(64) NULL`);
+            await connection.query(`ALTER TABLE code_activity ADD COLUMN IF NOT EXISTS feedback_source VARCHAR(32) NULL`);
+            await connection.query(`ALTER TABLE code_activity ADD COLUMN IF NOT EXISTS feedback_fingerprint VARCHAR(64) NULL`);
             await connection.query(`ALTER TABLE code_activity ADD INDEX IF NOT EXISTS idx_lookup_key (lookup_key)`);
+            await connection.query(`ALTER TABLE code_activity ADD INDEX IF NOT EXISTS idx_feedback_fingerprint (feedback_fingerprint)`);
             await connection.query(`INSERT IGNORE INTO organizations (org_id, org_name) VALUES ('XP-CORE-ORG', 'XP ARENA GLOBAL')`);
             await connection.query(`INSERT IGNORE INTO system_settings (setting_key, setting_value) VALUES ('global_sensitivity_offset', '1.0')`);
 
