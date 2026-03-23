@@ -226,6 +226,22 @@ async function getCodeRecordFromShareToken(shareToken) {
     return getCodeRecordByLookupKey(shareRecord.lookup_key || payload.lookup_key || '');
 }
 
+async function createShareToken(entryCode) {
+    return jwt.sign(
+        { type: 'share', code: entryCode },
+        await getJwtSecret(),
+        { expiresIn: '14d' }
+    );
+}
+
+async function getCodeRecordFromShareToken(shareToken) {
+    const payload = jwt.verify(shareToken, await getJwtSecret());
+    if (payload?.type !== 'share' || !payload?.code) {
+        throw new Error('INVALID_SHARE_TOKEN');
+    }
+    return getCodeRecordByRawCode(payload.code);
+}
+
 async function getGlobalOffset() {
     try {
         const row = await db.get("SELECT setting_value FROM system_settings WHERE setting_key = 'global_sensitivity_offset'");
@@ -446,6 +462,7 @@ async function getCodeStatusFromShareToken(shareToken) {
 }
 
 async function createVendorCode(vendorId, results, creatorAdvice = null, preferredCode = null) {
+    await ensureKeyStorageCapacity();
     const rawCode = preferredCode || `XP-${vendorId.toUpperCase()}-${Math.floor(100000 + Math.random() * 900000)}`;
     const lookupKey = getLookupKey(rawCode);
     const hashedCode = await bcrypt.hash(rawCode, 10);
@@ -1256,6 +1273,8 @@ router.post('/admin/vendors', authenticateAdmin, async (req, res) => {
 
         const existing = await db.get('SELECT vendor_id FROM vendors WHERE vendor_id = ?', [vendorId]);
         if (existing) return res.status(409).json({ error: 'VENDOR_ALREADY_EXISTS' });
+
+        await ensureKeyStorageCapacity();
 
         const randomDigits = Math.floor(1000 + Math.random() * 9000);
         const accessKey = `XP-${vendorId}-${randomDigits}`;

@@ -581,6 +581,25 @@
         currentShareDetails = buildCardDetails({ branding, hydrated, modelText, displayName, code, results });
         const generalRange = currentShareDetails.general;
         const redDotRange = currentShareDetails.redDot;
+        const generalRange = `${document.getElementById('rGen1').textContent} — ${document.getElementById('rGen2').textContent}`;
+        const redDotRange = `${document.getElementById('rRed1').textContent} — ${document.getElementById('rRed2').textContent}`;
+        const scopeRange = `${document.getElementById('r2x1').textContent} — ${document.getElementById('r4x2').textContent}`;
+        currentShareDetails = {
+            logo: branding.logo_url || branding.logo || 'favicon.png',
+            expiry: hydrated.validUntil ? document.getElementById('expiryValue').textContent : 'NEVER',
+            efficiency: currentEfficiency,
+            model: modelText,
+            creator: displayName,
+            code: currentShareUrl || code,
+            general: generalRange,
+            redDot: redDotRange,
+            scope: scopeRange,
+            dpi: results.dpi || 'DEFAULT',
+            trendGeneral: document.getElementById('trendGeneral').textContent,
+            trendRed: document.getElementById('trendRed').textContent,
+            trendScope: document.getElementById('trend4x').textContent,
+            advice: hydrated.advice || 'OPTIMIZED FOR COMPETITIVE PLAY'
+        };
         updateShareCard(currentShareDetails);
 
         const socialBox = document.getElementById('socialLinks');
@@ -632,6 +651,16 @@
         });
 
         document.getElementById('copyCodeBtn').addEventListener('click', () => copyPlainText(currentCode || currentShareUrl || code, 'ACCESS_CODE_COPIED'));
+            const area = document.getElementById('shareCaptureArea');
+            const canvas = await html2canvas(area, { scale: 2, backgroundColor: '#0b1620' });
+            const link = document.createElement('a');
+            link.download = `xp-id-${code}.png`;
+            link.href = canvas.toDataURL();
+            link.click();
+            window.notify?.('ID_CARD_EXPORTED', 'success');
+        });
+
+        document.getElementById('copyCodeBtn').addEventListener('click', () => copyPlainText(currentShareUrl || code, 'ACCESS_CODE_COPIED'));
         document.getElementById('likeBtn').addEventListener('click', submitLike);
         bindStructuredFeedback();
 

@@ -198,6 +198,121 @@
         });
     }
 
+
+    function getDictionary(langCode) {
+        const fallback = (window.LANGUAGES && window.LANGUAGES.en) || {};
+        return { ...fallback, ...((window.LANGUAGES && window.LANGUAGES[langCode]) || {}) };
+    }
+
+    function translateValue(key, langCode, fallback = '') {
+        const dict = getDictionary(langCode || localStorage.getItem('xp_lang') || 'en');
+        return dict[key] || fallback || key;
+    }
+
+    const selectorTranslationMap = {
+        'index.html': [
+            ['.hero-headline', 'heroTitle', 'html'],
+            ['.hero-sub', 'heroSubtitleFull'],
+            ['#vaultOverlay h1', 'vaultTitle'],
+            ['#vaultInput', 'vaultPlaceholder', 'placeholder'],
+            ['#vaultAuthBtn', 'openPortal'],
+            ['#vaultStatus', 'secureAccessOnly'],
+            ['.vault-helper:nth-of-type(1) strong', 'authorized'],
+            ['.vault-helper:nth-of-type(2) strong', 'creators'],
+            ['.vault-helper:nth-of-type(3) strong', 'players'],
+            ['.vault-helper:nth-of-type(1) span', 'authorizedHint'],
+            ['.vault-helper:nth-of-type(2) span', 'creatorsHint'],
+            ['.vault-helper:nth-of-type(3) span', 'playersHint'],
+            ['label[for="brandSelect"], .form-label[data-i18n="brandLabel"]', 'hardwareSignature'],
+            ['label[data-i18n="title"]', 'neuralSensitivityLabel'],
+            ['label[data-i18n="clawLabel"]', 'gripArchitecture'],
+            ['#brandSelect option[value=""]', 'selectBrand'],
+            ['#seriesSelect option[value=""]', 'selectSeries'],
+            ['#modelSelect option[value=""]', 'selectModel'],
+            ['#manualMastering .form-label', 'manualExistingBase'],
+            ['#manualSens', 'manualPlaceholder', 'placeholder'],
+            ['#standardMastering button', 'manualModeOn'],
+            ['#standardMastering p', 'manualModeHint'],
+            ['#manualMastering button', 'manualModeOff'],
+            ['#manualMastering p', 'manualHelp'],
+            ['#calculateBtn', 'generateGuide'],
+            ['#perfBtn', 'fullNeuralMode'],
+            ['footer a:nth-of-type(1)', 'privacy'],
+            ['footer a:nth-of-type(2)', 'terms'],
+            ['footer a:nth-of-type(3)', 'support'],
+            ['.premium-footer-note p', 'poweredBy']
+        ],
+        'verify.html': [
+            ['#guidanceBox .stat-label', 'verificationGuide'],
+            ['.terminal-content .action-btn', 'returnToGateway']
+        ],
+        'result.html': [
+            ['.hero-banner p', 'resultHeroText'],
+            ['.device-access-header', 'deviceAccess'],
+            ['#followBtn', 'followCreator']
+        ]
+    };
+
+    const autoTranslateSelectors = 'button, label, h1, h2, h3, h4, p, span, a, small, option';
+
+    function normalizeText(value) {
+        return String(value || '').replace(/\s+/g, ' ').trim();
+    }
+
+    function primeAutoTranslationKeys() {
+        const reverseMap = Object.entries(getDictionary('en')).reduce((acc, [key, value]) => {
+            const normalized = normalizeText(value).replace(/<br\s*\/?/gi, ' ').replace(/>/g, '');
+            if (normalized) acc[normalized] = key;
+            return acc;
+        }, {});
+
+        document.querySelectorAll(autoTranslateSelectors).forEach((el) => {
+            if (el.dataset.i18n || el.dataset.i18nAuto) return;
+            if (el.children.length > 0) return;
+            const current = normalizeText(el.textContent);
+            const matchedKey = reverseMap[current];
+            if (matchedKey) el.dataset.i18nAuto = matchedKey;
+        });
+
+        document.querySelectorAll('input[placeholder], textarea[placeholder]').forEach((el) => {
+            if (el.dataset.i18nPlaceholder) return;
+            const current = normalizeText(el.getAttribute('placeholder'));
+            const matchedKey = reverseMap[current];
+            if (matchedKey) el.dataset.i18nPlaceholder = matchedKey;
+        });
+    }
+
+    function applySelectorTranslations(langCode) {
+        const page = window.location.pathname.split('/').pop() || 'index.html';
+        (selectorTranslationMap[page] || []).forEach(([selector, key, mode]) => {
+            document.querySelectorAll(selector).forEach((el) => {
+                const value = translateValue(key, langCode, el.textContent);
+                if (mode === 'html') el.innerHTML = value;
+                else if (mode === 'placeholder') el.setAttribute('placeholder', value);
+                else el.textContent = value;
+            });
+        });
+    }
+
+    function applyDomTranslations(langCode) {
+        primeAutoTranslationKeys();
+        document.documentElement.lang = langCode;
+        document.querySelectorAll('[data-i18n]').forEach((el) => {
+            const value = translateValue(el.dataset.i18n, langCode, el.textContent);
+            if (el.dataset.i18nMode === 'html' || /<br\s*\/?>/i.test(value)) el.innerHTML = value;
+            else el.textContent = value;
+        });
+        document.querySelectorAll('[data-i18n-auto]').forEach((el) => {
+            const value = translateValue(el.dataset.i18nAuto, langCode, el.textContent);
+            if (/<br\s*\/?>/i.test(value)) el.innerHTML = value;
+            else el.textContent = value;
+        });
+        document.querySelectorAll('[data-i18n-placeholder]').forEach((el) => {
+            el.setAttribute('placeholder', translateValue(el.dataset.i18nPlaceholder, langCode, el.getAttribute('placeholder')));
+        });
+        applySelectorTranslations(langCode);
+    }
+
     function applyTheme(themeKey) {
         const theme = themes[themeKey] || themes.cyan;
         document.documentElement.style.setProperty('--accent-primary', theme.primary);
@@ -254,9 +369,60 @@
         return ['result.html', 'verify.html', 'admin.html'].includes(pathName);
     }
 
+
+
+    function closeActivePanels() {
+        let closed = false;
+        if (typeof window.toggleSheet === 'function') {
+            window.toggleSheet(false);
+            closed = true;
+        }
+        if (typeof window.toggleActionSheet === 'function') {
+            window.toggleActionSheet(false);
+            closed = true;
+        }
+        if (typeof window.closeSuccessOverlay === 'function') {
+            window.closeSuccessOverlay();
+            closed = true;
+        }
+        if (typeof window.closeModal === 'function') {
+            window.closeModal();
+            closed = true;
+        }
+        document.querySelectorAll('.sheet-overlay.active, .action-sheet.active, .modal.active, .success-overlay.active, .hub-panel:not(.hidden)').forEach((node) => {
+            if (node.classList.contains('hub-panel')) {
+                node.classList.add('hidden');
+                document.getElementById('hub-trigger')?.classList.remove('active');
+                document.getElementById('settings-hub')?.classList.remove('open');
+            } else {
+                node.classList.remove('active');
+            }
+            closed = true;
+        });
+        return closed;
+    }
+
+    function getBackTarget() {
+        const pathName = window.location.pathname.split('/').pop() || 'index.html';
+        if (pathName === 'result.html') {
+            return sessionStorage.getItem('xp_nav_origin') === 'vendor_dashboard.html' ? '/vendor_dashboard.html' : '/verify.html';
+        }
+        if (pathName === 'verify.html') return '/index.html';
+        if (pathName === 'admin.html') return '/verify.html';
+        return null;
+    }
+
+    function shouldShowBackButton() {
+        const pathName = window.location.pathname.split('/').pop() || 'index.html';
+        return ['result.html', 'verify.html', 'admin.html'].includes(pathName);
+    }
+
     function applyLang(langCode) {
         localStorage.setItem(STORAGE_KEYS.lang, langCode);
         syncActiveItems('.lang-item', 'lang', langCode);
+        document.querySelectorAll('.lang-item').forEach(item => {
+            item.classList.toggle('active', item.dataset.lang === langCode);
+        });
         applyDomTranslations(langCode);
         if (window.UI && typeof window.UI.applyLang === 'function') {
             window.UI.applyLang();
@@ -547,6 +713,109 @@
     bindDatasetClicks('.lang-item', 'lang', applyLang);
     preferenceToggles.forEach(({ id, key }) => {
         document.getElementById(id)?.addEventListener('click', () => togglePreference(key));
+    });
+
+
+
+    // App navigation helper
+    const navHub = document.createElement('div');
+    navHub.id = 'xp-nav-hub';
+    navHub.innerHTML = `
+        <button class="xp-nav-btn hidden" id="xpBackBtn" type="button" aria-label="Go back">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/><path d="M21 12H9"/></svg>
+        </button>
+        <button class="xp-nav-btn hidden" id="xpCloseBtn" type="button" aria-label="Close panel">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg>
+        </button>
+    `;
+    document.body.appendChild(navHub);
+
+    const backBtn = document.getElementById('xpBackBtn');
+    const closeBtn = document.getElementById('xpCloseBtn');
+
+    function syncNavButtons() {
+        const closable = document.querySelector('.sheet-overlay.active, .action-sheet.active, .modal.active, .success-overlay.active, .hub-panel:not(.hidden)');
+        closeBtn.classList.toggle('hidden', !closable);
+        backBtn.classList.toggle('hidden', closable || !shouldShowBackButton());
+    }
+
+    backBtn?.addEventListener('click', () => {
+        const target = getBackTarget();
+        if (window.history.length > 1 && !target) {
+            window.history.back();
+            return;
+        }
+        if (target) {
+            window.location.href = target;
+        }
+    });
+
+    closeBtn?.addEventListener('click', () => {
+        closeActivePanels();
+        syncNavButtons();
+    });
+
+    document.addEventListener('click', () => {
+        window.requestAnimationFrame(syncNavButtons);
+    });
+    window.addEventListener('DOMContentLoaded', syncNavButtons);
+    window.addEventListener('keyup', (event) => {
+        if (event.key === 'Escape' && closeActivePanels()) {
+            syncNavButtons();
+        }
+    });
+    preferenceToggles.forEach(({ id, key }) => {
+        document.getElementById(id)?.addEventListener('click', () => togglePreference(key));
+    });
+
+
+
+    // App navigation helper
+    const navHub = document.createElement('div');
+    navHub.id = 'xp-nav-hub';
+    navHub.innerHTML = `
+        <button class="xp-nav-btn hidden" id="xpBackBtn" type="button" aria-label="Go back">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/><path d="M21 12H9"/></svg>
+        </button>
+        <button class="xp-nav-btn hidden" id="xpCloseBtn" type="button" aria-label="Close panel">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg>
+        </button>
+    `;
+    document.body.appendChild(navHub);
+
+    const backBtn = document.getElementById('xpBackBtn');
+    const closeBtn = document.getElementById('xpCloseBtn');
+
+    function syncNavButtons() {
+        const closable = document.querySelector('.sheet-overlay.active, .action-sheet.active, .modal.active, .success-overlay.active, .hub-panel:not(.hidden)');
+        closeBtn.classList.toggle('hidden', !closable);
+        backBtn.classList.toggle('hidden', closable || !shouldShowBackButton());
+    }
+
+    backBtn?.addEventListener('click', () => {
+        const target = getBackTarget();
+        if (window.history.length > 1 && !target) {
+            window.history.back();
+            return;
+        }
+        if (target) {
+            window.location.href = target;
+        }
+    });
+
+    closeBtn?.addEventListener('click', () => {
+        closeActivePanels();
+        syncNavButtons();
+    });
+
+    document.addEventListener('click', () => {
+        window.requestAnimationFrame(syncNavButtons);
+    });
+    window.addEventListener('DOMContentLoaded', syncNavButtons);
+    window.addEventListener('keyup', (event) => {
+        if (event.key === 'Escape' && closeActivePanels()) {
+            syncNavButtons();
+        }
     });
 
 

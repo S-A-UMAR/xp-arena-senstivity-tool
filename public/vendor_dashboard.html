@@ -1408,6 +1408,44 @@
                 document.getElementById('insightTopRegion').textContent = (insights.top_regions?.[0]?.region || '--').toUpperCase();
                 renderTopProfiles(document.getElementById('insightTopProfiles'), insights.top_profiles || []);
                 renderFeedbackBreakdown(document.getElementById('insightFeedbackBreakdown'), insights.feedback_breakdown || []);
+                if (regions && regions.length > 0) {
+                    const max = regions[0].count || 1;
+                    heatmap.innerHTML = regions.map(r => `
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="font-size: 0.6rem; width: 60px; color: var(--text-muted);">${escapeHtml((r.region || 'unknown').toUpperCase())}</div>
+                            <div style="flex: 1; height: 4px; background: rgba(255,255,255,0.05); border-radius: 2px; overflow: hidden;">
+                                <div style="height: 100%; width: ${(r.count/max)*100}%; background: var(--accent-secondary);"></div>
+                            </div>
+                            <div style="font-size: 0.6rem; font-family: var(--font-mono); color: var(--accent-secondary);">${r.count}</div>
+                        </div>
+                    `).join('');
+                } else {
+                    heatmap.innerHTML = '<div style="text-align:center; opacity:0.3; font-size:0.6rem;">NO_REGIONAL_DATA</div>';
+                }
+
+                const insights = await api(`${API_BASE}/insights`);
+                document.getElementById('insightConversion').textContent = `${insights.feedback_conversion_pct || 0}%`;
+                document.getElementById('insightAvgRating').textContent = insights.average_rating ? Number(insights.average_rating).toFixed(1) : '0.0';
+                document.getElementById('insightTopRegion').textContent = (insights.top_regions?.[0]?.region || '--').toUpperCase();
+                document.getElementById('insightTopProfiles').innerHTML = (insights.top_profiles || []).length
+                    ? insights.top_profiles.map((profile) => `
+                        <div style=\"display:flex; justify-content:space-between; gap:0.75rem; font-size:0.68rem; border:1px solid var(--glass-border); border-radius:12px; padding:0.75rem;\">
+                            <div>
+                                <div style=\"font-family:var(--font-mono); color:var(--accent-primary);\">${escapeHtml(profile.lookup_key || '--')}</div>
+                                <div style=\"color:var(--text-muted); margin-top:0.25rem;\">VIEWS ${profile.total_views || 0} • FEEDBACK ${profile.feedback_count || 0}</div>
+                            </div>
+                            <div style=\"font-family:var(--font-mono); color:var(--accent-secondary);\">${profile.average_rating || 0}</div>
+                        </div>
+                    `).join('')
+                    : '<div style=\"font-size:0.62rem; color:var(--text-muted);\">NO_PROFILE_SIGNAL_YET</div>';
+                document.getElementById('insightFeedbackBreakdown').innerHTML = (insights.feedback_breakdown || []).length
+                    ? insights.feedback_breakdown.map((row) => `
+                        <div style=\"display:flex; justify-content:space-between; gap:0.75rem; font-size:0.68rem;\">
+                            <span style=\"color:#dfefff;\">${escapeHtml(row.tag || 'unclassified').toUpperCase()}</span>
+                            <span style=\"font-family:var(--font-mono); color:var(--accent-secondary);\">${row.count}</span>
+                        </div>
+                    `).join('')
+                    : '<div style=\"font-size:0.62rem; color:var(--text-muted);\">NO_FEEDBACK_BREAKDOWN</div>';
 
                 // Load Logs
                 const codes = await api(`${API_BASE}/codes`);
