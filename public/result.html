@@ -8,6 +8,225 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;800&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="result.css">
+    <style>
+        /* 💎 Premium Card Redesign Overrides */
+        :root {
+            --card-bg: #0b1421;
+            --card-border: #1e293b;
+            --accent-cyan: #72f0d8;
+            --accent-pink: #ff8d9c;
+            --accent-blue: #8de3ff;
+            --text-dim: #91a8bc;
+        }
+
+        .result-shell {
+            background: #060a12;
+        }
+
+        .intel-card, .share-card-export {
+            background: var(--card-bg) !important;
+            border: 1px solid var(--card-border) !important;
+            border-radius: 28px !important;
+            padding: 2rem !important;
+            box-shadow: 0 40px 80px rgba(0,0,0,0.6) !important;
+            color: #fff !important;
+            font-family: 'JetBrains Mono', monospace !important;
+        }
+
+        .intel-topbar, .share-topline {
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: flex-start !important;
+            margin-bottom: 2rem !important;
+        }
+
+        .brand-mark .primary, .share-brand .name {
+            font-size: 1.8rem !important;
+            font-weight: 800 !important;
+            letter-spacing: 0.05em !important;
+        }
+
+        .brand-mark .secondary, .share-brand .sub {
+            font-size: 0.75rem !important;
+            color: var(--text-dim) !important;
+            letter-spacing: 0.15em !important;
+            margin-top: 0.2rem !important;
+        }
+
+        .telemetry-panel, .share-telemetry {
+            text-align: right !important;
+            font-size: 0.7rem !important;
+            color: #fff !important;
+        }
+
+        .telemetry-bar, .share-bar {
+            width: 240px !important;
+            height: 8px !important;
+            background: rgba(255,255,255,0.05) !important;
+            border-radius: 4px !important;
+            margin: 0.8rem 0 0.4rem auto !important;
+            overflow: hidden !important;
+        }
+
+        .telemetry-bar span, .share-bar span {
+            background: linear-gradient(90deg, var(--accent-blue), var(--accent-cyan)) !important;
+        }
+
+        .device-access, .share-device-row {
+            background: rgba(255,255,255,0.03) !important;
+            border: 1px solid rgba(255,255,255,0.05) !important;
+            border-radius: 24px !important;
+            padding: 1.5rem !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 1.5rem !important;
+            margin-bottom: 1.5rem !important;
+        }
+
+        .device-thumb, .share-device-preview {
+            width: 100px !important;
+            height: 100px !important;
+            background: #fff !important;
+            border-radius: 20px !important;
+            padding: 0 !important;
+            flex-shrink: 0 !important;
+        }
+
+        .device-meta .subtle, .share-device-meta .eyebrow {
+            font-size: 0.65rem !important;
+            color: var(--text-dim) !important;
+            letter-spacing: 0.1em !important;
+            margin-bottom: 0.4rem !important;
+        }
+
+        .device-meta .headline, .share-device-meta .headline {
+            font-size: 2.2rem !important;
+            font-weight: 800 !important;
+            margin-bottom: 0.2rem !important;
+        }
+
+        .code-rail, .share-code-strip {
+            background: rgba(255,255,255,0.03) !important;
+            border: 1px solid rgba(255,255,255,0.05) !important;
+            border-radius: 20px !important;
+            padding: 1.2rem 1.5rem !important;
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            margin-bottom: 1.5rem !important;
+        }
+
+        .code-content .subtle, .share-code-label {
+            font-size: 0.65rem !important;
+            color: var(--text-dim) !important;
+            letter-spacing: 0.1em !important;
+            margin-bottom: 0.4rem !important;
+        }
+
+        .code-content .value, .share-code-main .value {
+            font-size: 1.6rem !important;
+            font-weight: 800 !important;
+            letter-spacing: 0.05em !important;
+        }
+
+        .synced-pill, .share-code-pill {
+            background: rgba(114, 240, 216, 0.1) !important;
+            color: var(--accent-cyan) !important;
+            border: 1px solid rgba(114, 240, 216, 0.2) !important;
+            padding: 0.5rem 1rem !important;
+            border-radius: 99px !important;
+            font-size: 0.7rem !important;
+            font-weight: 800 !important;
+        }
+
+        .stats-grid, .share-stats-grid {
+            display: grid !important;
+            grid-template-columns: 1fr 1fr !important;
+            gap: 1.2rem !important;
+            margin-bottom: 1.5rem !important;
+        }
+
+        .stat-card, .share-stat {
+            background: #101820 !important;
+            border: 1px solid rgba(255,255,255,0.05) !important;
+            border-radius: 24px !important;
+            padding: 1.5rem !important;
+            position: relative !important;
+            min-height: auto !important;
+        }
+
+        .stat-card .label, .share-stat .label {
+            font-size: 0.65rem !important;
+            color: var(--text-dim) !important;
+            letter-spacing: 0.1em !important;
+            margin-bottom: 1rem !important;
+        }
+
+        .stat-card .value, .share-stat .value {
+            font-size: 2.8rem !important;
+            font-weight: 800 !important;
+            margin-bottom: 0.8rem !important;
+        }
+
+        .stat-card .trend, .share-stat .trend {
+            font-size: 0.65rem !important;
+            color: var(--text-dim) !important;
+            letter-spacing: 0.05em !important;
+        }
+
+        .stat-card .signal, .share-stat .icon {
+            position: absolute !important;
+            top: 1.5rem !important;
+            right: 1.5rem !important;
+            font-size: 1.8rem !important;
+        }
+
+        .notes-panel, .share-footer {
+            background: #101820 !important;
+            border: 1px solid rgba(255,255,255,0.05) !important;
+            border-radius: 24px !important;
+            padding: 1.5rem !important;
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            gap: 1.5rem !important;
+        }
+
+        .notes-header, .share-footer-copy {
+            display: flex !important;
+            align-items: center !important;
+            gap: 1.2rem !important;
+        }
+
+        .notes-avatar, .share-footer img {
+            width: 64px !important;
+            height: 64px !important;
+            border-radius: 16px !important;
+            background: #fff !important;
+        }
+
+        .notes-eyebrow, .share-footer-copy .eyebrow {
+            font-size: 0.65rem !important;
+            color: var(--text-dim) !important;
+            letter-spacing: 0.1em !important;
+            margin-bottom: 0.4rem !important;
+        }
+
+        .notes-byline, .share-footer-copy .main {
+            font-size: 0.95rem !important;
+            font-weight: 800 !important;
+        }
+
+        .verified-pill, .share-verified-pill {
+            background: rgba(114, 240, 216, 0.1) !important;
+            color: var(--accent-cyan) !important;
+            border: 1px solid rgba(114, 240, 216, 0.2) !important;
+            padding: 0.6rem 1.2rem !important;
+            border-radius: 99px !important;
+            font-size: 0.75rem !important;
+            font-weight: 800 !important;
+        }
+    </style>
 
 </head>
 <body class="result-shell">
@@ -70,10 +289,11 @@
                                 </div>
                             </div>
                             <div class="code-rail">
-                                <div class="code-icon" aria-hidden="true">
-                                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                                <div class="code-content">
+                                    <div class="subtle">ACCESS_CODE</div>
+                                    <div class="value" id="codeRailText">XP-0000-0000</div>
                                 </div>
-                                <div class="code-content" id="codeRailText">[REDACTED_CODE]</div>
+                                <div class="synced-pill">SYNCED_PROFILE</div>
                                 <button class="code-copy-btn" id="copyCodeBtn" type="button" aria-label="Copy access code">
                                     <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="11" height="11" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                                 </button>

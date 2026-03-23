@@ -217,17 +217,25 @@
         document.getElementById('shareVerified').textContent = `${t('verifiedLabel', 'VERIFIED')} ${details.efficiency}%`;
     }
 
+    function formatAccessCode(vendor, code) {
+        const v = (vendor || 'XP').toUpperCase().replace(/\s+/g, '').slice(0, 10);
+        return `XP-${v}-${code || '000000'}`;
+    }
+
     function buildCardDetails({ branding, hydrated, modelText, displayName, code, results }) {
         const generalRange = `${document.getElementById('rGen1').textContent} — ${document.getElementById('rGen2').textContent}`;
         const redDotRange = `${document.getElementById('rRed1').textContent} — ${document.getElementById('rRed2').textContent}`;
         const scopeRange = `${document.getElementById('r2x1').textContent} — ${document.getElementById('r4x2').textContent}`;
+        
+        const formattedCode = formatAccessCode(displayName, currentCode || code);
+
         return {
             logo: branding.logo_url || branding.logo || 'favicon.png',
             expiry: hydrated.validUntil ? document.getElementById('expiryValue').textContent : 'NEVER',
             efficiency: currentEfficiency,
             model: modelText,
             creator: displayName,
-            code: currentCode || currentShareUrl || code,
+            code: formattedCode,
             general: generalRange,
             redDot: redDotRange,
             scope: scopeRange,
@@ -480,10 +488,8 @@
         const submitBtn = document.getElementById('submitFeedbackBtn');
         if (submitBtn) submitBtn.textContent = t('submitFeedback', 'SEND_FEEDBACK');
         const rail = document.getElementById('codeRailText');
-        if (rail && (currentCode || currentShareUrl)) {
-            rail.textContent = currentCode
-                ? `[${t('redactedCode', 'REDACTED_CODE')}] ${currentCode}`
-                : `[${t('secureShareLink', 'SECURE_SHARE_LINK')}] ${currentShareUrl}`;
+        if (rail && currentShareDetails) {
+            rail.textContent = currentShareDetails.code;
         }
         updateAdviceCopy(currentAdvice);
         updateShareHint();
@@ -545,9 +551,6 @@
         window.addEventListener('xp:language-change', applyResultLang);
 
         document.getElementById('idModel').textContent = modelText;
-        document.getElementById('codeRailText').textContent = currentCode
-            ? `[${t('redactedCode', 'REDACTED_CODE')}] ${code}`
-            : `[${t('secureShareLink', 'SECURE_SHARE_LINK')}] ${currentShareUrl}`;
         document.getElementById('creatorName').textContent = displayName;
         document.getElementById('settingsBy').textContent = `${t('settingsByLabel', 'SETTINGS BY')}: ${displayName} 👾`;
         document.getElementById('chipVendor').textContent = displayName.toUpperCase();
@@ -579,28 +582,11 @@
         setExpiryState(hydrated.validUntil);
 
         currentShareDetails = buildCardDetails({ branding, hydrated, modelText, displayName, code, results });
-        const generalRange = currentShareDetails.general;
-        const redDotRange = currentShareDetails.redDot;
-        const generalRange = `${document.getElementById('rGen1').textContent} — ${document.getElementById('rGen2').textContent}`;
-        const redDotRange = `${document.getElementById('rRed1').textContent} — ${document.getElementById('rRed2').textContent}`;
-        const scopeRange = `${document.getElementById('r2x1').textContent} — ${document.getElementById('r4x2').textContent}`;
-        currentShareDetails = {
-            logo: branding.logo_url || branding.logo || 'favicon.png',
-            expiry: hydrated.validUntil ? document.getElementById('expiryValue').textContent : 'NEVER',
-            efficiency: currentEfficiency,
-            model: modelText,
-            creator: displayName,
-            code: currentShareUrl || code,
-            general: generalRange,
-            redDot: redDotRange,
-            scope: scopeRange,
-            dpi: results.dpi || 'DEFAULT',
-            trendGeneral: document.getElementById('trendGeneral').textContent,
-            trendRed: document.getElementById('trendRed').textContent,
-            trendScope: document.getElementById('trend4x').textContent,
-            advice: hydrated.advice || 'OPTIMIZED FOR COMPETITIVE PLAY'
-        };
         updateShareCard(currentShareDetails);
+        
+        // ⚡ Update rail with formatted code
+        const rail = document.getElementById('codeRailText');
+        if (rail) rail.textContent = currentShareDetails.code;
 
         const socialBox = document.getElementById('socialLinks');
         const socialsObj = branding.socials || {};
@@ -650,17 +636,10 @@
             window.notify?.('ID_CARD_EXPORTED', 'success');
         });
 
-        document.getElementById('copyCodeBtn').addEventListener('click', () => copyPlainText(currentCode || currentShareUrl || code, 'ACCESS_CODE_COPIED'));
-            const area = document.getElementById('shareCaptureArea');
-            const canvas = await html2canvas(area, { scale: 2, backgroundColor: '#0b1620' });
-            const link = document.createElement('a');
-            link.download = `xp-id-${code}.png`;
-            link.href = canvas.toDataURL();
-            link.click();
-            window.notify?.('ID_CARD_EXPORTED', 'success');
+        document.getElementById('copyCodeBtn').addEventListener('click', () => {
+            copyPlainText(currentShareDetails.code, 'ACCESS_CODE_COPIED');
         });
 
-        document.getElementById('copyCodeBtn').addEventListener('click', () => copyPlainText(currentShareUrl || code, 'ACCESS_CODE_COPIED'));
         document.getElementById('likeBtn').addEventListener('click', submitLike);
         bindStructuredFeedback();
 
