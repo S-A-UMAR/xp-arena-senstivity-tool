@@ -497,8 +497,8 @@
 
     <header style="padding: 1.5rem 1rem 0.5rem; display: flex; justify-content: space-between; align-items: center;">
         <div>
-            <div style="font-size: 0.6rem; color: var(--accent-primary); font-weight: 800; letter-spacing: 0.2em;">CREATOR_ACCESS</div>
-            <h1 id="vendorTitle" style="margin: 0; font-size: 1.25rem;">LOADING_PROFILE...</h1>
+            <div style="font-size: 0.6rem; color: var(--accent-primary); font-weight: 800; letter-spacing: 0.2em;" data-t="creatorAccess">CREATOR_ACCESS</div>
+            <h1 id="vendorTitle" style="margin: 0; font-size: 1.25rem;" data-t="loadingProfile">LOADING_PROFILE...</h1>
         </div>
         <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--glass-bg); border: 1px solid var(--glass-border); display: flex; align-items: center; justify-content: center;">👤</div>
     </header>
@@ -507,19 +507,19 @@
     <div class="stat-grid">
         <div class="stat-tile">
             <span class="stat-val" id="statCodes">--</span>
-            <span class="stat-label">CODES</span>
+            <span class="stat-label" data-t="codesLabel">CODES</span>
         </div>
         <div class="stat-tile">
             <span class="stat-val" id="statHits">--</span>
-            <span class="stat-label">HITS</span>
+            <span class="stat-label" data-t="hitsLabel">HITS</span>
         </div>
         <div class="stat-tile">
             <span class="stat-val" id="statLikes">--</span>
-            <span class="stat-label">LIKES</span>
+            <span class="stat-label" data-t="likesLabel">LIKES</span>
         </div>
         <div class="stat-tile">
             <span class="stat-val" id="statTime">--</span>
-            <span class="stat-label">EXPIRY</span>
+            <span class="stat-label" data-t="expiryLabel">EXPIRY</span>
         </div>
     </div>
     <div class="glass-panel" style="margin-top: 1rem;">
@@ -1117,6 +1117,7 @@
         async function init() {
             try {
                 populateBrands();
+                applyLanguage();
                 await Promise.all([loadDashboard(), loadAnalytics(), loadProfile(), loadVaultKeys(), loadPresets()]);
             } catch (e) {
                 console.error('INIT_ERR:', e);
@@ -1406,47 +1407,10 @@
                 document.getElementById('insightConversion').textContent = `${insights.feedback_conversion_pct || 0}%`;
                 document.getElementById('insightAvgRating').textContent = insights.average_rating ? Number(insights.average_rating).toFixed(1) : '0.0';
                 document.getElementById('insightTopRegion').textContent = (insights.top_regions?.[0]?.region || '--').toUpperCase();
+                
                 renderTopProfiles(document.getElementById('insightTopProfiles'), insights.top_profiles || []);
                 renderFeedbackBreakdown(document.getElementById('insightFeedbackBreakdown'), insights.feedback_breakdown || []);
-                if (regions && regions.length > 0) {
-                    const max = regions[0].count || 1;
-                    heatmap.innerHTML = regions.map(r => `
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <div style="font-size: 0.6rem; width: 60px; color: var(--text-muted);">${escapeHtml((r.region || 'unknown').toUpperCase())}</div>
-                            <div style="flex: 1; height: 4px; background: rgba(255,255,255,0.05); border-radius: 2px; overflow: hidden;">
-                                <div style="height: 100%; width: ${(r.count/max)*100}%; background: var(--accent-secondary);"></div>
-                            </div>
-                            <div style="font-size: 0.6rem; font-family: var(--font-mono); color: var(--accent-secondary);">${r.count}</div>
-                        </div>
-                    `).join('');
-                } else {
-                    heatmap.innerHTML = '<div style="text-align:center; opacity:0.3; font-size:0.6rem;">NO_REGIONAL_DATA</div>';
-                }
-
-                const insights = await api(`${API_BASE}/insights`);
-                document.getElementById('insightConversion').textContent = `${insights.feedback_conversion_pct || 0}%`;
-                document.getElementById('insightAvgRating').textContent = insights.average_rating ? Number(insights.average_rating).toFixed(1) : '0.0';
-                document.getElementById('insightTopRegion').textContent = (insights.top_regions?.[0]?.region || '--').toUpperCase();
-                document.getElementById('insightTopProfiles').innerHTML = (insights.top_profiles || []).length
-                    ? insights.top_profiles.map((profile) => `
-                        <div style=\"display:flex; justify-content:space-between; gap:0.75rem; font-size:0.68rem; border:1px solid var(--glass-border); border-radius:12px; padding:0.75rem;\">
-                            <div>
-                                <div style=\"font-family:var(--font-mono); color:var(--accent-primary);\">${escapeHtml(profile.lookup_key || '--')}</div>
-                                <div style=\"color:var(--text-muted); margin-top:0.25rem;\">VIEWS ${profile.total_views || 0} • FEEDBACK ${profile.feedback_count || 0}</div>
-                            </div>
-                            <div style=\"font-family:var(--font-mono); color:var(--accent-secondary);\">${profile.average_rating || 0}</div>
-                        </div>
-                    `).join('')
-                    : '<div style=\"font-size:0.62rem; color:var(--text-muted);\">NO_PROFILE_SIGNAL_YET</div>';
-                document.getElementById('insightFeedbackBreakdown').innerHTML = (insights.feedback_breakdown || []).length
-                    ? insights.feedback_breakdown.map((row) => `
-                        <div style=\"display:flex; justify-content:space-between; gap:0.75rem; font-size:0.68rem;\">
-                            <span style=\"color:#dfefff;\">${escapeHtml(row.tag || 'unclassified').toUpperCase()}</span>
-                            <span style=\"font-family:var(--font-mono); color:var(--accent-secondary);\">${row.count}</span>
-                        </div>
-                    `).join('')
-                    : '<div style=\"font-size:0.62rem; color:var(--text-muted);\">NO_FEEDBACK_BREAKDOWN</div>';
-
+                
                 // Load Logs
                 const codes = await api(`${API_BASE}/codes`);
                 const logsBody = document.getElementById('logsBody');
