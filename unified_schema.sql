@@ -87,8 +87,12 @@ CREATE TABLE IF NOT EXISTS code_activity (
     used_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     feedback_rating INT DEFAULT NULL,
     feedback_comment TEXT DEFAULT NULL,
+    feedback_tag VARCHAR(64) DEFAULT NULL,
+    feedback_source VARCHAR(32) DEFAULT NULL,
+    feedback_fingerprint VARCHAR(64) DEFAULT NULL,
     INDEX (entry_code),
-    INDEX (lookup_key)
+    INDEX (lookup_key),
+    INDEX (feedback_fingerprint)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 -- 7. Security Logs Table (Fraud Detection)
@@ -129,6 +133,26 @@ CREATE TABLE IF NOT EXISTS transient_cache (
     INDEX (expires_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
+-- 11. Share Tokens Table (Revocable share-link records)
+CREATE TABLE IF NOT EXISTS share_tokens (
+    share_id VARCHAR(32) PRIMARY KEY,
+    lookup_key VARCHAR(16) NOT NULL,
+    expires_at DATETIME NOT NULL,
+    revoked_at DATETIME DEFAULT NULL,
+    access_count INT DEFAULT 0,
+    last_accessed_at DATETIME DEFAULT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    INDEX (lookup_key),
+    INDEX (expires_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+-- 12. Schema Migrations Table (Tracks applied schema updates)
+CREATE TABLE IF NOT EXISTS schema_migrations (
+    version VARCHAR(50) PRIMARY KEY,
+    description VARCHAR(255) NOT NULL,
+    applied_at DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
 -- ############################################################################
 -- # SEED INITIAL SYSTEM DATA
 -- ############################################################################
@@ -139,5 +163,7 @@ INSERT IGNORE INTO organizations (org_id, org_name, plan_tier) VALUES ('XP-CORE-
 -- Provision XP-ADMIN vendor from environment secret in migrate.js (ADMIN_SECRET / SEED_VENDOR_KEY).
 
 INSERT IGNORE INTO system_settings (setting_key, setting_value) VALUES ('global_sensitivity_offset', '1.0');
+INSERT IGNORE INTO schema_migrations (version, description) VALUES ('2026-03-result-share-hardening', 'Share token, feedback metadata, presets/cache, and admin vendor provisioning alignment');
+INSERT IGNORE INTO schema_migrations (version, description) VALUES ('2026-03-shared-v1-hardening', 'Versioned migrations, revocable share links, result i18n cleanup, and admin provisioning upgrades');
 
 SET FOREIGN_KEY_CHECKS = 1;

@@ -8,6 +8,89 @@ const Calculator = require('../lib/calculator');
 
 const router = express.Router();
 
+
+const REQUIRED_COLUMN_LENGTHS = {
+    vendors: { access_key: 100, lookup_key: 20 },
+    sensitivity_keys: { entry_code: 100, lookup_key: 16 },
+    code_activity: { entry_code: 100, lookup_key: 16 }
+};
+const RUNTIME_SCHEMA_ALTER_ENABLED = process.env.ALLOW_RUNTIME_SCHEMA_ALTER === 'true';
+const FEEDBACK_ALLOWED_TAGS = ['too_high', 'too_low', 'feels_good', 'device_mismatch', 'scope_unstable'];
+const FEEDBACK_SOURCES = ['quick_like', 'structured_feedback', 'share_card', 'result_page'];
+const FEEDBACK_COOLDOWN_SECONDS = 6 * 60 * 60;
+
+let schemaCapacityCheckedAt = 0;
+let schemaCapacityPromise = null;
+
+async function ensureKeyStorageCapacity(options = {}) {
+    const { force = false, mutate = RUNTIME_SCHEMA_ALTER_ENABLED } = options;
+    const now = Date.now();
+    if (!force && schemaCapacityPromise) return schemaCapacityPromise;
+    if (!force && schemaCapacityCheckedAt && now - schemaCapacityCheckedAt < 10 * 60 * 1000) return;
+
+    schemaCapacityPromise = (async () => {
+        try {
+            if (typeof db.all !== 'function' || typeof db.run !== 'function') return;
+
+            const rows = await db.all(`
+                SELECT TABLE_NAME, COLUMN_NAME, CHARACTER_MAXIMUM_LENGTH as max_length
+                FROM information_schema.COLUMNS
+                WHERE TABLE_SCHEMA = DATABASE()
+                  AND TABLE_NAME IN ('vendors', 'sensitivity_keys', 'code_activity')
+                  AND COLUMN_NAME IN ('access_key', 'entry_code', 'lookup_key')
+            `);
+
+            const currentLengths = rows.reduce((acc, row) => {
+                acc[row.TABLE_NAME] = acc[row.TABLE_NAME] || {};
+                acc[row.TABLE_NAME][row.COLUMN_NAME] = Number(row.max_length || 0);
+                return acc;
+            }, {});
+
+            const alterStatements = [];
+            if ((currentLengths.vendors?.access_key || 0) > 0 && currentLengths.vendors.access_key < REQUIRED_COLUMN_LENGTHS.vendors.access_key) {
+                alterStatements.push(`ALTER TABLE vendors MODIFY COLUMN access_key VARCHAR(${REQUIRED_COLUMN_LENGTHS.vendors.access_key}) NOT NULL`);
+            }
+            if ((currentLengths.vendors?.lookup_key || 0) > 0 && currentLengths.vendors.lookup_key < REQUIRED_COLUMN_LENGTHS.vendors.lookup_key) {
+                alterStatements.push(`ALTER TABLE vendors MODIFY COLUMN lookup_key VARCHAR(${REQUIRED_COLUMN_LENGTHS.vendors.lookup_key}) NULL`);
+            }
+            if ((currentLengths.sensitivity_keys?.entry_code || 0) > 0 && currentLengths.sensitivity_keys.entry_code < REQUIRED_COLUMN_LENGTHS.sensitivity_keys.entry_code) {
+                alterStatements.push(`ALTER TABLE sensitivity_keys MODIFY COLUMN entry_code VARCHAR(${REQUIRED_COLUMN_LENGTHS.sensitivity_keys.entry_code}) NOT NULL`);
+            }
+            if ((currentLengths.sensitivity_keys?.lookup_key || 0) > 0 && currentLengths.sensitivity_keys.lookup_key < REQUIRED_COLUMN_LENGTHS.sensitivity_keys.lookup_key) {
+                alterStatements.push(`ALTER TABLE sensitivity_keys MODIFY COLUMN lookup_key VARCHAR(${REQUIRED_COLUMN_LENGTHS.sensitivity_keys.lookup_key}) NOT NULL`);
+            }
+            if ((currentLengths.code_activity?.entry_code || 0) > 0 && currentLengths.code_activity.entry_code < REQUIRED_COLUMN_LENGTHS.code_activity.entry_code) {
+                alterStatements.push(`ALTER TABLE code_activity MODIFY COLUMN entry_code VARCHAR(${REQUIRED_COLUMN_LENGTHS.code_activity.entry_code}) NOT NULL`);
+            }
+            if ((currentLengths.code_activity?.lookup_key || 0) > 0 && currentLengths.code_activity.lookup_key < REQUIRED_COLUMN_LENGTHS.code_activity.lookup_key) {
+                alterStatements.push(`ALTER TABLE code_activity MODIFY COLUMN lookup_key VARCHAR(${REQUIRED_COLUMN_LENGTHS.code_activity.lookup_key}) NOT NULL`);
+            }
+
+            if (alterStatements.length > 0) {
+                if (mutate) {
+                    for (const sql of alterStatements) {
+                        await db.run(sql);
+                    }
+                    console.log(`SCHEMA_CAPACITY_ALIGNED: ${alterStatements.length} column(s) widened for hashed keys.`);
+                } else {
+                    console.warn(`SCHEMA_CAPACITY_MISMATCH: ${alterStatements.length} column(s) require migration. Runtime ALTER skipped.`);
+                }
+            }
+        } catch (err) {
+            console.warn('SCHEMA_CAPACITY_CHECK_FAILED:', err.message);
+        } finally {
+            schemaCapacityCheckedAt = Date.now();
+            schemaCapacityPromise = null;
+        }
+    })();
+
+    return schemaCapacityPromise;
+}
+
+if (process.env.NODE_ENV !== 'test') {
+    ensureKeyStorageCapacity().catch(() => {});
+}
+
 router.use(async (_req, _res, next) => {
     try {
         if (typeof db.clearExpiredCache === 'function' && Math.random() < 0.1) {
@@ -19,6 +102,15 @@ router.use(async (_req, _res, next) => {
 
 function getLookupKey(code) {
     return crypto.createHash('sha1').update(String(code)).digest('hex').substring(0, 10);
+}
+
+function getFeedbackFingerprint(req, lookupKey = '') {
+    const ua = String(req.headers['user-agent'] || 'unknown-agent');
+    return crypto
+        .createHash('sha256')
+        .update(`${getClientIp(req)}|${ua}|${lookupKey}`)
+        .digest('hex')
+        .substring(0, 32);
 }
 
 function fail(res, code, message, status = 400, details = null) {
@@ -78,7 +170,60 @@ async function getJwtSecret() {
     if (secret) return secret;
     const dbSecret = await getAdminSecret();
     if (dbSecret) return dbSecret;
-    return 'XP_SECURE_FALLBACK_STATION_2026';
+    throw new Error('JWT_SECRET_NOT_CONFIGURED');
+}
+
+async function createShareToken(entryCode) {
+    const lookupKey = getLookupKey(entryCode);
+    const now = new Date();
+    const expiresAt = new Date(Date.now() + (14 * 24 * 60 * 60 * 1000));
+    let shareId = null;
+
+    try {
+        const existing = await db.get(
+            'SELECT share_id FROM share_tokens WHERE lookup_key = ? AND revoked_at IS NULL AND expires_at > ? ORDER BY created_at DESC LIMIT 1',
+            [lookupKey, now]
+        );
+        shareId = existing?.share_id || null;
+    } catch (_err) {}
+
+    if (!shareId) {
+        shareId = crypto.randomBytes(12).toString('hex');
+        try {
+            await db.run(
+                'INSERT INTO share_tokens (share_id, lookup_key, expires_at) VALUES (?, ?, ?)',
+                [shareId, lookupKey, expiresAt]
+            );
+        } catch (_err) {}
+    }
+
+    return jwt.sign(
+        { type: 'share', sid: shareId, lookup_key: lookupKey },
+        await getJwtSecret(),
+        { expiresIn: '14d' }
+    );
+}
+
+async function getCodeRecordFromShareToken(shareToken) {
+    const payload = jwt.verify(shareToken, await getJwtSecret());
+    if (payload?.type !== 'share' || !payload?.sid) {
+        throw new Error('INVALID_SHARE_TOKEN');
+    }
+    const shareRecord = await db.get(
+        'SELECT share_id, lookup_key, revoked_at, expires_at FROM share_tokens WHERE share_id = ? LIMIT 1',
+        [payload.sid]
+    );
+    if (!shareRecord || shareRecord.revoked_at) {
+        throw new Error('INVALID_SHARE_TOKEN');
+    }
+    if (shareRecord.expires_at && new Date(shareRecord.expires_at) <= new Date()) {
+        throw new Error('INVALID_SHARE_TOKEN');
+    }
+    await db.run(
+        'UPDATE share_tokens SET last_accessed_at = ?, access_count = access_count + 1 WHERE share_id = ?',
+        [new Date(), payload.sid]
+    ).catch(() => {});
+    return getCodeRecordByLookupKey(shareRecord.lookup_key || payload.lookup_key || '');
 }
 
 async function getGlobalOffset() {
@@ -196,7 +341,13 @@ async function authenticateVendor(req, res, next) {
     }
 }
 
-async function buildVerificationPayload(keyData, rawCode = null) {
+async function buildVerificationPayload(keyData, rawCode = null, options = {}) {
+    const {
+        includeEntryCode = true,
+        includeShareToken = Boolean(rawCode),
+        shareTokenOverride = null,
+        redirectOverride = null
+    } = options;
     let finalResults = jsonOrObject(keyData.results_json, {});
     const custom = jsonOrObject(keyData.custom_results_json, null);
     if (custom) finalResults = { ...finalResults, ...custom };
@@ -208,10 +359,14 @@ async function buildVerificationPayload(keyData, rawCode = null) {
         : null;
     const likesRow = await db.get('SELECT COUNT(*) as likes FROM code_activity WHERE lookup_key = ? AND feedback_rating IS NOT NULL', [keyData.lookup_key]);
 
+    const shareToken = shareTokenOverride || (includeShareToken && rawCode ? await createShareToken(rawCode) : null);
+    const redirect = redirectOverride || (shareToken
+        ? `/result.html?share=${encodeURIComponent(shareToken)}`
+        : (rawCode ? `/result.html?code=${encodeURIComponent(rawCode)}` : '/result.html'));
     return {
         type: 'code',
-        redirect: rawCode ? `/result.html?code=${encodeURIComponent(rawCode)}` : '/result.html',
-        entry_code: rawCode || null,
+        redirect,
+        entry_code: includeEntryCode ? (rawCode || null) : null,
         vendor_id: keyData.vendor_id,
         display_name: branding.display_name || keyData.vendor_id || 'XP_CORE',
         sensitivity: finalResults,
@@ -227,12 +382,22 @@ async function buildVerificationPayload(keyData, rawCode = null) {
             youtube: branding.youtube || '',
             tiktok: branding.tiktok || '',
             discord: branding.discord || ''
-        }
+        },
+        share_token: shareToken
     };
 }
 
 async function getCodeRecordByRawCode(rawCode) {
     const lookupKey = getLookupKey(rawCode);
+    const found = await getCodeRecordByLookupKey(lookupKey);
+    if (!found) return null;
+    const isMatch = await bcrypt.compare(rawCode, found.keyData.entry_code);
+    if (!isMatch) return null;
+    return found;
+}
+
+async function getCodeRecordByLookupKey(lookupKey) {
+    if (!lookupKey) return null;
     const keyData = await db.get(`
         SELECT k.*, v.status as vendor_status, v.brand_config, v.active_until, v.usage_limit as vendor_usage_limit, v.org_id
         FROM sensitivity_keys k
@@ -240,8 +405,6 @@ async function getCodeRecordByRawCode(rawCode) {
         WHERE k.lookup_key = ?
     `, [lookupKey]);
     if (!keyData) return null;
-    const isMatch = await bcrypt.compare(rawCode, keyData.entry_code);
-    if (!isMatch) return null;
     return { keyData, lookupKey };
 }
 
@@ -250,6 +413,27 @@ async function getCodeStatusPayload(rawCode) {
     if (!found) return null;
     const { keyData, lookupKey } = found;
     const payload = await buildVerificationPayload(keyData, rawCode);
+    return {
+        ...payload,
+        status: keyData.status,
+        vendor_status: keyData.vendor_status,
+        lookup_key: lookupKey,
+        current_usage: keyData.current_usage || 0,
+        real_usage: keyData.current_usage || 0,
+        expires_at: keyData.expires_at || null
+    };
+}
+
+async function getCodeStatusFromShareToken(shareToken) {
+    const found = await getCodeRecordFromShareToken(shareToken);
+    if (!found) return null;
+    const { keyData, lookupKey } = found;
+    const payload = await buildVerificationPayload(keyData, null, {
+        includeEntryCode: false,
+        includeShareToken: true,
+        shareTokenOverride: shareToken,
+        redirectOverride: `/result.html?share=${encodeURIComponent(shareToken)}`
+    });
     return {
         ...payload,
         status: keyData.status,
@@ -748,7 +932,7 @@ router.get('/stats', authenticateVendor, async (req, res) => {
 router.get('/activity', authenticateVendor, async (req, res) => {
     try {
         const rows = await db.all(`
-            SELECT ca.used_at, ca.user_ign, ca.user_region, ca.feedback_rating, sk.lookup_key
+            SELECT ca.used_at, ca.user_ign, ca.user_region, ca.feedback_rating, ca.feedback_tag, ca.feedback_comment, sk.lookup_key
             FROM code_activity ca
             JOIN sensitivity_keys sk ON ca.lookup_key = sk.lookup_key
             WHERE sk.vendor_id = ?
@@ -764,21 +948,83 @@ router.get('/activity', authenticateVendor, async (req, res) => {
 router.get('/export', authenticateVendor, async (req, res) => {
     try {
         const logs = await db.all(`
-            SELECT ca.used_at, ca.user_ign, ca.user_region, ca.entry_code, ca.feedback_rating, sk.lookup_key
+            SELECT ca.used_at, ca.user_ign, ca.user_region, ca.entry_code, ca.feedback_rating, ca.feedback_tag, ca.feedback_comment, sk.lookup_key
             FROM code_activity ca
             JOIN sensitivity_keys sk ON ca.lookup_key = sk.lookup_key
             WHERE sk.vendor_id = ?
             ORDER BY ca.used_at DESC
         `, [req.vendorId]);
-        let csv = 'TIMESTAMP,IGN,REGION,ENTRY_CODE,LOOKUP_KEY,RATING\n';
+        let csv = 'TIMESTAMP,IGN,REGION,ENTRY_CODE,LOOKUP_KEY,RATING,FEEDBACK_TAG,FEEDBACK_COMMENT\n';
         logs.forEach((row) => {
-            csv += `${row.used_at},"${row.user_ign || ''}","${row.user_region || ''}","${row.entry_code || ''}",${row.lookup_key || ''},${row.feedback_rating || ''}\n`;
+            csv += `${row.used_at},"${row.user_ign || ''}","${row.user_region || ''}","${row.entry_code || ''}",${row.lookup_key || ''},${row.feedback_rating || ''},"${row.feedback_tag || ''}","${String(row.feedback_comment || '').replaceAll('"', '""')}"\n`;
         });
         res.setHeader('Content-Type', 'text/csv');
         res.setHeader('Content-Disposition', `attachment; filename=xp_activity_${req.vendorId}.csv`);
         return res.status(200).send(csv);
     } catch (_err) {
         return res.status(500).json({ error: 'EXPORT_FAILED' });
+    }
+});
+
+router.get('/insights', authenticateVendor, async (req, res) => {
+    try {
+        const overview = await db.get(`
+            SELECT
+                COUNT(DISTINCT sk.lookup_key) as total_profiles,
+                COUNT(ca.id) as total_views,
+                COALESCE(SUM(CASE WHEN ca.feedback_rating IS NOT NULL THEN 1 ELSE 0 END), 0) as total_feedback,
+                ROUND(AVG(ca.feedback_rating), 2) as average_rating
+            FROM sensitivity_keys sk
+            LEFT JOIN code_activity ca ON ca.lookup_key = sk.lookup_key
+            WHERE sk.vendor_id = ?
+        `, [req.vendorId]);
+        const topProfiles = await db.all(`
+            SELECT
+                sk.lookup_key,
+                sk.created_at,
+                COALESCE(COUNT(ca.id), 0) as total_views,
+                COALESCE(SUM(CASE WHEN ca.feedback_rating IS NOT NULL THEN 1 ELSE 0 END), 0) as feedback_count,
+                ROUND(AVG(ca.feedback_rating), 2) as average_rating
+            FROM sensitivity_keys sk
+            LEFT JOIN code_activity ca ON ca.lookup_key = sk.lookup_key
+            WHERE sk.vendor_id = ?
+            GROUP BY sk.lookup_key, sk.created_at
+            ORDER BY feedback_count DESC, total_views DESC, sk.created_at DESC
+            LIMIT 5
+        `, [req.vendorId]);
+        const topRegions = await db.all(`
+            SELECT ca.user_region as region, COUNT(*) as count
+            FROM code_activity ca
+            JOIN sensitivity_keys sk ON ca.lookup_key = sk.lookup_key
+            WHERE sk.vendor_id = ?
+            GROUP BY ca.user_region
+            ORDER BY count DESC
+            LIMIT 5
+        `, [req.vendorId]);
+        const feedbackBreakdown = await db.all(`
+            SELECT COALESCE(ca.feedback_tag, 'unclassified') as tag, COUNT(*) as count
+            FROM code_activity ca
+            JOIN sensitivity_keys sk ON ca.lookup_key = sk.lookup_key
+            WHERE sk.vendor_id = ? AND ca.feedback_rating IS NOT NULL
+            GROUP BY COALESCE(ca.feedback_tag, 'unclassified')
+            ORDER BY count DESC
+        `, [req.vendorId]);
+
+        const totalViews = Number(overview?.total_views || 0);
+        const totalFeedback = Number(overview?.total_feedback || 0);
+        return res.json({
+            total_profiles: Number(overview?.total_profiles || 0),
+            total_views: totalViews,
+            total_feedback: totalFeedback,
+            average_rating: Number(overview?.average_rating || 0),
+            feedback_conversion_pct: totalViews > 0 ? Math.round((totalFeedback / totalViews) * 1000) / 10 : 0,
+            top_profiles: topProfiles,
+            top_regions: topRegions,
+            feedback_breakdown: feedbackBreakdown
+        });
+    } catch (err) {
+        console.error('INSIGHTS_ERR:', err);
+        return res.status(500).json({ error: 'INSIGHTS_UNAVAILABLE' });
     }
 });
 
@@ -988,15 +1234,21 @@ router.get('/admin/vendor/:vendorId/analytics', authenticateAdmin, async (req, r
 
 router.post('/admin/vendors', authenticateAdmin, async (req, res) => {
     try {
-        const { vendorId: requestedId, orgId: rawOrgId, usageLimit, durationDays, brandConfig } = z.object({
+        const nullableInt = (minimum) => z.preprocess((value) => {
+            if (value === '' || value === null || value === undefined) return undefined;
+            return value;
+        }, z.coerce.number().int().min(minimum).optional());
+
+        const { vendorId: requestedId, orgId: rawOrgId, orgName: rawOrgName, usageLimit, durationDays, brandConfig } = z.object({
             vendorId: z.string().min(2).optional(),
             orgId: z.string().optional(),
-            usageLimit: z.number().int().min(0).nullable().optional(),
-            durationDays: z.number().int().min(1).optional(),
-            brandConfig: z.record(z.any()).optional()
+            orgName: z.string().optional(),
+            usageLimit: nullableInt(0),
+            durationDays: nullableInt(1),
+            brandConfig: z.record(z.any()).nullable().optional()
         }).parse(req.body || {});
 
-        const orgId = (rawOrgId || 'XP-CORE-ORG').trim().toUpperCase().replace(/[^A-Z0-9-]/g, '');
+        const orgId = ((rawOrgId || 'XP-CORE-ORG').trim().toUpperCase().replace(/[^A-Z0-9-]/g, '')) || 'XP-CORE-ORG';
         const normalizedRequestedId = requestedId
             ? requestedId.trim().toUpperCase().replace(/\s+/g, '-').replace(/[^A-Z0-9-]/g, '')
             : '';
@@ -1017,7 +1269,7 @@ router.post('/admin/vendors', authenticateAdmin, async (req, res) => {
             activeUntil = date.toISOString().slice(0, 19).replace('T', ' ');
         }
 
-        const orgName = rawOrgId || 'XP ARENA GLOBAL';
+        const orgName = rawOrgName || rawOrgId || 'XP ARENA GLOBAL';
         await db.run("INSERT IGNORE INTO organizations (org_id, org_name, plan_tier) VALUES (?, ?, 'enterprise')", [orgId, orgName]);
         await db.run(`
             INSERT INTO vendors (org_id, vendor_id, access_key, lookup_key, usage_limit, active_until, brand_config, status)
@@ -1093,6 +1345,31 @@ router.get('/admin/settings', authenticateAdmin, async (_req, res) => {
         return res.json(settings);
     } catch (_err) {
         return res.status(500).json({ error: 'SETTINGS_UNAVAILABLE' });
+    }
+});
+
+router.get('/admin/schema/status', authenticateAdmin, async (_req, res) => {
+    try {
+        const tables = await db.all(`
+            SELECT table_name
+            FROM information_schema.tables
+            WHERE table_schema = DATABASE()
+              AND table_name IN ('vendor_presets', 'transient_cache', 'share_tokens', 'schema_migrations')
+        `);
+        const migrations = await db.all('SELECT version, applied_at FROM schema_migrations ORDER BY applied_at DESC LIMIT 20').catch(() => []);
+        const tableNames = new Set((tables || []).map((row) => row.table_name));
+        return res.json({
+            tables: {
+                vendor_presets: tableNames.has('vendor_presets'),
+                transient_cache: tableNames.has('transient_cache'),
+                share_tokens: tableNames.has('share_tokens'),
+                schema_migrations: tableNames.has('schema_migrations')
+            },
+            recent_migrations: migrations
+        });
+    } catch (err) {
+        console.error('SCHEMA_STATUS_ERR:', err);
+        return res.status(500).json({ error: 'SCHEMA_STATUS_UNAVAILABLE' });
     }
 });
 
@@ -1179,20 +1456,60 @@ router.post('/feedback', async (req, res) => {
         const payload = z.object({
             code: z.string().min(1).optional(),
             entry_code: z.string().min(1).optional(),
+            share_token: z.string().min(1).optional(),
             rating: z.number().int().min(1).max(5),
             feedback: z.string().max(500).optional(),
-            feedback_text: z.string().max(500).optional()
-        }).refine((data) => data.code || data.entry_code, 'CODE_REQUIRED').parse(req.body || {});
+            feedback_text: z.string().max(500).optional(),
+            feedback_tag: z.enum(FEEDBACK_ALLOWED_TAGS).optional(),
+            feedback_source: z.enum(FEEDBACK_SOURCES).optional()
+        }).refine((data) => data.code || data.entry_code || data.share_token, 'CODE_REQUIRED').parse(req.body || {});
 
-        const entryCode = payload.code || payload.entry_code;
-        const lookupKey = getLookupKey(entryCode);
-        const activity = await db.get('SELECT id, user_ign, user_region FROM code_activity WHERE lookup_key = ? ORDER BY used_at DESC LIMIT 1', [lookupKey]);
-        if (!activity) return fail(res, 'XP_VAL_NOT_FOUND', 'SESSION_NOT_FOUND', 404);
+        const entryCode = payload.code || payload.entry_code || null;
+        const found = payload.share_token
+            ? await getCodeRecordFromShareToken(payload.share_token)
+            : await getCodeRecordByRawCode(entryCode);
+        if (!found) return fail(res, 'XP_AUTH_INVALID', 'UNKNOWN_OR_INVALID_CODE', 404);
 
-        await db.run('UPDATE code_activity SET feedback_rating = ?, feedback_comment = ? WHERE id = ?', [payload.rating, payload.feedback ?? payload.feedback_text ?? null, activity.id]);
+        const { keyData, lookupKey } = found;
+        const fingerprint = getFeedbackFingerprint(req, lookupKey);
+        const feedbackComment = payload.feedback ?? payload.feedback_text ?? null;
+        let activity = await db.get(
+            'SELECT id, user_ign, user_region FROM code_activity WHERE lookup_key = ? AND feedback_fingerprint = ? ORDER BY used_at DESC LIMIT 1',
+            [lookupKey, fingerprint]
+        );
+
+        if (!activity) {
+            const cacheKey = `feedback_${lookupKey}_${fingerprint}`;
+            const recentFeedback = typeof db.getCache === 'function' ? await db.getCache(cacheKey) : null;
+            if (recentFeedback?.blocked) {
+                return fail(res, 'XP_RATE_LIMITED', 'FEEDBACK_ALREADY_CAPTURED_RECENTLY', 429);
+            }
+            const inserted = await db.run(
+                `INSERT INTO code_activity
+                    (entry_code, lookup_key, user_ign, user_region, feedback_rating, feedback_comment, feedback_tag, feedback_source, feedback_fingerprint)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                [entryCode || 'SHARED_LINK', lookupKey, 'Anonymous', 'Unknown', payload.rating, feedbackComment, payload.feedback_tag || null, payload.feedback_source || 'result_page', fingerprint]
+            );
+            activity = {
+                id: inserted?.lastID || null,
+                user_ign: 'Anonymous',
+                user_region: 'Unknown'
+            };
+            if (typeof db.setCache === 'function') {
+                await db.setCache(cacheKey, { blocked: true }, FEEDBACK_COOLDOWN_SECONDS);
+            }
+        } else {
+            await db.run(
+                'UPDATE code_activity SET feedback_rating = ?, feedback_comment = ?, feedback_tag = ?, feedback_source = ? WHERE id = ?',
+                [payload.rating, feedbackComment, payload.feedback_tag || null, payload.feedback_source || 'result_page', activity.id]
+            );
+        }
+
         const likesCount = await db.get('SELECT COUNT(*) as likes_count FROM code_activity WHERE lookup_key = ? AND feedback_rating IS NOT NULL', [lookupKey]);
         if (typeof db.run === 'function') {
-            await db.run('DELETE FROM transient_cache WHERE cache_key = ?', [`verify_${entryCode}`]).catch(() => {});
+            if (entryCode) {
+                await db.run('DELETE FROM transient_cache WHERE cache_key = ?', [`verify_${entryCode}`]).catch(() => {});
+            }
         }
 
         const io = req.app.get('io');
@@ -1201,7 +1518,8 @@ router.post('/feedback', async (req, res) => {
                 type: 'feedback',
                 lookup_key: lookupKey,
                 rating: payload.rating,
-                feedback: payload.feedback ?? payload.feedback_text ?? 'No comment',
+                feedback: feedbackComment ?? 'No comment',
+                feedback_tag: payload.feedback_tag || null,
                 user_ign: activity.user_ign || 'Anonymous',
                 region: activity.user_region || 'Unknown',
                 timestamp: new Date().toISOString()
@@ -1213,6 +1531,41 @@ router.post('/feedback', async (req, res) => {
         if (err instanceof z.ZodError) return fail(res, 'XP_VAL_FAILED', 'INVALID_FEEDBACK_INPUT', 400, err.errors);
         console.error('FEEDBACK_ERR:', err);
         return res.status(500).json({ error: 'FEEDBACK_SYSTEM_ERROR' });
+    }
+});
+
+router.get('/share-links', authenticateVendor, async (req, res) => {
+    try {
+        const rows = await db.all(`
+            SELECT st.share_id, st.lookup_key, st.created_at, st.expires_at, st.last_accessed_at, st.access_count, st.revoked_at
+            FROM share_tokens st
+            JOIN sensitivity_keys sk ON sk.lookup_key = st.lookup_key
+            WHERE sk.vendor_id = ?
+            ORDER BY st.created_at DESC
+            LIMIT 50
+        `, [req.vendorId]);
+        return res.json(rows);
+    } catch (err) {
+        console.error('SHARE_LINK_LIST_ERR:', err);
+        return res.status(500).json({ error: 'SHARE_LINKS_UNAVAILABLE' });
+    }
+});
+
+router.delete('/share-links/:shareId', authenticateVendor, async (req, res) => {
+    try {
+        const owner = await db.get(`
+            SELECT st.share_id
+            FROM share_tokens st
+            JOIN sensitivity_keys sk ON sk.lookup_key = st.lookup_key
+            WHERE st.share_id = ? AND sk.vendor_id = ?
+            LIMIT 1
+        `, [req.params.shareId, req.vendorId]);
+        if (!owner) return res.status(404).json({ error: 'SHARE_LINK_NOT_FOUND' });
+        await db.run('UPDATE share_tokens SET revoked_at = ? WHERE share_id = ?', [new Date(), req.params.shareId]);
+        return res.json({ success: true });
+    } catch (err) {
+        console.error('SHARE_LINK_REVOKE_ERR:', err);
+        return res.status(500).json({ error: 'SHARE_LINK_REVOKE_FAILED' });
     }
 });
 
@@ -1262,6 +1615,21 @@ router.get('/code/:code/status', async (req, res) => {
         return res.json(payload);
     } catch (err) {
         console.error('CODE_STATUS_ERR:', err);
+        return res.status(500).json({ error: 'Server error' });
+    }
+});
+
+router.get('/share/:token/status', async (req, res) => {
+    try {
+        if (!req.params.token) return res.status(400).json({ error: 'Missing share token' });
+        const payload = await getCodeStatusFromShareToken(req.params.token);
+        if (!payload) return res.status(404).json({ error: 'Not found' });
+        return res.json(payload);
+    } catch (err) {
+        if (err?.name === 'JsonWebTokenError' || err?.name === 'TokenExpiredError' || err?.message === 'INVALID_SHARE_TOKEN') {
+            return res.status(401).json({ error: 'INVALID_SHARE_TOKEN' });
+        }
+        console.error('SHARE_STATUS_ERR:', err);
         return res.status(500).json({ error: 'Server error' });
     }
 });
