@@ -1214,12 +1214,26 @@
             try {
                 const profile = await getProfile();
                 if (profile) {
+                    window.vendorName = profile.display_name || profile.vendor_id || 'UNKNOWN_VENDOR';
                     document.getElementById('profName').value = profile.display_name || '';
                     document.getElementById('profLogo').value = profile.logo_url || '';
                     document.getElementById('profYT').value = profile.youtube || '';
                     document.getElementById('profTT').value = profile.tiktok || '';
                     document.getElementById('profDC').value = profile.discord || '';
                     document.getElementById('profWebhook').value = profile.webhook_url || '';
+                    
+                    // Apply secondary color if exists in brand_config
+                    if (profile.brand_config) {
+                        const config = typeof profile.brand_config === 'string' ? JSON.parse(profile.brand_config) : profile.brand_config;
+                        if (config.css_vars && config.css_vars['--accent-secondary']) {
+                            document.getElementById('cssSecColor').value = config.css_vars['--accent-secondary'];
+                            document.documentElement.style.setProperty('--accent-secondary', config.css_vars['--accent-secondary']);
+                        }
+                        if (config.css_vars && config.css_vars['--radius-md']) {
+                            document.getElementById('cssRadius').value = config.css_vars['--radius-md'];
+                            document.documentElement.style.setProperty('--radius-md', config.css_vars['--radius-md']);
+                        }
+                    }
                 }
             } catch (e) {
                 console.warn('LOAD_PROFILE_ERR:', e);
@@ -1237,9 +1251,18 @@
                 webhook_url: document.getElementById('profWebhook').value.trim() || null
             };
             try {
+                // ⚡ Logic Fix: Use API_BASE properly
                 await api(`${API_BASE}/profile`, 'PUT', data);
                 if (window.notify) window.notify('PROFILE_UPDATED_SYNCED', 'success');
+                
+                // Refresh local state
                 await loadDashboard();
+                
+                // Live update the vendor title if changed
+                if (data.display_name) {
+                    window.vendorName = data.display_name;
+                    document.getElementById('vendorTitle').textContent = data.display_name.toUpperCase();
+                }
             } catch (e) {
                 showDashError(e.message || 'PROFILE_SAVE_FAILED');
                 if (window.notify) window.notify(e.message || 'SYNC_FAILED', 'error');
@@ -1539,12 +1562,20 @@
                 };
 
                 const res = await api(`${API_BASE}/generate`, 'POST', body);
-                document.getElementById('accessKeyVal').textContent = res.accessKey;
-                document.getElementById('provisionVendorName').textContent = (window.vendorName || 'XP_CREATOR').toUpperCase();
+                
+                // ⚡ Update card display with formatted code
+                const displayName = window.vendorName || 'XP_CREATOR';
+                const formattedCode = `XP-${displayName.toUpperCase().replace(/\s+/g, '').slice(0, 10)}-${res.accessKey}`;
+                
+                document.getElementById('accessKeyVal').textContent = formattedCode;
+                document.getElementById('provisionVendorName').textContent = displayName.toUpperCase();
                 document.getElementById('genResult').classList.remove('hidden');
                 
                 if (window.notify) window.notify('NEURAL_KEY_GENERATED', 'success');
-                await transitionToResult(res.accessKey, 'GENERATED_PROFILE_READY');
+                
+                // Auto-scroll to result
+                document.getElementById('genResult').scrollIntoView({ behavior: 'smooth' });
+                
                 loadDashboard().catch(() => {});
             } catch (e) {
                 showDashError(e.message || 'VAULT_GENERATION_FAILED');
@@ -1582,18 +1613,28 @@
                 };
                 const requiredValues = [body.general, body.redDot, body.scope2x, body.scope4x, body.sniper, body.freeLook];
                 if (requiredValues.some(v => Number.isNaN(v))) throw new Error('ENTER ALL SENSITIVITY VALUES');
+                
                 const keys = [];
                 for (let i = 0; i < bulkAmount; i += 1) {
                     const res = await api(`${API_BASE}/manual-entry`, 'POST', body);
                     keys.push(res.accessKey);
                 }
+                
                 toggleSheet(false);
+                
+                const displayName = window.vendorName || 'XP_CREATOR';
+                const prefix = displayName.toUpperCase().replace(/\s+/g, '').slice(0, 10);
+                const formattedKeys = keys.map(k => `XP-${prefix}-${k}`);
+                
                 document.getElementById('genResult').classList.remove('hidden');
-                document.getElementById('accessKeyVal').innerHTML = keys.map((key) => escapeHtml(key)).join('<br>');
+                document.getElementById('accessKeyVal').innerHTML = formattedKeys.map((key) => escapeHtml(key)).join('<br>');
+                document.getElementById('provisionVendorName').textContent = displayName.toUpperCase();
+                
                 if (window.notify) window.notify(`PUBLISHED ${keys.length} KEY(S)`, 'success');
-                if (keys.length === 1) {
-                    await transitionToResult(keys[0], 'MANUAL_PROFILE_READY');
-                }
+                
+                // Auto-scroll to result
+                document.getElementById('genResult').scrollIntoView({ behavior: 'smooth' });
+                
                 loadDashboard().catch(() => {});
             } catch (e) {
                 showDashError(e.message || 'MANUAL_PUBLISH_FAILED');
