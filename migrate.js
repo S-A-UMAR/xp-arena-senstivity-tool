@@ -4,6 +4,11 @@ const fs = require('fs');
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 
+const MIGRATION_MARKERS = [
+    ['2026-03-result-share-hardening', 'Share token, feedback metadata, presets/cache, and admin vendor provisioning alignment'],
+    ['2026-03-shared-v1-hardening', 'Versioned migrations, revocable share links, result i18n cleanup, and admin provisioning upgrades']
+];
+
 async function migrate() {
     const connection = await mysql.createConnection({
         host: process.env.DB_HOST || 'localhost',
@@ -124,12 +129,6 @@ async function migrate() {
                 FOREIGN KEY (vendor_id) REFERENCES vendors(vendor_id) ON DELETE CASCADE
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin`);
 
-            await connection.query(`CREATE TABLE IF NOT EXISTS schema_migrations (
-                version VARCHAR(50) PRIMARY KEY,
-                description VARCHAR(255) NOT NULL,
-                applied_at DATETIME DEFAULT CURRENT_TIMESTAMP
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin`);
-
             await connection.query(`CREATE TABLE IF NOT EXISTS share_tokens (
                 share_id VARCHAR(32) PRIMARY KEY,
                 lookup_key VARCHAR(16) NOT NULL,
@@ -153,8 +152,12 @@ async function migrate() {
 
             await connection.query(`INSERT IGNORE INTO organizations (org_id, org_name) VALUES ('XP-CORE-ORG', 'XP ARENA GLOBAL')`);
             await connection.query(`INSERT IGNORE INTO system_settings (setting_key, setting_value) VALUES ('global_sensitivity_offset', '1.0')`);
-            await connection.query(`INSERT IGNORE INTO schema_migrations (version, description) VALUES ('2026-03-result-share-hardening', 'Share token, feedback metadata, presets/cache, and admin vendor provisioning alignment')`);
-            await connection.query(`INSERT IGNORE INTO schema_migrations (version, description) VALUES ('2026-03-shared-v1-hardening', 'Versioned migrations, revocable share links, result i18n cleanup, and admin provisioning upgrades')`);
+            for (const [version, description] of MIGRATION_MARKERS) {
+                await connection.query(
+                    'INSERT IGNORE INTO schema_migrations (version, description) VALUES (?, ?)',
+                    [version, description]
+                );
+            }
 
             const seedKey = process.env.SEED_VENDOR_KEY || process.env.ADMIN_SECRET || null;
             const forceReset = process.env.FORCE_RESET_ADMIN_KEY === 'true';
