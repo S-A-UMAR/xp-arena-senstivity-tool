@@ -900,6 +900,26 @@
             el.style.display = 'block';
         }
 
+        function createOption(value, label = value) {
+            const option = document.createElement('option');
+            option.value = value;
+            option.textContent = label;
+            return option;
+        }
+
+        function resetSelect(selectEl, placeholder, disabled = true) {
+            if (!selectEl) return;
+            selectEl.innerHTML = '';
+            selectEl.appendChild(createOption('', placeholder));
+            selectEl.disabled = disabled;
+        }
+
+        async function getProfile() {
+            const profile = await api(`${API_BASE}/profile`);
+            if (!profile) throw new Error('PROFILE_DATA_EMPTY');
+            return profile;
+        }
+
         function clearNode(node) {
             if (!node) return;
             while (node.firstChild) node.removeChild(node.firstChild);
@@ -1107,8 +1127,7 @@
         async function loadDashboard() {
             try {
                 showDashError('');
-                const profile = await api(`${API_BASE}/profile`);
-                if (!profile) throw new Error('PROFILE_DATA_EMPTY');
+                const profile = await getProfile();
 
                 window.vendorName = profile.display_name || profile.vendor_id || 'UNKNOWN_VENDOR';
                 document.getElementById('vendorTitle').textContent = window.vendorName.toUpperCase();
@@ -1192,7 +1211,7 @@
 
         async function loadProfile() {
             try {
-                const profile = await api(`${API_BASE}/profile`);
+                const profile = await getProfile();
                 if (profile) {
                     document.getElementById('profName').value = profile.display_name || '';
                     document.getElementById('profLogo').value = profile.logo_url || '';
@@ -1409,9 +1428,7 @@
             const brandSel = document.getElementById('genBrand');
             if (!window.DEVICES || !brandSel || brandSel.dataset.loaded === 'true') return;
             window.DEVICES.forEach(b => {
-                const opt = document.createElement('option');
-                opt.value = opt.textContent = b.brand;
-                brandSel.appendChild(opt);
+                brandSel.appendChild(createOption(b.brand));
             });
             brandSel.dataset.loaded = 'true';
         }
@@ -1434,10 +1451,9 @@
             const seriesSel = document.getElementById('genSeries');
             const modelSel = document.getElementById('genModel');
             const ramGroup = document.getElementById('ramGroup');
-            
-            seriesSel.innerHTML = '<option value="">SELECT SERIES</option>';
-            modelSel.innerHTML = '<option value="">SELECT MODEL</option>';
-            modelSel.disabled = true;
+
+            resetSelect(seriesSel, 'SELECT SERIES');
+            resetSelect(modelSel, 'SELECT MODEL');
             document.getElementById('graphicsCap').textContent = '---';
             
             if (!brand) {
@@ -1455,9 +1471,7 @@
             const data = window.DEVICES.find(d => d.brand === brand);
             if (data) {
                 data.series.forEach(s => {
-                    const opt = document.createElement('option');
-                    opt.value = opt.textContent = s.name;
-                    seriesSel.appendChild(opt);
+                    seriesSel.appendChild(createOption(s.name));
                 });
                 seriesSel.disabled = false;
             }
@@ -1467,21 +1481,17 @@
             const brand = document.getElementById('genBrand').value;
             const series = document.getElementById('genSeries').value;
             const modelSel = document.getElementById('genModel');
-            modelSel.innerHTML = '<option value="">SELECT MODEL</option>';
+            resetSelect(modelSel, 'SELECT MODEL');
             if (!series) {
-                modelSel.disabled = true;
                 return;
             }
             const brandData = window.DEVICES.find(d => d.brand === brand);
             const seriesData = brandData?.series.find(s => s.name === series);
             if (!seriesData) {
-                modelSel.disabled = true;
                 return;
             }
             seriesData.models.forEach(m => {
-                const opt = document.createElement('option');
-                opt.value = opt.textContent = m;
-                modelSel.appendChild(opt);
+                modelSel.appendChild(createOption(m));
             });
             modelSel.disabled = false;
 
@@ -1610,7 +1620,7 @@
                 const radius = document.getElementById('cssRadius').value;
                 
                 // Get current brand config
-                const profile = await api(`${API_BASE}/profile`);
+                const profile = await getProfile();
                 const config = profile.brand_config || {};
                 
                 // Inject new CSS Variables

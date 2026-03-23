@@ -411,6 +411,25 @@
             line-height: 1.65;
             white-space: pre-wrap;
         }
+        .notes-eyebrow {
+            font-family: var(--font-mono);
+            color: #96aab9;
+            font-size: 0.58rem;
+            letter-spacing: 0.14em;
+        }
+        .notes-eyebrow-spaced {
+            margin-top: 0.55rem;
+        }
+        .notes-byline {
+            color: #fff;
+            font-family: var(--font-mono);
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+        .notes-follow-hint {
+            color: #8fc8dc;
+            font-size: 0.72rem;
+        }
         .status-banner {
             margin: 0;
             padding: 0.82rem 0.95rem;
@@ -427,6 +446,14 @@
             grid-template-columns: repeat(3, minmax(0, 1fr));
             gap: 0.95rem;
             margin-top: 1.3rem;
+        }
+        .action-btn-inline {
+            margin-top: 0;
+        }
+        .action-btn.download-tone {
+            background: #e7f4ff;
+            color: #061019;
+            box-shadow: none;
         }
         .action-btn.secondary-tone {
             background: rgba(255,255,255,0.05);

@@ -33,6 +33,34 @@
         return currentCode || currentShareToken || '';
     }
 
+    function buildResultUrl({ code = '', shareToken = '' }) {
+        if (shareToken) return `${window.location.origin}/result.html?share=${encodeURIComponent(shareToken)}`;
+        return code ? `${window.location.origin}/result.html?code=${encodeURIComponent(code)}` : '';
+    }
+
+    function storeLastResult(payload, fallbackBranding) {
+        localStorage.setItem('xp_last_entry_code', currentCode);
+        localStorage.setItem(
+            'xp_sensitivity_profile_last_result',
+            JSON.stringify({ ...(payload.sensitivity || payload.results || {}), advice: payload.advice || payload.sensitivity?.advice || '' })
+        );
+        localStorage.setItem('xp_last_branding', JSON.stringify(payload.branding || fallbackBranding || {}));
+    }
+
+    function buildHydratedState({ payload = null, fallbackResults = {}, fallbackBranding = {}, likes = 0, validUntil = null, advice = '', displayName = '', vendorId = '' }) {
+        return {
+            results: payload?.sensitivity || payload?.results || fallbackResults || {},
+            branding: payload?.branding || fallbackBranding || {},
+            likes: payload?.likes || likes || 0,
+            validUntil: payload?.valid_until || validUntil || null,
+            advice: payload?.advice || payload?.sensitivity?.advice || advice || '',
+            displayName: payload?.display_name || displayName || '',
+            vendorId: payload?.vendor_id || vendorId || '',
+            shareToken: currentShareToken,
+            shareUrl: currentShareUrl
+        };
+    }
+
     function t(key, fallback) {
         const lang = localStorage.getItem('xp_lang') || 'en';
         const fallbackDict = (window.LANGUAGES && window.LANGUAGES.en) || {};
@@ -126,43 +154,23 @@
             currentVerifyPayload = payload;
             currentCode = payload.entry_code || code || '';
             currentShareToken = payload.share_token || shareToken || '';
-            currentShareUrl = currentShareToken
-                ? `${window.location.origin}/result.html?share=${encodeURIComponent(currentShareToken)}`
-                : `${window.location.origin}/result.html?code=${encodeURIComponent(currentCode)}`;
+            currentShareUrl = buildResultUrl({ code: currentCode, shareToken: currentShareToken });
 
-            localStorage.setItem('xp_last_entry_code', currentCode);
-            localStorage.setItem('xp_sensitivity_profile_last_result', JSON.stringify({ ...(payload.sensitivity || payload.results || {}), advice: payload.advice || payload.sensitivity?.advice || '' }));
-            localStorage.setItem('xp_last_branding', JSON.stringify(payload.branding || fallbackBranding || {}));
+            storeLastResult(payload, fallbackBranding);
 
-            return {
-                results: payload.sensitivity || payload.results || fallbackResults || {},
-                branding: payload.branding || fallbackBranding || {},
-                likes: payload.likes || 0,
-                validUntil: payload.valid_until || null,
-                advice: payload.advice || payload.sensitivity?.advice || '',
-                displayName: payload.display_name || '',
-                vendorId: payload.vendor_id || '',
-                shareToken: currentShareToken,
-                shareUrl: currentShareUrl
-            };
+            return buildHydratedState({ payload, fallbackResults, fallbackBranding });
         } catch (e) {
             console.warn('STATUS_REFRESH_ERR:', e);
             currentCode = code || currentCode;
             currentShareToken = shareToken || currentShareToken;
-            currentShareUrl = currentShareToken
-                ? `${window.location.origin}/result.html?share=${encodeURIComponent(currentShareToken)}`
-                : (currentCode ? `${window.location.origin}/result.html?code=${encodeURIComponent(currentCode)}` : '');
-            return {
-                results: fallbackResults || {},
-                branding: fallbackBranding || {},
-                likes: 0,
-                validUntil: null,
+            currentShareUrl = buildResultUrl({ code: currentCode, shareToken: currentShareToken });
+            return buildHydratedState({
+                fallbackResults,
+                fallbackBranding,
                 advice: fallbackResults?.advice || '',
                 displayName: fallbackBranding?.display_name || '',
-                vendorId: fallbackBranding?.vendor_id || '',
-                shareToken: currentShareToken,
-                shareUrl: currentShareUrl
-            };
+                vendorId: fallbackBranding?.vendor_id || ''
+            });
         }
     }
 
@@ -371,6 +379,19 @@
         el.dataset.tone = tone;
     }
 
+    function updateAdviceCopy(advice) {
+        const adviceEl = document.getElementById('creatorAdvice');
+        if (!adviceEl) return;
+        adviceEl.textContent = advice
+            ? `${t('profileNotesPrefix', 'PROFILE NOTES: OPTIMIZED FOR COMPETITIVE PLAY')} — ${advice}`
+            : `${t('profileNotesPrefix', 'PROFILE NOTES: OPTIMIZED FOR COMPETITIVE PLAY')} — [${t('noAdvice', 'NO_EXTRA_ADVICE_PROVIDED')}]`;
+    }
+
+    function updateShareHint() {
+        const shareHint = document.getElementById('shareLinkHint');
+        if (shareHint) shareHint.textContent = currentShareUrl ? `${t('secureShare', 'SECURE SHARE')}: ${currentShareUrl}` : '';
+    }
+
     async function submitFeedback({ rating, source, isLike = false }) {
         if ((!currentCode && !currentShareToken) || likeInFlight) return;
         const feedbackText = (document.getElementById('feedbackText')?.value || '').trim();
@@ -464,14 +485,8 @@
                 ? `[${t('redactedCode', 'REDACTED_CODE')}] ${currentCode}`
                 : `[${t('secureShareLink', 'SECURE_SHARE_LINK')}] ${currentShareUrl}`;
         }
-        const adviceEl = document.getElementById('creatorAdvice');
-        if (adviceEl) {
-            adviceEl.textContent = currentAdvice
-                ? `${t('profileNotesPrefix', 'PROFILE NOTES: OPTIMIZED FOR COMPETITIVE PLAY')} — ${currentAdvice}`
-                : `${t('profileNotesPrefix', 'PROFILE NOTES: OPTIMIZED FOR COMPETITIVE PLAY')} — [${t('noAdvice', 'NO_EXTRA_ADVICE_PROVIDED')}]`;
-        }
-        const shareHint = document.getElementById('shareLinkHint');
-        if (shareHint) shareHint.textContent = currentShareUrl ? `${t('secureShare', 'SECURE SHARE')}: ${currentShareUrl}` : '';
+        updateAdviceCopy(currentAdvice);
+        updateShareHint();
         if (currentShareDetails) updateShareCard(currentShareDetails);
         const chipMode = document.getElementById('chipMode');
         if (chipMode) chipMode.textContent = t('viewExportMode', 'VIEW / EXPORT');
@@ -541,11 +556,8 @@
         document.getElementById('notesAvatar').src = branding.logo_url || branding.logo || 'favicon.png';
         if (branding.logo_url || branding.logo) document.getElementById('creatorLogo').src = branding.logo_url || branding.logo;
         currentAdvice = hydrated.advice || '';
-        document.getElementById('creatorAdvice').textContent = hydrated.advice
-            ? `${t('profileNotesPrefix', 'PROFILE NOTES: OPTIMIZED FOR COMPETITIVE PLAY')} — ${hydrated.advice}`
-            : `${t('profileNotesPrefix', 'PROFILE NOTES: OPTIMIZED FOR COMPETITIVE PLAY')} — [${t('noAdvice', 'NO_EXTRA_ADVICE_PROVIDED')}]`;
-        const shareHint = document.getElementById('shareLinkHint');
-        if (shareHint) shareHint.textContent = currentShareUrl ? `${t('secureShare', 'SECURE SHARE')}: ${currentShareUrl}` : '';
+        updateAdviceCopy(hydrated.advice);
+        updateShareHint();
 
         const liked = localStorage.getItem(likedStorageKey(currentEngagementKey())) === 'true';
         setLikeButtonState(liked, hydrated.likes || 0);

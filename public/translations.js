@@ -559,7 +559,7 @@ Object.entries(window.LANGUAGE_PAGE_EXTRAS).forEach(([lang, extras]) => {
     window.LANGUAGES[lang] = { ...(window.LANGUAGES[lang] || {}), ...extras };
 });
 
-window.UNIVERSAL_UI_EXTRAS = {
+const UNIVERSAL_UI_EXTRAS = {
     en: {
         profileFeedback: 'PROFILE_FEEDBACK',
         fineTuneProfile: 'Fine-tune this profile response',
@@ -1009,6 +1009,12 @@ window.UNIVERSAL_UI_EXTRAS = {
         loadingProfile: 'ЗАГРУЗКА_ПРОФИЛЯ...'
     }
 };
-Object.entries(window.UNIVERSAL_UI_EXTRAS).forEach(([lang, extras]) => {
-    window.LANGUAGES[lang] = { ...(window.LANGUAGES[lang] || {}), ...extras };
-});
+
+function mergeLanguageExtras(extrasByLanguage) {
+    Object.entries(extrasByLanguage).forEach(([lang, extras]) => {
+        window.LANGUAGES[lang] = { ...(window.LANGUAGES[lang] || {}), ...extras };
+    });
+}
+
+window.UNIVERSAL_UI_EXTRAS = UNIVERSAL_UI_EXTRAS;
+mergeLanguageExtras(UNIVERSAL_UI_EXTRAS);

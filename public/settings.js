@@ -36,6 +36,21 @@
         { id: 'compact-mode-toggle', key: STORAGE_KEYS.compactMode, label: 'compactMode', attr: 'compactMode' }
     ];
 
+    function getCurrentPageName() {
+        return window.location.pathname.split('/').pop() || 'index.html';
+    }
+
+    function syncActiveItems(selector, dataKey, activeValue) {
+        document.querySelectorAll(selector).forEach((node) => {
+            node.classList.toggle('active', node.dataset[dataKey] === activeValue);
+        });
+    }
+
+    function bindDatasetClicks(selector, dataKey, handler) {
+        document.querySelectorAll(selector).forEach((node) => {
+            node.addEventListener('click', () => handler(node.dataset[dataKey]));
+        });
+    }
 
     function getDictionary(langCode) {
         const fallback = (window.LANGUAGES && window.LANGUAGES.en) || {};
@@ -138,7 +153,7 @@
     }
 
     function applySelectorTranslations(langCode) {
-        const page = window.location.pathname.split('/').pop() || 'index.html';
+        const page = getCurrentPageName();
         (selectorTranslationMap[page] || []).forEach(([selector, key, mode]) => {
             document.querySelectorAll(selector).forEach((el) => {
                 translateElement(el, key, langCode, el.textContent, mode);
@@ -188,10 +203,7 @@
         document.documentElement.style.setProperty('--accent-primary', theme.primary);
         document.documentElement.style.setProperty('--accent-primary-glow', theme.glow);
         localStorage.setItem(STORAGE_KEYS.theme, themeKey);
-        
-        document.querySelectorAll('.theme-dot').forEach(dot => {
-            dot.classList.toggle('active', dot.dataset.theme === themeKey);
-        });
+        syncActiveItems('.theme-dot', 'theme', themeKey);
     }
 
 
@@ -228,7 +240,7 @@
     }
 
     function getBackTarget() {
-        const pathName = window.location.pathname.split('/').pop() || 'index.html';
+        const pathName = getCurrentPageName();
         if (pathName === 'result.html') {
             return sessionStorage.getItem('xp_nav_origin') === 'vendor_dashboard.html' ? '/vendor_dashboard.html' : '/verify.html';
         }
@@ -238,15 +250,13 @@
     }
 
     function shouldShowBackButton() {
-        const pathName = window.location.pathname.split('/').pop() || 'index.html';
+        const pathName = getCurrentPageName();
         return ['result.html', 'verify.html', 'admin.html'].includes(pathName);
     }
 
     function applyLang(langCode) {
         localStorage.setItem(STORAGE_KEYS.lang, langCode);
-        document.querySelectorAll('.lang-item').forEach(item => {
-            item.classList.toggle('active', item.dataset.lang === langCode);
-        });
+        syncActiveItems('.lang-item', 'lang', langCode);
         applyDomTranslations(langCode);
         if (window.UI && typeof window.UI.applyLang === 'function') {
             window.UI.applyLang();
@@ -531,14 +541,10 @@
     });
 
     // Theme Logic
-    document.querySelectorAll('.theme-dot').forEach(dot => {
-        dot.addEventListener('click', () => applyTheme(dot.dataset.theme));
-    });
+    bindDatasetClicks('.theme-dot', 'theme', applyTheme);
 
     // Language Logic
-    document.querySelectorAll('.lang-item').forEach(item => {
-        item.addEventListener('click', () => applyLang(item.dataset.lang));
-    });
+    bindDatasetClicks('.lang-item', 'lang', applyLang);
     preferenceToggles.forEach(({ id, key }) => {
         document.getElementById(id)?.addEventListener('click', () => togglePreference(key));
     });
