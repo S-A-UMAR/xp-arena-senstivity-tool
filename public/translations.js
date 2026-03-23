@@ -559,6 +559,7 @@ Object.entries(window.LANGUAGE_PAGE_EXTRAS).forEach(([lang, extras]) => {
     window.LANGUAGES[lang] = { ...(window.LANGUAGES[lang] || {}), ...extras };
 });
 
+const UNIVERSAL_UI_EXTRAS = {
 window.UNIVERSAL_UI_EXTRAS = {
     en: {
         profileFeedback: 'PROFILE_FEEDBACK',
@@ -590,6 +591,14 @@ window.UNIVERSAL_UI_EXTRAS = {
         profileNotesPrefix: 'PROFILE NOTES: OPTIMIZED FOR COMPETITIVE PLAY',
         currentUtcLabel: 'CURRENT UTC',
         expiryLabel: 'EXPIRY',
+        verificationLabel: 'Verification',
+        providerLabel: 'Provider',
+        modeLabel: 'Mode',
+        viewExportMode: 'VIEW / EXPORT',
+        networkStable: 'NETWORK: STABLE',
+        additionalNotes: 'ADDITIONAL_NOTES',
+        activeTimed: 'ACTIVE / TIMED',
+        activeOpen: 'ACTIVE / OPEN',
         profileEfficiencyText: 'PROFILE_EFFICIENCY',
         unitIdLabel: 'UNIT_ID',
         settingsByLabel: 'SETTINGS BY',
@@ -1001,6 +1010,12 @@ window.UNIVERSAL_UI_EXTRAS = {
         loadingProfile: 'ЗАГРУЗКА_ПРОФИЛЯ...'
     }
 };
-Object.entries(window.UNIVERSAL_UI_EXTRAS).forEach(([lang, extras]) => {
-    window.LANGUAGES[lang] = { ...(window.LANGUAGES[lang] || {}), ...extras };
-});
+
+function mergeLanguageExtras(extrasByLanguage) {
+    Object.entries(extrasByLanguage).forEach(([lang, extras]) => {
+        window.LANGUAGES[lang] = { ...(window.LANGUAGES[lang] || {}), ...extras };
+    });
+}
+
+window.UNIVERSAL_UI_EXTRAS = UNIVERSAL_UI_EXTRAS;
+mergeLanguageExtras(UNIVERSAL_UI_EXTRAS);

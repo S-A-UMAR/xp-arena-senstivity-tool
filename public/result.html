@@ -18,20 +18,20 @@
             <div class="hero-banner">
                 <div class="logo-badge">SCAN_COMPLETE</div>
                 <h1 class="title-main" style="font-size: 1.6rem; margin: 0.55rem 0 0;">AUTHORIZATION_SUCCESS</h1>
-                <p>Your creator card is now brighter, easier to read, and ready for export, sharing, quick likes, and direct code copy.</p>
+                <p data-i18n="resultHeroText">Your creator card is now brighter, easier to read, and ready for export, sharing, quick likes, and direct code copy.</p>
             </div>
             <div class="result-overview">
                 <div class="overview-chip">
-                    <span class="label">Verification</span>
+                    <span class="label" data-i18n="verificationLabel">Verification</span>
                     <span class="value" id="chipStatus">SECURE LINK</span>
                 </div>
                 <div class="overview-chip">
-                    <span class="label">Provider</span>
+                    <span class="label" data-i18n="providerLabel">Provider</span>
                     <span class="value" id="chipVendor">XP_CORE</span>
                 </div>
                 <div class="overview-chip">
-                    <span class="label">Mode</span>
-                    <span class="value" id="chipMode">VIEW / EXPORT</span>
+                    <span class="label" data-i18n="modeLabel">Mode</span>
+                    <span class="value" id="chipMode" data-i18n="viewExportMode">VIEW / EXPORT</span>
                 </div>
             </div>
         </header>
@@ -48,16 +48,16 @@
                             </div>
                         </div>
                         <div class="telemetry-panel">
-                            <div class="row"><span>CURRENT UTC:</span><strong id="currentUtcLabel">--</strong></div>
-                            <div class="row"><span>EXPIRY:</span><strong id="expiryValue">NEVER</strong></div>
-                            <div class="row"><span class="telemetry-dot"></span><span>NETWORK: STABLE</span></div>
+                            <div class="row"><span data-i18n="currentUtcLabel">CURRENT UTC</span><strong id="currentUtcLabel">--</strong></div>
+                            <div class="row"><span data-i18n="expiryLabel">EXPIRY</span><strong id="expiryValue">NEVER</strong></div>
+                            <div class="row"><span class="telemetry-dot"></span><span data-i18n="networkStable">NETWORK: STABLE</span></div>
                             <div class="telemetry-bar"><span id="efficiencyBar"></span></div>
-                            <div class="row"><span>PROFILE_EFFICIENCY:</span><strong id="profileEfficiency">--%</strong></div>
+                            <div class="row"><span data-i18n="profileEfficiencyText">PROFILE_EFFICIENCY</span><strong id="profileEfficiency">--%</strong></div>
                         </div>
                     </div>
 
                     <section class="device-access">
-                        <div class="device-access-header">DEVICE &amp; ACCESS</div>
+                        <div class="device-access-header" data-i18n="deviceAccess">DEVICE &amp; ACCESS</div>
                         <div class="device-access-body">
                             <div class="device-profile-row">
                                 <div class="device-thumb">
@@ -140,22 +140,22 @@
                                 <img id="notesAvatar" src="favicon.png" alt="Creator avatar">
                             </div>
                             <div>
-                                <div class="label" style="font-family: var(--font-mono); color:#96aab9; font-size:0.58rem; letter-spacing:0.14em;">SETTINGS_BY</div>
-                                <div style="color:#fff; font-family:var(--font-mono); font-size:1rem; line-height:1.5;" id="settingsBy">Settings by: XP_CORE 👾</div>
-                                <div style="margin-top:0.55rem; color:#96aab9; font-family:var(--font-mono); font-size:0.58rem; letter-spacing:0.14em;">ADDITIONAL_NOTES</div>
+                                <div class="notes-eyebrow">SETTINGS_BY</div>
+                                <div class="notes-byline" id="settingsBy">Settings by: XP_CORE 👾</div>
+                                <div class="notes-eyebrow notes-eyebrow-spaced" data-i18n="additionalNotes">ADDITIONAL_NOTES</div>
                             </div>
                             <div class="verified-pill">VERIFIED <span id="verifiedEfficiency">--%</span></div>
                         </div>
                         <div class="notes-copy" id="creatorAdvice">NO_EXTRA_ADVICE_PROVIDED</div>
-                        <div class="notes-copy" id="followHint" style="color:#8fc8dc; font-size:0.72rem;"></div>
+                        <div class="notes-copy notes-follow-hint" id="followHint"></div>
                     </section>
                 </section>
             </div>
 
             <div class="action-grid">
-                <button class="action-btn" id="downloadBtn" style="margin-top: 0; background: #e7f4ff; color: #061019; box-shadow: none;">DOWNLOAD_ID</button>
-                <button class="action-btn secondary-tone" id="copyBtn" style="margin-top: 0;">COPY_TEXT / SHARE</button>
-                <button class="action-btn like-tone" id="likeBtn" type="button" style="margin-top: 0;">❤️ LIKE (0)</button>
+                <button class="action-btn action-btn-inline download-tone" id="downloadBtn">DOWNLOAD_ID</button>
+                <button class="action-btn action-btn-inline secondary-tone" id="copyBtn">COPY_TEXT / SHARE</button>
+                <button class="action-btn action-btn-inline like-tone" id="likeBtn" type="button">❤️ LIKE (0)</button>
             </div>
             <div class="motion-note">This card is view-only for end users. Sensitivity generation stays locked to vendor workspaces.</div>
 
@@ -201,7 +201,7 @@
 
     <div class="follow-creator-bar reveal" style="animation-delay: 0.45s;">
         <div id="socialLinks" style="display:flex; gap:1rem; margin-bottom:1rem; justify-content:center; flex-wrap:wrap;"></div>
-        <button class="btn-follow" id="followBtn">FOLLOW_CREATOR</button>
+        <button class="btn-follow" id="followBtn" data-i18n="followCreator">FOLLOW_CREATOR</button>
     </div>
 
 
@@ -258,7 +258,6 @@
         </section>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="analytics.js"></script>
     <script src="translations.js"></script>
     <script src="notifications.js"></script>

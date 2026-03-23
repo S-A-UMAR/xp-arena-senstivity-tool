@@ -36,6 +36,21 @@
         { id: 'compact-mode-toggle', key: STORAGE_KEYS.compactMode, label: 'compactMode', attr: 'compactMode' }
     ];
 
+    function getCurrentPageName() {
+        return window.location.pathname.split('/').pop() || 'index.html';
+    }
+
+    function syncActiveItems(selector, dataKey, activeValue) {
+        document.querySelectorAll(selector).forEach((node) => {
+            node.classList.toggle('active', node.dataset[dataKey] === activeValue);
+        });
+    }
+
+    function bindDatasetClicks(selector, dataKey, handler) {
+        document.querySelectorAll(selector).forEach((node) => {
+            node.addEventListener('click', () => handler(node.dataset[dataKey]));
+        });
+    }
 
     function getDictionary(langCode) {
         const fallback = (window.LANGUAGES && window.LANGUAGES.en) || {};
@@ -138,7 +153,7 @@
     }
 
     function applySelectorTranslations(langCode) {
-        const page = window.location.pathname.split('/').pop() || 'index.html';
+        const page = getCurrentPageName();
         (selectorTranslationMap[page] || []).forEach(([selector, key, mode]) => {
             document.querySelectorAll(selector).forEach((el) => {
                 translateElement(el, key, langCode, el.textContent, mode);
@@ -303,10 +318,55 @@
         document.documentElement.style.setProperty('--accent-primary', theme.primary);
         document.documentElement.style.setProperty('--accent-primary-glow', theme.glow);
         localStorage.setItem(STORAGE_KEYS.theme, themeKey);
-        
-        document.querySelectorAll('.theme-dot').forEach(dot => {
-            dot.classList.toggle('active', dot.dataset.theme === themeKey);
+        syncActiveItems('.theme-dot', 'theme', themeKey);
+    }
+
+
+
+    function closeActivePanels() {
+        let closed = false;
+        if (typeof window.toggleSheet === 'function') {
+            window.toggleSheet(false);
+            closed = true;
+        }
+        if (typeof window.toggleActionSheet === 'function') {
+            window.toggleActionSheet(false);
+            closed = true;
+        }
+        if (typeof window.closeSuccessOverlay === 'function') {
+            window.closeSuccessOverlay();
+            closed = true;
+        }
+        if (typeof window.closeModal === 'function') {
+            window.closeModal();
+            closed = true;
+        }
+        document.querySelectorAll('.sheet-overlay.active, .action-sheet.active, .modal.active, .success-overlay.active, .hub-panel:not(.hidden)').forEach((node) => {
+            if (node.classList.contains('hub-panel')) {
+                node.classList.add('hidden');
+                document.getElementById('hub-trigger')?.classList.remove('active');
+                document.getElementById('settings-hub')?.classList.remove('open');
+            } else {
+                node.classList.remove('active');
+            }
+            closed = true;
         });
+        return closed;
+    }
+
+    function getBackTarget() {
+        const pathName = getCurrentPageName();
+        if (pathName === 'result.html') {
+            return sessionStorage.getItem('xp_nav_origin') === 'vendor_dashboard.html' ? '/vendor_dashboard.html' : '/verify.html';
+        }
+        if (pathName === 'verify.html') return '/index.html';
+        if (pathName === 'admin.html') return '/verify.html';
+        return null;
+    }
+
+    function shouldShowBackButton() {
+        const pathName = getCurrentPageName();
+        return ['result.html', 'verify.html', 'admin.html'].includes(pathName);
     }
 
 
@@ -359,6 +419,7 @@
 
     function applyLang(langCode) {
         localStorage.setItem(STORAGE_KEYS.lang, langCode);
+        syncActiveItems('.lang-item', 'lang', langCode);
         document.querySelectorAll('.lang-item').forEach(item => {
             item.classList.toggle('active', item.dataset.lang === langCode);
         });
@@ -646,13 +707,62 @@
     });
 
     // Theme Logic
-    document.querySelectorAll('.theme-dot').forEach(dot => {
-        dot.addEventListener('click', () => applyTheme(dot.dataset.theme));
-    });
+    bindDatasetClicks('.theme-dot', 'theme', applyTheme);
 
     // Language Logic
-    document.querySelectorAll('.lang-item').forEach(item => {
-        item.addEventListener('click', () => applyLang(item.dataset.lang));
+    bindDatasetClicks('.lang-item', 'lang', applyLang);
+    preferenceToggles.forEach(({ id, key }) => {
+        document.getElementById(id)?.addEventListener('click', () => togglePreference(key));
+    });
+
+
+
+    // App navigation helper
+    const navHub = document.createElement('div');
+    navHub.id = 'xp-nav-hub';
+    navHub.innerHTML = `
+        <button class="xp-nav-btn hidden" id="xpBackBtn" type="button" aria-label="Go back">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/><path d="M21 12H9"/></svg>
+        </button>
+        <button class="xp-nav-btn hidden" id="xpCloseBtn" type="button" aria-label="Close panel">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg>
+        </button>
+    `;
+    document.body.appendChild(navHub);
+
+    const backBtn = document.getElementById('xpBackBtn');
+    const closeBtn = document.getElementById('xpCloseBtn');
+
+    function syncNavButtons() {
+        const closable = document.querySelector('.sheet-overlay.active, .action-sheet.active, .modal.active, .success-overlay.active, .hub-panel:not(.hidden)');
+        closeBtn.classList.toggle('hidden', !closable);
+        backBtn.classList.toggle('hidden', closable || !shouldShowBackButton());
+    }
+
+    backBtn?.addEventListener('click', () => {
+        const target = getBackTarget();
+        if (window.history.length > 1 && !target) {
+            window.history.back();
+            return;
+        }
+        if (target) {
+            window.location.href = target;
+        }
+    });
+
+    closeBtn?.addEventListener('click', () => {
+        closeActivePanels();
+        syncNavButtons();
+    });
+
+    document.addEventListener('click', () => {
+        window.requestAnimationFrame(syncNavButtons);
+    });
+    window.addEventListener('DOMContentLoaded', syncNavButtons);
+    window.addEventListener('keyup', (event) => {
+        if (event.key === 'Escape' && closeActivePanels()) {
+            syncNavButtons();
+        }
     });
     preferenceToggles.forEach(({ id, key }) => {
         document.getElementById(id)?.addEventListener('click', () => togglePreference(key));

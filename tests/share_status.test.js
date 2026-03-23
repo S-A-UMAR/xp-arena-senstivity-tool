@@ -19,6 +19,14 @@ const request = require('supertest');
 const { db } = require('../db');
 const app = require('../server');
 
+function createShareToken(overrides = {}) {
+  return jwt.sign({ type: 'share', sid: 'share-demo-2000', lookup_key: 'abc123xyz0', ...overrides }, process.env.JWT_SECRET, { expiresIn: '1h' });
+}
+
+function mockShareRecord(shareId) {
+  return { share_id: shareId, lookup_key: 'abc123xyz0', revoked_at: null, expires_at: '2099-01-01 00:00:00' };
+}
+
 describe('GET /api/vault/share/:token/status', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -26,9 +34,12 @@ describe('GET /api/vault/share/:token/status', () => {
 
   it('does not expose the raw access code when hydrating a secure share link', async () => {
     const rawCode = 'XP-SHARE-2000';
-    const shareToken = jwt.sign({ type: 'share', code: rawCode }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    const shareToken = createShareToken();
 
     db.get.mockImplementation(async (sql, params) => {
+      if (sql.includes('FROM share_tokens WHERE share_id = ?')) {
+        return mockShareRecord(params[0]);
+      }
       if (sql.includes('FROM sensitivity_keys k')) {
         return {
           id: 17,
@@ -62,5 +73,15 @@ describe('GET /api/vault/share/:token/status', () => {
     expect(res.body.share_token).toBe(shareToken);
     expect(res.body.redirect).toBe(`/result.html?share=${encodeURIComponent(shareToken)}`);
     expect(JSON.stringify(res.body)).not.toContain(rawCode);
+  });
+
+  it('keeps the raw access code out of the signed share token payload itself', () => {
+    const rawCode = 'XP-SHARE-2000';
+    const shareToken = createShareToken();
+
+    const decoded = jwt.decode(shareToken);
+
+    expect(decoded.code).toBeUndefined();
+    expect(JSON.stringify(decoded)).not.toContain(rawCode);
   });
 });

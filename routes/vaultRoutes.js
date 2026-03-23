@@ -170,7 +170,60 @@ async function getJwtSecret() {
     if (secret) return secret;
     const dbSecret = await getAdminSecret();
     if (dbSecret) return dbSecret;
-    return 'XP_SECURE_FALLBACK_STATION_2026';
+    throw new Error('JWT_SECRET_NOT_CONFIGURED');
+}
+
+async function createShareToken(entryCode) {
+    const lookupKey = getLookupKey(entryCode);
+    const now = new Date();
+    const expiresAt = new Date(Date.now() + (14 * 24 * 60 * 60 * 1000));
+    let shareId = null;
+
+    try {
+        const existing = await db.get(
+            'SELECT share_id FROM share_tokens WHERE lookup_key = ? AND revoked_at IS NULL AND expires_at > ? ORDER BY created_at DESC LIMIT 1',
+            [lookupKey, now]
+        );
+        shareId = existing?.share_id || null;
+    } catch (_err) {}
+
+    if (!shareId) {
+        shareId = crypto.randomBytes(12).toString('hex');
+        try {
+            await db.run(
+                'INSERT INTO share_tokens (share_id, lookup_key, expires_at) VALUES (?, ?, ?)',
+                [shareId, lookupKey, expiresAt]
+            );
+        } catch (_err) {}
+    }
+
+    return jwt.sign(
+        { type: 'share', sid: shareId, lookup_key: lookupKey },
+        await getJwtSecret(),
+        { expiresIn: '14d' }
+    );
+}
+
+async function getCodeRecordFromShareToken(shareToken) {
+    const payload = jwt.verify(shareToken, await getJwtSecret());
+    if (payload?.type !== 'share' || !payload?.sid) {
+        throw new Error('INVALID_SHARE_TOKEN');
+    }
+    const shareRecord = await db.get(
+        'SELECT share_id, lookup_key, revoked_at, expires_at FROM share_tokens WHERE share_id = ? LIMIT 1',
+        [payload.sid]
+    );
+    if (!shareRecord || shareRecord.revoked_at) {
+        throw new Error('INVALID_SHARE_TOKEN');
+    }
+    if (shareRecord.expires_at && new Date(shareRecord.expires_at) <= new Date()) {
+        throw new Error('INVALID_SHARE_TOKEN');
+    }
+    await db.run(
+        'UPDATE share_tokens SET last_accessed_at = ?, access_count = access_count + 1 WHERE share_id = ?',
+        [new Date(), payload.sid]
+    ).catch(() => {});
+    return getCodeRecordByLookupKey(shareRecord.lookup_key || payload.lookup_key || '');
 }
 
 async function createShareToken(entryCode) {
@@ -352,6 +405,15 @@ async function buildVerificationPayload(keyData, rawCode = null, options = {}) {
 
 async function getCodeRecordByRawCode(rawCode) {
     const lookupKey = getLookupKey(rawCode);
+    const found = await getCodeRecordByLookupKey(lookupKey);
+    if (!found) return null;
+    const isMatch = await bcrypt.compare(rawCode, found.keyData.entry_code);
+    if (!isMatch) return null;
+    return found;
+}
+
+async function getCodeRecordByLookupKey(lookupKey) {
+    if (!lookupKey) return null;
     const keyData = await db.get(`
         SELECT k.*, v.status as vendor_status, v.brand_config, v.active_until, v.usage_limit as vendor_usage_limit, v.org_id
         FROM sensitivity_keys k
@@ -359,8 +421,6 @@ async function getCodeRecordByRawCode(rawCode) {
         WHERE k.lookup_key = ?
     `, [lookupKey]);
     if (!keyData) return null;
-    const isMatch = await bcrypt.compare(rawCode, keyData.entry_code);
-    if (!isMatch) return null;
     return { keyData, lookupKey };
 }
 
@@ -1191,15 +1251,21 @@ router.get('/admin/vendor/:vendorId/analytics', authenticateAdmin, async (req, r
 
 router.post('/admin/vendors', authenticateAdmin, async (req, res) => {
     try {
-        const { vendorId: requestedId, orgId: rawOrgId, usageLimit, durationDays, brandConfig } = z.object({
+        const nullableInt = (minimum) => z.preprocess((value) => {
+            if (value === '' || value === null || value === undefined) return undefined;
+            return value;
+        }, z.coerce.number().int().min(minimum).optional());
+
+        const { vendorId: requestedId, orgId: rawOrgId, orgName: rawOrgName, usageLimit, durationDays, brandConfig } = z.object({
             vendorId: z.string().min(2).optional(),
             orgId: z.string().optional(),
-            usageLimit: z.number().int().min(0).nullable().optional(),
-            durationDays: z.number().int().min(1).optional(),
-            brandConfig: z.record(z.any()).optional()
+            orgName: z.string().optional(),
+            usageLimit: nullableInt(0),
+            durationDays: nullableInt(1),
+            brandConfig: z.record(z.any()).nullable().optional()
         }).parse(req.body || {});
 
-        const orgId = (rawOrgId || 'XP-CORE-ORG').trim().toUpperCase().replace(/[^A-Z0-9-]/g, '');
+        const orgId = ((rawOrgId || 'XP-CORE-ORG').trim().toUpperCase().replace(/[^A-Z0-9-]/g, '')) || 'XP-CORE-ORG';
         const normalizedRequestedId = requestedId
             ? requestedId.trim().toUpperCase().replace(/\s+/g, '-').replace(/[^A-Z0-9-]/g, '')
             : '';
@@ -1222,7 +1288,7 @@ router.post('/admin/vendors', authenticateAdmin, async (req, res) => {
             activeUntil = date.toISOString().slice(0, 19).replace('T', ' ');
         }
 
-        const orgName = rawOrgId || 'XP ARENA GLOBAL';
+        const orgName = rawOrgName || rawOrgId || 'XP ARENA GLOBAL';
         await db.run("INSERT IGNORE INTO organizations (org_id, org_name, plan_tier) VALUES (?, ?, 'enterprise')", [orgId, orgName]);
         await db.run(`
             INSERT INTO vendors (org_id, vendor_id, access_key, lookup_key, usage_limit, active_until, brand_config, status)
@@ -1298,6 +1364,31 @@ router.get('/admin/settings', authenticateAdmin, async (_req, res) => {
         return res.json(settings);
     } catch (_err) {
         return res.status(500).json({ error: 'SETTINGS_UNAVAILABLE' });
+    }
+});
+
+router.get('/admin/schema/status', authenticateAdmin, async (_req, res) => {
+    try {
+        const tables = await db.all(`
+            SELECT table_name
+            FROM information_schema.tables
+            WHERE table_schema = DATABASE()
+              AND table_name IN ('vendor_presets', 'transient_cache', 'share_tokens', 'schema_migrations')
+        `);
+        const migrations = await db.all('SELECT version, applied_at FROM schema_migrations ORDER BY applied_at DESC LIMIT 20').catch(() => []);
+        const tableNames = new Set((tables || []).map((row) => row.table_name));
+        return res.json({
+            tables: {
+                vendor_presets: tableNames.has('vendor_presets'),
+                transient_cache: tableNames.has('transient_cache'),
+                share_tokens: tableNames.has('share_tokens'),
+                schema_migrations: tableNames.has('schema_migrations')
+            },
+            recent_migrations: migrations
+        });
+    } catch (err) {
+        console.error('SCHEMA_STATUS_ERR:', err);
+        return res.status(500).json({ error: 'SCHEMA_STATUS_UNAVAILABLE' });
     }
 });
 
@@ -1459,6 +1550,41 @@ router.post('/feedback', async (req, res) => {
         if (err instanceof z.ZodError) return fail(res, 'XP_VAL_FAILED', 'INVALID_FEEDBACK_INPUT', 400, err.errors);
         console.error('FEEDBACK_ERR:', err);
         return res.status(500).json({ error: 'FEEDBACK_SYSTEM_ERROR' });
+    }
+});
+
+router.get('/share-links', authenticateVendor, async (req, res) => {
+    try {
+        const rows = await db.all(`
+            SELECT st.share_id, st.lookup_key, st.created_at, st.expires_at, st.last_accessed_at, st.access_count, st.revoked_at
+            FROM share_tokens st
+            JOIN sensitivity_keys sk ON sk.lookup_key = st.lookup_key
+            WHERE sk.vendor_id = ?
+            ORDER BY st.created_at DESC
+            LIMIT 50
+        `, [req.vendorId]);
+        return res.json(rows);
+    } catch (err) {
+        console.error('SHARE_LINK_LIST_ERR:', err);
+        return res.status(500).json({ error: 'SHARE_LINKS_UNAVAILABLE' });
+    }
+});
+
+router.delete('/share-links/:shareId', authenticateVendor, async (req, res) => {
+    try {
+        const owner = await db.get(`
+            SELECT st.share_id
+            FROM share_tokens st
+            JOIN sensitivity_keys sk ON sk.lookup_key = st.lookup_key
+            WHERE st.share_id = ? AND sk.vendor_id = ?
+            LIMIT 1
+        `, [req.params.shareId, req.vendorId]);
+        if (!owner) return res.status(404).json({ error: 'SHARE_LINK_NOT_FOUND' });
+        await db.run('UPDATE share_tokens SET revoked_at = ? WHERE share_id = ?', [new Date(), req.params.shareId]);
+        return res.json({ success: true });
+    } catch (err) {
+        console.error('SHARE_LINK_REVOKE_ERR:', err);
+        return res.status(500).json({ error: 'SHARE_LINK_REVOKE_FAILED' });
     }
 });
 

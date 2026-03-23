@@ -33,6 +33,34 @@
         return currentCode || currentShareToken || '';
     }
 
+    function buildResultUrl({ code = '', shareToken = '' }) {
+        if (shareToken) return `${window.location.origin}/result.html?share=${encodeURIComponent(shareToken)}`;
+        return code ? `${window.location.origin}/result.html?code=${encodeURIComponent(code)}` : '';
+    }
+
+    function storeLastResult(payload, fallbackBranding) {
+        localStorage.setItem('xp_last_entry_code', currentCode);
+        localStorage.setItem(
+            'xp_sensitivity_profile_last_result',
+            JSON.stringify({ ...(payload.sensitivity || payload.results || {}), advice: payload.advice || payload.sensitivity?.advice || '' })
+        );
+        localStorage.setItem('xp_last_branding', JSON.stringify(payload.branding || fallbackBranding || {}));
+    }
+
+    function buildHydratedState({ payload = null, fallbackResults = {}, fallbackBranding = {}, likes = 0, validUntil = null, advice = '', displayName = '', vendorId = '' }) {
+        return {
+            results: payload?.sensitivity || payload?.results || fallbackResults || {},
+            branding: payload?.branding || fallbackBranding || {},
+            likes: payload?.likes || likes || 0,
+            validUntil: payload?.valid_until || validUntil || null,
+            advice: payload?.advice || payload?.sensitivity?.advice || advice || '',
+            displayName: payload?.display_name || displayName || '',
+            vendorId: payload?.vendor_id || vendorId || '',
+            shareToken: currentShareToken,
+            shareUrl: currentShareUrl
+        };
+    }
+
     function t(key, fallback) {
         const lang = localStorage.getItem('xp_lang') || 'en';
         const fallbackDict = (window.LANGUAGES && window.LANGUAGES.en) || {};
@@ -126,43 +154,23 @@
             currentVerifyPayload = payload;
             currentCode = payload.entry_code || code || '';
             currentShareToken = payload.share_token || shareToken || '';
-            currentShareUrl = currentShareToken
-                ? `${window.location.origin}/result.html?share=${encodeURIComponent(currentShareToken)}`
-                : `${window.location.origin}/result.html?code=${encodeURIComponent(currentCode)}`;
+            currentShareUrl = buildResultUrl({ code: currentCode, shareToken: currentShareToken });
 
-            localStorage.setItem('xp_last_entry_code', currentCode);
-            localStorage.setItem('xp_sensitivity_profile_last_result', JSON.stringify({ ...(payload.sensitivity || payload.results || {}), advice: payload.advice || payload.sensitivity?.advice || '' }));
-            localStorage.setItem('xp_last_branding', JSON.stringify(payload.branding || fallbackBranding || {}));
+            storeLastResult(payload, fallbackBranding);
 
-            return {
-                results: payload.sensitivity || payload.results || fallbackResults || {},
-                branding: payload.branding || fallbackBranding || {},
-                likes: payload.likes || 0,
-                validUntil: payload.valid_until || null,
-                advice: payload.advice || payload.sensitivity?.advice || '',
-                displayName: payload.display_name || '',
-                vendorId: payload.vendor_id || '',
-                shareToken: currentShareToken,
-                shareUrl: currentShareUrl
-            };
+            return buildHydratedState({ payload, fallbackResults, fallbackBranding });
         } catch (e) {
             console.warn('STATUS_REFRESH_ERR:', e);
             currentCode = code || currentCode;
             currentShareToken = shareToken || currentShareToken;
-            currentShareUrl = currentShareToken
-                ? `${window.location.origin}/result.html?share=${encodeURIComponent(currentShareToken)}`
-                : (currentCode ? `${window.location.origin}/result.html?code=${encodeURIComponent(currentCode)}` : '');
-            return {
-                results: fallbackResults || {},
-                branding: fallbackBranding || {},
-                likes: 0,
-                validUntil: null,
+            currentShareUrl = buildResultUrl({ code: currentCode, shareToken: currentShareToken });
+            return buildHydratedState({
+                fallbackResults,
+                fallbackBranding,
                 advice: fallbackResults?.advice || '',
                 displayName: fallbackBranding?.display_name || '',
-                vendorId: fallbackBranding?.vendor_id || '',
-                shareToken: currentShareToken,
-                shareUrl: currentShareUrl
-            };
+                vendorId: fallbackBranding?.vendor_id || ''
+            });
         }
     }
 
@@ -209,6 +217,154 @@
         document.getElementById('shareVerified').textContent = `${t('verifiedLabel', 'VERIFIED')} ${details.efficiency}%`;
     }
 
+    function buildCardDetails({ branding, hydrated, modelText, displayName, code, results }) {
+        const generalRange = `${document.getElementById('rGen1').textContent} — ${document.getElementById('rGen2').textContent}`;
+        const redDotRange = `${document.getElementById('rRed1').textContent} — ${document.getElementById('rRed2').textContent}`;
+        const scopeRange = `${document.getElementById('r2x1').textContent} — ${document.getElementById('r4x2').textContent}`;
+        return {
+            logo: branding.logo_url || branding.logo || 'favicon.png',
+            expiry: hydrated.validUntil ? document.getElementById('expiryValue').textContent : 'NEVER',
+            efficiency: currentEfficiency,
+            model: modelText,
+            creator: displayName,
+            code: currentCode || currentShareUrl || code,
+            general: generalRange,
+            redDot: redDotRange,
+            scope: scopeRange,
+            dpi: results.dpi || 'DEFAULT',
+            trendGeneral: document.getElementById('trendGeneral').textContent,
+            trendRed: document.getElementById('trendRed').textContent,
+            trendScope: document.getElementById('trend4x').textContent,
+            advice: hydrated.advice || 'OPTIMIZED FOR COMPETITIVE PLAY'
+        };
+    }
+
+    async function exportShareCardImage(details, filename) {
+        if (window.html2canvas) {
+            const area = document.getElementById('shareCaptureArea');
+            const canvas = await window.html2canvas(area, { scale: 2, backgroundColor: '#0b1620' });
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = canvas.toDataURL();
+            link.click();
+            return;
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = 1600;
+        canvas.height = 1600;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) throw new Error('CARD_EXPORT_UNAVAILABLE');
+
+        ctx.fillStyle = '#09131c';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        const drawRoundedRect = (x, y, w, h, r, fill, stroke = null) => {
+            ctx.beginPath();
+            ctx.moveTo(x + r, y);
+            ctx.lineTo(x + w - r, y);
+            ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+            ctx.lineTo(x + w, y + h - r);
+            ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+            ctx.lineTo(x + r, y + h);
+            ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+            ctx.lineTo(x, y + r);
+            ctx.quadraticCurveTo(x, y, x + r, y);
+            ctx.closePath();
+            ctx.fillStyle = fill;
+            ctx.fill();
+            if (stroke) {
+                ctx.strokeStyle = stroke;
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+        };
+
+        drawRoundedRect(26, 26, 1548, 1548, 42, '#0b1722', '#152635');
+        drawRoundedRect(42, 42, 1516, 1516, 36, '#0c1824', '#132434');
+
+        ctx.fillStyle = '#f4f7fb';
+        ctx.font = '700 64px "JetBrains Mono", monospace';
+        ctx.fillText('XP_ARENA', 225, 105);
+        ctx.fillStyle = '#90a4b7';
+        ctx.font = '600 24px "JetBrains Mono", monospace';
+        ctx.fillText('PREMIUM SHARE CARD', 225, 165);
+
+        ctx.textAlign = 'right';
+        ctx.fillStyle = '#dce7f2';
+        ctx.font = '600 26px "JetBrains Mono", monospace';
+        ctx.fillText(`${t('currentUtcLabel', 'CURRENT UTC')}: ${new Date().toISOString().replace('T', ' ').slice(0, 16)} UTC`, 1510, 105);
+        ctx.fillText(`${t('expiryLabel', 'EXPIRY')}: ${details.expiry}`, 1510, 155);
+        drawRoundedRect(890, 185, 620, 26, 13, '#213547');
+        const efficiencyWidth = Math.max(0, Math.min(620, (620 * (details.efficiency || 0)) / 100));
+        drawRoundedRect(890, 185, efficiencyWidth, 26, 13, '#6fd9ff');
+        ctx.fillText(`${t('profileEfficiencyText', 'PROFILE_EFFICIENCY')}: ${details.efficiency}%`, 1510, 255);
+        ctx.textAlign = 'left';
+
+        drawRoundedRect(84, 296, 1432, 294, 36, '#1a2938', '#24384c');
+        drawRoundedRect(90, 332, 208, 220, 28, '#ffffff', '#dce8f4');
+        ctx.fillStyle = '#95aabd';
+        ctx.font = '600 24px "JetBrains Mono", monospace';
+        ctx.fillText('DEVICE_PROFILE', 326, 390);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '700 62px "JetBrains Mono", monospace';
+        ctx.fillText(details.model, 326, 468);
+        ctx.font = '600 34px "JetBrains Mono", monospace';
+        ctx.fillText(`${t('unitIdLabel', 'UNIT_ID')}: ${details.creator}`, 326, 530);
+
+        drawRoundedRect(84, 626, 1432, 168, 30, '#1d2d3d', '#26394d');
+        ctx.fillStyle = '#8ea2b6';
+        ctx.font = '600 22px "JetBrains Mono", monospace';
+        ctx.fillText('ACCESS_CODE', 120, 684);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '700 42px "JetBrains Mono", monospace';
+        ctx.fillText(details.code, 120, 748);
+        drawRoundedRect(1218, 676, 282, 70, 35, '#1f423c', '#2b5f57');
+        ctx.fillStyle = '#8cf1ca';
+        ctx.font = '600 24px "JetBrains Mono", monospace';
+        ctx.fillText(t('syncedProfile', 'SYNCED_PROFILE'), 1260, 722);
+
+        const cards = [
+            { x: 84, y: 822, title: 'GENERAL_SENS', value: details.general, trend: details.trendGeneral, icon: '↑', accent: '#8ff0cf' },
+            { x: 816, y: 822, title: 'RED_DOT_PRECISION', value: details.redDot, trend: details.trendRed, icon: '↑', accent: '#ff8ca0' },
+            { x: 84, y: 1102, title: '2X / 4X_SCOPE', value: details.scope, trend: details.trendScope, icon: '↘', accent: '#87dfff' },
+            { x: 816, y: 1102, title: 'DPI / EFFICIENCY', value: `${details.dpi} • ${details.efficiency}%`, trend: 'TREND: LIVE_SYNCED', icon: '◎', accent: '#9df0e1' }
+        ];
+
+        cards.forEach((card) => {
+            drawRoundedRect(card.x, card.y, 700, 212, 30, '#101820', '#1b2d40');
+            ctx.fillStyle = '#91a7bc';
+            ctx.font = '600 24px "JetBrains Mono", monospace';
+            ctx.fillText(card.title, card.x + 36, card.y + 56);
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '700 74px "JetBrains Mono", monospace';
+            ctx.fillText(card.value, card.x + 36, card.y + 150);
+            ctx.fillStyle = '#96a9bc';
+            ctx.font = '600 24px "JetBrains Mono", monospace';
+            ctx.fillText(card.trend, card.x + 36, card.y + 196);
+            ctx.fillStyle = card.accent;
+            ctx.font = '700 56px "JetBrains Mono", monospace';
+            ctx.fillText(card.icon, card.x + 620, card.y + 90);
+        });
+
+        drawRoundedRect(84, 1380, 1432, 156, 30, '#111b24', '#203344');
+        ctx.fillStyle = '#90a4b7';
+        ctx.font = '600 22px "JetBrains Mono", monospace';
+        ctx.fillText(t('settingsByLabel', 'SETTINGS BY'), 298, 1444);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '600 34px "JetBrains Mono", monospace';
+        ctx.fillText(`${t('settingsByLabel', 'SETTINGS BY')} ${details.creator}: ${details.advice}`, 298, 1496);
+        drawRoundedRect(1240, 1434, 228, 72, 36, '#173b36', '#295f57');
+        ctx.fillStyle = '#8af0c7';
+        ctx.font = '600 24px "JetBrains Mono", monospace';
+        ctx.fillText(`${t('verifiedLabel', 'VERIFIED')} ${details.efficiency}%`, 1274, 1480);
+
+        const link = document.createElement('a');
+        link.download = filename;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+    }
+
     function setFeedbackTag(tag) {
         selectedFeedbackTag = tag;
         document.querySelectorAll('[data-feedback-tag]').forEach((button) => {
@@ -221,6 +377,19 @@
         if (!el) return;
         el.textContent = message || '';
         el.dataset.tone = tone;
+    }
+
+    function updateAdviceCopy(advice) {
+        const adviceEl = document.getElementById('creatorAdvice');
+        if (!adviceEl) return;
+        adviceEl.textContent = advice
+            ? `${t('profileNotesPrefix', 'PROFILE NOTES: OPTIMIZED FOR COMPETITIVE PLAY')} — ${advice}`
+            : `${t('profileNotesPrefix', 'PROFILE NOTES: OPTIMIZED FOR COMPETITIVE PLAY')} — [${t('noAdvice', 'NO_EXTRA_ADVICE_PROVIDED')}]`;
+    }
+
+    function updateShareHint() {
+        const shareHint = document.getElementById('shareLinkHint');
+        if (shareHint) shareHint.textContent = currentShareUrl ? `${t('secureShare', 'SECURE SHARE')}: ${currentShareUrl}` : '';
     }
 
     async function submitFeedback({ rating, source, isLike = false }) {
@@ -311,20 +480,16 @@
         const submitBtn = document.getElementById('submitFeedbackBtn');
         if (submitBtn) submitBtn.textContent = t('submitFeedback', 'SEND_FEEDBACK');
         const rail = document.getElementById('codeRailText');
-        if (rail && currentCode) {
-            rail.textContent = currentShareToken
-                ? `[${t('secureShareLink', 'SECURE_SHARE_LINK')}] ${currentShareUrl}`
-                : `[${t('redactedCode', 'REDACTED_CODE')}] or ${currentCode}`;
+        if (rail && (currentCode || currentShareUrl)) {
+            rail.textContent = currentCode
+                ? `[${t('redactedCode', 'REDACTED_CODE')}] ${currentCode}`
+                : `[${t('secureShareLink', 'SECURE_SHARE_LINK')}] ${currentShareUrl}`;
         }
-        const adviceEl = document.getElementById('creatorAdvice');
-        if (adviceEl) {
-            adviceEl.textContent = currentAdvice
-                ? `${t('profileNotesPrefix', 'PROFILE NOTES: OPTIMIZED FOR COMPETITIVE PLAY')} — ${currentAdvice}`
-                : `${t('profileNotesPrefix', 'PROFILE NOTES: OPTIMIZED FOR COMPETITIVE PLAY')} — [${t('noAdvice', 'NO_EXTRA_ADVICE_PROVIDED')}]`;
-        }
-        const shareHint = document.getElementById('shareLinkHint');
-        if (shareHint) shareHint.textContent = currentShareUrl ? `${t('secureShare', 'SECURE SHARE')}: ${currentShareUrl}` : '';
+        updateAdviceCopy(currentAdvice);
+        updateShareHint();
         if (currentShareDetails) updateShareCard(currentShareDetails);
+        const chipMode = document.getElementById('chipMode');
+        if (chipMode) chipMode.textContent = t('viewExportMode', 'VIEW / EXPORT');
     }
 
     document.addEventListener('DOMContentLoaded', async () => {
@@ -380,20 +545,19 @@
         window.addEventListener('xp:language-change', applyResultLang);
 
         document.getElementById('idModel').textContent = modelText;
-        document.getElementById('codeRailText').textContent = currentShareToken ? `[${t('secureShareLink', 'SECURE_SHARE_LINK')}] ${currentShareUrl}` : `[${t('redactedCode', 'REDACTED_CODE')}] or ${code}`;
+        document.getElementById('codeRailText').textContent = currentCode
+            ? `[${t('redactedCode', 'REDACTED_CODE')}] ${code}`
+            : `[${t('secureShareLink', 'SECURE_SHARE_LINK')}] ${currentShareUrl}`;
         document.getElementById('creatorName').textContent = displayName;
-        document.getElementById('settingsBy').textContent = `Settings by: ${displayName} 👾`;
+        document.getElementById('settingsBy').textContent = `${t('settingsByLabel', 'SETTINGS BY')}: ${displayName} 👾`;
         document.getElementById('chipVendor').textContent = displayName.toUpperCase();
-        document.getElementById('chipStatus').textContent = hydrated.validUntil ? 'ACTIVE / TIMED' : 'ACTIVE / OPEN';
+        document.getElementById('chipStatus').textContent = hydrated.validUntil ? t('activeTimed', 'ACTIVE / TIMED') : t('activeOpen', 'ACTIVE / OPEN');
         document.getElementById('devicePreview').src = branding.logo_url || branding.logo || 'favicon.png';
         document.getElementById('notesAvatar').src = branding.logo_url || branding.logo || 'favicon.png';
         if (branding.logo_url || branding.logo) document.getElementById('creatorLogo').src = branding.logo_url || branding.logo;
         currentAdvice = hydrated.advice || '';
-        document.getElementById('creatorAdvice').textContent = hydrated.advice
-            ? `${t('profileNotesPrefix', 'PROFILE NOTES: OPTIMIZED FOR COMPETITIVE PLAY')} — ${hydrated.advice}`
-            : `${t('profileNotesPrefix', 'PROFILE NOTES: OPTIMIZED FOR COMPETITIVE PLAY')} — [${t('noAdvice', 'NO_EXTRA_ADVICE_PROVIDED')}]`;
-        const shareHint = document.getElementById('shareLinkHint');
-        if (shareHint) shareHint.textContent = currentShareUrl ? `${t('secureShare', 'SECURE SHARE')}: ${currentShareUrl}` : '';
+        updateAdviceCopy(hydrated.advice);
+        updateShareHint();
 
         const liked = localStorage.getItem(likedStorageKey(currentEngagementKey())) === 'true';
         setLikeButtonState(liked, hydrated.likes || 0);
@@ -414,6 +578,9 @@
         setEfficiency(inferEfficiency(results));
         setExpiryState(hydrated.validUntil);
 
+        currentShareDetails = buildCardDetails({ branding, hydrated, modelText, displayName, code, results });
+        const generalRange = currentShareDetails.general;
+        const redDotRange = currentShareDetails.redDot;
         const generalRange = `${document.getElementById('rGen1').textContent} — ${document.getElementById('rGen2').textContent}`;
         const redDotRange = `${document.getElementById('rRed1').textContent} — ${document.getElementById('rRed2').textContent}`;
         const scopeRange = `${document.getElementById('r2x1').textContent} — ${document.getElementById('r4x2').textContent}`;
@@ -458,7 +625,7 @@
             }
         });
         const tiktok = socials.find((s) => s.id === 'tiktok' && s.link);
-        if (tiktok) document.getElementById('followHint').textContent = `Follow ${tiktok.link} on TikTok`;
+        if (tiktok) document.getElementById('followHint').textContent = `${t('followCreator', 'FOLLOW_CREATOR')}: ${tiktok.link}`;
 
         const followBtn = document.getElementById('followBtn');
         const primarySocial = socials.find((s) => s.link)?.link;
@@ -479,6 +646,11 @@
         }
 
         document.getElementById('downloadBtn').addEventListener('click', async () => {
+            await exportShareCardImage(currentShareDetails, `xp-id-${code}.png`);
+            window.notify?.('ID_CARD_EXPORTED', 'success');
+        });
+
+        document.getElementById('copyCodeBtn').addEventListener('click', () => copyPlainText(currentCode || currentShareUrl || code, 'ACCESS_CODE_COPIED'));
             const area = document.getElementById('shareCaptureArea');
             const canvas = await html2canvas(area, { scale: 2, backgroundColor: '#0b1620' });
             const link = document.createElement('a');

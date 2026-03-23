@@ -30,6 +30,14 @@ async function mockCodeLookup(code) {
   };
 }
 
+function createShareToken(overrides = {}) {
+  return jwt.sign({ type: 'share', sid: 'share-demo-7777', lookup_key: 'abc123xyz0', ...overrides }, process.env.JWT_SECRET, { expiresIn: '1h' });
+}
+
+function mockShareRecord(shareId) {
+  return { share_id: shareId, lookup_key: 'abc123xyz0', revoked_at: null, expires_at: '2099-01-01 00:00:00' };
+}
+
 describe('POST /api/vault/feedback', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -135,12 +143,23 @@ describe('POST /api/vault/feedback', () => {
   });
 
   it('accepts share-token payloads without requiring the raw access code', async () => {
-    const shareToken = jwt.sign({ type: 'share', code: 'XP-SHARE-7777' }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    const shareToken = createShareToken();
 
-    db.get
-      .mockResolvedValueOnce(await mockCodeLookup('XP-SHARE-7777'))
-      .mockResolvedValueOnce(undefined)
-      .mockResolvedValueOnce({ likes_count: 7 });
+    db.get.mockImplementation(async (sql, params) => {
+      if (sql.includes('FROM share_tokens WHERE share_id = ?')) {
+        return mockShareRecord(params[0]);
+      }
+      if (sql.includes('FROM sensitivity_keys k')) {
+        return mockCodeLookup('XP-SHARE-7777');
+      }
+      if (sql.includes('SELECT id, user_ign, user_region FROM code_activity')) {
+        return undefined;
+      }
+      if (sql.includes('COUNT(*) as likes_count FROM code_activity')) {
+        return { likes_count: 7 };
+      }
+      return null;
+    });
 
     const res = await request(app)
       .post('/api/vault/feedback')

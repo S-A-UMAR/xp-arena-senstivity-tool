@@ -954,8 +954,10 @@
         <div class="sheet-handle"></div>
         <h2 style="font-family: var(--font-heading); margin-bottom: 1.5rem;">Register Vendor</h2>
         <input type="text" id="vName" class="cyber-input" placeholder="Vendor Name (e.g. SKY-NET)">
-        <input type="text" id="vBrand" class="cyber-input" placeholder="Brand/Organization">
+        <input type="text" id="vBrand" class="cyber-input" placeholder="Organization ID (Optional)">
+        <input type="text" id="vOrgName" class="cyber-input" placeholder="Organization Name (Optional)">
         <input type="number" id="vDuration" class="cyber-input" placeholder="Access Duration (Days) [e.g. 30]">
+        <input type="number" id="vUsageLimit" class="cyber-input" placeholder="Usage Limit (Optional)">
         
         <div style="margin-top: 1rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 1rem;">
             <p class="stat-label" style="margin-bottom: 0.5rem;">VENDOR_BRANDING (OPTIONAL)</p>
@@ -1415,8 +1417,10 @@
 
         async function addVendor() {
             const vid = document.getElementById('vName').value.trim();
-            const brand = document.getElementById('vBrand').value.trim();
+            const orgId = document.getElementById('vBrand').value.trim();
+            const orgName = document.getElementById('vOrgName').value.trim();
             const vDays = parseInt(document.getElementById('vDuration').value, 10);
+            const vUsageLimit = parseInt(document.getElementById('vUsageLimit').value, 10);
             
             const logo = document.getElementById('vLogo').value.trim();
             const youtube = document.getElementById('vYT').value.trim();
@@ -1431,8 +1435,8 @@
             try {
                 const payload = {
                     vendorId: vid,
-                    orgId: brand || 'XP-CORE-ORG',
-                    durationDays: Number.isFinite(vDays) ? vDays : null,
+                    orgId: orgId || undefined,
+                    orgName: orgName || undefined,
                     brandConfig: {
                         logo_url: logo || null,
                         youtube: youtube || null,
@@ -1441,6 +1445,8 @@
                         display_name: vid
                     }
                 };
+                if (Number.isFinite(vDays) && vDays > 0) payload.durationDays = vDays;
+                if (Number.isFinite(vUsageLimit) && vUsageLimit >= 0) payload.usageLimit = vUsageLimit;
                 const res = await api('/api/vault/admin/vendors', 'POST', payload);
                 
                 // Populate and show premium card in OVERLAY
@@ -1451,7 +1457,9 @@
                 toggleActionSheet(false);
                 document.getElementById('vName').value = '';
                 document.getElementById('vBrand').value = '';
+                document.getElementById('vOrgName').value = '';
                 document.getElementById('vDuration').value = '';
+                document.getElementById('vUsageLimit').value = '';
                 document.getElementById('vLogo').value = '';
                 document.getElementById('vYT').value = '';
                 document.getElementById('vTT').value = '';
