@@ -86,4 +86,27 @@ describe('Admin uplink flows', () => {
     const res = await request(app).get('/api/vault/org/stats');
     expect(res.status).toBe(401);
   });
+
+  it('creates vendors even when optional provisioning fields are omitted or null', async () => {
+    const login = await request(app)
+      .post('/api/vault/admin/login')
+      .send({ password: process.env.ADMIN_SECRET });
+
+    const cookie = login.headers['set-cookie'][0].split(';')[0];
+    const create = await request(app)
+      .post('/api/vault/admin/vendors')
+      .set('Cookie', cookie)
+      .send({
+        vendorId: 'creator one',
+        orgId: 'Arena Org',
+        durationDays: null,
+        usageLimit: null,
+        brandConfig: { display_name: 'Creator One' }
+      });
+
+    expect(create.status).toBe(200);
+    expect(create.body.success).toBe(true);
+    expect(create.body.vendorId).toBe('CREATOR-ONE');
+    expect(create.body.accessKey).toMatch(/^XP-CREATOR-ONE-/);
+  });
 });

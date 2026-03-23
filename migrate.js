@@ -44,6 +44,32 @@ async function migrate() {
         }
         console.log('✅ Schema base layer synchronized.');
 
+        await connection.query(`CREATE TABLE IF NOT EXISTS schema_migrations (
+            version VARCHAR(50) PRIMARY KEY,
+            description VARCHAR(255) NOT NULL,
+            applied_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin`);
+
+        const migrationsDir = path.join(__dirname, 'migrations');
+        if (fs.existsSync(migrationsDir)) {
+            const migrationFiles = fs.readdirSync(migrationsDir).filter((name) => name.endsWith('.sql')).sort();
+            for (const file of migrationFiles) {
+                const version = path.basename(file, '.sql');
+                const [existingMigration] = await connection.query('SELECT version FROM schema_migrations WHERE version = ?', [version]);
+                if (existingMigration.length > 0) continue;
+                const migrationSql = fs.readFileSync(path.join(migrationsDir, file), 'utf8');
+                const migrationStatements = migrationSql.split(/;(?=(?:[^']*'[^']*')*[^']*$)/).filter((s) => s.trim());
+                for (const statement of migrationStatements) {
+                    await connection.query(statement);
+                }
+                await connection.query(
+                    'INSERT INTO schema_migrations (version, description) VALUES (?, ?)',
+                    [version, `Applied from migrations/${file}`]
+                );
+                console.log(`✅ Applied migration: ${file}`);
+            }
+        }
+
         console.log('Schema alignment + seed normalization...');
         console.log('Database Name:', dbName);
 
@@ -76,7 +102,11 @@ async function migrate() {
             await connection.query(`ALTER TABLE code_activity ADD COLUMN IF NOT EXISTS lookup_key VARCHAR(16) NOT NULL`);
             await connection.query(`ALTER TABLE code_activity ADD COLUMN IF NOT EXISTS feedback_rating INT NULL`);
             await connection.query(`ALTER TABLE code_activity ADD COLUMN IF NOT EXISTS feedback_comment TEXT NULL`);
+            await connection.query(`ALTER TABLE code_activity ADD COLUMN IF NOT EXISTS feedback_tag VARCHAR(64) NULL`);
+            await connection.query(`ALTER TABLE code_activity ADD COLUMN IF NOT EXISTS feedback_source VARCHAR(32) NULL`);
+            await connection.query(`ALTER TABLE code_activity ADD COLUMN IF NOT EXISTS feedback_fingerprint VARCHAR(64) NULL`);
             await connection.query(`ALTER TABLE code_activity ADD INDEX IF NOT EXISTS idx_lookup_key (lookup_key)`);
+            await connection.query(`ALTER TABLE code_activity ADD INDEX IF NOT EXISTS idx_feedback_fingerprint (feedback_fingerprint)`);
             await connection.query(`INSERT IGNORE INTO organizations (org_id, org_name) VALUES ('XP-CORE-ORG', 'XP ARENA GLOBAL')`);
             await connection.query(`INSERT IGNORE INTO system_settings (setting_key, setting_value) VALUES ('global_sensitivity_offset', '1.0')`);
 
@@ -94,10 +124,37 @@ async function migrate() {
                 FOREIGN KEY (vendor_id) REFERENCES vendors(vendor_id) ON DELETE CASCADE
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin`);
 
+            await connection.query(`CREATE TABLE IF NOT EXISTS schema_migrations (
+                version VARCHAR(50) PRIMARY KEY,
+                description VARCHAR(255) NOT NULL,
+                applied_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin`);
+
+            await connection.query(`CREATE TABLE IF NOT EXISTS share_tokens (
+                share_id VARCHAR(32) PRIMARY KEY,
+                lookup_key VARCHAR(16) NOT NULL,
+                expires_at DATETIME NOT NULL,
+                revoked_at DATETIME DEFAULT NULL,
+                access_count INT DEFAULT 0,
+                last_accessed_at DATETIME DEFAULT NULL,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                INDEX idx_share_lookup_key (lookup_key),
+                INDEX idx_share_expires_at (expires_at)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin`);
+
             await connection.query(`ALTER TABLE vendors ADD COLUMN IF NOT EXISTS last_login_at DATETIME NULL`);
+
+            await connection.query(`ALTER TABLE vendors MODIFY COLUMN access_key VARCHAR(100) NOT NULL`);
+            await connection.query(`ALTER TABLE vendors MODIFY COLUMN lookup_key VARCHAR(20) NULL`);
+            await connection.query(`ALTER TABLE sensitivity_keys MODIFY COLUMN entry_code VARCHAR(100) NOT NULL`);
+            await connection.query(`ALTER TABLE sensitivity_keys MODIFY COLUMN lookup_key VARCHAR(16) NOT NULL`);
+            await connection.query(`ALTER TABLE code_activity MODIFY COLUMN entry_code VARCHAR(100) NOT NULL`);
+            await connection.query(`ALTER TABLE code_activity MODIFY COLUMN lookup_key VARCHAR(16) NOT NULL`);
 
             await connection.query(`INSERT IGNORE INTO organizations (org_id, org_name) VALUES ('XP-CORE-ORG', 'XP ARENA GLOBAL')`);
             await connection.query(`INSERT IGNORE INTO system_settings (setting_key, setting_value) VALUES ('global_sensitivity_offset', '1.0')`);
+            await connection.query(`INSERT IGNORE INTO schema_migrations (version, description) VALUES ('2026-03-result-share-hardening', 'Share token, feedback metadata, presets/cache, and admin vendor provisioning alignment')`);
+            await connection.query(`INSERT IGNORE INTO schema_migrations (version, description) VALUES ('2026-03-shared-v1-hardening', 'Versioned migrations, revocable share links, result i18n cleanup, and admin provisioning upgrades')`);
 
             const seedKey = process.env.SEED_VENDOR_KEY || process.env.ADMIN_SECRET || null;
             const forceReset = process.env.FORCE_RESET_ADMIN_KEY === 'true';

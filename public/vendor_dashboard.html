@@ -599,7 +599,7 @@
                 </div>
             </div>
 
-            <button class="btn-primary" onclick="autoGenerate()" style="margin-top: 1rem;">GENERATE CODE</button>
+            <button class="btn-primary" onclick="autoGenerate()" style="margin-top: 1rem;" data-i18n="generateCode">GENERATE CODE</button>
         </div>
 
         <div id="genResult" class="hidden">
@@ -642,6 +642,25 @@
             <h3 style="margin: 0 0 1rem; font-size: 0.9rem; color: var(--accent-primary);">REGIONAL_HEATMAP</h3>
             <div id="regionHeatmap" style="display: grid; gap: 0.5rem;">
                 <!-- Regions injected here -->
+            </div>
+        </div>
+
+        <div class="glass-panel">
+            <h3 style="margin: 0 0 1rem; font-size: 0.9rem; color: var(--accent-secondary);" data-i18n="profileInsights">PROFILE_INSIGHTS</h3>
+            <div style="display:grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.75rem; margin-bottom: 1rem;">
+                <div class="stat-tile"><div class="stat-val" id="insightConversion">0%</div><div class="stat-label" data-i18n="feedbackConversion">FEEDBACK_CONVERSION</div></div>
+                <div class="stat-tile"><div class="stat-val" id="insightAvgRating">0.0</div><div class="stat-label" data-i18n="avgRating">AVG_RATING</div></div>
+                <div class="stat-tile"><div class="stat-val" id="insightTopRegion">--</div><div class="stat-label" data-i18n="topRegion">TOP_REGION</div></div>
+            </div>
+            <div style="display:grid; gap: 0.9rem;">
+                <div>
+                    <div style="font-size:0.62rem; letter-spacing:0.14em; color:var(--text-muted); margin-bottom:0.55rem;" data-i18n="topProfiles">TOP_PROFILES</div>
+                    <div id="insightTopProfiles" style="display:grid; gap:0.55rem;"></div>
+                </div>
+                <div>
+                    <div style="font-size:0.62rem; letter-spacing:0.14em; color:var(--text-muted); margin-bottom:0.55rem;" data-i18n="feedbackBreakdown">FEEDBACK_BREAKDOWN</div>
+                    <div id="insightFeedbackBreakdown" style="display:grid; gap:0.55rem;"></div>
+                </div>
             </div>
         </div>
 
@@ -717,7 +736,7 @@
                 <input type="url" id="profWebhook" class="cyber-input" placeholder="https://example.com/webhook">
             </div>
 
-            <button class="btn-primary" onclick="saveProfile()" style="margin-top: 1rem;">UPDATE_PRO_PROFILE</button>
+            <button class="btn-primary" onclick="saveProfile()" style="margin-top: 1rem;" data-i18n="updateProProfile">UPDATE_PRO_PROFILE</button>
 
             <h3 style="margin: 2rem 0 1rem; font-size: 0.9rem; color: var(--accent-secondary);">ULTRA_WHITELABEL_SaaS</h3>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
@@ -796,11 +815,11 @@
     <nav class="bottom-nav">
         <button class="nav-item active" onclick="switchTab('home', this)">
             <svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
-            <span class="nav-label">HOME</span>
+            <span class="nav-label" data-i18n="homeNav">HOME</span>
         </button>
         <button class="nav-item" onclick="switchTab('stats', this)">
             <svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 9.2h3V19H5V9.2zM10.6 5h2.8v14h-2.8V5zm5.6 8H19v6h-2.8v-6z"/></svg>
-            <span class="nav-label">STATS</span>
+            <span class="nav-label" data-i18n="statsNav">STATS</span>
         </button>
         <div class="fab-container">
             <button class="fab-btn" onclick="toggleSheet(true)">+</button>
@@ -811,7 +830,7 @@
         </button>
         <button class="nav-item" onclick="switchTab('profile', this)">
             <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-            <span class="nav-label">PROFILE</span>
+            <span class="nav-label" data-i18n="profileNav">PROFILE</span>
         </button>
     </nav>
 
@@ -881,6 +900,156 @@
             el.style.display = 'block';
         }
 
+        function clearNode(node) {
+            if (!node) return;
+            while (node.firstChild) node.removeChild(node.firstChild);
+        }
+
+        function renderEmptyState(node, text) {
+            clearNode(node);
+            const empty = document.createElement('div');
+            empty.style.textAlign = 'center';
+            empty.style.opacity = '0.3';
+            empty.style.fontSize = '0.6rem';
+            empty.textContent = text;
+            node?.appendChild(empty);
+        }
+
+        function renderRegionHeatmap(node, regions) {
+            clearNode(node);
+            if (!regions || regions.length === 0) return renderEmptyState(node, 'NO_REGIONAL_DATA');
+            const max = regions[0].count || 1;
+            regions.forEach((regionRow) => {
+                const row = document.createElement('div');
+                row.style.display = 'flex';
+                row.style.alignItems = 'center';
+                row.style.gap = '10px';
+
+                const label = document.createElement('div');
+                label.style.fontSize = '0.6rem';
+                label.style.width = '60px';
+                label.style.color = 'var(--text-muted)';
+                label.textContent = String(regionRow.region || 'unknown').toUpperCase();
+
+                const track = document.createElement('div');
+                track.style.flex = '1';
+                track.style.height = '4px';
+                track.style.background = 'rgba(255,255,255,0.05)';
+                track.style.borderRadius = '2px';
+                track.style.overflow = 'hidden';
+
+                const fill = document.createElement('div');
+                fill.style.height = '100%';
+                fill.style.width = `${((regionRow.count || 0) / max) * 100}%`;
+                fill.style.background = 'var(--accent-secondary)';
+                track.appendChild(fill);
+
+                const count = document.createElement('div');
+                count.style.fontSize = '0.6rem';
+                count.style.fontFamily = 'var(--font-mono)';
+                count.style.color = 'var(--accent-secondary)';
+                count.textContent = String(regionRow.count || 0);
+
+                row.append(label, track, count);
+                node.appendChild(row);
+            });
+        }
+
+        function renderTopProfiles(node, profiles) {
+            clearNode(node);
+            if (!profiles || profiles.length === 0) return renderEmptyState(node, 'NO_PROFILE_SIGNAL_YET');
+            profiles.forEach((profile) => {
+                const card = document.createElement('div');
+                card.style.display = 'flex';
+                card.style.justifyContent = 'space-between';
+                card.style.gap = '0.75rem';
+                card.style.fontSize = '0.68rem';
+                card.style.border = '1px solid var(--glass-border)';
+                card.style.borderRadius = '12px';
+                card.style.padding = '0.75rem';
+
+                const left = document.createElement('div');
+                const key = document.createElement('div');
+                key.style.fontFamily = 'var(--font-mono)';
+                key.style.color = 'var(--accent-primary)';
+                key.textContent = profile.lookup_key || '--';
+
+                const meta = document.createElement('div');
+                meta.style.color = 'var(--text-muted)';
+                meta.style.marginTop = '0.25rem';
+                meta.textContent = `VIEWS ${profile.total_views || 0} • FEEDBACK ${profile.feedback_count || 0}`;
+
+                left.append(key, meta);
+
+                const rating = document.createElement('div');
+                rating.style.fontFamily = 'var(--font-mono)';
+                rating.style.color = 'var(--accent-secondary)';
+                rating.textContent = String(profile.average_rating || 0);
+
+                card.append(left, rating);
+                node.appendChild(card);
+            });
+        }
+
+        function renderFeedbackBreakdown(node, breakdown) {
+            clearNode(node);
+            if (!breakdown || breakdown.length === 0) return renderEmptyState(node, 'NO_FEEDBACK_BREAKDOWN');
+            breakdown.forEach((row) => {
+                const item = document.createElement('div');
+                item.style.display = 'flex';
+                item.style.justifyContent = 'space-between';
+                item.style.gap = '0.75rem';
+                item.style.fontSize = '0.68rem';
+
+                const label = document.createElement('span');
+                label.style.color = '#dfefff';
+                label.textContent = String(row.tag || 'unclassified').toUpperCase();
+
+                const count = document.createElement('span');
+                count.style.fontFamily = 'var(--font-mono)';
+                count.style.color = 'var(--accent-secondary)';
+                count.textContent = String(row.count || 0);
+
+                item.append(label, count);
+                node.appendChild(item);
+            });
+        }
+
+        function renderRecentLogs(node, items) {
+            clearNode(node);
+            items.forEach((entry) => {
+                const row = document.createElement('div');
+                row.style.padding = '1rem';
+                row.style.borderBottom = '1px solid var(--glass-border)';
+                row.style.fontSize = '0.65rem';
+
+                const top = document.createElement('div');
+                top.style.display = 'flex';
+                top.style.justifyContent = 'space-between';
+
+                const lookup = document.createElement('span');
+                lookup.style.color = 'var(--accent-primary)';
+                lookup.style.fontFamily = 'var(--font-mono)';
+                lookup.textContent = entry.lookup_key || '--';
+
+                const ts = document.createElement('span');
+                ts.style.color = 'var(--text-muted)';
+                ts.textContent = new Date(entry.used_at || entry.created_at).toLocaleTimeString();
+
+                top.append(lookup, ts);
+
+                const detail = document.createElement('div');
+                detail.style.marginTop = '4px';
+                detail.style.color = 'rgba(255,255,255,0.4)';
+                detail.textContent = entry.user_ign
+                    ? `${entry.user_ign} • ${entry.user_region || 'Unknown'}`
+                    : 'Provisioned successfully';
+
+                row.append(top, detail);
+                node.appendChild(row);
+            });
+        }
+
         async function transitionToResult(code, statusText = 'OPENING_RESULT_CARD') {
             if (!code) return;
             const overlay = document.createElement('div');
@@ -896,9 +1065,9 @@
             document.body.appendChild(overlay);
             localStorage.setItem('xp_last_entry_code', code);
             localStorage.setItem('xp_vendor_last_code', code);
-            setTimeout(() => {
-                window.location.href = `/result.html?code=${encodeURIComponent(code)}`;
-            }, 450);
+            sessionStorage.setItem('xp_nav_origin', 'vendor_dashboard.html');
+            await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+            window.location.href = `/result.html?code=${encodeURIComponent(code)}`;
         }
 
         function copyLastResultLink() {
@@ -908,11 +1077,21 @@
                 if (window.notify) window.notify('GENERATE_A_CARD_FIRST', 'error');
                 return;
             }
-            const base = window.location.origin || '';
-            const url = `${base}/result.html?code=${encodeURIComponent(lastCode)}`;
-            navigator.clipboard.writeText(url);
-            showDashError('');
-            if (window.notify) window.notify('RESULT_LINK_COPIED', 'success');
+            (async () => {
+                try {
+                    const base = window.location.origin || '';
+                    const status = await api(`${API_BASE}/code/${encodeURIComponent(lastCode)}/status`);
+                    const url = status.share_token
+                        ? `${base}/result.html?share=${encodeURIComponent(status.share_token)}`
+                        : `${base}/result.html?code=${encodeURIComponent(lastCode)}`;
+                    await navigator.clipboard.writeText(url);
+                    showDashError('');
+                    if (window.notify) window.notify('RESULT_LINK_COPIED', 'success');
+                } catch (e) {
+                    showDashError(e.message || 'LINK_COPY_FAILED');
+                    if (window.notify) window.notify(e.message || 'LINK_COPY_FAILED', 'error');
+                }
+            })();
         }
 
         async function init() {
@@ -1202,20 +1381,14 @@
                 // Load Regions
                 const regions = await api(`${API_BASE}/stats/regions`);
                 const heatmap = document.getElementById('regionHeatmap');
-                if (regions && regions.length > 0) {
-                    const max = regions[0].count || 1;
-                    heatmap.innerHTML = regions.map(r => `
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <div style="font-size: 0.6rem; width: 60px; color: var(--text-muted);">${r.region.toUpperCase()}</div>
-                            <div style="flex: 1; height: 4px; background: rgba(255,255,255,0.05); border-radius: 2px; overflow: hidden;">
-                                <div style="height: 100%; width: ${(r.count/max)*100}%; background: var(--accent-secondary);"></div>
-                            </div>
-                            <div style="font-size: 0.6rem; font-family: var(--font-mono); color: var(--accent-secondary);">${r.count}</div>
-                        </div>
-                    `).join('');
-                } else {
-                    heatmap.innerHTML = '<div style="text-align:center; opacity:0.3; font-size:0.6rem;">NO_REGIONAL_DATA</div>';
-                }
+                renderRegionHeatmap(heatmap, regions);
+
+                const insights = await api(`${API_BASE}/insights`);
+                document.getElementById('insightConversion').textContent = `${insights.feedback_conversion_pct || 0}%`;
+                document.getElementById('insightAvgRating').textContent = insights.average_rating ? Number(insights.average_rating).toFixed(1) : '0.0';
+                document.getElementById('insightTopRegion').textContent = (insights.top_regions?.[0]?.region || '--').toUpperCase();
+                renderTopProfiles(document.getElementById('insightTopProfiles'), insights.top_profiles || []);
+                renderFeedbackBreakdown(document.getElementById('insightFeedbackBreakdown'), insights.feedback_breakdown || []);
 
                 // Load Logs
                 const codes = await api(`${API_BASE}/codes`);
@@ -1223,15 +1396,7 @@
                 if (codes && codes.length > 0) {
                     const logs = await api(`${API_BASE}/activity`).catch(() => []);
                     const recentItems = logs.length > 0 ? logs : codes.slice(0, 10);
-                    logsBody.innerHTML = recentItems.slice(0, 10).map(c => `
-                        <div style="padding: 1rem; border-bottom: 1px solid var(--glass-border); font-size: 0.65rem;">
-                            <div style="display: flex; justify-content: space-between;">
-                                <span style="color: var(--accent-primary); font-family: var(--font-mono);">${c.lookup_key}</span>
-                                <span style="color: var(--text-muted);">${new Date(c.used_at || c.created_at).toLocaleTimeString()}</span>
-                            </div>
-                            <div style="margin-top: 4px; color: rgba(255,255,255,0.4);">${c.user_ign ? `${escapeHtml(c.user_ign)} • ${escapeHtml(c.user_region || 'Unknown')}` : 'Provisioned successfully'}</div>
-                        </div>
-                    `).join('');
+                    renderRecentLogs(logsBody, recentItems.slice(0, 10));
                 }
             } catch (e) {
                 console.warn('LOAD_ANALYTICS_ERR:', e);
