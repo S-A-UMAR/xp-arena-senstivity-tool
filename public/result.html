@@ -234,143 +234,112 @@
 
     <div class="app-container">
         <header class="result-intro reveal">
-            <div class="hero-banner">
-                <div class="logo-badge">SCAN_COMPLETE</div>
-                <h1 class="title-main" style="font-size: 1.6rem; margin: 0.55rem 0 0;">AUTHORIZATION_SUCCESS</h1>
-                <p data-i18n="resultHeroText">Your creator card is now brighter, easier to read, and ready for export, sharing, quick likes, and direct code copy.</p>
+        <div class="hero-banner">
+            <div class="logo-badge">SCAN_COMPLETE</div>
+            <h1 class="title-main" style="font-size: 1.6rem; margin: 0.55rem 0 0;">AUTHORIZATION_SUCCESS</h1>
+            <p data-i18n="resultHeroText">Your premium calibration profile is ready. View, share, and export your high-res creator card below.</p>
+        </div>
+        <div class="result-overview">
+            <div class="overview-chip">
+                <span class="label" data-i18n="verificationLabel">Verification</span>
+                <span class="value" id="chipStatus">SECURE LINK</span>
             </div>
-            <div class="result-overview">
-                <div class="overview-chip">
-                    <span class="label" data-i18n="verificationLabel">Verification</span>
-                    <span class="value" id="chipStatus">SECURE LINK</span>
-                </div>
-                <div class="overview-chip">
-                    <span class="label" data-i18n="providerLabel">Provider</span>
-                    <span class="value" id="chipVendor">XP_CORE</span>
-                </div>
-                <div class="overview-chip">
-                    <span class="label" data-i18n="modeLabel">Mode</span>
-                    <span class="value" id="chipMode" data-i18n="viewExportMode">VIEW / EXPORT</span>
-                </div>
+            <div class="overview-chip">
+                <span class="label" data-i18n="providerLabel">Provider</span>
+                <span class="value" id="chipVendor">XP_CORE</span>
             </div>
-        </header>
+            <div class="overview-chip">
+                <span class="label" data-i18n="modeLabel">Mode</span>
+                <span class="value" id="chipMode" data-i18n="viewExportMode">VIEW / EXPORT</span>
+            </div>
+        </div>
+    </header>
 
-        <main class="reveal" style="animation-delay: 0.18s;">
-            <div class="card-stage">
-                <section id="captureArea" class="intel-card">
-                    <div class="intel-topbar">
-                        <div class="brand-mark">
-                            <img id="creatorLogo" src="favicon.png" alt="Creator logo">
-                            <div class="brand-lockup">
-                                <div class="primary">XP_ARENA</div>
-                                <div class="secondary" data-i18n="tacticalResultDossier">TACTICAL RESULT DOSSIER</div>
-                            </div>
-                        </div>
-                        <div class="telemetry-panel">
-                            <div class="row"><span data-i18n="currentUtcLabel">CURRENT UTC</span><strong id="currentUtcLabel">--</strong></div>
-                            <div class="row"><span data-i18n="expiryLabel">EXPIRY</span><strong id="expiryValue">NEVER</strong></div>
-                            <div class="row"><span class="telemetry-dot"></span><span data-i18n="networkStable">NETWORK: STABLE</span></div>
-                            <div class="telemetry-bar"><span id="efficiencyBar"></span></div>
-                            <div class="row"><span data-i18n="profileEfficiencyText">PROFILE_EFFICIENCY</span><strong id="profileEfficiency">--%</strong></div>
+    <main class="reveal" style="animation-delay: 0.18s;">
+        <div class="card-stage">
+            <!-- 💎 Premium Card UI (Clean & Good) -->
+            <section id="captureArea" class="intel-card">
+                <div class="intel-topbar">
+                    <div class="brand-mark">
+                        <img id="creatorLogo" src="favicon.png" alt="Creator logo">
+                        <div class="brand-lockup">
+                            <div class="primary">XP_ARENA</div>
+                            <div class="secondary" data-i18n="premiumShareCard">PREMIUM SHARE CARD</div>
                         </div>
                     </div>
-
-                    <section class="device-access">
-                        <div class="device-access-header" data-i18n="deviceAccess">DEVICE &amp; ACCESS</div>
-                        <div class="device-access-body">
-                            <div class="device-profile-row">
-                                <div class="device-thumb">
-                                    <img id="devicePreview" src="favicon.png" alt="Device preview">
-                                </div>
-                                <div class="device-meta">
-                                    <div class="subtle">DEVICE_PROFILE</div>
-                                    <div class="headline" id="idModel">UNKNOWN_HARDWARE</div>
-                                    <div class="subtle">UNIT_ID: <span id="creatorName">XP_CORE</span></div>
-                                </div>
-                            </div>
-                            <div class="code-rail">
-                                <div class="code-content">
-                                    <div class="subtle">ACCESS_CODE</div>
-                                    <div class="value" id="codeRailText">XP-0000-0000</div>
-                                </div>
-                                <div class="synced-pill">SYNCED_PROFILE</div>
-                                <button class="code-copy-btn" id="copyCodeBtn" type="button" aria-label="Copy access code">
-                                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="11" height="11" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-                                </button>
-                            </div>
-                        </div>
-                    </section>
-
-                    <div class="stats-grid">
-                        <article class="stat-card">
-                            <div class="signal up">↑</div>
-                            <div class="label">GENERAL_SENS</div>
-                            <div class="value"><span id="rGen1">--</span> — <span id="rGen2">--</span></div>
-                            <div class="trend" id="trendGeneral">TREND: OPTIMIZING</div>
-                        </article>
-                        <article class="stat-card">
-                            <div class="signal down">↑</div>
-                            <div class="label">RED_DOT_PRECISION</div>
-                            <div class="value"><span id="rRed1">--</span> — <span id="rRed2">--</span></div>
-                            <div class="trend" id="trendRed">TREND: STABLE</div>
-                        </article>
-                        <article class="stat-card">
-                            <div class="signal down">↓</div>
-                            <div class="label">2X_SCOPE_ZOOM</div>
-                            <div class="value"><span id="r2x1">--</span> — <span id="r2x2">--</span></div>
-                            <div class="trend" id="trend2x">TREND: FINE-TUNING</div>
-                        </article>
-                        <article class="stat-card">
-                            <div class="signal flat">↘</div>
-                            <div class="label">4X_SCOPE_ZOOM</div>
-                            <div class="value"><span id="r4x1">--</span> — <span id="r4x2">--</span></div>
-                            <div class="trend" id="trend4x">TREND: CONSISTENT</div>
-                        </article>
-                        <article class="stat-card">
-                            <div class="signal up">↑</div>
-                            <div class="label">ADS_PRECISION_ZOOM</div>
-                            <div class="value"><span id="rAds1">--</span> — <span id="rAds2">--</span></div>
-                            <div class="trend" id="trendAds">TREND: OPTIMIZING</div>
-                        </article>
-                        <article class="stat-card">
-                            <div class="signal down">↓</div>
-                            <div class="label">SNIPER_CALIBRATION</div>
-                            <div class="value"><span id="rSni1">--</span> — <span id="rSni2">--</span></div>
-                            <div class="trend" id="trendSni">TREND: STABLE</div>
-                        </article>
-                        <article class="stat-card">
-                            <div class="signal flat">◫</div>
-                            <div class="label">DPI_BENCHMARK</div>
-                            <div class="value" id="idDPI">--</div>
-                            <div class="trend">TREND: INPUT_RESPONSE</div>
-                        </article>
-                        <article class="stat-card">
-                            <div class="signal flat">◎</div>
-                            <div class="label">PROFILE_EFFICIENCY</div>
-                            <div class="value" id="profileEfficiencyCard">--%</div>
-                            <div class="trend">TREND: LIVE_SYNCED</div>
-                        </article>
+                    <div class="telemetry-panel">
+                        <div class="row"><span>CURRENT UTC:</span><strong id="currentUtcLabel">--</strong></div>
+                        <div class="row"><span>EXPIRY:</span><strong id="expiryValue">NEVER</strong></div>
+                        <div class="telemetry-bar"><span id="efficiencyBar"></span></div>
+                        <div class="row"><span>PROFILE_EFFICIENCY:</span><strong id="profileEfficiency">--%</strong></div>
                     </div>
+                </div>
 
-                    <div class="status-banner hidden" id="expiryWarning"></div>
-
-                    <section class="notes-panel">
-                        <div class="notes-header">
-                            <div class="notes-avatar">
-                                <img id="notesAvatar" src="favicon.png" alt="Creator avatar">
-                            </div>
-                            <div>
-                                <div class="notes-eyebrow">SETTINGS_BY</div>
-                                <div class="notes-byline" id="settingsBy">Settings by: XP_CORE 👾</div>
-                                <div class="notes-eyebrow notes-eyebrow-spaced" data-i18n="additionalNotes">ADDITIONAL_NOTES</div>
-                            </div>
-                            <div class="verified-pill">VERIFIED <span id="verifiedEfficiency">--%</span></div>
+                <div class="device-access">
+                    <div class="device-profile-row">
+                        <div class="device-thumb">
+                            <img id="devicePreview" src="favicon.png" alt="Device preview">
                         </div>
-                        <div class="notes-copy" id="creatorAdvice">NO_EXTRA_ADVICE_PROVIDED</div>
-                        <div class="notes-copy notes-follow-hint" id="followHint"></div>
-                    </section>
-                </section>
-            </div>
+                        <div class="device-meta">
+                            <div class="subtle">DEVICE_PROFILE</div>
+                            <div class="headline" id="idModel">UNKNOWN_HARDWARE</div>
+                            <div class="subtle">UNIT_ID: <span id="creatorName">XP_CORE</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="code-rail">
+                    <div class="code-content">
+                        <div class="subtle">ACCESS_CODE</div>
+                        <div class="value" id="codeRailText">XP-0000-0000</div>
+                    </div>
+                    <div class="synced-pill">SYNCED_PROFILE</div>
+                    <button class="code-copy-btn" id="copyCodeBtn" type="button" aria-label="Copy access code">
+                        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="11" height="11" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                    </button>
+                </div>
+
+                <div class="stats-grid">
+                    <article class="stat-card">
+                        <div class="signal up" id="signalGen">↑</div>
+                        <div class="label">GENERAL_SENS</div>
+                        <div class="value"><span id="rGen1">--</span> — <span id="rGen2">--</span></div>
+                        <div class="trend" id="trendGeneral">TREND: OPTIMIZING</div>
+                    </article>
+                    <article class="stat-card">
+                        <div class="signal up" id="signalRed">↑</div>
+                        <div class="label">RED_DOT_PRECISION</div>
+                        <div class="value"><span id="rRed1">--</span> — <span id="rRed2">--</span></div>
+                        <div class="trend" id="trendRed">TREND: STABLE</div>
+                    </article>
+                    <article class="stat-card">
+                        <div class="signal flat" id="signalScope">↘</div>
+                        <div class="label">2X / 4X_SCOPE</div>
+                        <div class="value"><span id="r2x1">--</span> — <span id="r4x2">--</span></div>
+                        <div class="trend" id="trend4x">TREND: FINE-TUNING</div>
+                    </article>
+                    <article class="stat-card">
+                        <div class="signal flat">◎</div>
+                        <div class="label">DPI / EFFICIENCY</div>
+                        <div class="value"><span id="idDPI">--</span> • <span id="profileEfficiencyCard">--%</span></div>
+                        <div class="trend">TREND: LIVE_SYNCED</div>
+                    </article>
+                </div>
+
+                <div class="notes-panel">
+                    <div class="notes-header">
+                        <div class="notes-avatar">
+                            <img id="notesAvatar" src="favicon.png" alt="Creator avatar">
+                        </div>
+                        <div>
+                            <div class="notes-eyebrow">SETTINGS_BY</div>
+                            <div class="notes-byline" id="creatorAdvice">NO_EXTRA_ADVICE_PROVIDED</div>
+                        </div>
+                        <div class="verified-pill">VERIFIED <span id="verifiedEfficiency">--%</span></div>
+                    </div>
+                </div>
+            </section>
+        </div>
 
             <div class="action-grid">
                 <button class="action-btn action-btn-inline download-tone" id="downloadBtn">DOWNLOAD_ID</button>
@@ -416,8 +385,17 @@
                     <div class="feedback-share-hint" id="shareLinkHint"></div>
                 </div>
             </section>
-        </main>
-    </div>
+
+            <!-- 🛠️ Result Actions (Clean & Responsive) -->
+            <div class="action-grid">
+                <button id="downloadBtn" class="action-btn download-tone" type="button" data-i18n="downloadBtn">DOWNLOAD_ID</button>
+                <button id="copyBtn" class="action-btn secondary-tone" type="button" data-i18n="copyBtn">COPY / SHARE</button>
+                <button id="likeBtn" class="action-btn like-tone" type="button">
+                    <span id="likeIcon">❤</span> <span id="likeCount">0</span>
+                </button>
+            </div>
+        </div>
+    </main>
 
     <div class="follow-creator-bar reveal" style="animation-delay: 0.45s;">
         <div id="socialLinks" style="display:flex; gap:1rem; margin-bottom:1rem; justify-content:center; flex-wrap:wrap;"></div>

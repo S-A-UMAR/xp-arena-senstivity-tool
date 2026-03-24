@@ -603,24 +603,25 @@
         </div>
 
         <div id="genResult" class="hidden">
-            <div class="premium-access-card" id="cardToCapture">
-                <div class="card-header">
-                    <div class="card-logo">XP ARENA PRO</div>
-                    <div class="card-chip">NEURAL_ACCESS_KEY</div>
+            <div class="intel-card" id="cardToCapture" style="margin: 1.5rem 0; padding: 1.5rem; border-radius: 20px; background: #0b1421; border: 1px solid #1e293b;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem;">
+                    <div>
+                        <div style="font-size: 0.55rem; color: var(--accent-primary); font-weight: 800; letter-spacing: 0.15em;">NEURAL_PROVISION</div>
+                        <div id="provisionVendorName" style="font-size: 1.1rem; font-weight: 800; color: white;">XP_CREATOR</div>
+                    </div>
+                    <div style="background: rgba(114, 240, 216, 0.1); color: #72f0d8; padding: 4px 10px; border-radius: 99px; font-size: 0.5rem; font-weight: 800;">SYNCED</div>
                 </div>
-                <div class="card-body">
-                    <div class="card-label">IDENTIFIER</div>
-                    <div class="card-value" id="provisionVendorName">-</div>
-                    
-                    <div class="card-label">VIRTUAL_ACCESS_KEY</div>
-                    <div class="card-key-box" id="accessKeyVal">-</div>
+                
+                <div style="background: rgba(255,255,255,0.03); border-radius: 12px; padding: 1.2rem; text-align: center; margin-bottom: 1.5rem; border: 1px solid rgba(255,255,255,0.05);">
+                    <div style="font-size: 0.6rem; color: #91a8bc; margin-bottom: 0.5rem; letter-spacing: 0.1em;">ACCESS_CODE</div>
+                    <div id="accessKeyVal" style="font-size: 1.4rem; font-weight: 800; color: white; font-family: var(--font-mono); letter-spacing: 0.05em;">XP-JBOY-803846</div>
                 </div>
-                <div class="card-footer">XP_CORE_GLOBAL_UPLINK_SYSTEM</div>
-            </div>
-            
-            <div class="card-actions">
-                <button class="v-btn-mini primary" onclick="copyCode()">COPY_KEY</button>
-                <button class="v-btn-mini" onclick="downloadProvisionedCard()">DOWNLOAD_ID</button>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                    <button class="v-btn-mini primary" onclick="copyCode()" style="height: 42px; border-radius: 10px; font-weight: 800; width: 100%;">COPY_KEY</button>
+                    <button class="v-btn-mini" onclick="viewResult()" style="height: 42px; border-radius: 10px; font-weight: 800; border-color: var(--accent-secondary); color: var(--accent-secondary); width: 100%;">SEE_RESULT</button>
+                    <button class="v-btn-mini" style="grid-column: span 2; height: 42px; border-radius: 10px; font-weight: 800; background: #72f0d8; color: #060a12; border: none; width: 100%;" onclick="downloadProvisionedCard()">DOWNLOAD_ID_CARD</button>
+                </div>
             </div>
         </div>
     </div>
@@ -842,6 +843,7 @@
     <script>
         // ⚡ Master Creator Logic
         const API_BASE = '/api/vault';
+        let currentGeneratedCode = null;
         
         async function api(path, method = 'GET', body = null) {
             const options = {
@@ -1296,16 +1298,23 @@
                 const keys = await api(`${API_BASE}/codes`);
                 const body = document.getElementById('vaultKeysBody');
                 if (!keys || keys.length === 0) {
-                    body.innerHTML = '<div style="padding:2rem; text-align:center; opacity:0.5;">VAULT_EMPTY</div>';
+                    body.innerHTML = '<div style="padding:2rem; text-align:center; opacity:0.5; font-size:0.7rem;">VAULT_EMPTY</div>';
                     return;
                 }
+                
+                const displayName = window.vendorName || 'XP';
+                const prefix = displayName.toUpperCase().replace(/\s+/g, '').slice(0, 10);
+
                 body.innerHTML = keys.map(k => `
-                    <div style="padding: 1rem; border-bottom: 1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center;">
+                    <div style="padding: 1rem; border-bottom: 1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02); margin-bottom: 0.5rem; border-radius: 12px;">
                         <div>
-                            <div style="font-family: var(--font-mono); color: var(--accent-primary);">${k.lookup_key}</div>
-                            <div style="font-size: 0.6rem; color: var(--text-muted);">${new Date(k.created_at).toLocaleDateString()} | USAGE: ${k.real_usage || 0}</div>
+                            <div style="font-family: var(--font-mono); color: var(--accent-primary); font-weight: 800; font-size: 0.9rem;">XP-${prefix}-${k.lookup_key}</div>
+                            <div style="font-size: 0.6rem; color: var(--text-muted); margin-top: 4px;">${new Date(k.created_at).toLocaleDateString()} • HITS: ${k.real_usage || 0}</div>
                         </div>
-                        <button class="v-btn-mini" onclick="revokeKey('${k.lookup_key}')" style="color: #ff6b6b; border-color: rgba(255,107,107,0.2);">REVOKE</button>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button class="v-btn-mini" onclick="window.location.href='result.html?code=${k.lookup_key}'" style="border-color: var(--accent-secondary); color: var(--accent-secondary);">VIEW</button>
+                            <button class="v-btn-mini" onclick="revokeKey('${k.lookup_key}')" style="color: #ff6b6b; border-color: rgba(255,107,107,0.2);">REVOKE</button>
+                        </div>
                     </div>
                 `).join('');
             } catch (e) {
@@ -1414,30 +1423,76 @@
             if (window.notify) window.notify('EXPORT_STARTED', 'success');
         }
 
+        function renderRegionHeatmap(node, regions) {
+            clearNode(node);
+            if (!regions || regions.length === 0) return renderEmptyState(node, 'NO_REGIONAL_DATA');
+            const max = regions[0].count || 1;
+            regions.forEach(r => {
+                const row = document.createElement('div');
+                row.style.display = 'flex';
+                row.style.alignItems = 'center';
+                row.style.gap = '10px';
+                row.style.marginBottom = '8px';
+
+                const label = document.createElement('div');
+                label.style.fontSize = '0.6rem';
+                label.style.width = '60px';
+                label.style.color = 'var(--text-muted)';
+                label.textContent = (r.region || 'unknown').toUpperCase();
+
+                const barBg = document.createElement('div');
+                barBg.style.flex = '1';
+                barBg.style.height = '4px';
+                barBg.style.background = 'rgba(255,255,255,0.05)';
+                barBg.style.borderRadius = '2px';
+                barBg.style.overflow = 'hidden';
+
+                const barFill = document.createElement('div');
+                barFill.style.height = '100%';
+                barFill.style.width = `${(r.count/max)*100}%`;
+                barFill.style.background = 'var(--accent-secondary)';
+
+                const count = document.createElement('div');
+                count.style.fontSize = '0.6rem';
+                count.style.fontFamily = 'var(--font-mono)';
+                count.style.color = 'var(--accent-secondary)';
+                count.textContent = String(r.count);
+
+                barBg.appendChild(barFill);
+                row.append(label, barBg, count);
+                node.appendChild(row);
+            });
+        }
+
         async function loadAnalytics() {
             try {
                 // Load Daily Chart
-                const stats = await api(`${API_BASE}/stats`); // Note: Assuming this returns 7-day stats
+                const stats = await api(`${API_BASE}/stats`).catch(() => []);
                 const barChart = document.getElementById('barChart');
-                // ... (existing chart logic or improved)
+                if (barChart && stats.length > 0) {
+                    const max = Math.max(...stats.map(s => s.count)) || 1;
+                    barChart.innerHTML = stats.map(s => `
+                        <div class="bar" style="height: ${(s.count / max) * 100}%" data-val="${s.count}"></div>
+                    `).join('');
+                }
                 
                 // Load Regions
-                const regions = await api(`${API_BASE}/stats/regions`);
+                const regions = await api(`${API_BASE}/stats/regions`).catch(() => []);
                 const heatmap = document.getElementById('regionHeatmap');
-                renderRegionHeatmap(heatmap, regions);
+                if (heatmap) renderRegionHeatmap(heatmap, regions);
 
-                const insights = await api(`${API_BASE}/insights`);
-                document.getElementById('insightConversion').textContent = `${insights.feedback_conversion_pct || 0}%`;
-                document.getElementById('insightAvgRating').textContent = insights.average_rating ? Number(insights.average_rating).toFixed(1) : '0.0';
-                document.getElementById('insightTopRegion').textContent = (insights.top_regions?.[0]?.region || '--').toUpperCase();
+                const insights = await api(`${API_BASE}/insights`).catch(() => ({}));
+                if (document.getElementById('insightConversion')) document.getElementById('insightConversion').textContent = `${insights.feedback_conversion_pct || 0}%`;
+                if (document.getElementById('insightAvgRating')) document.getElementById('insightAvgRating').textContent = insights.average_rating ? Number(insights.average_rating).toFixed(1) : '0.0';
+                if (document.getElementById('insightTopRegion')) document.getElementById('insightTopRegion').textContent = (insights.top_regions?.[0]?.region || '--').toUpperCase();
                 
-                renderTopProfiles(document.getElementById('insightTopProfiles'), insights.top_profiles || []);
-                renderFeedbackBreakdown(document.getElementById('insightFeedbackBreakdown'), insights.feedback_breakdown || []);
+                if (document.getElementById('insightTopProfiles')) renderTopProfiles(document.getElementById('insightTopProfiles'), insights.top_profiles || []);
+                if (document.getElementById('insightFeedbackBreakdown')) renderFeedbackBreakdown(document.getElementById('insightFeedbackBreakdown'), insights.feedback_breakdown || []);
                 
                 // Load Logs
-                const codes = await api(`${API_BASE}/codes`);
+                const codes = await api(`${API_BASE}/codes`).catch(() => []);
                 const logsBody = document.getElementById('logsBody');
-                if (codes && codes.length > 0) {
+                if (logsBody && codes.length > 0) {
                     const logs = await api(`${API_BASE}/activity`).catch(() => []);
                     const recentItems = logs.length > 0 ? logs : codes.slice(0, 10);
                     renderRecentLogs(logsBody, recentItems.slice(0, 10));
@@ -1551,7 +1606,6 @@
                     return;
                 }
 
-                // 💡 Fix: Send top-level fields to match vaultRoutes.js schema
                 const body = {
                     brand,
                     series,
@@ -1562,18 +1616,18 @@
                 };
 
                 const res = await api(`${API_BASE}/generate`, 'POST', body);
+                currentGeneratedCode = res.accessKey;
                 
-                // ⚡ Update card display with formatted code
+                // ⚡ Format code as XP-[VENDOR]-[CODE]
                 const displayName = window.vendorName || 'XP_CREATOR';
-                const formattedCode = `XP-${displayName.toUpperCase().replace(/\s+/g, '').slice(0, 10)}-${res.accessKey}`;
+                const prefix = displayName.toUpperCase().replace(/\s+/g, '').slice(0, 10);
+                const formattedCode = `XP-${prefix}-${res.accessKey}`;
                 
                 document.getElementById('accessKeyVal').textContent = formattedCode;
                 document.getElementById('provisionVendorName').textContent = displayName.toUpperCase();
                 document.getElementById('genResult').classList.remove('hidden');
                 
                 if (window.notify) window.notify('NEURAL_KEY_GENERATED', 'success');
-                
-                // Auto-scroll to result
                 document.getElementById('genResult').scrollIntoView({ behavior: 'smooth' });
                 
                 loadDashboard().catch(() => {});
@@ -1620,6 +1674,7 @@
                     keys.push(res.accessKey);
                 }
                 
+                currentGeneratedCode = keys[0];
                 toggleSheet(false);
                 
                 const displayName = window.vendorName || 'XP_CREATOR';
@@ -1642,10 +1697,17 @@
             }
         }
 
+        function viewResult() {
+            if (!currentGeneratedCode) return;
+            window.location.href = `result.html?code=${currentGeneratedCode}`;
+        }
+
         function copyCode() {
-            const code = document.getElementById('accessKeyVal').textContent;
-            navigator.clipboard.writeText(code);
-            if (window.notify) window.notify('COPIED_TO_CLIPBOARD', 'success');
+            const el = document.getElementById('accessKeyVal');
+            const text = el.innerText || el.textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                if (window.notify) window.notify('ACCESS_CODE_COPIED', 'success');
+            });
         }
 
         async function handleLogout() {

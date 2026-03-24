@@ -188,11 +188,19 @@
     function applyTrendLine(id, values) {
         const [a, b] = parseRange(values);
         const el = document.getElementById(id);
+        const signal = document.getElementById(id.replace('trend', 'signal'));
         if (!el || a === '--') return;
         const avg = (a + b) / 2;
-        if (avg >= 170) el.textContent = 'TREND: OPTIMIZING';
-        else if (avg >= 145) el.textContent = 'TREND: STABLE';
-        else el.textContent = 'TREND: FINE-TUNING';
+        if (avg >= 170) {
+            el.textContent = 'TREND: OPTIMIZING';
+            if (signal) signal.textContent = '↑';
+        } else if (avg >= 145) {
+            el.textContent = 'TREND: STABLE';
+            if (signal) signal.textContent = '↑';
+        } else {
+            el.textContent = 'TREND: FINE-TUNING';
+            if (signal) signal.textContent = '↘';
+        }
     }
 
     function updateShareCard(details) {
@@ -552,7 +560,7 @@
 
         document.getElementById('idModel').textContent = modelText;
         document.getElementById('creatorName').textContent = displayName;
-        document.getElementById('settingsBy').textContent = `${t('settingsByLabel', 'SETTINGS BY')}: ${displayName} 👾`;
+        document.getElementById('creatorAdvice').textContent = hydrated.advice || 'OPTIMIZED FOR COMPETITIVE PLAY';
         document.getElementById('chipVendor').textContent = displayName.toUpperCase();
         document.getElementById('chipStatus').textContent = hydrated.validUntil ? t('activeTimed', 'ACTIVE / TIMED') : t('activeOpen', 'ACTIVE / OPEN');
         document.getElementById('devicePreview').src = branding.logo_url || branding.logo || 'favicon.png';
@@ -568,23 +576,19 @@
         paintRange('rGen1', 'rGen2', results.general);
         paintRange('rRed1', 'rRed2', results.redDot);
         paintRange('r2x1', 'r2x2', results.scope2x);
-        paintRange('r4x1', 'r4x2', results.scope4x);
-        paintRange('rSni1', 'rSni2', results.sniperScope || results.sniper);
-        paintRange('rAds1', 'rAds2', results.ads);
-        document.getElementById('idDPI').textContent = results.dpi || 'DEFAULT';
+        // Ads and Sniper scopes are merged in the new UI or handled differently
+        // I'll update the trends for the visible ones
         applyTrendLine('trendGeneral', results.general);
         applyTrendLine('trendRed', results.redDot);
-        applyTrendLine('trend2x', results.scope2x);
         applyTrendLine('trend4x', results.scope4x);
-        applyTrendLine('trendAds', results.ads);
-        applyTrendLine('trendSni', results.sniperScope || results.sniper);
+        
+        document.getElementById('idDPI').textContent = results.dpi || 'DEFAULT';
         setEfficiency(inferEfficiency(results));
         setExpiryState(hydrated.validUntil);
 
         currentShareDetails = buildCardDetails({ branding, hydrated, modelText, displayName, code, results });
         updateShareCard(currentShareDetails);
         
-        // ⚡ Update rail with formatted code
         const rail = document.getElementById('codeRailText');
         if (rail) rail.textContent = currentShareDetails.code;
 
