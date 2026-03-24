@@ -88,9 +88,13 @@
 
     function setLikeButtonState(liked, count) {
         const likeBtn = document.getElementById('likeBtn');
+        const likeIcon = document.getElementById('likeIcon');
+        const likeCount = document.getElementById('likeCount');
         if (!likeBtn) return;
-        const actionLabel = liked ? t('likedLabel', 'LIKED') : t('likeLabel', 'LIKE');
-        likeBtn.textContent = `${liked ? '💚' : '❤️'} ${actionLabel} (${count || 0})`;
+        
+        if (likeIcon) likeIcon.textContent = liked ? '💚' : '❤';
+        if (likeCount) likeCount.textContent = count || 0;
+        
         likeBtn.classList.toggle('liked', liked);
         likeBtn.setAttribute('aria-pressed', liked ? 'true' : 'false');
     }
@@ -226,8 +230,15 @@
     }
 
     function formatAccessCode(vendor, code) {
+        if (!code) return 'XP-GEN-000000';
+        // If code already starts with XP-, don't re-prefix
+        if (code.startsWith('XP-')) return code;
+        
         const v = (vendor || 'XP').toUpperCase().replace(/\s+/g, '').slice(0, 10);
-        return `XP-${v}-${code || '000000'}`;
+        // Ensure we don't double prefix if vendor name is already in the code
+        if (code.startsWith(`${v}-`)) return `XP-${code}`;
+        
+        return `XP-${v}-${code}`;
     }
 
     function buildCardDetails({ branding, hydrated, modelText, displayName, code, results }) {
@@ -258,11 +269,32 @@
     async function exportShareCardImage(details, filename) {
         if (window.html2canvas) {
             const area = document.getElementById('shareCaptureArea');
-            const canvas = await window.html2canvas(area, { scale: 2, backgroundColor: '#0b1620' });
-            const link = document.createElement('a');
-            link.download = filename;
-            link.href = canvas.toDataURL();
-            link.click();
+            if (!area) throw new Error('CAPTURE_AREA_NOT_FOUND');
+            
+            // Temporary styles to ensure clean capture
+            const originalStyle = area.getAttribute('style') || '';
+            area.style.transform = 'none';
+            area.style.position = 'fixed';
+            area.style.top = '-9999px';
+            area.style.left = '-9999px';
+            area.style.display = 'block';
+            
+            try {
+                const canvas = await window.html2canvas(area, { 
+                    scale: 2, 
+                    backgroundColor: '#0b1421',
+                    useCORS: true,
+                    allowTaint: true,
+                    logging: false
+                });
+                
+                const link = document.createElement('a');
+                link.download = filename;
+                link.href = canvas.toDataURL('image/png', 1.0);
+                link.click();
+            } finally {
+                area.setAttribute('style', originalStyle);
+            }
             return;
         }
 
@@ -636,8 +668,20 @@
         }
 
         document.getElementById('downloadBtn').addEventListener('click', async () => {
-            await exportShareCardImage(currentShareDetails, `xp-id-${code}.png`);
-            window.notify?.('ID_CARD_EXPORTED', 'success');
+            const btn = document.getElementById('downloadBtn');
+            const originalText = btn.textContent;
+            try {
+                btn.disabled = true;
+                btn.textContent = 'EXPORTING...';
+                await exportShareCardImage(currentShareDetails, `xp-id-${code}.png`);
+                window.notify?.('ID_CARD_EXPORTED', 'success');
+            } catch (e) {
+                console.error('EXPORT_ERR:', e);
+                window.notify?.('EXPORT_FAILED', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = originalText;
+            }
         });
 
         document.getElementById('copyCodeBtn').addEventListener('click', () => {

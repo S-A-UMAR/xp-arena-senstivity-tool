@@ -272,22 +272,66 @@
         .secondary-tone { background: #1e293b; color: #fff; }
         .like-tone { background: rgba(255, 141, 156, 0.1); color: #ff8d9c; }
 
-        @media (max-width: 480px) {
-            .app-container { padding: 0.5rem; }
-            .intel-card { padding: 1rem; border-radius: 20px; }
-            .device-meta .headline { font-size: 1.4rem; }
-            .code-content .value { font-size: 1.1rem; }
-            .stat-card .value { font-size: 1.8rem; }
-            .result-overview { grid-template-columns: 1fr; }
-            .stats-grid { grid-template-columns: 1fr; }
-            .action-grid { grid-template-columns: 1fr; }
-            .intel-topbar { flex-direction: column; align-items: center; text-align: center; }
-            .telemetry-panel { text-align: center; margin-top: 1rem; }
-            .telemetry-bar { margin: 0.5rem auto; width: 100%; }
-            .device-profile-row { flex-direction: column; text-align: center; }
-            .notes-header { flex-direction: column; text-align: center; }
-            .verified-pill { margin: 1rem auto 0; }
-        }
+/* 📱 Enhanced Responsiveness for Premium Card */
+@media (max-width: 768px) {
+    .app-container {
+        padding: 1rem;
+    }
+
+    .intel-card {
+        padding: 1.25rem !important;
+        border-radius: 20px !important;
+    }
+
+    .device-access {
+        padding: 1rem !important;
+        gap: 1rem !important;
+        flex-direction: column;
+        align-items: flex-start !important;
+    }
+
+    .device-thumb {
+        width: 80px !important;
+        height: 80px !important;
+    }
+
+    .device-meta .headline {
+        font-size: 1.6rem !important;
+    }
+
+    .code-rail {
+        padding: 1rem !important;
+    }
+
+    .code-content .value {
+        font-size: 1.2rem !important;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr !important;
+        gap: 1rem !important;
+    }
+
+    .stat-card .value {
+        font-size: 2.2rem !important;
+    }
+
+    .notes-panel {
+        padding: 1rem !important;
+        flex-direction: column;
+        align-items: flex-start !important;
+    }
+
+    .verified-pill {
+        width: 100%;
+        text-align: center;
+        margin-top: 1rem;
+    }
+
+    .action-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
     
 
 .feedback-panel {
