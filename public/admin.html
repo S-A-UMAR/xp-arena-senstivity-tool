@@ -825,7 +825,7 @@
                 <span class="stat-label">Global Key Vault (Audit)</span>
             </div>
             <div class="section-toolbar">
-                <input id="globalKeySearch" class="toolbar-input" type="text" placeholder="Lookup global key..." onkeypress="if(e.key==='Enter') lookupGlobalKey()">
+                <input id="globalKeySearch" class="toolbar-input" type="text" placeholder="Lookup global key..." onkeypress="if(event.key==='Enter') lookupGlobalKey()">
                 <button class="v-btn" onclick="lookupGlobalKey()" style="padding: 0 1rem; height: 38px;">FIND</button>
             </div>
             <div id="globalKeyResult" class="hidden stat-tile" style="padding: 1rem; font-size: 0.7rem;">
@@ -851,6 +851,30 @@
                 <select id="toolModel" class="cyber-input" disabled>
                     <option value="">SELECT MODEL</option>
                 </select>
+
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem;">
+                    <div>
+                        <label class="stat-label" style="display:block; margin-bottom:0.4rem;">DEVICE MEMORY</label>
+                        <input type="range" id="toolRam" min="2" max="16" step="2" value="8" oninput="document.getElementById('toolRamVal').textContent = this.value + ' GB'">
+                        <div id="toolRamVal" style="font-size:0.7rem; color:var(--accent-primary); text-align:right;">8 GB</div>
+                    </div>
+                    <div>
+                        <label class="stat-label" style="display:block; margin-bottom:0.4rem;">PLAYSTYLE</label>
+                        <select id="toolSpeed" class="cyber-input" style="margin-bottom:0;">
+                            <option value="slow">SLOW</option>
+                            <option value="balanced" selected>BALANCED</option>
+                            <option value="fast">FAST</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="margin-top: 0.8rem;">
+                    <label class="stat-label" style="display:block; margin-bottom:0.4rem;">CLAW STYLE</label>
+                    <select id="toolClaw" class="cyber-input" style="margin-bottom:0;">
+                        <option value="2">2-FINGER</option>
+                        <option value="3">3-FINGER</option>
+                        <option value="4">4-FINGER</option>
+                    </select>
+                </div>
                 
                 <div style="margin: 1rem 0;">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.5rem;">
@@ -869,6 +893,10 @@
                         <div class="card-logo">XP ARENA MASTER</div>
                         <div class="card-chip">NEURAL_CALIBRATION_ID</div>
                     </div>
+                    <div style="padding: 0 0 1rem; border-bottom: 1px solid rgba(255,255,255,0.06); margin-bottom: 1rem;">
+                        <div class="card-label">ACCESS_CODE</div>
+                        <div class="card-value" id="admAccessCode" style="font-size:1.25rem;">-</div>
+                    </div>
                     <div class="card-body">
                         <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
                             <div>
@@ -885,6 +913,8 @@
                             <div><div class="card-label">4X</div><div class="card-value" id="adm4x" style="font-size:1rem;">-</div></div>
                             <div><div class="card-label">DPI</div><div class="card-value" id="admDPI" style="font-size:1rem;">-</div></div>
                         </div>
+                        <div class="card-label" style="margin-top:1rem;">SCORE</div>
+                        <div class="card-value" id="admScore" style="font-size:1rem; margin-bottom:0;">-</div>
                         <div class="card-label" style="margin-top:1rem;">SUBJECT_HARDWARE</div>
                         <div class="card-value" id="admHardware" style="font-size:0.8rem; margin-bottom:0;">-</div>
                     </div>
@@ -1687,34 +1717,54 @@
             };
         }
 
-        function computeAdminTool() {
+        async function computeAdminTool() {
             const brand = document.getElementById('toolBrand').value;
+            const series = document.getElementById('toolSeries').value;
             const model = document.getElementById('toolModel').value;
             const scale = parseFloat(document.getElementById('toolScale').value);
+            const ram = parseInt(document.getElementById('toolRam').value, 10);
+            const speed = document.getElementById('toolSpeed').value;
+            const claw = document.getElementById('toolClaw').value;
             
             if (!brand || !model) {
                 if (window.notify) window.notify('SELECT_HARDWARE_PROFILE', 'error');
                 return;
             }
 
-            const results = window.Calculator.compute({ brand, model, speed: 'medium', claw: '2', neuralScale: scale });
-            
-            document.getElementById('admGen').textContent = results.general;
-            document.getElementById('admRed').textContent = results.redDot;
-            document.getElementById('adm2x').textContent = results.scope2x;
-            document.getElementById('adm4x').textContent = results.scope4x;
-            document.getElementById('admDPI').textContent = results.dpi;
-            document.getElementById('admHardware').textContent = `${brand} ${model}`.toUpperCase();
-            
-            document.getElementById('adminToolResult').classList.remove('hidden');
-            if (window.notify) window.notify('NEURAL_CALIBRATION_COMPLETE', 'success');
+            try {
+                const payload = await api('/api/vault/admin/generate', 'POST', {
+                    brand,
+                    series,
+                    model,
+                    ram,
+                    speed,
+                    claw,
+                    neuralScale: scale
+                });
+                const results = payload.results || {};
+
+                document.getElementById('admGen').textContent = results.general || '-';
+                document.getElementById('admRed').textContent = results.redDot || '-';
+                document.getElementById('adm2x').textContent = results.scope2x || '-';
+                document.getElementById('adm4x').textContent = results.scope4x || '-';
+                document.getElementById('admDPI').textContent = results.dpi || '-';
+                const score = Math.min(100, Math.max(72, Math.round((scale * 8) + (ram * 2) + (speed === 'fast' ? 6 : speed === 'balanced' ? 4 : 2))));
+                document.getElementById('admScore').textContent = `${score}%`;
+                document.getElementById('admHardware').textContent = `${brand} ${model}`.toUpperCase();
+                document.getElementById('admAccessCode').textContent = payload.accessKey || '-';
+                document.getElementById('adminToolResult').classList.remove('hidden');
+                if (window.notify) window.notify('NEURAL_CALIBRATION_COMPLETE', 'success');
+            } catch (err) {
+                if (window.notify) window.notify(err.message || 'MASTER_GENERATION_FAILED', 'error');
+            }
         }
 
         function copyAdminResults() {
             const gen = document.getElementById('admGen').textContent;
             const red = document.getElementById('admRed').textContent;
             const model = document.getElementById('admHardware').textContent;
-            const text = `XP ARENA MASTER CALIBRATION\nHardware: ${model}\nGeneral: ${gen}\nRed Dot: ${red}\nGenerated via Admin Uplink`;
+            const accessCode = document.getElementById('admAccessCode').textContent;
+            const text = `XP ARENA MASTER CALIBRATION\nHardware: ${model}\nAccess Code: ${accessCode}\nGeneral: ${gen}\nRed Dot: ${red}\nGenerated via Admin Uplink`;
             navigator.clipboard.writeText(text);
             if (window.notify) window.notify('RESULTS_COPIED', 'success');
         }

@@ -276,6 +276,7 @@
                 </div>
 
                 <div class="device-access">
+                    <div class="device-access-header" data-i18n="deviceAccess">DEVICE AND ACCESS</div>
                     <div class="device-profile-row">
                         <div class="device-thumb">
                             <img id="devicePreview" src="favicon.png" alt="Device preview">
@@ -341,60 +342,15 @@
             </section>
         </div>
 
-        <div class="follow-creator-bar reveal" style="animation-delay: 0.45s; margin-top: 2rem;">
-            <div id="socialLinks" style="display:flex; gap:1rem; margin-bottom:1rem; justify-content:center; flex-wrap:wrap;"></div>
-            <button class="btn-follow" id="followBtn" data-i18n="followCreator">FOLLOW_CREATOR</button>
-        </div>
-
         <div class="action-grid reveal" style="animation-delay: 0.5s; margin-top: 2rem;">
             <button id="downloadBtn" class="action-btn download-tone" type="button" data-i18n="downloadBtn">DOWNLOAD_ID</button>
             <button id="copyBtn" class="action-btn secondary-tone" type="button" data-i18n="copyBtn">COPY / SHARE</button>
-            <button id="likeBtn" class="action-btn like-tone" type="button">
-                <span id="likeIcon">❤</span> <span id="likeCount">0</span>
-            </button>
         </div>
 
         <div class="motion-note reveal" style="animation-delay: 0.55s; margin-top: 1rem; text-align: center; font-size: 0.65rem; color: var(--text-dim);">
             This card is view-only for end users. Sensitivity generation stays locked to vendor workspaces.
         </div>
 
-        <section class="feedback-panel reveal" id="feedbackPanel" style="animation-delay: 0.6s; margin-top: 3rem; border-top: 1px solid var(--card-border); padding-top: 2rem;">
-            <div class="feedback-panel-head">
-                <div>
-                    <div class="label" data-i18n="profileFeedback">PROFILE_FEEDBACK</div>
-                    <h2 data-i18n="fineTuneProfile" style="font-size: 1.2rem; margin-top: 0.5rem;">Fine-tune this profile response</h2>
-                </div>
-                <div id="feedbackStatus" class="feedback-status" aria-live="polite"></div>
-            </div>
-            <p class="feedback-copy" data-i18n="feedbackPanelCopy" style="font-size: 0.75rem; color: var(--text-dim); margin: 1rem 0;">Send one structured reaction so creators can improve unstable profiles without bloating likes or fake engagement.</p>
-            <div class="feedback-chip-grid" style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.5rem;">
-                <button class="feedback-chip active" type="button" data-feedback-tag="feels_good" data-i18n="feelsGood">FEELS_GOOD</button>
-                <button class="feedback-chip" type="button" data-feedback-tag="too_high" data-i18n="tooHigh">TOO_HIGH</button>
-                <button class="feedback-chip" type="button" data-feedback-tag="too_low" data-i18n="tooLow">TOO_LOW</button>
-                <button class="feedback-chip" type="button" data-feedback-tag="device_mismatch" data-i18n="deviceMismatch">DEVICE_MISMATCH</button>
-                <button class="feedback-chip" type="button" data-feedback-tag="scope_unstable" data-i18n="scopeUnstable">SCOPE_UNSTABLE</button>
-            </div>
-            <div class="feedback-form-grid" style="display: grid; gap: 1rem; margin-bottom: 1.5rem;">
-                <label class="feedback-field">
-                    <span data-i18n="ratingLabel" style="display: block; font-size: 0.6rem; color: var(--text-dim); margin-bottom: 0.5rem;">RATING</span>
-                    <select id="feedbackRating" class="cyber-input" style="width: 100%; background: #101820; border: 1px solid var(--card-border); color: #fff; padding: 0.8rem; border-radius: 12px;">
-                        <option value="5">5 / EXCELLENT</option>
-                        <option value="4" selected>4 / GOOD</option>
-                        <option value="3">3 / MID</option>
-                        <option value="2">2 / OFF</option>
-                        <option value="1">1 / BAD</option>
-                    </select>
-                </label>
-                <label class="feedback-field feedback-field-wide">
-                    <span data-i18n="optionalNote" style="display: block; font-size: 0.6rem; color: var(--text-dim); margin-bottom: 0.5rem;">OPTIONAL_NOTE</span>
-                    <textarea id="feedbackText" class="cyber-input" maxlength="500" data-i18n-placeholder="feedbackHint" placeholder="Tell the creator what felt off or what worked well." style="width: 100%; background: #101820; border: 1px solid var(--card-border); color: #fff; padding: 0.8rem; border-radius: 12px; height: 100px; resize: none;"></textarea>
-                </label>
-            </div>
-            <div class="feedback-actions">
-                <button class="action-btn secondary-tone" id="submitFeedbackBtn" type="button" data-i18n="submitFeedback" style="width: 100%; padding: 1rem; border-radius: 16px; font-weight: 800; border: none; cursor: pointer; background: #1e293b; color: #fff;">SEND_FEEDBACK</button>
-                <div class="feedback-share-hint" id="shareLinkHint" style="text-align: center; margin-top: 1rem; font-size: 0.6rem; color: var(--text-dim);"></div>
-            </div>
-        </section>
     </main>
 
 
@@ -451,7 +407,6 @@
         </section>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="analytics.js"></script>
     <script src="translations.js"></script>
     <script src="notifications.js"></script>
