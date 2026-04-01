@@ -560,7 +560,6 @@ Object.entries(window.LANGUAGE_PAGE_EXTRAS).forEach(([lang, extras]) => {
 });
 
 const UNIVERSAL_UI_EXTRAS = {
-window.UNIVERSAL_UI_EXTRAS = {
     en: {
         profileFeedback: 'PROFILE_FEEDBACK',
         fineTuneProfile: 'Fine-tune this profile response',

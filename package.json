@@ -10,7 +10,8 @@
     "dev": "node server.js",
     "test": "jest",
     "lint": "eslint . --ext .js",
-    "migrate": "node migrate.js"
+    "migrate": "node migrate.js",
+    "quality:check": "node scripts/quality-guard.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",

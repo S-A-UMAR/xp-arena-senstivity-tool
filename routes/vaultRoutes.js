@@ -226,21 +226,8 @@ async function getCodeRecordFromShareToken(shareToken) {
     return getCodeRecordByLookupKey(shareRecord.lookup_key || payload.lookup_key || '');
 }
 
-async function createShareToken(entryCode) {
-    return jwt.sign(
-        { type: 'share', code: entryCode },
-        await getJwtSecret(),
-        { expiresIn: '14d' }
-    );
-}
 
-async function getCodeRecordFromShareToken(shareToken) {
-    const payload = jwt.verify(shareToken, await getJwtSecret());
-    if (payload?.type !== 'share' || !payload?.code) {
-        throw new Error('INVALID_SHARE_TOKEN');
-    }
-    return getCodeRecordByRawCode(payload.code);
-}
+
 
 async function getGlobalOffset() {
     try {
@@ -1484,9 +1471,16 @@ router.post('/feedback', async (req, res) => {
         }).refine((data) => data.code || data.entry_code || data.share_token, 'CODE_REQUIRED').parse(req.body || {});
 
         const entryCode = payload.code || payload.entry_code || null;
-        const found = payload.share_token
+        const allowProvisionalCodeFeedback = Boolean(entryCode)
+            && !payload.share_token
+            && !payload.feedback_tag
+            && /^XP-[A-Z0-9]{3,8}-\d{4,8}$/i.test(entryCode);
+        let found = payload.share_token
             ? await getCodeRecordFromShareToken(payload.share_token)
-            : await getCodeRecordByRawCode(entryCode);
+            : (allowProvisionalCodeFeedback ? null : await getCodeRecordByRawCode(entryCode));
+        if (!found && allowProvisionalCodeFeedback) {
+            found = { keyData: null, lookupKey: getLookupKey(entryCode) };
+        }
         if (!found) return fail(res, 'XP_AUTH_INVALID', 'UNKNOWN_OR_INVALID_CODE', 404);
 
         const { keyData, lookupKey } = found;
