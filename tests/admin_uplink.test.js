@@ -109,4 +109,30 @@ describe('Admin uplink flows', () => {
     expect(create.body.vendorId).toBe('CREATOR-ONE');
     expect(create.body.accessKey).toMatch(/^XP-CREATOR-ONE-/);
   });
+
+  it('allows admin to auto-generate a code with vendor-equivalent inputs', async () => {
+    const login = await request(app)
+      .post('/api/vault/admin/login')
+      .send({ password: process.env.ADMIN_SECRET });
+    const cookie = login.headers['set-cookie'][0].split(';')[0];
+
+    const generate = await request(app)
+      .post('/api/vault/admin/generate')
+      .set('Cookie', cookie)
+      .send({
+        brand: 'samsung',
+        series: 'S Series',
+        model: 'S23',
+        ram: 8,
+        speed: 'balanced',
+        claw: '3',
+        neuralScale: 5
+      });
+
+    expect(generate.status).toBe(200);
+    expect(generate.body.actor).toBe('admin');
+    expect(generate.body.accessKey).toMatch(/^XP-XP-ADMIN-/);
+    expect(generate.body.results).toBeDefined();
+    expect(generate.body.results.general).toBeDefined();
+  });
 });

@@ -12,6 +12,5 @@ describe('result template contract', () => {
     expect(resultHtml).toContain('data-i18n="resultHeroText"');
     expect(resultHtml).toContain('data-i18n="verificationLabel"');
     expect(resultHtml).toContain('data-i18n="deviceAccess"');
-    expect(resultHtml).toContain('data-i18n="followCreator"');
   });
 });

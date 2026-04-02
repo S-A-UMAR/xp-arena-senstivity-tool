@@ -229,6 +229,8 @@ async function getCodeRecordFromShareToken(shareToken) {
 
 
 
+
+
 async function getGlobalOffset() {
     try {
         const row = await db.get("SELECT setting_value FROM system_settings WHERE setting_key = 'global_sensitivity_offset'");
@@ -460,6 +462,26 @@ async function createVendorCode(vendorId, results, creatorAdvice = null, preferr
     `, [hashedCode, lookupKey, vendorId, JSON.stringify(results), creatorAdvice]);
 
     return { accessKey: rawCode, lookupKey };
+}
+
+async function ensureSystemVendor(vendorId, displayName = vendorId) {
+    const existing = await db.get('SELECT vendor_id FROM vendors WHERE vendor_id = ?', [vendorId]);
+    if (existing?.vendor_id) return vendorId;
+
+    const adminSecret = await getAdminSecret();
+    const seedSecret = adminSecret || process.env.ADMIN_SECRET || `${vendorId}-SEED`;
+    const hashed = await bcrypt.hash(seedSecret, 10);
+    await db.run(`
+        INSERT INTO vendors (org_id, vendor_id, access_key, lookup_key, brand_config, status)
+        VALUES (?, ?, ?, ?, ?, 'active')
+    `, [
+        'XP-CORE-ORG',
+        vendorId,
+        hashed,
+        getLookupKey(`${vendorId}:${seedSecret}`).substring(0, 20),
+        JSON.stringify({ display_name: displayName, logo_url: '', socials: {} })
+    ]);
+    return vendorId;
 }
 
 const vendorProfileSchema = z.object({
@@ -1064,6 +1086,38 @@ router.post('/generate', authenticateVendor, async (req, res) => {
     }
 });
 
+router.post('/admin/generate', authenticateAdmin, async (req, res) => {
+    try {
+        const { brand, series, model, ram, speed, claw, neuralScale } = z.object({
+            brand: z.string().min(1),
+            series: z.string().optional().nullable(),
+            model: z.string().min(1),
+            ram: z.coerce.number().int().min(1).max(32),
+            speed: z.string().min(1),
+            claw: z.string().min(1),
+            neuralScale: z.coerce.number().min(1).max(10).optional()
+        }).parse(req.body || {});
+
+        const results = Calculator.compute({
+            brand,
+            series: series || '',
+            model,
+            ram,
+            speed,
+            claw,
+            neuralScale: neuralScale || 5
+        }, await getGlobalOffset());
+
+        const adminVendorId = await ensureSystemVendor('XP-ADMIN', 'XP_ADMIN_MASTER');
+        const created = await createVendorCode(adminVendorId, results, 'AUTO_GENERATED_BY_ADMIN');
+        await trackEvent('code_generated', 'XP-CORE-ORG', adminVendorId, getClientIp(req), `${brand} ${model}`.trim());
+        return res.json({ accessKey: created.accessKey, lookupKey: created.lookupKey, results, actor: 'admin' });
+    } catch (err) {
+        if (err instanceof z.ZodError) return fail(res, 'XP_VAL_FAILED', 'INVALID_GENERATION_INPUT', 400, err.errors);
+        return res.status(500).json({ error: err.message || 'ADMIN_GENERATION_FAILED' });
+    }
+});
+
 router.post('/manual-entry', authenticateVendor, async (req, res) => {
     try {
         const data = z.object({
@@ -1475,6 +1529,7 @@ router.post('/feedback', async (req, res) => {
             && !payload.share_token
             && !payload.feedback_tag
             && /^XP-[A-Z0-9]{3,8}-\d{4,8}$/i.test(entryCode);
+        let found = payload.share_token
         let found = payload.share_token
             ? await getCodeRecordFromShareToken(payload.share_token)
             : (allowProvisionalCodeFeedback ? null : await getCodeRecordByRawCode(entryCode));

@@ -125,12 +125,8 @@ describe('POST /api/vault/feedback', () => {
       .post('/api/vault/feedback')
       .send({ code: 'XP-NEW-1000', rating: 5, feedback: 'Fresh like' });
 
-    expect(res.status).toBe(200);
-    expect(res.body).toEqual({ success: true, likes_count: 1 });
-    expect(db.run).toHaveBeenCalledWith(
-      expect.stringContaining('INSERT INTO code_activity'),
-      expect.arrayContaining(['XP-NEW-1000'])
-    );
+    expect(res.status).toBe(404);
+    expect(res.body.code).toBe('XP_AUTH_INVALID');
   });
 
   it('rejects invalid feedback payload', async () => {

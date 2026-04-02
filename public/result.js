@@ -13,25 +13,11 @@
     let currentShareUrl = '';
     let currentVerifyPayload = null;
     let currentEfficiency = 94;
-    let likeInFlight = false;
-    let selectedFeedbackTag = 'feels_good';
     let expiryTimer = null;
     let utcInterval = null;
     let currentDisplayName = '';
     let currentAdvice = '';
     let currentShareDetails = null;
-
-    function likedStorageKey(code) {
-        return `xp_liked_${String(code || '').toUpperCase()}`;
-    }
-
-    function feedbackStorageKey(code) {
-        return `xp_feedback_${String(code || '').toUpperCase()}`;
-    }
-
-    function currentEngagementKey() {
-        return currentCode || currentShareToken || '';
-    }
 
     function buildResultUrl({ code = '', shareToken = '' }) {
         if (shareToken) return `${window.location.origin}/result.html?share=${encodeURIComponent(shareToken)}`;
@@ -84,19 +70,6 @@
         if (utcInterval) clearInterval(utcInterval);
         updateUtcClock();
         utcInterval = setInterval(updateUtcClock, isReducedMotionActive() ? 30000 : 1000);
-    }
-
-    function setLikeButtonState(liked, count) {
-        const likeBtn = document.getElementById('likeBtn');
-        const likeIcon = document.getElementById('likeIcon');
-        const likeCount = document.getElementById('likeCount');
-        if (!likeBtn) return;
-        
-        if (likeIcon) likeIcon.textContent = liked ? '💚' : '❤';
-        if (likeCount) likeCount.textContent = count || 0;
-        
-        likeBtn.classList.toggle('liked', liked);
-        likeBtn.setAttribute('aria-pressed', liked ? 'true' : 'false');
     }
 
     function setEfficiency(value) {
@@ -413,20 +386,6 @@
         link.click();
     }
 
-    function setFeedbackTag(tag) {
-        selectedFeedbackTag = tag;
-        document.querySelectorAll('[data-feedback-tag]').forEach((button) => {
-            button.classList.toggle('active', button.dataset.feedbackTag === tag);
-        });
-    }
-
-    function setFeedbackStatus(message, tone = '') {
-        const el = document.getElementById('feedbackStatus');
-        if (!el) return;
-        el.textContent = message || '';
-        el.dataset.tone = tone;
-    }
-
     function updateAdviceCopy(advice) {
         const adviceEl = document.getElementById('creatorAdvice');
         if (!adviceEl) return;
@@ -438,68 +397,6 @@
     function updateShareHint() {
         const shareHint = document.getElementById('shareLinkHint');
         if (shareHint) shareHint.textContent = currentShareUrl ? `${t('secureShare', 'SECURE SHARE')}: ${currentShareUrl}` : '';
-    }
-
-    async function submitFeedback({ rating, source, isLike = false }) {
-        if ((!currentCode && !currentShareToken) || likeInFlight) return;
-        const feedbackText = (document.getElementById('feedbackText')?.value || '').trim();
-        try {
-            likeInFlight = true;
-            setFeedbackStatus('');
-            const response = await fetch('/api/vault/feedback', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    code: currentCode || undefined,
-                    share_token: !currentCode && currentShareToken ? currentShareToken : undefined,
-                    rating,
-                    feedback: feedbackText || undefined,
-                    feedback_tag: selectedFeedbackTag,
-                    feedback_source: source
-                })
-            });
-            const payload = await response.json();
-            if (!response.ok) throw new Error(payload.error || payload.message || 'FEEDBACK_FAILED');
-            if (isLike) {
-                localStorage.setItem(likedStorageKey(currentEngagementKey()), 'true');
-                setLikeButtonState(true, payload.likes_count || 0);
-                window.notify?.(t('likeRecorded', 'LIKE_RECORDED'), 'success');
-            } else {
-                localStorage.setItem(feedbackStorageKey(currentEngagementKey()), JSON.stringify({ rating, tag: selectedFeedbackTag, feedbackText }));
-                setLikeButtonState(localStorage.getItem(likedStorageKey(currentEngagementKey())) === 'true', payload.likes_count || 0);
-                setFeedbackStatus(t('feedbackSaved', 'FEEDBACK_SAVED'), 'success');
-                window.notify?.(t('feedbackSaved', 'FEEDBACK_SAVED'), 'success');
-            }
-        } catch (e) {
-            const message = e.message || 'FEEDBACK_FAILED';
-            if (isLike && message === 'FEEDBACK_ALREADY_CAPTURED_RECENTLY') {
-                setLikeButtonState(true, currentVerifyPayload?.likes || 0);
-            }
-            setFeedbackStatus(message, 'error');
-            window.notify?.(message, 'error');
-        } finally {
-            likeInFlight = false;
-        }
-    }
-
-    async function submitLike() {
-        if (!currentCode && !currentShareToken) return;
-        if (localStorage.getItem(likedStorageKey(currentEngagementKey())) === 'true') {
-            window.notify?.(t('likeAlreadyRecorded', 'LIKE_ALREADY_RECORDED'), 'info');
-            return;
-        }
-        await submitFeedback({ rating: 5, source: 'quick_like', isLike: true });
-    }
-
-    function bindStructuredFeedback() {
-        document.querySelectorAll('[data-feedback-tag]').forEach((button) => {
-            button.addEventListener('click', () => setFeedbackTag(button.dataset.feedbackTag));
-        });
-        setFeedbackTag(selectedFeedbackTag);
-        document.getElementById('submitFeedbackBtn')?.addEventListener('click', async () => {
-            const rating = Number.parseInt(document.getElementById('feedbackRating')?.value || '4', 10);
-            await submitFeedback({ rating, source: 'structured_feedback' });
-        });
     }
 
     function bindMotionEffects() {
@@ -525,8 +422,6 @@
         if (downloadBtn) downloadBtn.textContent = t('downloadBtn', 'DOWNLOAD_ID');
         const copyBtn = document.getElementById('copyBtn');
         if (copyBtn) copyBtn.textContent = `${t('copyBtn', 'COPY_TEXT')} / SHARE`;
-        const submitBtn = document.getElementById('submitFeedbackBtn');
-        if (submitBtn) submitBtn.textContent = t('submitFeedback', 'SEND_FEEDBACK');
         const rail = document.getElementById('codeRailText');
         if (rail && currentShareDetails) {
             rail.textContent = currentShareDetails.code;
@@ -602,9 +497,6 @@
         updateAdviceCopy(hydrated.advice);
         updateShareHint();
 
-        const liked = localStorage.getItem(likedStorageKey(currentEngagementKey())) === 'true';
-        setLikeButtonState(liked, hydrated.likes || 0);
-
         paintRange('rGen1', 'rGen2', results.general);
         paintRange('rRed1', 'rRed2', results.redDot);
         paintRange('r2x1', 'r2x2', results.scope2x);
@@ -623,41 +515,6 @@
         
         const rail = document.getElementById('codeRailText');
         if (rail) rail.textContent = currentShareDetails.code;
-
-        const socialBox = document.getElementById('socialLinks');
-        const socialsObj = branding.socials || {};
-        const socials = [
-            { id: 'youtube', icon: 'YouTube', link: branding.youtube || socialsObj.yt },
-            { id: 'tiktok', icon: 'TikTok', link: branding.tiktok || socialsObj.tiktok || socialsObj.tt },
-            { id: 'discord', icon: 'Discord', link: branding.discord || socialsObj.discord || socialsObj.dc }
-        ];
-        const socialIcons = {
-            youtube: `<svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>`,
-            tiktok: `<svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.06-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.9-.32-1.98-.23-2.81.31-.75.42-1.24 1.25-1.33 2.1-.1.7-.01 1.42.24 2.08.41.82 1.25 1.39 2.16 1.47 1.05.07 2.13-.37 2.74-1.23.33-.42.5-1.01.51-1.54-.01-4.73.01-9.46-.02-14.2z"/></svg>`,
-            discord: `<svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.052-.102.001-.226-.106-.267a12.865 12.865 0 0 1-1.887-.899.08.08 0 0 1-.006-.136c.125-.094.252-.192.372-.29a.078.078 0 0 1 .082-.011 13.973 13.973 0 0 0 12.244 0 .078.078 0 0 1 .082.011c.12.098.247.196.373.29a.08.08 0 0 1-.006.136 12.655 12.655 0 0 1-1.887.899.076.076 0 0 0-.105.268c.352.699.765 1.362 1.227 1.993a.076.076 0 0 0 .084.029 19.835 19.835 0 0 0 6.002-3.03.077.077 0 0 0 .032-.055c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>`
-        };
-        socials.forEach((s) => {
-            if (s.link) {
-                const a = document.createElement('a');
-                a.href = s.link.startsWith('http') ? s.link : `https://${s.link}`;
-                a.target = '_blank';
-                a.className = `social-link ${s.id}`;
-                a.innerHTML = `${socialIcons[s.id]}<span>${s.icon}</span>`;
-                socialBox.appendChild(a);
-            }
-        });
-        const tiktok = socials.find((s) => s.id === 'tiktok' && s.link);
-        if (tiktok) document.getElementById('followHint').textContent = `${t('followCreator', 'FOLLOW_CREATOR')}: ${tiktok.link}`;
-
-        const followBtn = document.getElementById('followBtn');
-        const primarySocial = socials.find((s) => s.link)?.link;
-        if (primarySocial || branding.social_link) {
-            const primaryLink = primarySocial || branding.social_link;
-            followBtn.onclick = () => window.open(primaryLink.startsWith('http') ? primaryLink : `https://${primaryLink}`, '_blank');
-        } else {
-            followBtn.textContent = t('joinCommunity', 'JOIN_COMMUNITY');
-            followBtn.onclick = () => window.open('https://discord.gg/xparena', '_blank');
-        }
 
         if (branding.colors?.primary) document.documentElement.style.setProperty('--accent-primary', branding.colors.primary);
         if (branding.colors?.secondary) document.documentElement.style.setProperty('--accent-secondary', branding.colors.secondary);
@@ -688,10 +545,9 @@
             copyPlainText(currentShareDetails.code, 'ACCESS_CODE_COPIED');
         });
 
-        document.getElementById('likeBtn').addEventListener('click', submitLike);
-        bindStructuredFeedback();
-
         document.getElementById('copyBtn').addEventListener('click', () => {
+            const generalRange = `${document.getElementById('rGen1').textContent} — ${document.getElementById('rGen2').textContent}`;
+            const redDotRange = `${document.getElementById('rRed1').textContent} — ${document.getElementById('rRed2').textContent}`;
             const text = buildShareText({
                 modelText,
                 general: generalRange,

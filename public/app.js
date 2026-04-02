@@ -56,6 +56,29 @@ const UI = {
         if (window.notify) window.notify(message, type);
     },
 
+    showVaultErrorOverlay(message) {
+        const existing = document.getElementById('vaultErrorOverlay');
+        if (existing) existing.remove();
+        const overlay = document.createElement('div');
+        overlay.id = 'vaultErrorOverlay';
+        overlay.style.cssText = `
+            position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center;
+            background: rgba(2, 8, 20, 0.78); backdrop-filter: blur(6px); padding: 1rem;
+        `;
+        overlay.innerHTML = `
+            <div style="width:min(420px, 100%); background:#0b1421; border:1px solid rgba(255,107,107,0.35); border-radius:20px; padding:1.1rem 1rem; text-align:center; box-shadow:0 24px 50px rgba(0,0,0,0.45);">
+                <div class="logo-badge" style="background:rgba(255,68,68,0.1); color:#ff8f8f; border-color:rgba(255,68,68,0.35);">ACCESS_ERROR</div>
+                <p style="margin:0.9rem 0 0.3rem; color:#d9e6f5; font-family:var(--font-mono); letter-spacing:0.05em;">${String(message || 'INVALID_ACCESS_KEY')}</p>
+                <button id="vaultErrorDismissBtn" class="action-btn" style="margin-top:0.9rem; width:100%;">TRY AGAIN</button>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+        document.getElementById('vaultErrorDismissBtn')?.addEventListener('click', () => overlay.remove());
+        overlay.addEventListener('click', (event) => {
+            if (event.target === overlay) overlay.remove();
+        });
+    },
+
     attachVaultListeners() {
         const { vaultInput, vaultAuthBtn } = this.elements;
         if (!vaultInput) return;
@@ -165,6 +188,7 @@ const UI = {
             status.textContent = err.message || 'INVALID ACCESS KEY';
             status.style.color = '#ff6b6b';
             input.classList.add('error');
+            this.showVaultErrorOverlay(err.message || 'INVALID ACCESS KEY');
             window.SFX?.play?.('click');
         } finally {
             setTimeout(() => {
