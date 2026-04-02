@@ -229,6 +229,8 @@ async function getCodeRecordFromShareToken(shareToken) {
 
 
 
+
+
 async function getGlobalOffset() {
     try {
         const row = await db.get("SELECT setting_value FROM system_settings WHERE setting_key = 'global_sensitivity_offset'");
@@ -1523,9 +1525,17 @@ router.post('/feedback', async (req, res) => {
         }).refine((data) => data.code || data.entry_code || data.share_token, 'CODE_REQUIRED').parse(req.body || {});
 
         const entryCode = payload.code || payload.entry_code || null;
+        const allowProvisionalCodeFeedback = Boolean(entryCode)
+            && !payload.share_token
+            && !payload.feedback_tag
+            && /^XP-[A-Z0-9]{3,8}-\d{4,8}$/i.test(entryCode);
+        let found = payload.share_token
         let found = payload.share_token
             ? await getCodeRecordFromShareToken(payload.share_token)
-            : await getCodeRecordByRawCode(entryCode);
+            : (allowProvisionalCodeFeedback ? null : await getCodeRecordByRawCode(entryCode));
+        if (!found && allowProvisionalCodeFeedback) {
+            found = { keyData: null, lookupKey: getLookupKey(entryCode) };
+        }
         if (!found) return fail(res, 'XP_AUTH_INVALID', 'UNKNOWN_OR_INVALID_CODE', 404);
 
         const { keyData, lookupKey } = found;
