@@ -31,73 +31,76 @@ const ThreeHub = {
     createParticles() {
         const geometry = new THREE.BufferGeometry();
         const vertices = [];
-        const count = 1500;
+        const colors = [];
+        const count = 3000; // Increased count for luxury feel
 
         for (let i = 0; i < count; i++) {
             vertices.push(
-                THREE.MathUtils.randFloatSpread(1000), // x
-                THREE.MathUtils.randFloatSpread(1000), // y
-                THREE.MathUtils.randFloatSpread(1000)  // z
+                THREE.MathUtils.randFloatSpread(1500),
+                THREE.MathUtils.randFloatSpread(1500),
+                THREE.MathUtils.randFloatSpread(1500)
             );
+            
+            const color = new THREE.Color();
+            color.setHSL(0.5 + Math.random() * 0.1, 0.8, 0.6); // Cyan tones
+            colors.push(color.r, color.g, color.b);
         }
 
         geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+        geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
 
         const material = new THREE.PointsMaterial({
-            color: 0x00f0ff,
-            size: 2,
+            size: 1.5,
+            vertexColors: true,
             transparent: true,
-            opacity: 0.5,
-            blending: THREE.AdditiveBlending
+            opacity: 0.4,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false
         });
 
         this.particles = new THREE.Points(geometry, material);
         this.scene.add(this.particles);
 
-        // Add a secondary grid
-        const gridHelper = new THREE.GridHelper(1000, 50, 0x00f0ff, 0x001111);
-        gridHelper.position.y = -100;
-        gridHelper.material.opacity = 0.2;
-        gridHelper.material.transparent = true;
-        this.scene.add(gridHelper);
+        // Add Luxury Atmosphere Lights
+        const pointLight = new THREE.PointLight(0x00f0ff, 2, 500);
+        pointLight.position.set(0, 0, 50);
+        this.scene.add(pointLight);
     },
 
-    addEventListeners() {
-        window.addEventListener('mousemove', (e) => {
-            this.mouseX = (e.clientX - window.innerWidth / 2) * 0.05;
-            this.mouseY = (e.clientY - window.innerHeight / 2) * 0.05;
-        });
+    triggerLightning() {
+        const overlay = document.createElement('div');
+        overlay.className = 'lightning-strike';
+        document.body.appendChild(overlay);
+        
+        const strike = () => {
+            overlay.classList.add('lightning-active');
+            setTimeout(() => {
+                overlay.classList.remove('lightning-active');
+                if (Math.random() > 0.5) setTimeout(strike, 100); // Double strike
+            }, 400);
+        };
 
-        window.addEventListener('resize', () => {
-            this.camera.aspect = window.innerWidth / window.innerHeight;
-            this.camera.updateProjectionMatrix();
-            this.renderer.setSize(window.innerWidth, window.innerHeight);
-        });
+        setInterval(() => {
+            if (Math.random() > 0.98) strike();
+        }, 3000);
     },
 
     animate() {
         requestAnimationFrame(() => this.animate());
 
-        this.particles.rotation.x += 0.001;
-        this.particles.rotation.y += 0.0015;
+        const time = Date.now() * 0.00005;
+        this.particles.rotation.y = time * 0.5;
+        this.particles.rotation.x = time * 0.2;
 
         this.camera.position.x += (this.mouseX - this.camera.position.x) * 0.05;
         this.camera.position.y += (-this.mouseY - this.camera.position.y) * 0.05;
         this.camera.lookAt(this.scene.position);
 
         this.renderer.render(this.scene, this.camera);
-    },
-
-    stop() {
-        if (this.renderer) {
-            this.renderer.dispose();
-            const container = document.getElementById('three-canvas-container');
-            if (container) container.innerHTML = '';
-            this.renderer = null;
-        }
     }
 };
 
 document.addEventListener('DOMContentLoaded', () => {
     ThreeHub.init();
+    ThreeHub.triggerLightning();
 });

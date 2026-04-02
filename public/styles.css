@@ -37,6 +37,12 @@
     --font-body: 'Inter', sans-serif;
     --font-mono: 'JetBrains Mono', monospace;
 
+    /* 💎 Luxury Glassmorphism Tokens */
+    --glass-bg: rgba(15, 23, 42, 0.4);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --glass-highlight: rgba(255, 255, 255, 0.05);
+    --glass-blur: 24px;
+
     /* 🎢 Animation Tokens */
     --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-base: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -257,27 +263,76 @@ body {
 
 /* Interactive Cards */
 .glass-card {
-    background: var(--bg-card);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid var(--border-light);
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid var(--glass-border);
     border-radius: var(--radius-lg);
     padding: var(--space-md);
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+    box-shadow: 
+        0 25px 50px -12px rgba(0, 0, 0, 0.5),
+        inset 0 1px 1px var(--glass-highlight);
     margin-bottom: var(--space-md);
     position: relative;
     overflow: hidden;
+    transition: var(--transition-base);
 }
 
-.glass-card::after {
+.glass-card:hover {
+    border-color: var(--border-accent);
+    box-shadow: 
+        0 30px 60px -12px rgba(0, 0, 0, 0.6),
+        0 0 20px var(--accent-primary-glow),
+        inset 0 1px 1px var(--glass-highlight);
+}
+
+.glass-card::before {
     content: '';
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
+    top: 0; left: -100%;
+    width: 100%; height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.05),
+        transparent
+    );
+    transition: 0.5s;
     pointer-events: none;
+}
+
+.glass-card:hover::before {
+    left: 100%;
+}
+
+/* ⚡ Lightning Effect */
+.lightning-strike {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: white;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 9998;
+}
+
+@keyframes lightningFlash {
+    0%, 100% { opacity: 0; }
+    10%, 25% { opacity: 0.15; }
+    15% { opacity: 0.3; }
+}
+
+.lightning-active {
+    animation: lightningFlash 0.4s ease-out;
+}
+
+/* 🪐 Luxury Background Hub */
+#three-canvas-container {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: -2;
+    background: radial-gradient(circle at 50% 50%, #0a0f1f 0%, #020617 100%);
 }
 
 /* Enhanced Forms */

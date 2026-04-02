@@ -92,7 +92,7 @@
             backdrop-filter: blur(20px);
             border-top: 1px solid var(--glass-border);
             display: grid;
-            grid-template-columns: repeat(5, 1fr);
+            grid-template-columns: repeat(6, 1fr);
             z-index: 1000;
             padding-bottom: env(safe-area-inset-bottom);
         }
@@ -822,6 +822,10 @@
             <svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 9.2h3V19H5V9.2zM10.6 5h2.8v14h-2.8V5zm5.6 8H19v6h-2.8v-6z"/></svg>
             <span class="nav-label" data-i18n="statsNav">STATS</span>
         </button>
+        <button class="nav-item" onclick="switchTab('presets', this)">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+            <span class="nav-label" data-i18n="presetsNav">PRESETS</span>
+        </button>
         <div class="fab-container">
             <button class="fab-btn" onclick="toggleSheet(true)">+</button>
         </div>
@@ -935,46 +939,6 @@
             empty.style.fontSize = '0.6rem';
             empty.textContent = text;
             node?.appendChild(empty);
-        }
-
-        function renderRegionHeatmap(node, regions) {
-            clearNode(node);
-            if (!regions || regions.length === 0) return renderEmptyState(node, 'NO_REGIONAL_DATA');
-            const max = regions[0].count || 1;
-            regions.forEach((regionRow) => {
-                const row = document.createElement('div');
-                row.style.display = 'flex';
-                row.style.alignItems = 'center';
-                row.style.gap = '10px';
-
-                const label = document.createElement('div');
-                label.style.fontSize = '0.6rem';
-                label.style.width = '60px';
-                label.style.color = 'var(--text-muted)';
-                label.textContent = String(regionRow.region || 'unknown').toUpperCase();
-
-                const track = document.createElement('div');
-                track.style.flex = '1';
-                track.style.height = '4px';
-                track.style.background = 'rgba(255,255,255,0.05)';
-                track.style.borderRadius = '2px';
-                track.style.overflow = 'hidden';
-
-                const fill = document.createElement('div');
-                fill.style.height = '100%';
-                fill.style.width = `${((regionRow.count || 0) / max) * 100}%`;
-                fill.style.background = 'var(--accent-secondary)';
-                track.appendChild(fill);
-
-                const count = document.createElement('div');
-                count.style.fontSize = '0.6rem';
-                count.style.fontFamily = 'var(--font-mono)';
-                count.style.color = 'var(--accent-secondary)';
-                count.textContent = String(regionRow.count || 0);
-
-                row.append(label, track, count);
-                node.appendChild(row);
-            });
         }
 
         function renderTopProfiles(node, profiles) {
@@ -1302,13 +1266,13 @@
                     return;
                 }
                 
-                const displayName = window.vendorName || 'XP';
+                const displayName = window.vendorName || 'XP_CORE';
                 const prefix = displayName.toUpperCase().replace(/\s+/g, '').slice(0, 10);
 
                 body.innerHTML = keys.map(k => `
                     <div style="padding: 1rem; border-bottom: 1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02); margin-bottom: 0.5rem; border-radius: 12px;">
                         <div>
-                            <div style="font-family: var(--font-mono); color: var(--accent-primary); font-weight: 800; font-size: 0.9rem;">XP-${prefix}-${k.lookup_key}</div>
+                            <div style="font-family: var(--font-mono); color: var(--accent-primary); font-weight: 800; font-size: 0.9rem;">${k.lookup_key}</div>
                             <div style="font-size: 0.6rem; color: var(--text-muted); margin-top: 4px;">${new Date(k.created_at).toLocaleDateString()} • HITS: ${k.real_usage || 0}</div>
                         </div>
                         <div style="display: flex; gap: 0.5rem;">
@@ -1586,11 +1550,33 @@
             const s = series.toLowerCase();
             const m = model.toLowerCase();
             
-            if (b === 'apple') return 8; // Virtual baseline
-            if (m.includes('ultra') || m.includes('rog') || m.includes('gaming') || m.includes('gt')) return 12;
-            if (m.includes('pro') || m.includes('plus') || m.includes('note') || m.includes('s2')) return 8;
-            if (s.includes('s series') || s.includes('mi series') || s.includes('number series')) return 6;
-            if (s.includes('entry') || s.includes('hot series')) return 4;
+            // 🍏 Apple Logic (iPad/iPhone)
+            if (b === 'apple') {
+                if (m.includes('ipad pro')) return 16;
+                if (m.includes('ipad air') || m.includes('16 pro') || m.includes('15 pro')) return 8;
+                return 6; 
+            }
+
+            // ⚡ Gaming / Ultra High-End
+            if (m.includes('ultra') || m.includes('rog') || m.includes('gaming') || m.includes('gt') || m.includes('legion') || m.includes('shark') || m.includes('nubia z')) {
+                return 16;
+            }
+
+            // 💎 Pro / High-End
+            if (m.includes('pro') || m.includes('plus') || m.includes('note') || m.includes('s2') || m.includes('find x') || m.includes('x100')) {
+                return 12;
+            }
+
+            // 📈 Mid-Range
+            if (s.includes('s series') || s.includes('mi series') || s.includes('number series') || s.includes('reno') || s.includes('v series') || s.includes('k series')) {
+                return 8;
+            }
+
+            // 📉 Budget / Entry
+            if (s.includes('entry') || s.includes('hot series') || s.includes('pop series') || s.includes('spark') || s.includes('smart') || s.includes('standard/a/c')) {
+                return 4;
+            }
+
             return 8; // Balanced default
         }
 
@@ -1618,10 +1604,9 @@
                 const res = await api(`${API_BASE}/generate`, 'POST', body);
                 currentGeneratedCode = res.accessKey;
                 
-                // ⚡ Format code as XP-[VENDOR]-[CODE]
-                const displayName = window.vendorName || 'XP_CREATOR';
-                const prefix = displayName.toUpperCase().replace(/\s+/g, '').slice(0, 10);
-                const formattedCode = `XP-${prefix}-${res.accessKey}`;
+                // ⚡ Format code as JUST THE KEY
+                const formattedCode = res.accessKey;
+                const displayName = window.vendorName || 'XP_CORE';
                 
                 document.getElementById('accessKeyVal').textContent = formattedCode;
                 document.getElementById('provisionVendorName').textContent = displayName.toUpperCase();
@@ -1677,9 +1662,8 @@
                 currentGeneratedCode = keys[0];
                 toggleSheet(false);
                 
-                const displayName = window.vendorName || 'XP_CREATOR';
-                const prefix = displayName.toUpperCase().replace(/\s+/g, '').slice(0, 10);
-                const formattedKeys = keys.map(k => `XP-${prefix}-${k}`);
+                const formattedKeys = keys;
+                const displayName = window.vendorName || 'XP_CORE';
                 
                 document.getElementById('genResult').classList.remove('hidden');
                 document.getElementById('accessKeyVal').innerHTML = formattedKeys.map((key) => escapeHtml(key)).join('<br>');

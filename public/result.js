@@ -203,15 +203,7 @@
     }
 
     function formatAccessCode(vendor, code) {
-        if (!code) return 'XP-GEN-000000';
-        // If code already starts with XP-, don't re-prefix
-        if (code.startsWith('XP-')) return code;
-        
-        const v = (vendor || 'XP').toUpperCase().replace(/\s+/g, '').slice(0, 10);
-        // Ensure we don't double prefix if vendor name is already in the code
-        if (code.startsWith(`${v}-`)) return `XP-${code}`;
-        
-        return `XP-${v}-${code}`;
+        return code || 'FREE-GEN';
     }
 
     function buildCardDetails({ branding, hydrated, modelText, displayName, code, results }) {
