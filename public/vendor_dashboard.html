@@ -883,11 +883,11 @@
 
         function escapeHtml(value) {
             return String(value || '')
-                .replaceAll('&', '&amp;')
-                .replaceAll('<', '&lt;')
-                .replaceAll('>', '&gt;')
-                .replaceAll('\"', '&quot;')
-                .replaceAll("'", '&#039;');
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/\"/g, '&quot;')
+                .replace(/'/g, '&#039;');
         }
 
         function showDashError(message) {
@@ -1466,8 +1466,15 @@
 
         async function loadAnalytics() {
             try {
+                // Load core data in parallel
+                const [stats, regions, insights, codes] = await Promise.all([
+                    api(`${API_BASE}/stats`).catch(() => []),
+                    api(`${API_BASE}/stats/regions`).catch(() => []),
+                    api(`${API_BASE}/insights`).catch(() => ({})),
+                    api(`${API_BASE}/codes`).catch(() => [])
+                ]);
+
                 // Load Daily Chart
-                const stats = await api(`${API_BASE}/stats`).catch(() => []);
                 const barChart = document.getElementById('barChart');
                 if (barChart && stats.length > 0) {
                     const max = Math.max(...stats.map(s => s.count)) || 1;
@@ -1477,11 +1484,9 @@
                 }
                 
                 // Load Regions
-                const regions = await api(`${API_BASE}/stats/regions`).catch(() => []);
                 const heatmap = document.getElementById('regionHeatmap');
                 if (heatmap) renderRegionHeatmap(heatmap, regions);
 
-                const insights = await api(`${API_BASE}/insights`).catch(() => ({}));
                 if (document.getElementById('insightConversion')) document.getElementById('insightConversion').textContent = `${insights.feedback_conversion_pct || 0}%`;
                 if (document.getElementById('insightAvgRating')) document.getElementById('insightAvgRating').textContent = insights.average_rating ? Number(insights.average_rating).toFixed(1) : '0.0';
                 if (document.getElementById('insightTopRegion')) document.getElementById('insightTopRegion').textContent = (insights.top_regions?.[0]?.region || '--').toUpperCase();
@@ -1490,7 +1495,6 @@
                 if (document.getElementById('insightFeedbackBreakdown')) renderFeedbackBreakdown(document.getElementById('insightFeedbackBreakdown'), insights.feedback_breakdown || []);
                 
                 // Load Logs
-                const codes = await api(`${API_BASE}/codes`).catch(() => []);
                 const logsBody = document.getElementById('logsBody');
                 if (logsBody && codes.length > 0) {
                     const logs = await api(`${API_BASE}/activity`).catch(() => []);

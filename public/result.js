@@ -499,9 +499,13 @@
 
         paintRange('rGen1', 'rGen2', results.general);
         paintRange('rRed1', 'rRed2', results.redDot);
-        paintRange('r2x1', 'r2x2', results.scope2x);
-        // Ads and Sniper scopes are merged in the new UI or handled differently
-        // I'll update the trends for the visible ones
+        
+        // 💎 Enhanced Logic: Show 2X Low and 4X High in the merged Scope Card
+        const [r2xLow] = parseRange(results.scope2x);
+        const [_, r4xHigh] = parseRange(results.scope4x);
+        document.getElementById('r2x1').textContent = r2xLow;
+        document.getElementById('r4x2').textContent = r4xHigh;
+        
         applyTrendLine('trendGeneral', results.general);
         applyTrendLine('trendRed', results.redDot);
         applyTrendLine('trend4x', results.scope4x);

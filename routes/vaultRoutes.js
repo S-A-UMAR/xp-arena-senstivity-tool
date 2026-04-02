@@ -1530,7 +1530,6 @@ router.post('/feedback', async (req, res) => {
             && !payload.feedback_tag
             && /^XP-[A-Z0-9]{3,8}-\d{4,8}$/i.test(entryCode);
         let found = payload.share_token
-        let found = payload.share_token
             ? await getCodeRecordFromShareToken(payload.share_token)
             : (allowProvisionalCodeFeedback ? null : await getCodeRecordByRawCode(entryCode));
         if (!found && allowProvisionalCodeFeedback) {

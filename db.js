@@ -11,7 +11,7 @@ const pool = mysql.createPool({
     waitForConnections: true,
     connectionLimit: process.env.DB_CONNECTION_LIMIT ? parseInt(process.env.DB_CONNECTION_LIMIT, 10) : 10,
     queueLimit: 0,
-    connectTimeout: 5000, // ⚡ 5s timeout to prevent serverless hang
+    connectTimeout: 15000, // ⚡ 15s timeout to prevent serverless hang in cold starts
     enableKeepAlive: true,
     keepAliveInitialDelay: 10000,
     ssl: {
