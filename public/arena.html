@@ -23,17 +23,23 @@
             color: var(--text-main);
             font-family: 'Outfit', sans-serif;
             margin: 0;
-            padding-top: 80px;
-            padding-bottom: 40px;
+            padding-top: 90px;
+            padding-bottom: 100px;
             overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(0, 240, 255, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(112, 0, 255, 0.05) 0%, transparent 40%);
+            min-height: 100vh;
         }
 
+        /* 🏆 Elite Header */
         header {
             position: fixed;
             top: 0; left: 0; right: 0;
-            height: 70px;
+            height: 75px;
             background: rgba(2, 6, 23, 0.8);
-            backdrop-filter: blur(20px);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
             border-bottom: 1px solid var(--glass-border);
             display: flex;
             justify-content: space-between;
@@ -42,35 +48,70 @@
             z-index: 5000;
         }
 
+        /* 📱 User Navigation Bar */
+        .user-nav {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            height: 75px;
+            background: rgba(10, 10, 10, 0.85);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border-top: 1px solid var(--glass-border);
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            z-index: 1000;
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        .nav-item {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            cursor: pointer;
+            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-decoration: none;
+        }
+
+        .nav-item.active { color: var(--accent-primary); }
+        .nav-item svg { width: 20px; height: 20px; }
+        .nav-label { font-size: 0.6rem; font-weight: 800; letter-spacing: 0.05em; }
+
         .xp-badge {
-            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
             color: black;
-            font-size: 0.65rem;
-            font-weight: 800;
+            font-size: 0.6rem;
+            font-weight: 900;
             padding: 4px 12px;
             border-radius: 99px;
-            font-family: 'JetBrains+Mono', monospace;
+            font-family: 'JetBrains Mono', monospace;
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
         }
 
         .arena-container {
             max-width: 600px;
             margin: 0 auto;
-            padding: 0 1rem;
+            padding: 0 1.25rem;
         }
 
         .hub-section {
-            margin-bottom: 2.5rem;
+            margin-bottom: 3rem;
         }
 
         .section-title {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             text-transform: uppercase;
-            letter-spacing: 0.2em;
+            letter-spacing: 0.25em;
             color: var(--accent-primary);
-            margin-bottom: 1.2rem;
+            margin-bottom: 1.5rem;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
+            font-weight: 800;
         }
 
         .section-title::after {
@@ -80,157 +121,147 @@
             background: linear-gradient(90deg, var(--glass-border), transparent);
         }
 
+        /* 💎 Elite Cards */
         .event-card {
             background: var(--glass-bg);
+            backdrop-filter: blur(12px);
             border: 1px solid var(--glass-border);
-            border-radius: 24px;
-            padding: 1.5rem;
-            margin-bottom: 1rem;
+            border-radius: 28px;
+            padding: 1.75rem;
+            margin-bottom: 1.25rem;
             position: relative;
             overflow: hidden;
-            transition: 0.3s;
+            transition: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        .event-card:active { transform: scale(0.98); }
+        .event-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(255,255,255,0.2);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
 
-        .event-card.giveaway { border-left: 4px solid var(--accent-primary); }
-        .event-card.tournament { border-left: 4px solid var(--accent-secondary); }
+        .event-card.giveaway { border-left: 5px solid var(--accent-primary); }
+        .event-card.tournament { border-left: 5px solid var(--accent-secondary); }
 
         .event-type {
             font-size: 0.55rem;
-            font-weight: 800;
-            letter-spacing: 0.1em;
-            margin-bottom: 0.5rem;
-            opacity: 0.8;
+            font-weight: 900;
+            letter-spacing: 0.15em;
+            margin-bottom: 0.75rem;
+            text-transform: uppercase;
         }
 
         .event-title {
-            font-size: 1.2rem;
+            font-size: 1.3rem;
             font-weight: 800;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.75rem;
+            line-height: 1.2;
         }
 
         .event-meta {
-            font-size: 0.7rem;
+            font-size: 0.75rem;
             color: var(--text-muted);
             display: flex;
-            gap: 15px;
-            margin-bottom: 1.2rem;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 1.5rem;
         }
 
-        .event-footer {
+        .meta-item {
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            gap: 6px;
+            background: rgba(255,255,255,0.04);
+            padding: 4px 10px;
+            border-radius: 8px;
         }
 
         .join-btn {
             background: white;
             color: black;
             border: none;
-            padding: 0.7rem 1.5rem;
-            border-radius: 12px;
-            font-weight: 800;
+            padding: 0.85rem 1.75rem;
+            border-radius: 14px;
+            font-weight: 900;
             font-size: 0.75rem;
             cursor: pointer;
-            font-family: 'Outfit', sans-serif;
+            transition: 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
 
-        .join-btn.tournament { background: var(--accent-secondary); color: white; }
+        .join-btn:active { transform: scale(0.95); }
+        .join-btn.tournament { background: var(--accent-secondary); color: white; box-shadow: 0 0 20px rgba(112, 0, 255, 0.3); }
+        .join-btn.giveaway { background: var(--accent-primary); color: black; box-shadow: 0 0 20px rgba(0, 240, 255, 0.3); }
 
+        /* 🦴 Skeleton */
         .skeleton {
             background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.03) 75%);
             background-size: 200% 100%;
-            animation: shimmer 1.5s infinite;
-            border-radius: 16px;
-            height: 140px;
-            margin-bottom: 1rem;
+            animation: shimmer 2s infinite;
+            border-radius: 24px;
+            height: 160px;
+            margin-bottom: 1.25rem;
         }
 
-        @keyframes shimmer {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
-        }
+        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 
-        /* Modal Overlay */
-        .modal-overlay {
+        /* 🍞 Custom Notifications */
+        .notification-container {
             position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.85);
-            backdrop-filter: blur(10px);
+            top: 90px; left: 50%;
+            transform: translateX(-50%);
             z-index: 10000;
             display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 1rem;
-            opacity: 0;
-            pointer-events: none;
-            transition: 0.3s;
+            flex-direction: column;
+            gap: 10px;
+            width: 90%;
+            max-width: 360px;
         }
 
-        .modal-overlay.active { opacity: 1; pointer-events: auto; }
-
-        .modal-card {
-            background: #0f172a;
+        .notification {
+            background: rgba(10, 10, 10, 0.9);
+            backdrop-filter: blur(12px);
             border: 1px solid var(--glass-border);
-            border-radius: 32px;
-            width: 100%;
-            max-width: 400px;
-            padding: 2rem;
-            position: relative;
-        }
-
-        .form-group { margin-bottom: 1.5rem; }
-        .form-label { font-size: 0.65rem; color: var(--text-muted); margin-bottom: 0.5rem; display: block; text-transform: uppercase; letter-spacing: 0.1em; }
-        .form-input {
-            width: 100%;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid var(--glass-border);
-            border-radius: 12px;
-            padding: 1rem;
-            color: white;
-            font-family: 'JetBrains+Mono', monospace;
-            outline: none;
-            box-sizing: border-box;
-        }
-        .form-input:focus { border-color: var(--accent-primary); }
-
-        .submit-btn {
-            width: 100%;
-            background: var(--accent-primary);
-            color: black;
-            border: none;
-            padding: 1rem;
+            padding: 1rem 1.25rem;
             border-radius: 16px;
-            font-weight: 800;
-            cursor: pointer;
-            margin-top: 1rem;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: white;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: slideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
+
+        @keyframes slideDown { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        /* ... modal styles ... */
     </style>
 </head>
 <body>
+    <div id="notificationContainer" class="notification-container"></div>
+
     <header>
-        <div style="display:flex; align-items:center; gap:10px;">
-            <div id="vendorLogo" style="width:32px; height:32px; border-radius:50%; background:var(--glass-bg); display:flex; align-items:center; justify-content:center; font-size:0.8rem;">👤</div>
+        <div style="display:flex; align-items:center; gap:12px;">
+            <div id="vendorLogo" style="width:38px; height:38px; border-radius:12px; background:var(--glass-bg); border:1px solid var(--glass-border); display:flex; align-items:center; justify-content:center; font-size:1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.2);">👤</div>
             <div>
-                <div style="font-size:0.5rem; color:var(--accent-primary); font-weight:800; letter-spacing:0.1em;">XP_ARENA</div>
-                <div id="vendorName" style="font-size:0.8rem; font-weight:800;">HUB</div>
+                <div style="font-size:0.55rem; color:var(--accent-primary); font-weight:900; letter-spacing:0.15em; text-transform:uppercase;">XP_ARENA</div>
+                <div id="vendorName" style="font-size:0.95rem; font-weight:800; letter-spacing:-0.01em;">ELITE_HUB</div>
             </div>
         </div>
-        <div style="display:flex; align-items:center; gap:10px;">
+        <div style="display:flex; align-items:center; gap:12px;">
             <div id="userXP" class="xp-badge">LEVEL 1 • 0 XP</div>
-            <button onclick="shareArena()" style="background:var(--glass-bg); border:1px solid var(--glass-border); color:white; padding:5px; border-radius:8px; font-size:1rem;">🔗</button>
+            <button onclick="shareArena()" style="background:var(--glass-bg); border:1px solid var(--glass-border); color:white; width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1rem; cursor:pointer;">🔗</button>
         </div>
     </header>
 
-    <div id="liveTicker" style="background:rgba(0, 240, 255, 0.05); border-bottom:1px solid rgba(0, 240, 255, 0.1); padding:8px; font-size:0.6rem; color:var(--accent-primary); overflow:hidden; white-space:nowrap; position:fixed; top:70px; left:0; right:0; z-index:4900;">
-        <div style="display:inline-block; animation: marquee 20s linear infinite;">
+    <div id="liveTicker" style="background:rgba(0, 240, 255, 0.04); border-bottom:1px solid rgba(0, 240, 255, 0.1); padding:10px; font-size:0.65rem; color:var(--accent-primary); overflow:hidden; white-space:nowrap; position:fixed; top:75px; left:0; right:0; z-index:4900; font-family: 'JetBrains Mono'; font-weight:700;">
+        <div style="display:inline-block; animation: marquee 25s linear infinite;">
             🔥 WELCOME_TO_THE_XP_ARENA_ELITE_HUB... INITIALIZING_LIVE_COMM_FEED... NO_ACTIVE_DRAW_RESULTS_YET...
         </div>
     </div>
-    <style>
-        @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
-    </style>
 
     <div class="arena-container">
         <!-- 🏆 Tournaments Section -->
@@ -243,12 +274,35 @@
 
         <!-- 🎁 Giveaways Section -->
         <section class="hub-section">
-            <h2 class="section-title">Open Giveaways</h2>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h2 class="section-title" style="margin-bottom: 0;">Open Giveaways</h2>
+                <a href="winners.html" style="font-size: 0.6rem; font-weight: 800; color: var(--accent-primary); text-decoration: none; border: 1px solid var(--glass-border); padding: 4px 10px; border-radius: 8px;">HALL OF FAME</a>
+            </div>
             <div id="giveawaysHub">
                 <div class="skeleton"></div>
             </div>
         </section>
     </div>
+
+    <!-- 📱 User Navigation -->
+    <nav class="user-nav">
+        <a href="index.html" class="nav-item">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+            <span class="nav-label">GEN</span>
+        </a>
+        <a href="arena.html" class="nav-item active">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H7v2h10v-2h-4v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 10.63 21 8.55 21 8V7c0-1.1-.9-2-2-2zM7 10.82C5.84 10.4 5 9.3 5 8V7h2v3.82zM19 8c0 1.3-.84 2.4-2 2.82V7h2v1z"/></svg>
+            <span class="nav-label">ARENA</span>
+        </a>
+        <a href="leaderboard.html" class="nav-item">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 9.2h3V19H5V9.2zM10.6 5h2.8v14h-2.8V5zm5.6 8H19v6h-2.8v-6z"/></svg>
+            <span class="nav-label">TOP</span>
+        </a>
+        <a href="verify.html" class="nav-item">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+            <span class="nav-label">VERIFY</span>
+        </a>
+    </nav>
 
     <!-- Registration Modal -->
     <div id="regModal" class="modal-overlay">
@@ -269,10 +323,28 @@
         const socket = io();
         const vendorId = new URLSearchParams(window.location.search).get('vendor') || 'XP-PUBLIC';
 
+        // 🔔 Professional Notifications
+        function notify(msg, type = 'success') {
+            const container = document.getElementById('notificationContainer');
+            const div = document.createElement('div');
+            div.className = 'notification';
+            if (type === 'error') div.style.borderLeft = '4px solid #ff4444';
+            div.innerHTML = `<span>${type === 'success' ? '✅' : '❌'}</span><span>${msg.toUpperCase()}</span>`;
+            container.appendChild(div);
+            
+            if (navigator.vibrate) navigator.vibrate(50);
+
+            setTimeout(() => {
+                div.style.animation = 'slideDown 0.4s reverse forwards';
+                setTimeout(() => div.remove(), 400);
+            }, 4000);
+        }
+
         socket.on('arena_event', (event) => {
             const ticker = document.getElementById('liveTicker').firstElementChild;
             if (event.type === 'tournament_join') {
                 ticker.innerHTML = `🔥 NEW_SCRIM_ENTRY: ${event.user_name.toUpperCase()} HAS_ENTERED_THE_ARENA... ` + ticker.innerHTML;
+                notify(`PLAYER ${event.user_name} JOINED THE ARENA`, 'success');
             }
         });
 
@@ -285,7 +357,7 @@
                 });
             } else {
                 navigator.clipboard.writeText(window.location.href);
-                alert('LINK_COPIED_TO_CLIPBOARD');
+                notify('LINK_COPIED_TO_CLIPBOARD');
             }
         }
         
@@ -301,7 +373,7 @@
                 renderGiveaways(giveaways);
                 renderProfile(profile);
             } catch (e) {
-                console.error('HUB_LOAD_ERR:', e);
+                notify('FAILED_TO_LOAD_HUB_DATA', 'error');
             }
         }
 
@@ -313,20 +385,20 @@
         function renderTournaments(list) {
             const container = document.getElementById('tournamentsHub');
             if (!list || list.length === 0) {
-                container.innerHTML = '<div style="text-align:center; opacity:0.3; font-size:0.8rem; padding:2rem;">NO_SCRIMS_FOUND</div>';
+                container.innerHTML = '<div style="text-align:center; opacity:0.3; font-size:0.8rem; padding:3rem; font-weight:800;">NO_ACTIVE_SCRIMS</div>';
                 return;
             }
             container.innerHTML = list.map(t => `
-                <div class="event-card tournament">
+                <div class="event-card tournament" onclick="window.location.href='tournament_detail.html?id=${t.id}'">
                     <div class="event-type" style="color:var(--accent-secondary);">BATTLE_ROYALE • ${t.map_name}</div>
                     <div class="event-title">${t.prize_pool} PRIZE_POOL</div>
                     <div class="event-meta">
-                        <span>👥 ${t.filled_slots}/${t.total_slots} Slots</span>
-                        <span>⏰ ${new Date(t.start_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                        <div class="meta-item">👥 ${t.filled_slots}/${t.total_slots} SLOTS</div>
+                        <div class="meta-item">⏰ ${new Date(t.start_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
                     </div>
-                    <div class="event-footer">
-                        <div style="font-size:0.6rem; color:var(--text-muted);">${t.status.toUpperCase()}</div>
-                        <button class="join-btn tournament" onclick="openTournamentJoin(${t.id})">${t.status === 'full' ? 'FULL' : 'JOIN_NOW'}</button>
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div style="font-size:0.6rem; color:var(--text-muted); font-weight:900; letter-spacing:0.1em;">${t.status.toUpperCase()}</div>
+                        <button class="join-btn tournament" onclick="event.stopPropagation(); openTournamentJoin(${t.id})">${t.status === 'full' ? 'FULL' : 'JOIN_NOW'}</button>
                     </div>
                 </div>
             `).join('');
@@ -335,7 +407,7 @@
         function renderGiveaways(list) {
             const container = document.getElementById('giveawaysHub');
             if (!list || list.length === 0) {
-                container.innerHTML = '<div style="text-align:center; opacity:0.3; font-size:0.8rem; padding:2rem;">NO_GIVEAWAYS_FOUND</div>';
+                container.innerHTML = '<div style="text-align:center; opacity:0.3; font-size:0.8rem; padding:3rem; font-weight:800;">NO_ACTIVE_GIVEAWAYS</div>';
                 return;
             }
             container.innerHTML = list.map(g => `
@@ -343,11 +415,11 @@
                     <div class="event-type" style="color:var(--accent-primary);">${g.type.toUpperCase()}</div>
                     <div class="event-title">${g.title}</div>
                     <div class="event-meta">
-                        <span>🎁 ${g.prize_description}</span>
+                        <div class="meta-item">🎁 ${g.prize_description}</div>
                     </div>
-                    <div class="event-footer">
-                        <div style="font-size:0.6rem; color:var(--text-muted);">ENDS: ${new Date(g.end_at).toLocaleDateString()}</div>
-                        <button class="join-btn" onclick="openGiveawayEnter(${g.id}, '${g.type}')">ENTER</button>
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div style="font-size:0.6rem; color:var(--text-muted); font-weight:900;">ENDS: ${new Date(g.end_at).toLocaleDateString()}</div>
+                        <button class="join-btn giveaway" onclick="openGiveawayEnter(${g.id}, '${g.type}')">ENTER</button>
                     </div>
                 </div>
             `).join('');
@@ -374,7 +446,7 @@
             submit.onclick = async () => {
                 const name = document.getElementById('regName').value.trim();
                 const uid = document.getElementById('regUid').value.trim();
-                if (!name || !uid) return alert('FILL ALL FIELDS');
+                if (!name || !uid) return notify('PLEASE FILL ALL FIELDS', 'error');
 
                 try {
                     const res = await fetch(`${API_BASE}/tournaments/${id}/join`, {
@@ -384,11 +456,24 @@
                     });
                     const data = await res.json();
                     if (!res.ok) throw new Error(data.error);
-                    alert(`SUCCESS! ENTRY_KEY: ${data.entry_key}\nSave this key to re-enter!`);
+                    
+                    notify('SLOT SECURED SUCCESSFULLY', 'success');
+                    
+                    // 💾 Save entry key for re-entry access
+                    const savedKeys = JSON.parse(localStorage.getItem('xp_entry_keys') || '{}');
+                    savedKeys[id] = data.entry_key;
+                    localStorage.setItem('xp_entry_keys', JSON.stringify(savedKeys));
+
+                    // Show a specialized success message instead of a generic alert
+                    setTimeout(() => {
+                        alert(`ENTRY_KEY: ${data.entry_key}\nSAVE THIS KEY TO RE-ENTER THE ROOM LATER!`);
+                        window.location.href = `tournament_detail.html?id=${id}`;
+                    }, 500);
+                    
                     closeModal();
                     fetchHub();
                 } catch (e) {
-                    alert(e.message);
+                    notify(e.message, 'error');
                 }
             };
 
@@ -416,7 +501,7 @@
 
             submit.onclick = async () => {
                 const input = document.getElementById('gvInput').value.trim();
-                if (!input) return alert('FILL INPUT');
+                if (!input) return notify('INPUT DATA REQUIRED', 'error');
 
                 try {
                     const res = await fetch(`${API_BASE}/giveaways/${id}/enter`, {
@@ -426,11 +511,12 @@
                     });
                     const data = await res.json();
                     if (!res.ok) throw new Error(data.error);
-                    alert('ENTRY REGISTERED!');
+                    
+                    notify('GIVEAWAY ENTRY REGISTERED', 'success');
                     closeModal();
                     fetchHub();
                 } catch (e) {
-                    alert(e.message);
+                    notify(e.message, 'error');
                 }
             };
 

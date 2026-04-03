@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>XP ARENA | AI NEURAL SENSITIVITY</title>
+    <meta name="description" content="Elite hardware-optimized sensitivity benchmarks for mobile shooters. Powered by the Neural Engine V4.">
+    
+    <!-- 🔓 Open Graph / Viral Meta (10/10 SEO) -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://xparena.pro/">
+    <meta property="og:title" content="XP ARENA | AI NEURAL CALIBRATION">
+    <meta property="og:description" content="Get professional mobile sensitivity settings calibrated to your exact device architecture and grip style.">
+    <meta property="og:image" content="https://xparena.pro/icons/og-preview.png">
+
+    <!-- 🐦 Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="XP ARENA | NEURAL ENGINE">
+    <meta name="twitter:description" content="Elite sensitivity guides for pro mobile players. 60FPS precision engineering.">
+    <meta name="twitter:image" content="https://xparena.pro/icons/og-preview.png">
+
+    <!-- 💎 Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "XP ARENA NEURAL VAULT",
+      "operatingSystem": "iOS, Android, Windows",
+      "applicationCategory": "UtilitiesApplication",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      }
+    }
+    </script>
+
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Outfit:wght@600;800&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+    
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#020617">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* 🌌 3D Particles & Visual Overhaul */
+        #neural-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: -2;
+            pointer-events: none;
+            background: #020617;
+        }
+
+        .premium-shell {
+            position: relative;
+            isolation: isolate;
+        }
+        .premium-shell::before,
+        .premium-shell::after {
+            content: "";
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: -1;
+            pointer-events: none;
+            opacity: 0.4;
+            transition: background 2s ease;
+        }
+        .premium-shell::before {
+            top: -150px;
+            right: -100px;
+            background: radial-gradient(circle, var(--accent-primary, #00f0ff) 0%, transparent 70%);
+        }
+        .premium-shell::after {
+            bottom: -100px;
+            left: -150px;
+            background: radial-gradient(circle, var(--accent-secondary, #7000ff) 0%, transparent 70%);
+        }
+
+        /* 🚀 Floating Animated Sensitivity Icon */
+        .sens-icon-float {
+            position: absolute;
+            top: -20px; right: 20px;
+            width: 60px; height: 60px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            animation: floatSens 4s infinite ease-in-out;
+            box-shadow: 0 0 20px rgba(0,240,255,0.2);
+        }
+        @keyframes floatSens {
+            0%, 100% { transform: translateY(0) rotate(0); }
+            50% { transform: translateY(-15px) rotate(10deg); }
+        }
+        .sens-icon-float svg {
+            width: 30px; height: 30px;
+            color: var(--accent-primary);
+            animation: pulseSens 2s infinite ease-in-out;
+        }
+        @keyframes pulseSens {
+            0%, 100% { filter: drop-shadow(0 0 2px var(--accent-primary)); }
+            50% { filter: drop-shadow(0 0 8px var(--accent-primary)); }
+        }
+
+        .premium-card {
+            background: linear-gradient(165deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 28px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.5);
+            backdrop-filter: blur(20px);
+            transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .premium-card:hover {
+            transform: translateY(-5px) scale(1.01);
+            border-color: rgba(0,240,255,0.3);
+        }
+
+        .hero-headline {
+            font-size: clamp(2.2rem, 6vw, 3.5rem);
+            line-height: 1;
+            letter-spacing: -0.04em;
+            margin: .8rem 0 .8rem;
+            background: linear-gradient(to bottom, #fff 40%, rgba(255,255,255,0.6));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .hero-sub {
+            max-width: 560px;
+            margin: 0 auto;
+            color: var(--text-secondary);
+            font-size: .95rem;
+            opacity: 0.8;
+        }
+        .kpi-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: .8rem;
+            margin-top: 1.5rem;
+        }
+        .kpi {
+            border: 1px solid rgba(255,255,255,.08);
+            border-radius: 14px;
+            padding: .75rem .5rem;
+            background: rgba(255,255,255,.02);
+        }
+        .kpi .val {
+            font-family: var(--font-heading);
+            color: var(--accent-primary);
+            font-size: .95rem;
+            display: block;
+            margin-bottom: .22rem;
+        }
+        .kpi .label {
+            font-size: .58rem;
+            color: var(--text-muted);
+            letter-spacing: .08em;
+            text-transform: uppercase;
+        }
+        .premium-footer-note {
+            padding: 0.85rem 1rem;
+            border: 1px dashed rgba(255,255,255,.12);
+            border-radius: 14px;
+            background: rgba(255,255,255,.01);
+        }
+        .vault-helper-row {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 0.75rem;
+            margin: 1rem 0 2rem;
+        }
+        .vault-helper {
+            padding: 0.75rem 0.55rem;
+            border-radius: 14px;
+            border: 1px solid rgba(255,255,255,0.08);
+            background: rgba(255,255,255,0.03);
+            backdrop-filter: blur(14px);
+            animation: helperPulse 3.5s ease-in-out infinite;
+        }
+        .vault-helper:nth-child(2) { animation-delay: 0.3s; }
+        .vault-helper:nth-child(3) { animation-delay: 0.6s; }
+        .vault-helper strong {
+            display: block;
+            font-size: 0.58rem;
+            letter-spacing: 0.16em;
+            margin-bottom: 0.3rem;
+            color: var(--accent-primary);
+        }
+        .vault-helper span {
+            display: block;
+            font-size: 0.63rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+        @keyframes helperPulse {
+            0%, 100% { transform: translateY(0); box-shadow: 0 0 0 rgba(0,240,255,0); }
+            50% { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(0,240,255,0.08); }
+        }
+        
+        /* 🎭 Layout-specific Fixes */
+        .app-container { transition: var(--transition-slow); }
+
+        /* 📱 User Navigation Bar */
+        .user-nav {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            height: 75px;
+            background: rgba(10, 10, 10, 0.85);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border-top: 1px solid var(--glass-border);
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            z-index: 1000;
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        .nav-item {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            cursor: pointer;
+            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-decoration: none;
+        }
+
+        .nav-item.active { color: var(--accent-primary); }
+        .nav-item svg { width: 20px; height: 20px; }
+        .nav-label { font-size: 0.6rem; font-weight: 800; letter-spacing: 0.05em; }
+    </style>
+</head>
+<body>
+    <canvas id="neural-canvas"></canvas>
+    <div class="crt-overlay"></div>
+    <div class="ambient-glow"></div>
+
+    <!-- The Vault (Secure Access) -->
+    <div id="vaultOverlay" class="vault-root" style="display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--bg-dark);">
+        <div style="text-align: center; max-width: 400px; width: 100%; padding: 2rem; animation: fade-in-up 0.5s ease-out;">
+            <div class="logo-badge" style="margin-bottom: 1.5rem; font-size: 0.8rem; padding: 0.6rem 1.2rem; border-radius: 100px; cursor: pointer;">XP SECURE</div>
+            <h1 class="glitch-header" style="font-family: var(--font-heading); font-size: 3.5rem; margin-bottom: 2.5rem; font-weight: 900; letter-spacing: -2px; color: white;">THE VAULT</h1>
+            
+            <div style="margin-bottom: 2rem; position: relative;">
+                <input type="text" id="vaultInput" placeholder="ENTER ACCESS KEY OR CARD CODE" maxlength="32" autofocus autocomplete="off" style="width: 100%; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 1.25rem; font-size: 1rem; color: white; text-align: center; font-family: var(--font-body); outline: none; transition: 0.3s;" onfocus="this.style.borderColor='var(--accent-primary)'; this.style.background='rgba(0, 240, 255, 0.02)';" onblur="this.style.borderColor='rgba(255,255,255,0.1)'; this.style.background='rgba(255, 255, 255, 0.02)';">
+            </div>
+
+            <div class="vault-helper-row">
+                <div class="vault-helper"><strong>AUTHORIZED</strong><span>Internal access only.</span></div>
+                <div class="vault-helper"><strong>CREATORS</strong><span>Enter workspace key.</span></div>
+                <div class="vault-helper"><strong>PLAYERS</strong><span>Open your result card.</span></div>
+            </div>
+
+            <button id="vaultAuthBtn" class="action-btn" style="width: 100%; margin-bottom: 3rem; background: var(--accent-primary); color: black; font-weight: 800; letter-spacing: 0.1em; border: none; box-shadow: 0 0 20px rgba(0, 240, 255, 0.2);">OPEN PORTAL</button>
+            
+            <p id="vaultStatus" style="font-size: 0.65rem; color: var(--text-muted); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.2em; opacity: 0.6; min-height: 1rem;">SECURE ACCESS FOR VERIFIED USERS ONLY</p>
+        </div>
+    </div>
+
+    <!-- 🛡️ Tech Scanner (The Hype Processing Bridge) -->
+    <div id="scannerOverlay" class="scanner-overlay">
+        <div class="scanner-circle-wrap">
+            <svg viewBox="0 0 100 100" style="width: 100%; height: 100%;">
+                <circle class="scanner-circle-bg" cx="50" cy="50" r="45"></circle>
+                <circle id="scannerProgress" class="scanner-circle-progress" cx="50" cy="50" r="45"></circle>
+            </svg>
+            <div class="scan-line"></div>
+        </div>
+        <div id="scannerLabel" class="scanner-label">INITIALIZING_SCAN...</div>
+        <div class="scanner-sparkles" id="scannerSparkles"></div>
+    </div>
+
+    <!-- Main Calibration UI -->
+    <div id="appContainer" class="app-container hidden premium-shell">
+        <header class="premium-card neon-border card-3d" style="text-align: center; margin-bottom: var(--space-lg); position: relative; padding: 1.3rem 1rem 1.2rem;">
+            <div class="sens-icon-float">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path d="M12 2v3M12 19v3M2 12h3M19 12h3"></path>
+                    <path d="M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"></path>
+                </svg>
+            </div>
+            <button id="pwaInstallBtn" class="logo-badge" style="display: none; border-color: var(--accent-primary); color: var(--accent-primary); cursor: pointer; margin-bottom: 1rem; position: absolute; right: 0; top: 0; font-size: 0.6rem;">INSTALL APP</button>
+            <div class="logo-badge" style="margin-top: .2rem;">SYSTEM ENGINE V4.0</div>
+            <h1 class="title-main hero-headline glitch-header" data-i18n="title">NEURAL<br>CALIBRATION</h1>
+            <p data-i18n="heroSubtitle" class="hero-sub">Optimizing benchmarks for your specific hardware architecture.</p>
+            <div class="kpi-row">
+                <div class="kpi"><span class="val">AI V4</span><span class="label">Predictive Core</span></div>
+                <div class="kpi"><span class="val">~10ms</span><span class="label">Response Path</span></div>
+                <div class="kpi"><span class="val">24/7</span><span class="label">Cloud Active</span></div>
+            </div>
+        </header>
+
+        <main>
+            <!-- Device Profiling -->
+            <div id="hardwareSection">
+                <section class="glass-card neon-border card-3d reveal">
+                    <div class="form-group">
+                        <label class="form-label" data-i18n="brandLabel">Hardware Signature</label>
+                        <div class="select-container">
+                            <select id="brandSelect" class="cyber-select">
+                                <option value="" data-i18n="brandLabel">SELECT BRAND</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="select-container">
+                            <select id="seriesSelect" class="cyber-select" disabled>
+                                <option value="" data-i18n="seriesLabel">SELECT SERIES</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="select-container">
+                            <select id="modelSelect" class="cyber-select" disabled>
+                                <option value="" data-i18n="modelLabel">SELECT MODEL</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group" id="ramGroup">
+                        <label class="form-label" data-i18n="ramLabel">Hardware RAM</label>
+                        <div class="select-container">
+                            <select id="ramSelect" class="cyber-select">
+                                <option value="4">4 GB</option>
+                                <option value="6">6 GB</option>
+                                <option value="8" selected>8 GB</option>
+                                <option value="12">12 GB</option>
+                                <option value="16">16 GB</option>
+                            </select>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Biometric / Grip Profile -->
+            <section class="glass-card neon-border card-3d reveal" style="animation-delay: 0.1s;">
+                <div class="slider-group">
+                    <div class="slider-header">
+                        <label class="form-label" data-i18n="title">Neural Sensitivity</label>
+                        <span class="slider-value" id="sensLabel">5.0</span>
+                    </div>
+                    <input type="range" id="sensInput" min="1" max="10" step="0.5" value="5" class="cyber-slider">
+                    <p style="font-size: 0.65rem; color: var(--text-muted); margin-top: 0.4rem;">AI will adjust base calculations by this factor.</p>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" data-i18n="clawLabel">Grip Architecture</label>
+                    <div class="segment-group">
+                        <button class="segment-btn active" data-grip="palm">PALM</button>
+                        <button class="segment-btn" data-grip="claw">CLAW</button>
+                        <button class="segment-btn" data-grip="tip">TIP</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Manual Overrides (Requested by User) -->
+            <section class="glass-card reveal" style="animation-delay: 0.2s;">
+                <div id="standardMastering">
+                    <button type="button" onclick="UI.toggleManualMode(true)" class="secondary-btn" style="width: 100%; border-style: dashed; font-size: 0.7rem; margin-bottom: 0.5rem;">
+                        SWITCH TO MANUAL MASTERING
+                    </button>
+                    <p style="font-size: 0.6rem; opacity: 0.5; text-align: center;">USE IF YOU HAVE AN EXISTING SENSITIVITY</p>
+                </div>
+                
+                <div id="manualMastering" style="display: none;">
+                    <button type="button" onclick="UI.toggleManualMode(false)" class="secondary-btn" style="width: 100%; border-color: var(--accent-primary); font-size: 0.7rem; margin-bottom: 1rem;">
+                        ← RETURN TO NEURAL ANALYSIS
+                    </button>
+                    <label class="form-label" style="display: flex; justify-content: space-between;">
+                        Existing Base Sensitivity <span>(REQUIRED)</span>
+                    </label>
+                    <input type="number" id="manualSens" class="cyber-input" placeholder="ENTER CURRENT VALUE (e.g. 96)" min="1" max="200">
+                    <p style="font-size: 0.6rem; margin-top: 0.5rem; color: var(--accent-primary);">WE WILL GENERATE RANGES BASED ON THIS VALUE</p>
+                </div>
+            </section>
+
+            <button id="calculateBtn" class="action-btn scan-btn reveal neon-border" data-i18n="calcBtn" style="animation-delay: 0.3s; border-radius: 18px;">
+                GENERATE OPTIMIZED GUIDE
+            </button>
+        </main>
+
+        <footer style="margin-top: var(--space-xl); text-align: center; padding-bottom: 2rem; font-family: var(--font-mono); font-size: 0.6rem;">
+            <div style="margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: center; gap: 1rem;">
+                <button onclick="toggleLowPerf()" id="perfBtn" class="logo-badge" style="background: rgba(255,255,255,0.05); color: var(--text-muted); cursor: pointer; border-color: rgba(255,255,255,0.1); font-size: 0.55rem;">
+                    MODE: FULL_NEURAL
+                </button>
+                <div class="coming-soon-pill">
+                    <span data-i18n="giveaway">GIVEAWAY</span>
+                    <small data-i18n="comingSoon">COMING SOON</small>
+                </div>
+            </div>
+            <div style="display: flex; justify-content: center; gap: 1.5rem; margin-bottom: 1.5rem; font-weight: 800; letter-spacing: 0.05em; color: var(--text-muted);">
+                <a href="#" onclick="UI.notify('PRIVACY_POLICY_ENCRYPTED', 'info')" style="color: inherit; text-decoration: none;">PRIVACY</a>
+                <a href="#" onclick="UI.notify('TERMS_OF_SERVICE_ACKNOWLEDGED', 'info')" style="color: inherit; text-decoration: none;">TERMS</a>
+                <a href="#" onclick="UI.notify('NEURAL_SUPPORT_LINK_ACTIVE', 'info')" style="color: var(--accent-primary); text-decoration: none;">SUPPORT</a>
+            </div>
+            <div class="premium-footer-note">
+                <p style="letter-spacing: 0.15em; font-weight: 800; color: white; margin:0;">POWERED BY XP ARENA GLOBAL CLOUD</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- 📱 User Navigation -->
+    <nav class="user-nav">
+        <a href="generator.html" class="nav-item active">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+            <span class="nav-label">GEN</span>
+        </a>
+        <a href="arena.html" class="nav-item">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H7v2h10v-2h-4v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 10.63 21 8.55 21 8V7c0-1.1-.9-2-2-2zM7 10.82C5.84 10.4 5 9.3 5 8V7h2v3.82zM19 8c0 1.3-.84 2.4-2 2.82V7h2v1z"/></svg>
+            <span class="nav-label">ARENA</span>
+        </a>
+        <a href="leaderboard.html" class="nav-item">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 9.2h3V19H5V9.2zM10.6 5h2.8v14h-2.8V5zm5.6 8H19v6h-2.8v-6z"/></svg>
+            <span class="nav-label">TOP</span>
+        </a>
+        <a href="verify.html" class="nav-item">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+            <span class="nav-label">VERIFY</span>
+        </a>
+    </nav>
+
+    <!-- Notification Toast -->
+    <div id="notifyToast" class="notify-toast"></div>
+
+    <script src="devices.js"></script>
+    <script src="translations.js"></script>
+    <script src="notifications.js"></script>
+    <script src="settings.js"></script>
+    <script src="analytics.js"></script>
+    <script src="enhancements.js"></script>
+    <script src="app.js"></script>
+    <script>
+        // 🛡️ Hidden Admin Access (Triple Click Logo)
+        let logoClicks = 0;
+        const vaultLogo = document.querySelector('.vault-root .logo-badge');
+        if (vaultLogo) {
+            vaultLogo.onclick = () => {
+                logoClicks++;
+                if (logoClicks === 3) {
+                    window.location.href = 'admin.html';
+                    logoClicks = 0;
+                }
+                setTimeout(() => { logoClicks = 0; }, 2000);
+            };
+        }
+    </script>
+    <script src="update-overlay.js"></script>
+</body>
+</html>

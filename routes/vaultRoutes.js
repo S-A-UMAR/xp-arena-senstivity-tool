@@ -892,6 +892,35 @@ router.get('/user/profile', async (req, res) => {
     }
 });
 
+router.get('/winners', async (req, res) => {
+    try {
+        const winners = await db.all(`
+            SELECT ge.input_data, g.title as event_title, g.proof_hash, g.created_at
+            FROM giveaway_entries ge
+            JOIN giveaways g ON ge.giveaway_id = g.id
+            WHERE g.status = 'drawn'
+            ORDER BY g.created_at DESC
+            LIMIT 20
+        `);
+        return res.json(winners);
+    } catch (err) {
+        return res.status(500).json({ error: 'FETCH_WINNERS_FAILED' });
+    }
+});
+
+router.get('/tournaments/:id', async (req, res) => {
+    try {
+        const tournament = await db.get('SELECT * FROM tournaments WHERE id = ?', [req.params.id]);
+        if (!tournament) return res.status(404).json({ error: 'TOURNAMENT_NOT_FOUND' });
+        
+        const participants = await db.all('SELECT user_name, user_uid, created_at FROM tournament_registrations WHERE tournament_id = ? ORDER BY created_at ASC', [req.params.id]);
+        
+        return res.json({ ...tournament, participants });
+    } catch (err) {
+        return res.status(500).json({ error: 'FETCH_TOURNAMENT_DETAIL_FAILED' });
+    }
+});
+
 // --- ELITE USER INTERACTION ROUTES ---
 
 function getUserFingerprint(req) {

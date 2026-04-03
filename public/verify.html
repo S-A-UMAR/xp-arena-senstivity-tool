@@ -8,120 +8,266 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Outfit:wght@600;800&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
     <style>
-        .verify-shell { width: 100%; max-width: 760px; }
+        :root {
+            --bg-deep: #020617;
+            --accent-primary: #00f0ff;
+            --accent-secondary: #7000ff;
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        body {
+            background: var(--bg-deep);
+            color: var(--text-main);
+            font-family: 'Outfit', sans-serif;
+            margin: 0;
+            padding-top: 90px;
+            padding-bottom: 100px;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(0, 240, 255, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(112, 0, 255, 0.05) 0%, transparent 40%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 🏆 Elite Header */
+        header {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            height: 75px;
+            background: rgba(2, 6, 23, 0.8);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border-bottom: 1px solid var(--glass-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 1.5rem;
+            z-index: 5000;
+        }
+
+        /* 📱 User Navigation Bar */
+        .user-nav {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            height: 75px;
+            background: rgba(10, 10, 10, 0.85);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border-top: 1px solid var(--glass-border);
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            z-index: 1000;
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        .nav-item {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            cursor: pointer;
+            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-decoration: none;
+        }
+
+        .nav-item.active { color: var(--accent-primary); }
+        .nav-item svg { width: 20px; height: 20px; }
+        .nav-label { font-size: 0.6rem; font-weight: 800; letter-spacing: 0.05em; }
+
+        .verify-shell { width: 100%; max-width: 450px; padding: 0 1.25rem; }
+        .terminal-container {
+            background: var(--glass-bg);
+            backdrop-filter: blur(24px);
+            border: 1px solid var(--glass-border);
+            border-radius: 32px;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .terminal-header {
+            background: rgba(255,255,255,0.03);
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--glass-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.6rem;
+            font-weight: 700;
+            color: var(--text-muted);
+        }
+
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+        .status-dot.green { background: #00ff88; box-shadow: 0 0 10px #00ff88; }
+
         .verify-panel {
-            background: linear-gradient(140deg, rgba(255,255,255,0.03), rgba(0,0,0,0.6));
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 18px;
-            padding: 1.1rem;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 1.5rem;
             margin-bottom: 1rem;
         }
-        .verify-kpi-grid { display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 0.8rem; }
-        .verify-kpi {
-            background: rgba(255,255,255,0.02);
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 12px;
-            padding: 0.75rem;
+
+        .verify-kpi-grid { display:grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .data-point { display: flex; flex-direction: column; gap: 4px; }
+        .data-point .label { font-size: 0.55rem; font-weight: 800; color: var(--text-muted); letter-spacing: 0.1em; }
+        .data-point .value { font-size: 0.9rem; font-weight: 800; color: white; font-family: 'JetBrains Mono'; }
+
+        .scan-animation {
+            height: 2px;
+            background: var(--accent-primary);
+            width: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            box-shadow: 0 0 15px var(--accent-primary);
+            animation: scanMove 2s infinite linear;
+            display: none;
         }
-        .verify-help {
-            margin-top: 0.8rem;
-            font-size: 0.62rem;
-            color: var(--text-muted);
-            line-height: 1.55;
+
+        @keyframes scanMove { 0% { top: 0; } 100% { top: 100%; } }
+
+        .cyber-input {
+            width: 100%;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--glass-border);
+            border-radius: 14px;
+            padding: 1rem;
+            color: white;
+            font-family: 'JetBrains Mono';
+            font-weight: 800;
+            text-align: center;
+            outline: none;
+            transition: 0.3s;
+            margin-bottom: 1rem;
         }
+        .cyber-input:focus { border-color: var(--accent-primary); box-shadow: 0 0 20px rgba(0, 240, 255, 0.2); }
+
+        .action-btn {
+            width: 100%;
+            background: var(--accent-primary);
+            color: black;
+            border: none;
+            padding: 1rem;
+            border-radius: 16px;
+            font-weight: 900;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .action-btn:active { transform: scale(0.98); }
     </style>
 </head>
-<body style="display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 2rem; background: var(--bg-dark);">
-    <div class="ambient-glow"></div>
-
-    <div class="terminal-container reveal verify-shell">
-        <!-- Top Status Bar -->
-        <div class="terminal-header">
-            <div class="status-bit green">AUTHENTICATOR: ONLINE</div>
-            <div class="status-bit cyan">ENCRYPTION: AES-256</div>
-            <div class="status-time" id="terminalClock">00:00:00</div>
+<body>
+    <header>
+        <div style="display:flex; align-items:center; gap:12px;">
+            <div style="width:38px; height:38px; border-radius:12px; background:var(--glass-bg); border:1px solid var(--glass-border); display:flex; align-items:center; justify-content:center; font-size:1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.2);">🛡️</div>
+            <div>
+                <div style="font-size:0.55rem; color:var(--accent-primary); font-weight:900; letter-spacing:0.15em; text-transform:uppercase;">XP_ARENA</div>
+                <div style="font-size:0.95rem; font-weight:800; letter-spacing:-0.01em;">AUTHENTICATOR</div>
+            </div>
         </div>
+        <div style="font-size: 0.6rem; color: var(--text-muted); font-weight: 800; text-align: right;">SEC_PROTOCOL:<br><span style="color:var(--accent-primary);">XP_AUTH_V4</span></div>
+    </header>
 
-        <div class="terminal-content" style="padding: 2.5rem 2rem;">
-            <div class="logo-badge" style="margin-bottom: 1.5rem;">CERTIFICATION_CHECK</div>
-            <h1 id="verifyTitle" style="font-family: var(--font-heading); font-size: 1.2rem; line-height: 1.4; margin-bottom: 2rem; color: white;">
-                INITIALIZING_SCAN...
-            </h1>
+    <div class="verify-shell">
+        <div class="terminal-container">
+            <div class="terminal-header">
+                <div><span class="status-dot green"></span>AUTHENTICATOR: ONLINE</div>
+                <div id="terminalClock">00:00:00</div>
+            </div>
 
-            <div id="scanResult" class="hidden">
-                <div class="verify-panel">
-                    <div class="verify-kpi-grid">
-                        <div class="data-point">
-                            <span class="label">ENTRY_CODE</span>
-                            <span class="value" id="resCode" style="color: var(--accent-primary); font-size: 0.8rem;">---</span>
-                        </div>
-                        <div class="data-point">
-                            <span class="label">STATUS</span>
-                            <span class="value" id="resStatus" style="font-size: 0.8rem;">UNKNOWN</span>
-                        </div>
-                        <div class="data-point">
-                            <span class="label">AUTHOR</span>
-                            <span class="value" id="resVendor" style="font-size: 0.7rem;">---</span>
-                        </div>
-                        <div class="data-point">
-                            <span class="label">COPIES</span>
-                            <span class="value" id="resHits" style="font-size: 0.7rem;">---</span>
+            <div style="padding: 2rem; position: relative;">
+                <div id="scanLine" class="scan-animation"></div>
+                
+                <div class="logo-badge" style="margin-bottom: 1.5rem; background: rgba(0, 240, 255, 0.05);">CERTIFICATION_CHECK</div>
+                <h1 id="verifyTitle" style="font-size: 1.2rem; font-weight: 800; line-height: 1.3; margin-bottom: 2rem; color: white;">
+                    INITIALIZING_SCAN...
+                </h1>
+
+                <div id="scanResult" class="hidden">
+                    <div class="verify-panel">
+                        <div class="verify-kpi-grid">
+                            <div class="data-point">
+                                <span class="label">ENTRY_CODE</span>
+                                <span class="value" id="resCode" style="color: var(--accent-primary);">---</span>
+                            </div>
+                            <div class="data-point">
+                                <span class="label">STATUS</span>
+                                <span class="value" id="resStatus">UNKNOWN</span>
+                            </div>
+                            <div class="data-point">
+                                <span class="label">AUTHOR</span>
+                                <span class="value" id="resVendor" style="font-size: 0.7rem;">---</span>
+                            </div>
+                            <div class="data-point">
+                                <span class="label">COPIES</span>
+                                <span class="value" id="resHits" style="font-size: 0.7rem;">---</span>
+                            </div>
                         </div>
                     </div>
+                    <p style="font-size: 0.6rem; color: var(--text-muted); line-height: 1.6; text-transform: uppercase; letter-spacing: 0.05em;">
+                        This certificate confirms the origin and status of the neural calibration fragment. Verified exclusively by XP Arena vendors.
+                    </p>
                 </div>
-                
-                <p style="font-size: 0.55rem; color: var(--text-muted); line-height: 1.6; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 1rem;">
-                    This certificate confirms the origin and current operational status of the neural calibration fragment. Verified fragments are issued exclusively by certified XP Arena vendors.
-                </p>
-            </div>
 
-            <div id="errorBox" class="hidden" style="color: #ff4444; font-family: var(--font-mono); font-size: 0.7rem; margin-bottom: 2rem; border: 1px solid rgba(255,68,68,0.2); padding: 1rem; border-radius: 12px; background: rgba(255,68,68,0.05);">
-                INVALID_FRAGMENT_ERROR: AUTHENTICATION_FAILED
-            </div>
-
-            <div id="guidanceBox" class="verify-panel hidden">
-                <div class="stat-label">RECOVERY_GUIDE</div>
-                <div id="guidanceTitle" style="font-family: var(--font-heading); font-size: 1rem; margin-top: 0.25rem;">SCAN PARAMETERS REQUIRED</div>
-                <div id="guidanceText" class="verify-help">
-                    Use a valid certificate link from your vendor dashboard, or paste a generated code into the URL query:
-                    <br><span style="font-family: var(--font-mono); color: var(--accent-primary);">/verify.html?code=XP-XXXX-XXXX</span>
+                <div id="errorBox" class="hidden" style="color: #ff4444; font-family: 'JetBrains Mono'; font-size: 0.7rem; margin-bottom: 2rem; border: 1px solid rgba(255,68,68,0.2); padding: 1.25rem; border-radius: 18px; background: rgba(255,68,68,0.05); font-weight: 700;">
+                    INVALID_FRAGMENT_ERROR: AUTHENTICATION_FAILED
                 </div>
-            </div>
 
-            <button class="action-btn" onclick="window.location.href='index.html'" style="margin-top: 1rem;">RETURN_TO_GATEWAY</button>
-        </div>
-
-        <div class="terminal-footer">
-            <div class="data-point">
-                <span class="label">SEC_PROTOCOL</span>
-                <span class="value">XP_AUTH_V4</span>
-            </div>
-            <div class="data-point" style="text-align: center;">
-                <span class="label">CERT_TYPE</span>
-                <span class="value">NEURAL_ID</span>
-            </div>
-            <div class="data-point" style="text-align: right;">
-                <span class="label">SYS_LOC</span>
-                <span class="value" id="userIP">...</span>
+                <div id="guidanceBox" class="hidden">
+                    <input type="text" id="manualCode" class="cyber-input" placeholder="XP-XXXX-XXXX">
+                    <button class="action-btn" onclick="startManualScan()">START_NEURAL_SCAN</button>
+                </div>
             </div>
         </div>
     </div>
 
+    <!-- 📱 User Navigation -->
+    <nav class="user-nav">
+        <a href="index.html" class="nav-item">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+            <span class="nav-label">GEN</span>
+        </a>
+        <a href="arena.html" class="nav-item">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H7v2h10v-2h-4v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 10.63 21 8.55 21 8V7c0-1.1-.9-2-2-2zM7 10.82C5.84 10.4 5 9.3 5 8V7h2v3.82zM19 8c0 1.3-.84 2.4-2 2.82V7h2v1z"/></svg>
+            <span class="nav-label">ARENA</span>
+        </a>
+        <a href="leaderboard.html" class="nav-item">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 9.2h3V19H5V9.2zM10.6 5h2.8v14h-2.8V5zm5.6 8H19v6h-2.8v-6z"/></svg>
+            <span class="nav-label">TOP</span>
+        </a>
+        <a href="verify.html" class="nav-item active">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+            <span class="nav-label">VERIFY</span>
+        </a>
+    </nav>
+
     <script src="notifications.js"></script>
     <script src="settings.js"></script>
-    <script src="update-overlay.js"></script>
     <script>
-        // 🕒 Clock
         function updateClock() {
             document.getElementById('terminalClock').textContent = new Date().toTimeString().split(' ')[0];
         }
         setInterval(updateClock, 1000); updateClock();
 
-        // 🛰️ IP
-        fetch('https://api.ipify.org?format=json')
-            .then(r => r.json())
-            .then(d => document.getElementById('userIP').textContent = d.ip)
-            .catch(() => { document.getElementById('userIP').textContent = 'OFFLINE'; });
+        function startManualScan() {
+            const code = document.getElementById('manualCode').value.trim().toUpperCase();
+            if (code) location.href = '?code=' + encodeURIComponent(code);
+        }
 
         async function initScan() {
             const p = new URLSearchParams(window.location.search);
@@ -130,29 +276,22 @@
             const resultBox = document.getElementById('scanResult');
             const errorBox = document.getElementById('errorBox');
             const guidanceBox = document.getElementById('guidanceBox');
-            const guidanceTitle = document.getElementById('guidanceTitle');
-            const guidanceText = document.getElementById('guidanceText');
+            const scanLine = document.getElementById('scanLine');
 
             if (!code) {
                 title.textContent = "NEURAL_SCAN_REQUIRED";
                 title.style.color = 'var(--accent-primary)';
                 guidanceBox.classList.remove('hidden');
-                guidanceTitle.textContent = 'ENTER_ACCESS_CODE';
-                guidanceText.innerHTML = `
-                    <div style="margin-top: 1rem;">
-                        <input type="text" id="manualCode" class="cyber-input" style="text-align: center; letter-spacing: 0.2em;" placeholder="XP-XXXX-XXXX">
-                        <button class="action-btn" onclick="location.href='?code=' + encodeURIComponent(document.getElementById('manualCode').value.trim().toUpperCase())">START_SCAN</button>
-                    </div>
-                `;
                 return;
             }
 
             try {
+                scanLine.style.display = 'block';
                 const res = await fetch('/api/vault/code/' + encodeURIComponent(code) + '/status');
                 const data = await res.json();
                 
-                // Cosmetic delay for "scanning" feel
-                await new Promise(r => setTimeout(r, 1500));
+                await new Promise(r => setTimeout(r, 2000)); // Immersion delay
+                scanLine.style.display = 'none';
 
                 if (res.ok) {
                     title.textContent = "AUTHENTICATION_SUCCESSFUL";
@@ -175,20 +314,18 @@
                     errorBox.classList.remove('hidden');
                     errorBox.textContent = data.error || 'INVALID_FRAGMENT_SIGNATURE';
                     guidanceBox.classList.remove('hidden');
-                    guidanceTitle.textContent = 'CERTIFICATE VERIFICATION FAILED';
-                    guidanceText.textContent = 'This code may be expired, deactivated, malformed, or generated by another vendor workspace.';
                 }
             } catch (e) {
                 title.textContent = "SYSTEM_UPLINK_FAILURE";
                 errorBox.classList.remove('hidden');
-                errorBox.textContent = "CRITICAL: FAILED_TO_CONNECT_TO_NEURAL_DATABASE";
+                errorBox.textContent = "CRITICAL: NEURAL_DATABASE_OFFLINE";
                 guidanceBox.classList.remove('hidden');
-                guidanceTitle.textContent = 'NETWORK OR BACKEND ISSUE';
-                guidanceText.textContent = 'Retry in a few seconds. If issue persists, verify server env vars and database connectivity.';
             }
         }
 
         document.addEventListener('DOMContentLoaded', initScan);
     </script>
+</body>
+</html>
 </body>
 </html>

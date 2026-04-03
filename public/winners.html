@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>XP ARENA | Winners Wall</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;800&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        :root {
+            --bg-deep: #020617;
+            --accent-primary: #00f0ff;
+            --accent-secondary: #7000ff;
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        body {
+            background: var(--bg-deep);
+            color: var(--text-main);
+            font-family: 'Outfit', sans-serif;
+            margin: 0;
+            padding-top: 90px;
+            padding-bottom: 100px;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(0, 240, 255, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(112, 0, 255, 0.05) 0%, transparent 40%);
+            min-height: 100vh;
+        }
+
+        header {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            height: 75px;
+            background: rgba(2, 6, 23, 0.8);
+            backdrop-filter: blur(24px);
+            border-bottom: 1px solid var(--glass-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 1.5rem;
+            z-index: 5000;
+        }
+
+        .user-nav {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            height: 75px;
+            background: rgba(10, 10, 10, 0.85);
+            backdrop-filter: blur(24px);
+            border-top: 1px solid var(--glass-border);
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            z-index: 1000;
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        .nav-item {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            cursor: pointer;
+            transition: 0.3s;
+            text-decoration: none;
+        }
+
+        .nav-item.active { color: var(--accent-primary); }
+        .nav-item svg { width: 20px; height: 20px; }
+        .nav-label { font-size: 0.6rem; font-weight: 800; letter-spacing: 0.05em; }
+
+        .winners-container { max-width: 600px; margin: 0 auto; padding: 0 1.25rem; }
+        
+        .winner-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 28px;
+            padding: 1.5rem;
+            margin-bottom: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .winner-card::before {
+            content: "WINNER";
+            position: absolute;
+            top: 15px; right: -30px;
+            background: var(--accent-primary);
+            color: black;
+            font-size: 0.5rem;
+            font-weight: 900;
+            padding: 4px 40px;
+            transform: rotate(45deg);
+            letter-spacing: 0.1em;
+        }
+
+        .winner-header { display: flex; align-items: center; gap: 1rem; }
+        .winner-avatar { width: 50px; height: 50px; border-radius: 15px; background: rgba(0, 240, 255, 0.1); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+        .winner-name { font-size: 1.1rem; font-weight: 800; }
+        .winner-event { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; }
+        
+        .proof-badge {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--glass-border);
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.55rem;
+            color: var(--accent-primary);
+            width: fit-content;
+        }
+
+        .skeleton { height: 120px; border-radius: 28px; margin-bottom: 1.25rem; }
+    </style>
+</head>
+<body>
+    <header>
+        <div style="display:flex; align-items:center; gap:12px;">
+            <div style="width:38px; height:38px; border-radius:12px; background:var(--glass-bg); border:1px solid var(--glass-border); display:flex; align-items:center; justify-content:center; font-size:1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.2);">🎊</div>
+            <div>
+                <div style="font-size:0.55rem; color:var(--accent-primary); font-weight:900; letter-spacing:0.15em; text-transform:uppercase;">XP_ARENA</div>
+                <div style="font-size:0.95rem; font-weight:800; letter-spacing:-0.01em;">WINNERS_WALL</div>
+            </div>
+        </div>
+    </header>
+
+    <div class="winners-container">
+        <div style="text-align: center; margin: 2rem 0;">
+            <h1 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 0.5rem;">HALL OF FAME</h1>
+            <p style="font-size: 0.75rem; color: var(--text-muted);">Celebrating the elite champions of XP Arena events.</p>
+        </div>
+
+        <div id="winnersList">
+            <div class="skeleton"></div>
+            <div class="skeleton"></div>
+        </div>
+    </div>
+
+    <!-- 📱 User Navigation -->
+    <nav class="user-nav">
+        <a href="index.html" class="nav-item">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+            <span class="nav-label">GEN</span>
+        </a>
+        <a href="arena.html" class="nav-item">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H7v2h10v-2h-4v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 10.63 21 8.55 21 8V7c0-1.1-.9-2-2-2zM7 10.82C5.84 10.4 5 9.3 5 8V7h2v3.82zM19 8c0 1.3-.84 2.4-2 2.82V7h2v1z"/></svg>
+            <span class="nav-label">ARENA</span>
+        </a>
+        <a href="leaderboard.html" class="nav-item">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 9.2h3V19H5V9.2zM10.6 5h2.8v14h-2.8V5zm5.6 8H19v6h-2.8v-6z"/></svg>
+            <span class="nav-label">TOP</span>
+        </a>
+        <a href="verify.html" class="nav-item">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+            <span class="nav-label">VERIFY</span>
+        </a>
+    </nav>
+
+    <script>
+        async function loadWinners() {
+            const list = document.getElementById('winnersList');
+            try {
+                const res = await fetch('/api/vault/winners');
+                const data = await res.json();
+                
+                if (!data || data.length === 0) {
+                    list.innerHTML = '<div style="text-align:center; opacity:0.3; padding:4rem; font-weight:800;">NO_WINNERS_YET</div>';
+                    return;
+                }
+
+                list.innerHTML = data.map(w => `
+                    <div class="winner-card">
+                        <div class="winner-header">
+                            <div class="winner-avatar">🏆</div>
+                            <div>
+                                <div class="winner-name">${w.user_name || w.input_data}</div>
+                                <div class="winner-event">${w.event_title}</div>
+                            </div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+                            <div class="proof-badge">HASH: ${w.proof_hash ? w.proof_hash.substring(0, 16) : 'GENERATING'}...</div>
+                            <div style="font-size: 0.6rem; color: var(--text-muted); font-weight: 800;">DRAWN: ${new Date(w.created_at).toLocaleDateString()}</div>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (e) {
+                list.innerHTML = '<div style="text-align:center; opacity:0.3; padding:4rem; font-weight:800;">FETCH_ERROR</div>';
+            }
+        }
+        window.onload = loadWinners;
+    </script>
+</body>
+</html>
