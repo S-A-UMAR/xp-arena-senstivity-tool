@@ -80,83 +80,107 @@
         .detail-container { max-width: 600px; margin: 0 auto; padding: 0 1.25rem; }
 
         .hero-panel {
-            background: var(--glass-bg);
+            background: linear-gradient(145deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
             backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
             border: 1px solid var(--glass-border);
             border-radius: 32px;
-            padding: 2rem;
+            padding: 2.5rem 2rem;
             margin-bottom: 2rem;
             text-align: center;
-            border-top: 4px solid var(--accent-secondary);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-panel::after {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 4px;
+            background: linear-gradient(90deg, transparent, var(--accent-secondary), transparent);
         }
 
         .countdown {
             font-family: 'JetBrains Mono', monospace;
-            font-size: 2rem;
+            font-size: 2.5rem;
             font-weight: 800;
             color: var(--accent-primary);
             margin: 1.5rem 0;
             letter-spacing: -0.05em;
+            text-shadow: 0 0 20px rgba(0, 240, 255, 0.3);
         }
 
         .stats-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 1rem;
+            gap: 1.25rem;
             margin-bottom: 2rem;
         }
 
         .stat-box {
-            background: rgba(255,255,255,0.02);
+            background: rgba(255,255,255,0.03);
             border: 1px solid var(--glass-border);
-            padding: 1.25rem;
-            border-radius: 20px;
+            padding: 1.5rem;
+            border-radius: 24px;
+            text-align: center;
         }
 
-        .stat-label { font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px; }
-        .stat-value { font-size: 1.1rem; font-weight: 800; }
+        .stat-label { font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 6px; font-weight: 800; }
+        .stat-value { font-size: 1.25rem; font-weight: 800; font-family: 'JetBrains Mono'; }
 
         .participants-table {
-            background: var(--glass-bg);
+            background: rgba(255,255,255,0.02);
             border: 1px solid var(--glass-border);
-            border-radius: 24px;
+            border-radius: 28px;
             overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
         }
 
         .table-header {
-            background: rgba(255,255,255,0.03);
-            padding: 1rem 1.5rem;
+            background: rgba(255,255,255,0.04);
+            padding: 1.25rem 1.5rem;
             border-bottom: 1px solid var(--glass-border);
-            font-weight: 800;
+            font-weight: 900;
             font-size: 0.7rem;
             color: var(--accent-primary);
             text-transform: uppercase;
-            letter-spacing: 0.1em;
+            letter-spacing: 0.2em;
         }
 
         .participant-row {
             display: flex;
             justify-content: space-between;
-            padding: 1rem 1.5rem;
-            border-bottom: 1px solid var(--glass-border);
-            font-size: 0.85rem;
+            align-items: center;
+            padding: 1.1rem 1.5rem;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+            font-size: 0.9rem;
+            transition: 0.3s;
         }
 
+        .participant-row:hover { background: rgba(255,255,255,0.02); }
         .participant-row:last-child { border-bottom: none; }
-        .p-uid { color: var(--text-muted); font-family: 'JetBrains Mono'; font-size: 0.75rem; }
+        .p-name { font-weight: 800; color: white; }
+        .p-uid { color: var(--text-muted); font-family: 'JetBrains Mono'; font-size: 0.7rem; background: rgba(255,255,255,0.05); padding: 2px 8px; border-radius: 6px; }
 
         .comm-link {
-            display: block;
-            background: #25D366;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            background: linear-gradient(135deg, #25D366, #128C7E);
             color: white;
             text-decoration: none;
             padding: 1.25rem;
-            border-radius: 20px;
-            font-weight: 800;
+            border-radius: 24px;
+            font-weight: 900;
             text-align: center;
             margin-top: 2rem;
-            box-shadow: 0 10px 20px rgba(37, 211, 102, 0.2);
+            box-shadow: 0 10px 25px rgba(37, 211, 102, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            transition: 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
+        .comm-link:hover { transform: translateY(-3px); box-shadow: 0 15px 35px rgba(37, 211, 102, 0.4); }
+        .comm-link:active { transform: scale(0.98); }
     </style>
 </head>
 <body>
@@ -243,12 +267,12 @@
 
                 const pList = document.getElementById('participantsList');
                 if (t.participants.length === 0) {
-                    pList.innerHTML = '<div style="padding:2rem; text-align:center; opacity:0.3; font-size:0.8rem;">NO_PLAYERS_YET</div>';
+                    pList.innerHTML = '<div style="padding:3rem; text-align:center; opacity:0.3; font-size:0.7rem; font-weight:800; letter-spacing:0.1em;">NO_PLAYERS_REGISTERED_YET</div>';
                 } else {
                     pList.innerHTML = t.participants.map((p, i) => `
                         <div class="participant-row">
-                            <div style="font-weight:800;">${i+1}. ${p.user_name}</div>
-                            <div class="p-uid">ID: ${p.user_uid}</div>
+                            <div class="p-name">${i+1}. ${p.user_name}</div>
+                            <div class="p-uid">${p.user_uid}</div>
                         </div>
                     `).join('');
                 }
@@ -258,6 +282,7 @@
                 if (savedKeys[id] && t.comm_link) {
                     const link = document.getElementById('commLink');
                     link.href = t.comm_link;
+                    link.innerHTML = `<span>💬</span> JOIN COMMUNAL CHANNEL`;
                     link.classList.remove('hidden');
                 }
 

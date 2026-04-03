@@ -123,76 +123,207 @@
 
         /* 💎 Elite Cards */
         .event-card {
-            background: var(--glass-bg);
-            backdrop-filter: blur(12px);
+            background: linear-gradient(145deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
             border: 1px solid var(--glass-border);
-            border-radius: 28px;
+            border-radius: 32px;
             padding: 1.75rem;
-            margin-bottom: 1.25rem;
+            margin-bottom: 1.5rem;
             position: relative;
             overflow: hidden;
             transition: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         }
 
         .event-card:hover {
-            transform: translateY(-5px);
-            border-color: rgba(255,255,255,0.2);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            transform: translateY(-5px) scale(1.01);
+            border-color: rgba(0, 240, 255, 0.4);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
         }
 
-        .event-card.giveaway { border-left: 5px solid var(--accent-primary); }
-        .event-card.tournament { border-left: 5px solid var(--accent-secondary); }
+        .event-card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at top right, rgba(0, 240, 255, 0.05), transparent 60%);
+            pointer-events: none;
+        }
 
-        .event-type {
+        .event-card.tournament::before {
+            background: radial-gradient(circle at top right, rgba(112, 0, 255, 0.05), transparent 60%);
+        }
+
+        .event-card::after {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 3px;
+            background: linear-gradient(90deg, transparent, var(--accent-primary), transparent);
+            opacity: 0.6;
+        }
+
+        .event-card.tournament::after {
+            background: linear-gradient(90deg, transparent, var(--accent-secondary), transparent);
+        }
+
+        .event-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .event-badge {
             font-size: 0.55rem;
             font-weight: 900;
-            letter-spacing: 0.15em;
-            margin-bottom: 0.75rem;
+            padding: 5px 12px;
+            border-radius: 8px;
             text-transform: uppercase;
+            letter-spacing: 0.12em;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.05);
+            font-family: 'JetBrains Mono';
         }
+
+        .event-card.giveaway .event-badge { color: var(--accent-primary); background: rgba(0, 240, 255, 0.08); border-color: rgba(0, 240, 255, 0.15); }
+        .event-card.tournament .event-badge { color: var(--accent-secondary); background: rgba(112, 0, 255, 0.08); border-color: rgba(112, 0, 255, 0.15); }
 
         .event-title {
-            font-size: 1.3rem;
+            font-size: 1.4rem;
             font-weight: 800;
-            margin-bottom: 0.75rem;
+            margin: 0;
             line-height: 1.2;
+            letter-spacing: -0.02em;
+            color: white;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
         }
 
-        .event-meta {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            margin-bottom: 1.5rem;
-        }
-
-        .meta-item {
+        .event-prize-box {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 1.1rem;
             display: flex;
             align-items: center;
-            gap: 6px;
-            background: rgba(255,255,255,0.04);
-            padding: 4px 10px;
-            border-radius: 8px;
+            gap: 1.25rem;
+            position: relative;
         }
+
+        .prize-icon { 
+            font-size: 1.75rem; 
+            filter: drop-shadow(0 0 10px rgba(255,255,255,0.2));
+        }
+
+        .prize-amount { font-size: 1.2rem; font-weight: 800; color: white; letter-spacing: -0.01em; }
+        .prize-label { font-size: 0.55rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.15em; margin-top: 2px; font-weight: 700; }
+
+        .event-stats-row {
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 1.25rem;
+        }
+
+        .mini-stat {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .mini-stat .label { font-size: 0.55rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.12em; font-weight: 700; }
+        .mini-stat .value { font-size: 1rem; font-weight: 800; color: white; font-family: 'JetBrains Mono'; display: flex; align-items: baseline; gap: 4px; }
+        .mini-stat .value span { font-size: 0.65rem; color: var(--text-muted); font-weight: 400; }
+
+        .slot-progress-container {
+            height: 5px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 99px;
+            overflow: hidden;
+            margin-top: 0.4rem;
+            border: 1px solid rgba(255,255,255,0.03);
+        }
+
+        .slot-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-secondary), #a855f7);
+            width: 0%;
+            transition: 1.5s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 0 15px rgba(112, 0, 255, 0.4);
+        }
+
+        .event-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 0.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .status-pill {
+            font-size: 0.55rem;
+            font-weight: 900;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255,255,255,0.03);
+            padding: 5px 12px;
+            border-radius: 99px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .status-pill::before {
+            content: "";
+            width: 5px; height: 5px; border-radius: 50%;
+            background: currentColor;
+            box-shadow: 0 0 8px currentColor;
+        }
+
+        .status-pill.open { color: #00ff88; border-color: rgba(0, 255, 136, 0.15); }
+        .status-pill.full { color: #ff4444; border-color: rgba(255, 68, 68, 0.15); }
 
         .join-btn {
             background: white;
             color: black;
             border: none;
-            padding: 0.85rem 1.75rem;
+            padding: 0.8rem 1.75rem;
             border-radius: 14px;
             font-weight: 900;
             font-size: 0.75rem;
             cursor: pointer;
-            transition: 0.3s;
+            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             text-transform: uppercase;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.08em;
+            position: relative;
+            overflow: hidden;
         }
 
+        .join-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
         .join-btn:active { transform: scale(0.95); }
-        .join-btn.tournament { background: var(--accent-secondary); color: white; box-shadow: 0 0 20px rgba(112, 0, 255, 0.3); }
-        .join-btn.giveaway { background: var(--accent-primary); color: black; box-shadow: 0 0 20px rgba(0, 240, 255, 0.3); }
+
+        .join-btn.tournament { 
+            background: linear-gradient(135deg, var(--accent-secondary), #5b00cc);
+            color: white; 
+            box-shadow: 0 0 20px rgba(112, 0, 255, 0.3); 
+        }
+        .join-btn.giveaway { 
+            background: linear-gradient(135deg, var(--accent-primary), #00c4d1);
+            color: black; 
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.3); 
+        }
+
+        .join-btn::after {
+            content: "";
+            position: absolute;
+            top: -50%; left: -50%; width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
+            opacity: 0; transition: 0.3s;
+        }
+        .join-btn:hover::after { opacity: 1; }
 
         /* 🦴 Skeleton */
         .skeleton {
@@ -257,13 +388,22 @@
         </div>
     </header>
 
-    <div id="liveTicker" style="background:rgba(0, 240, 255, 0.04); border-bottom:1px solid rgba(0, 240, 255, 0.1); padding:10px; font-size:0.65rem; color:var(--accent-primary); overflow:hidden; white-space:nowrap; position:fixed; top:75px; left:0; right:0; z-index:4900; font-family: 'JetBrains Mono'; font-weight:700;">
-        <div style="display:inline-block; animation: marquee 25s linear infinite;">
-            🔥 WELCOME_TO_THE_XP_ARENA_ELITE_HUB... INITIALIZING_LIVE_COMM_FEED... NO_ACTIVE_DRAW_RESULTS_YET...
+    <div id="liveTicker" style="background:rgba(0, 240, 255, 0.04); border-bottom:1px solid rgba(0, 240, 255, 0.1); padding:12px; font-size:0.6rem; color:var(--accent-primary); overflow:hidden; white-space:nowrap; position:fixed; top:75px; left:0; right:0; z-index:4900; font-family: 'JetBrains Mono'; font-weight:800; letter-spacing:0.05em; display:flex; align-items:center; gap:10px;">
+        <span style="background:var(--accent-primary); color:black; padding:2px 6px; border-radius:4px; font-size:0.5rem; flex-shrink:0;">LIVE PULSE</span>
+        <div id="tickerInner" style="display:inline-block; animation: marquee 30s linear infinite;">
+            🔥 WELCOME_TO_THE_XP_ARENA_ELITE_HUB... INITIALIZING_NEURAL_XP_SYNC... NO_ACTIVE_DRAW_RESULTS_YET... ARENA_IS_OPEN... 
         </div>
     </div>
 
     <div class="arena-container">
+        <!-- 👤 My Hub Section -->
+        <section id="myHubSection" class="hub-section hidden">
+            <h2 class="section-title">My Registered Events</h2>
+            <div id="myHubList" style="display: grid; gap: 1rem;">
+                <!-- Joined events show up here -->
+            </div>
+        </section>
+
         <!-- 🏆 Tournaments Section -->
         <section class="hub-section">
             <h2 class="section-title">Active Scrims</h2>
@@ -372,6 +512,7 @@
                 renderTournaments(tournaments);
                 renderGiveaways(giveaways);
                 renderProfile(profile);
+                renderMyHub(tournaments, giveaways);
             } catch (e) {
                 notify('FAILED_TO_LOAD_HUB_DATA', 'error');
             }
@@ -382,26 +523,81 @@
             document.getElementById('userXP').textContent = `LEVEL ${profile.level} • ${profile.xp_points} XP`;
         }
 
+        function renderMyHub(tournaments, giveaways) {
+            const savedKeys = JSON.parse(localStorage.getItem('xp_entry_keys') || '{}');
+            const container = document.getElementById('myHubList');
+            const section = document.getElementById('myHubSection');
+            
+            const joinedTournaments = tournaments.filter(t => savedKeys[t.id]);
+            // Giveaways don't have entry keys yet, but we could track them in localStorage too if we wanted
+            
+            if (joinedTournaments.length === 0) {
+                section.classList.add('hidden');
+                return;
+            }
+
+            section.classList.remove('hidden');
+            container.innerHTML = joinedTournaments.map(t => `
+                <div class="event-card tournament joined" style="padding: 1.25rem; border-left: 4px solid var(--accent-secondary);" onclick="window.location.href='tournament_detail.html?id=${t.id}'">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <div style="font-size:0.5rem; color:var(--accent-secondary); font-weight:800; letter-spacing:0.1em;">REGISTERED_SCRIM</div>
+                            <div style="font-size:1rem; font-weight:800;">${t.map_name} ARENA</div>
+                        </div>
+                        <div style="background:rgba(112, 0, 255, 0.1); color:var(--accent-secondary); padding:4px 10px; border-radius:8px; font-size:0.6rem; font-weight:900;">SECURED</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
         function renderTournaments(list) {
             const container = document.getElementById('tournamentsHub');
             if (!list || list.length === 0) {
                 container.innerHTML = '<div style="text-align:center; opacity:0.3; font-size:0.8rem; padding:3rem; font-weight:800;">NO_ACTIVE_SCRIMS</div>';
                 return;
             }
-            container.innerHTML = list.map(t => `
+            container.innerHTML = list.map(t => {
+                const fillPct = (t.filled_slots / t.total_slots) * 100;
+                const isFull = t.status === 'full';
+                const startTime = new Date(t.start_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                
+                return `
                 <div class="event-card tournament" onclick="window.location.href='tournament_detail.html?id=${t.id}'">
-                    <div class="event-type" style="color:var(--accent-secondary);">BATTLE_ROYALE • ${t.map_name}</div>
-                    <div class="event-title">${t.prize_pool} PRIZE_POOL</div>
-                    <div class="event-meta">
-                        <div class="meta-item">👥 ${t.filled_slots}/${t.total_slots} SLOTS</div>
-                        <div class="meta-item">⏰ ${new Date(t.start_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
+                    <div class="event-header">
+                        <div class="event-badge">BATTLE_ROYALE</div>
+                        <div class="status-pill ${t.status}">${t.status}</div>
                     </div>
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <div style="font-size:0.6rem; color:var(--text-muted); font-weight:900; letter-spacing:0.1em;">${t.status.toUpperCase()}</div>
-                        <button class="join-btn tournament" onclick="event.stopPropagation(); openTournamentJoin(${t.id})">${t.status === 'full' ? 'FULL' : 'JOIN_NOW'}</button>
+                    
+                    <h3 class="event-title">ARENA_${t.map_name}</h3>
+
+                    <div class="event-prize-box">
+                        <span class="prize-icon">🏆</span>
+                        <div>
+                            <div class="prize-amount">${t.prize_pool}</div>
+                            <div class="prize-label">Total Prize Pool</div>
+                        </div>
+                    </div>
+
+                    <div class="event-stats-row">
+                        <div class="mini-stat">
+                            <span class="label">Slots Filled</span>
+                            <span class="value">${t.filled_slots} <span>/ ${t.total_slots}</span></span>
+                            <div class="slot-progress-container">
+                                <div class="slot-progress-bar" style="width: ${fillPct}%"></div>
+                            </div>
+                        </div>
+                        <div class="mini-stat">
+                            <span class="label">Arena Start</span>
+                            <span class="value">${startTime}</span>
+                        </div>
+                    </div>
+
+                    <div class="event-actions">
+                        <div style="font-size: 0.5rem; color: var(--text-muted); font-family: 'JetBrains Mono'; letter-spacing: 0.1em;">ID: #SCRIM-${t.id}</div>
+                        <button class="join-btn tournament" onclick="event.stopPropagation(); openTournamentJoin(${t.id})">${isFull ? 'FULL' : 'JOIN_SCRIM'}</button>
                     </div>
                 </div>
-            `).join('');
+            `}).join('');
         }
 
         function renderGiveaways(list) {
@@ -410,19 +606,44 @@
                 container.innerHTML = '<div style="text-align:center; opacity:0.3; font-size:0.8rem; padding:3rem; font-weight:800;">NO_ACTIVE_GIVEAWAYS</div>';
                 return;
             }
-            container.innerHTML = list.map(g => `
+            container.innerHTML = list.map(g => {
+                const drawDate = new Date(g.end_at).toLocaleDateString();
+                const typeLabel = g.type.replace('_', ' ').toUpperCase();
+                
+                return `
                 <div class="event-card giveaway">
-                    <div class="event-type" style="color:var(--accent-primary);">${g.type.toUpperCase()}</div>
-                    <div class="event-title">${g.title}</div>
-                    <div class="event-meta">
-                        <div class="meta-item">🎁 ${g.prize_description}</div>
+                    <div class="event-header">
+                        <div class="event-badge">${typeLabel}</div>
+                        <div class="status-pill open">Active</div>
                     </div>
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <div style="font-size:0.6rem; color:var(--text-muted); font-weight:900;">ENDS: ${new Date(g.end_at).toLocaleDateString()}</div>
-                        <button class="join-btn giveaway" onclick="openGiveawayEnter(${g.id}, '${g.type}')">ENTER</button>
+
+                    <h3 class="event-title">${g.title}</h3>
+
+                    <div class="event-prize-box">
+                        <span class="prize-icon">🎁</span>
+                        <div>
+                            <div class="prize-amount">${g.prize_description}</div>
+                            <div class="prize-label">Guaranteed Reward</div>
+                        </div>
+                    </div>
+
+                    <div class="event-stats-row">
+                        <div class="mini-stat">
+                            <span class="label">Total Entries</span>
+                            <span class="value">${g.entry_count || 0} <span>Players</span></span>
+                        </div>
+                        <div class="mini-stat">
+                            <span class="label">Draw Date</span>
+                            <span class="value">${drawDate}</span>
+                        </div>
+                    </div>
+
+                    <div class="event-actions">
+                        <div style="font-size: 0.5rem; color: var(--text-muted); font-family: 'JetBrains Mono'; letter-spacing: 0.1em;">ID: #GIFT-${g.id}</div>
+                        <button class="join-btn giveaway" onclick="openGiveawayEnter(${g.id}, '${g.type}')">ENTER_DRAW</button>
                     </div>
                 </div>
-            `).join('');
+            `}).join('');
         }
 
         function openTournamentJoin(id) {

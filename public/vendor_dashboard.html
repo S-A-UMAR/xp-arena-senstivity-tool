@@ -511,6 +511,85 @@
             box-shadow: 0 0 10px var(--accent-primary-glow);
         }
 
+        /* 🎁 Giveaway & Tournament List Items */
+        .event-item {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 1.25rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: 0.3s;
+        }
+        .event-item:hover {
+            background: rgba(255,255,255,0.04);
+            border-color: rgba(255,255,255,0.1);
+        }
+        .event-info { display: flex; flex-direction: column; gap: 4px; }
+        .event-title-small { font-size: 0.9rem; font-weight: 800; color: white; }
+        .event-meta-small { font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+        
+        .manage-btn {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            color: white;
+            padding: 0.6rem 1.2rem;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .manage-btn:hover { background: var(--accent-primary); color: black; border-color: var(--accent-primary); }
+
+        /* 🎰 Winner Randomizer Animation */
+        .winner-roll {
+            height: 100px;
+            overflow: hidden;
+            position: relative;
+            background: rgba(0,0,0,0.3);
+            border-radius: 16px;
+            margin: 1.5rem 0;
+            border: 1px solid var(--accent-primary);
+        }
+        .roll-inner {
+            position: absolute;
+            width: 100%;
+            transition: transform 3s cubic-bezier(0.1, 0, 0.1, 1);
+            text-align: center;
+        }
+        .roll-item {
+            height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--accent-primary);
+            font-family: var(--font-mono);
+        }
+
+        /* 📋 Participant Table */
+        .participant-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        .participant-table th {
+            text-align: left;
+            font-size: 0.6rem;
+            color: var(--text-muted);
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--glass-border);
+            text-transform: uppercase;
+        }
+        .participant-table td {
+            padding: 0.75rem;
+            font-size: 0.8rem;
+            border-bottom: 1px solid rgba(255,255,255,0.02);
+        }
+
         .cyber-slider {
             width: 100%;
             height: 4px;
@@ -951,6 +1030,85 @@
         <button class="btn-primary" onclick="submitManual()">PUBLISH MANUAL KEY(S)</button>
     </div>
 
+    <!-- 🎁 Giveaway Manager Modal -->
+    <div class="sheet-overlay" id="gvManagerOverlay" onclick="closeGiveawayManager()"></div>
+    <div class="action-sheet" id="gvManagerSheet">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <h2 id="gvMgrTitle" style="margin: 0; font-family: var(--font-heading);">MANAGE_GIFT</h2>
+            <button onclick="closeGiveawayManager()" style="background: none; border: none; color: var(--text-muted); font-weight: 800;">CLOSE</button>
+        </div>
+
+        <div id="gvMgrStats" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2rem;">
+            <div class="stat-tile">
+                <span class="stat-val" id="gvMgrEntries">--</span>
+                <span class="stat-label">ENTRIES</span>
+            </div>
+            <div class="stat-tile">
+                <span class="stat-val" id="gvMgrStatus">--</span>
+                <span class="stat-label">STATUS</span>
+            </div>
+        </div>
+
+        <div id="drawSection">
+            <h3 style="font-size: 0.7rem; color: var(--accent-primary); letter-spacing: 0.1em; margin-bottom: 1rem;">WINNER_SELECTION</h3>
+            <div id="winnerDisplay" class="hidden">
+                <div class="winner-roll"><div class="roll-inner" id="rollInner"></div></div>
+                <div style="text-align: center; margin-top: 1rem;">
+                    <div style="font-size: 0.6rem; color: var(--text-muted);">PROVED_WINNER_UID</div>
+                    <div id="winnerUid" style="font-size: 1.25rem; font-weight: 800; color: var(--accent-primary); font-family: var(--font-mono);">--</div>
+                </div>
+            </div>
+            <button id="drawBtn" class="btn-primary" onclick="drawWinners()">INITIALIZE_RANDOM_DRAW</button>
+        </div>
+
+        <div id="drawnSection" class="hidden">
+            <div class="glass-panel" style="margin: 1.5rem 0; background: rgba(0, 255, 136, 0.05); border: 1px dashed var(--accent-primary);">
+                <div style="font-size: 0.6rem; color: var(--accent-primary); letter-spacing: 0.1em; margin-bottom: 0.5rem;">PROOF_OF_FAIRNESS_HASH</div>
+                <div id="proofHash" style="font-size: 0.7rem; font-family: var(--font-mono); word-break: break-all; opacity: 0.7;">--</div>
+            </div>
+            <p style="font-size: 0.7rem; color: var(--text-muted); text-align: center;">WINNER HAS BEEN NOTIFIED ON HALL OF FAME</p>
+        </div>
+
+        <button class="v-btn-mini" style="width:100%; margin-top: 1rem; color: #ff4444;" onclick="archiveGiveaway()">ARCHIVE_GIVEAWAY</button>
+    </div>
+
+    <!-- 🏆 Scrim Manager Modal -->
+    <div class="sheet-overlay" id="tmManagerOverlay" onclick="closeTournamentManager()"></div>
+    <div class="action-sheet" id="tmManagerSheet" style="border-top-color: var(--accent-secondary);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <h2 id="tmMgrTitle" style="margin: 0; font-family: var(--font-heading); color: var(--accent-secondary);">SCRIM_CONTROL</h2>
+            <button onclick="closeTournamentManager()" style="background: none; border: none; color: var(--text-muted); font-weight: 800;">CLOSE</button>
+        </div>
+
+        <div id="tmMgrStats" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2rem;">
+            <div class="stat-tile">
+                <span class="stat-val" id="tmMgrFilled">--</span>
+                <span class="stat-label">FILLED_SLOTS</span>
+            </div>
+            <div class="stat-tile">
+                <span class="stat-val" id="tmMgrStatus">--</span>
+                <span class="stat-label">ARENA_STATUS</span>
+            </div>
+        </div>
+
+        <h3 style="font-size: 0.7rem; color: var(--accent-secondary); letter-spacing: 0.1em; margin-bottom: 1rem;">PARTICIPANT_ROSTER</h3>
+        <div style="max-height: 250px; overflow-y: auto; border: 1px solid var(--glass-border); border-radius: 16px;">
+            <table class="participant-table">
+                <thead>
+                    <tr><th>#</th><th>IGN</th><th>UID</th><th>TIME</th></tr>
+                </thead>
+                <tbody id="tmParticipantsList">
+                    <!-- Rows injected here -->
+                </tbody>
+            </table>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1.5rem;">
+            <button class="v-btn-mini" style="background: var(--accent-secondary); color: black; border: none;" onclick="exportParticipants()">EXPORT_ROSTER</button>
+            <button class="v-btn-mini" style="color: #ff4444;" onclick="archiveTournament()">CLOSE_ARENA</button>
+        </div>
+    </div>
+
     <!-- 🧭 Navigation -->
     <nav class="bottom-nav">
         <button class="nav-item active" onclick="switchTab('home', this)">
@@ -1060,6 +1218,7 @@
 
     <script src="devices.js"></script>
     <script src="notifications.js"></script>
+    <script src="translations.js"></script>
     <script src="settings.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="update-overlay.js"></script>
@@ -1374,8 +1533,14 @@
         async function init() {
             try {
                 populateBrands();
-                applyLanguage();
-                await Promise.all([loadDashboard(), loadAnalytics(), loadProfile(), loadVaultKeys(), loadPresets()]);
+                if (typeof applyLanguage === 'function') applyLanguage();
+                await Promise.all([
+                    loadDashboard().catch(e => console.warn('Dash load fail:', e)),
+                    loadAnalytics().catch(e => console.warn('Analytics load fail:', e)),
+                    loadProfile().catch(e => console.warn('Profile load fail:', e)),
+                    loadVaultKeys().catch(e => console.warn('Vault load fail:', e)),
+                    loadPresets().catch(e => console.warn('Presets load fail:', e))
+                ]);
             } catch (e) {
                 console.error('INIT_ERR:', e);
                 showDashError(e.message || 'DASHBOARD_BOOT_FAILED');
@@ -1386,7 +1551,9 @@
             try {
                 showDashError('');
                 const profile = await getProfile();
+                if (!profile) return;
 
+                window.vendorData = profile; // 💾 Store globally for other functions
                 window.vendorName = profile.display_name || profile.vendor_id || 'UNKNOWN_VENDOR';
                 document.getElementById('vendorTitle').textContent = window.vendorName.toUpperCase();
                 document.getElementById('statCodes').textContent = profile.total_codes || 0;
@@ -1582,30 +1749,19 @@
         async function loadGiveaways() {
             const list = document.getElementById('giveawaysList');
             try {
-                // Show skeletons while loading
-                list.innerHTML = '<div class="skeleton" style="height: 120px;"></div><div class="skeleton" style="height: 120px;"></div>';
+                showSkeletons('giveawaysList', 2, '120px');
                 const giveaways = await api(`${API_BASE}/giveaways`);
                 if (!giveaways || giveaways.length === 0) {
                     list.innerHTML = '<div style="padding:2rem; text-align:center; opacity:0.3; font-size:0.7rem;">NO_ACTIVE_GIVEAWAYS</div>';
                     return;
                 }
                 list.innerHTML = giveaways.map(g => `
-                    <div class="glass-panel" style="margin:0; padding:1.2rem; border-left: 4px solid var(--accent-primary);">
-                        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                            <div>
-                                <div style="font-size:0.55rem; color:var(--accent-primary); font-weight:800; letter-spacing:0.1em;">${g.type.toUpperCase()}</div>
-                                <div style="font-size:1rem; font-weight:800; margin-top:4px;">${g.title}</div>
-                            </div>
-                            <div style="font-family:var(--font-mono); font-size:0.6rem; color:var(--text-muted);">${new Date(g.end_at).toLocaleDateString()}</div>
+                    <div class="event-item">
+                        <div class="event-info">
+                            <div class="event-title-small">${escapeHtml(g.title)}</div>
+                            <div class="event-meta-small">${g.type.replace('_', ' ')} • ${g.entry_count || 0} ENTRIES • ${g.status}</div>
                         </div>
-                        <div style="font-size:0.65rem; color:var(--text-muted); margin-top:8px;">${g.prize_description}</div>
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:1.2rem;">
-                            <div style="font-size:0.6rem; color:var(--accent-primary); font-weight:800;">${g.entry_count || 0} ENTRIES</div>
-                            <div style="display:flex; gap:0.5rem;">
-                                <button class="v-btn-mini" onclick="viewGiveawayEntries(${g.id})">LOGS</button>
-                                <button class="v-btn-mini primary" onclick="drawGiveawayWinner(${g.id})">DRAW</button>
-                            </div>
-                        </div>
+                        <button class="manage-btn" onclick="manageGiveaway(${g.id})">MANAGE</button>
                     </div>
                 `).join('');
             } catch (e) {
@@ -1613,144 +1769,199 @@
             }
         }
 
-        function openGiveawayCreator() {
-            document.getElementById('giveawayOverlay').classList.add('active');
-            document.getElementById('giveawaySheet').classList.add('active');
-        }
-
-        function closeGiveawayCreator() {
-            document.getElementById('giveawayOverlay').classList.remove('active');
-            document.getElementById('giveawaySheet').classList.remove('active');
-        }
-
-        async function submitGiveaway() {
-            const data = {
-                type: document.getElementById('gvType').value,
-                title: document.getElementById('gvTitle').value.trim(),
-                prize_description: document.getElementById('gvPrize').value.trim(),
-                end_at: document.getElementById('gvEnd').value,
-                max_winners: parseInt(document.getElementById('gvWinners').value, 10)
-            };
-
-            if (!data.title || !data.prize_description || !data.end_at) {
-                showToast('PLEASE_FILL_ALL_REQUIRED_FIELDS', 'error');
-                return;
-            }
-
-            try {
-                await api(`${API_BASE}/giveaways`, 'POST', data);
-                showToast('GIVEAWAY_PUBLISHED_SUCCESSFULLY', 'success');
-                closeGiveawayCreator();
-                loadGiveaways();
-            } catch (e) {
-                showToast(e.message || 'GIVEAWAY_CREATION_FAILED', 'error');
-            }
-        }
-
-        function openTournamentCreator() {
-            document.getElementById('tournamentOverlay').classList.add('active');
-            document.getElementById('tournamentSheet').classList.add('active');
-        }
-
-        function closeTournamentCreator() {
-            document.getElementById('tournamentOverlay').classList.remove('active');
-            document.getElementById('tournamentSheet').classList.remove('active');
-        }
-
-        async function submitTournament() {
-            const data = {
-                type: 'battle_royale', // Default for now
-                map_name: document.getElementById('tmMap').value,
-                total_slots: parseInt(document.getElementById('tmSlots').value, 10),
-                prize_pool: document.getElementById('tmPrize').value.trim(),
-                start_at: document.getElementById('tmStart').value,
-                end_at: document.getElementById('tmEnd').value,
-                comm_link: document.getElementById('tmLink').value.trim()
-            };
-
-            if (!data.prize_pool || !data.start_at || !data.end_at || !data.comm_link) {
-                showToast('PLEASE_FILL_ALL_REQUIRED_FIELDS', 'error');
-                return;
-            }
-
-            try {
-                await api(`${API_BASE}/tournaments`, 'POST', data);
-                showToast('SCRIM_ARCHITECTURE_INITIALIZED', 'success');
-                closeTournamentCreator();
-                loadTournaments();
-            } catch (e) {
-                showToast(e.message || 'TOURNAMENT_CREATION_FAILED', 'error');
-            }
-        }
-
-        async function drawGiveawayWinner(id) {
-            if (!confirm('INITIATE_AUTOMATED_WINNER_DRAW? THIS_ACTION_IS_FINAL.')) return;
-            
-            showToast('NEURAL_DRAW_IN_PROGRESS...', 'info');
-            try {
-                const res = await api(`${API_BASE}/giveaways/${id}/draw`, 'POST');
-                if (res.success) {
-                    const winner = res.winners[0];
-                    showToast(`🏆 WINNER_SELECTED: ${winner.user_id}`, 'success');
-                    
-                    // Show a fancy winner modal
-                    const modal = window.open("", "WINNER_DRAW", "width=500,height=600");
-                    modal.document.body.style.background = '#020617';
-                    modal.document.body.style.color = 'white';
-                    modal.document.body.style.fontFamily = 'Outfit, sans-serif';
-                    modal.document.body.style.display = 'flex';
-                    modal.document.body.style.flexDirection = 'column';
-                    modal.document.body.style.alignItems = 'center';
-                    modal.document.body.style.justifyContent = 'center';
-                    modal.document.body.innerHTML = `
-                        <div style="border: 2px solid #00f0ff; padding: 2rem; border-radius: 24px; text-align: center; background: rgba(0, 240, 255, 0.05);">
-                            <h1 style="color: #00f0ff; font-size: 3rem; margin: 0;">🏆</h1>
-                            <h2 style="margin-top: 1rem;">GIVEAWAY_WINNER</h2>
-                            <div style="font-size: 1.5rem; font-weight: 800; margin: 1rem 0; font-family: 'JetBrains+Mono';">${winner.input_data}</div>
-                            <p style="opacity: 0.6; font-size: 0.7rem;">PROOF_HASH: ${res.proof_hash.substring(0, 32)}...</p>
-                            <button onclick="window.print()" style="margin-top: 2rem; padding: 12px 24px; background: #00f0ff; border: none; border-radius: 12px; font-weight: 800; cursor: pointer;">SAVE_CERTIFICATE</button>
-                        </div>
-                    `;
-                    loadGiveaways();
-                }
-            } catch (e) {
-                showToast(e.message || 'DRAW_FAILED', 'error');
-            }
-        }
         async function loadTournaments() {
             const list = document.getElementById('tournamentsList');
             try {
-                list.innerHTML = '<div class="skeleton" style="height: 150px;"></div>';
+                showSkeletons('tournamentsList', 2, '120px');
                 const tournaments = await api(`${API_BASE}/tournaments`);
                 if (!tournaments || tournaments.length === 0) {
                     list.innerHTML = '<div style="padding:2rem; text-align:center; opacity:0.3; font-size:0.7rem;">NO_SCRIMS_SCHEDULED</div>';
                     return;
                 }
                 list.innerHTML = tournaments.map(t => `
-                    <div class="glass-panel" style="margin:0; padding:1.2rem; border-left: 4px solid var(--accent-secondary);">
-                        <div style="display:flex; justify-content:space-between;">
-                            <div>
-                                <div style="font-size:0.55rem; color:var(--accent-secondary); font-weight:800; letter-spacing:0.1em;">${t.type.toUpperCase()} • ${t.map_name || 'BERMUDA'}</div>
-                                <div style="font-size:1rem; font-weight:800; margin-top:4px;">${t.prize_pool} PRIZE_POOL</div>
-                            </div>
-                            <div style="text-align:right;">
-                                <div style="font-size:0.8rem; font-weight:800; color:white;">${t.filled_slots}/${t.total_slots}</div>
-                                <div style="font-size:0.5rem; color:var(--text-muted);">SLOTS_FILLED</div>
-                            </div>
+                    <div class="event-item">
+                        <div class="event-info">
+                            <div class="event-title-small">ARENA_${t.map_name}_#${t.id}</div>
+                            <div class="event-meta-small">${t.filled_slots}/${t.total_slots} SLOTS • ${t.status} • ${t.prize_pool}</div>
                         </div>
-                        <div style="height:4px; background:rgba(255,255,255,0.05); border-radius:99px; margin-top:10px; overflow:hidden;">
-                            <div style="width:${(t.filled_slots / t.total_slots) * 100}%; height:100%; background:var(--accent-secondary);"></div>
-                        </div>
-                        <div style="font-size:0.65rem; color:var(--text-muted); margin-top:12px;">START: ${new Date(t.start_at).toLocaleString()}</div>
-                        <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:1.2rem;">
-                            <button class="v-btn-mini" onclick="viewTournamentTable(${t.id})">TABLE</button>
-                            <button class="v-btn-mini" style="background:var(--accent-secondary); color:black; border:none;" onclick="manageTournament(${t.id})">MANAGE</button>
-                        </div>
+                        <button class="manage-btn" onclick="manageTournament(${t.id})">MANAGE</button>
                     </div>
                 `).join('');
             } catch (e) {
                 list.innerHTML = '<div style="padding:2rem; text-align:center; color:#ff6b6b; font-size:0.7rem;">FAILED_TO_LOAD_ARENA</div>';
             }
+        }
+
+        // --- 🎁 ELITE GIVEAWAY MANAGEMENT ---
+        let activeGvId = null;
+        async function manageGiveaway(id) {
+            activeGvId = id;
+            try {
+                const giveaways = await api(`${API_BASE}/giveaways`);
+                const g = giveaways.find(x => x.id === id);
+                if (!g) return;
+
+                document.getElementById('gvMgrTitle').textContent = `MANAGE_${g.title.toUpperCase()}`;
+                document.getElementById('gvMgrEntries').textContent = g.entry_count || 0;
+                document.getElementById('gvMgrStatus').textContent = g.status.toUpperCase();
+                
+                const drawBtn = document.getElementById('drawBtn');
+                const drawSection = document.getElementById('drawSection');
+                const drawnSection = document.getElementById('drawnSection');
+                const winnerDisplay = document.getElementById('winnerDisplay');
+
+                if (g.status === 'drawn') {
+                    drawBtn.classList.add('hidden');
+                    drawnSection.classList.remove('hidden');
+                    winnerDisplay.classList.add('hidden');
+                    document.getElementById('proofHash').textContent = g.proof_hash;
+                } else {
+                    drawBtn.classList.remove('hidden');
+                    drawnSection.classList.add('hidden');
+                    winnerDisplay.classList.add('hidden');
+                }
+
+                document.getElementById('gvManagerOverlay').classList.add('active');
+                document.getElementById('gvManagerSheet').classList.add('active');
+            } catch (e) {
+                showToast('FAILED_TO_LOAD_GIVEAWAY_DETAIL', 'error');
+            }
+        }
+
+        function closeGiveawayManager() {
+            document.getElementById('gvManagerOverlay').classList.remove('active');
+            document.getElementById('gvManagerSheet').classList.remove('active');
+            activeGvId = null;
+        }
+
+        async function drawWinners() {
+            if (!activeGvId) return;
+            const entriesCount = parseInt(document.getElementById('gvMgrEntries').textContent);
+            if (entriesCount === 0) return showToast('NO_ENTRIES_TO_DRAW_FROM', 'error');
+
+            const btn = document.getElementById('drawBtn');
+            btn.disabled = true;
+            btn.textContent = 'NEURAL_RANDOMIZING...';
+
+            try {
+                const res = await api(`${API_BASE}/giveaways/${activeGvId}/draw`, 'POST');
+                
+                // Start Animation
+                const winnerDisplay = document.getElementById('winnerDisplay');
+                const rollInner = document.getElementById('rollInner');
+                winnerDisplay.classList.remove('hidden');
+                
+                // Create random items for rolling effect
+                const fakeItems = Array(20).fill(0).map(() => `ID: ${Math.floor(10000000 + Math.random() * 90000000)}`);
+                const winner = res.winners[0];
+                fakeItems.push(`WINNER: ${winner.input_data}`);
+                
+                rollInner.innerHTML = fakeItems.map(item => `<div class="roll-item">${item}</div>`).join('');
+                
+                // Trigger animation
+                setTimeout(() => {
+                    rollInner.style.transform = `translateY(-${(fakeItems.length - 1) * 100}px)`;
+                }, 100);
+
+                setTimeout(() => {
+                    document.getElementById('winnerUid').textContent = winner.input_data;
+                    document.getElementById('drawBtn').classList.add('hidden');
+                    document.getElementById('drawnSection').classList.remove('hidden');
+                    document.getElementById('proofHash').textContent = res.proof_hash;
+                    showToast('WINNER_SECURED_AND_NOTIFIED', 'success');
+                    loadGiveaways();
+                }, 3500);
+
+            } catch (e) {
+                showToast(e.message || 'DRAW_FAILED', 'error');
+                btn.disabled = false;
+                btn.textContent = 'INITIALIZE_RANDOM_DRAW';
+            }
+        }
+
+        async function archiveGiveaway() {
+            if (!activeGvId || !confirm('PERMANENTLY_ARCHIVE_THIS_GIVEAWAY?')) return;
+            try {
+                await api(`${API_BASE}/giveaways/${activeGvId}`, 'DELETE');
+                showToast('GIVEAWAY_ARCHIVED', 'success');
+                closeGiveawayManager();
+                loadGiveaways();
+            } catch (e) {
+                showToast('ARCHIVE_FAILED', 'error');
+            }
+        }
+
+        // --- 🏆 ELITE TOURNAMENT MANAGEMENT ---
+        let activeTmId = null;
+        async function manageTournament(id) {
+            activeTmId = id;
+            try {
+                const t = await api(`${API_BASE}/tournaments/${id}`);
+                
+                document.getElementById('tmMgrTitle').textContent = `SCRIM_${t.map_name}_${id}`;
+                document.getElementById('tmMgrFilled').textContent = `${t.filled_slots} / ${t.total_slots}`;
+                document.getElementById('tmMgrStatus').textContent = t.status.toUpperCase();
+                
+                const list = document.getElementById('tmParticipantsList');
+                if (!t.participants || t.participants.length === 0) {
+                    list.innerHTML = '<tr><td colspan="4" style="text-align:center; opacity:0.3; padding:2rem;">NO_PLAYERS_REGISTERED</td></tr>';
+                } else {
+                    list.innerHTML = t.participants.map((p, i) => `
+                        <tr>
+                            <td>${i + 1}</td>
+                            <td style="font-weight:800;">${escapeHtml(p.user_name)}</td>
+                            <td style="font-family:var(--font-mono); font-size:0.7rem;">${p.user_uid}</td>
+                            <td style="font-size:0.6rem; color:var(--text-muted);">${new Date(p.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</td>
+                        </tr>
+                    `).join('');
+                }
+
+                document.getElementById('tmManagerOverlay').classList.add('active');
+                document.getElementById('tmManagerSheet').classList.add('active');
+            } catch (e) {
+                showToast('FAILED_TO_LOAD_SCRIM_DETAIL', 'error');
+            }
+        }
+
+        function closeTournamentManager() {
+            document.getElementById('tmManagerOverlay').classList.remove('active');
+            document.getElementById('tmManagerSheet').classList.remove('active');
+            activeTmId = null;
+        }
+
+        async function archiveTournament() {
+            if (!activeTmId || !confirm('CLOSE_ARENA_AND_ARCHIVE_SCRIM?')) return;
+            try {
+                await api(`${API_BASE}/tournaments/${activeTmId}`, 'DELETE');
+                showToast('SCRIM_ARCHIVED', 'success');
+                closeTournamentManager();
+                loadTournaments();
+            } catch (e) {
+                showToast('ARCHIVE_FAILED', 'error');
+            }
+        }
+
+        function exportParticipants() {
+            if (!activeTmId) return;
+            // Simple CSV export
+            const table = document.getElementById('tmParticipantsList');
+            const rows = Array.from(table.querySelectorAll('tr'));
+            let csv = 'RANK,IGN,UID,TIME\n';
+            rows.forEach(row => {
+                const cols = Array.from(row.querySelectorAll('td')).map(c => c.textContent);
+                if (cols.length === 4) csv += cols.join(',') + '\n';
+            });
+            
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.setAttribute('hidden', '');
+            a.setAttribute('href', url);
+            a.setAttribute('download', `scrim_${activeTmId}_participants.csv`);
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            showToast('ROSTER_EXPORTED', 'success');
         }
 
         function toggleSheet(show) {
