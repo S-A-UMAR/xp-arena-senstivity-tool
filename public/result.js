@@ -474,6 +474,14 @@
             });
         } catch (_e) {}
 
+        if (hydrated.vendorId) {
+            const arenaBtn = document.getElementById('goToArenaBtn');
+            if (arenaBtn) {
+                arenaBtn.onclick = () => {
+                    window.location.href = `/arena.html?vendor=${hydrated.vendorId}`;
+                };
+            }
+        }
         applyResultLang();
         window.addEventListener('xp:language-change', applyResultLang);
 

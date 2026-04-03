@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>XP ARENA | ELITE HUB</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;800&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        :root {
+            --bg-deep: #020617;
+            --accent-primary: #00f0ff;
+            --accent-secondary: #7000ff;
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        body {
+            background: var(--bg-deep);
+            color: var(--text-main);
+            font-family: 'Outfit', sans-serif;
+            margin: 0;
+            padding-top: 80px;
+            padding-bottom: 40px;
+            overflow-x: hidden;
+        }
+
+        header {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            height: 70px;
+            background: rgba(2, 6, 23, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 1.5rem;
+            z-index: 5000;
+        }
+
+        .xp-badge {
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+            color: black;
+            font-size: 0.65rem;
+            font-weight: 800;
+            padding: 4px 12px;
+            border-radius: 99px;
+            font-family: 'JetBrains+Mono', monospace;
+        }
+
+        .arena-container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        .hub-section {
+            margin-bottom: 2.5rem;
+        }
+
+        .section-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            color: var(--accent-primary);
+            margin-bottom: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, var(--glass-border), transparent);
+        }
+
+        .event-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            position: relative;
+            overflow: hidden;
+            transition: 0.3s;
+        }
+
+        .event-card:active { transform: scale(0.98); }
+
+        .event-card.giveaway { border-left: 4px solid var(--accent-primary); }
+        .event-card.tournament { border-left: 4px solid var(--accent-secondary); }
+
+        .event-type {
+            font-size: 0.55rem;
+            font-weight: 800;
+            letter-spacing: 0.1em;
+            margin-bottom: 0.5rem;
+            opacity: 0.8;
+        }
+
+        .event-title {
+            font-size: 1.2rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+        }
+
+        .event-meta {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            display: flex;
+            gap: 15px;
+            margin-bottom: 1.2rem;
+        }
+
+        .event-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .join-btn {
+            background: white;
+            color: black;
+            border: none;
+            padding: 0.7rem 1.5rem;
+            border-radius: 12px;
+            font-weight: 800;
+            font-size: 0.75rem;
+            cursor: pointer;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .join-btn.tournament { background: var(--accent-secondary); color: white; }
+
+        .skeleton {
+            background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.03) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 16px;
+            height: 140px;
+            margin-bottom: 1rem;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* Modal Overlay */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(10px);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            opacity: 0;
+            pointer-events: none;
+            transition: 0.3s;
+        }
+
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+
+        .modal-card {
+            background: #0f172a;
+            border: 1px solid var(--glass-border);
+            border-radius: 32px;
+            width: 100%;
+            max-width: 400px;
+            padding: 2rem;
+            position: relative;
+        }
+
+        .form-group { margin-bottom: 1.5rem; }
+        .form-label { font-size: 0.65rem; color: var(--text-muted); margin-bottom: 0.5rem; display: block; text-transform: uppercase; letter-spacing: 0.1em; }
+        .form-input {
+            width: 100%;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 1rem;
+            color: white;
+            font-family: 'JetBrains+Mono', monospace;
+            outline: none;
+            box-sizing: border-box;
+        }
+        .form-input:focus { border-color: var(--accent-primary); }
+
+        .submit-btn {
+            width: 100%;
+            background: var(--accent-primary);
+            color: black;
+            border: none;
+            padding: 1rem;
+            border-radius: 16px;
+            font-weight: 800;
+            cursor: pointer;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div style="display:flex; align-items:center; gap:10px;">
+            <div id="vendorLogo" style="width:32px; height:32px; border-radius:50%; background:var(--glass-bg); display:flex; align-items:center; justify-content:center; font-size:0.8rem;">👤</div>
+            <div>
+                <div style="font-size:0.5rem; color:var(--accent-primary); font-weight:800; letter-spacing:0.1em;">XP_ARENA</div>
+                <div id="vendorName" style="font-size:0.8rem; font-weight:800;">HUB</div>
+            </div>
+        </div>
+        <div style="display:flex; align-items:center; gap:10px;">
+            <div id="userXP" class="xp-badge">LEVEL 1 • 0 XP</div>
+            <button onclick="shareArena()" style="background:var(--glass-bg); border:1px solid var(--glass-border); color:white; padding:5px; border-radius:8px; font-size:1rem;">🔗</button>
+        </div>
+    </header>
+
+    <div id="liveTicker" style="background:rgba(0, 240, 255, 0.05); border-bottom:1px solid rgba(0, 240, 255, 0.1); padding:8px; font-size:0.6rem; color:var(--accent-primary); overflow:hidden; white-space:nowrap; position:fixed; top:70px; left:0; right:0; z-index:4900;">
+        <div style="display:inline-block; animation: marquee 20s linear infinite;">
+            🔥 WELCOME_TO_THE_XP_ARENA_ELITE_HUB... INITIALIZING_LIVE_COMM_FEED... NO_ACTIVE_DRAW_RESULTS_YET...
+        </div>
+    </div>
+    <style>
+        @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+    </style>
+
+    <div class="arena-container">
+        <!-- 🏆 Tournaments Section -->
+        <section class="hub-section">
+            <h2 class="section-title">Active Scrims</h2>
+            <div id="tournamentsHub">
+                <div class="skeleton"></div>
+            </div>
+        </section>
+
+        <!-- 🎁 Giveaways Section -->
+        <section class="hub-section">
+            <h2 class="section-title">Open Giveaways</h2>
+            <div id="giveawaysHub">
+                <div class="skeleton"></div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Registration Modal -->
+    <div id="regModal" class="modal-overlay">
+        <div class="modal-card">
+            <h2 id="modalTitle" style="margin:0 0 1.5rem; font-size:1.5rem;">Join Event</h2>
+            <div id="modalBody">
+                <!-- Form injected here -->
+            </div>
+            <button class="submit-btn" id="modalSubmit">SUBMIT ENTRY</button>
+            <button style="width:100%; background:none; border:none; color:var(--text-muted); margin-top:1rem; font-size:0.7rem;" onclick="closeModal()">CANCEL</button>
+        </div>
+    </div>
+
+    <script src="notifications.js"></script>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script>
+        const API_BASE = '/api/vault';
+        const socket = io();
+        const vendorId = new URLSearchParams(window.location.search).get('vendor') || 'XP-PUBLIC';
+
+        socket.on('arena_event', (event) => {
+            const ticker = document.getElementById('liveTicker').firstElementChild;
+            if (event.type === 'tournament_join') {
+                ticker.innerHTML = `🔥 NEW_SCRIM_ENTRY: ${event.user_name.toUpperCase()} HAS_ENTERED_THE_ARENA... ` + ticker.innerHTML;
+            }
+        });
+
+        function shareArena() {
+            if (navigator.share) {
+                navigator.share({
+                    title: 'XP ARENA | ELITE HUB',
+                    text: `Join the latest scrims and giveaways on XP ARENA!`,
+                    url: window.location.href
+                });
+            } else {
+                navigator.clipboard.writeText(window.location.href);
+                alert('LINK_COPIED_TO_CLIPBOARD');
+            }
+        }
+        
+        async function fetchHub() {
+            try {
+                const [tournaments, giveaways, profile] = await Promise.all([
+                    fetch(`${API_BASE}/tournaments?vendor=${vendorId}`).then(r => r.json()),
+                    fetch(`${API_BASE}/giveaways?vendor=${vendorId}`).then(r => r.json()),
+                    fetch(`${API_BASE}/user/profile`).then(r => r.json())
+                ]);
+
+                renderTournaments(tournaments);
+                renderGiveaways(giveaways);
+                renderProfile(profile);
+            } catch (e) {
+                console.error('HUB_LOAD_ERR:', e);
+            }
+        }
+
+        function renderProfile(profile) {
+            if (!profile) return;
+            document.getElementById('userXP').textContent = `LEVEL ${profile.level} • ${profile.xp_points} XP`;
+        }
+
+        function renderTournaments(list) {
+            const container = document.getElementById('tournamentsHub');
+            if (!list || list.length === 0) {
+                container.innerHTML = '<div style="text-align:center; opacity:0.3; font-size:0.8rem; padding:2rem;">NO_SCRIMS_FOUND</div>';
+                return;
+            }
+            container.innerHTML = list.map(t => `
+                <div class="event-card tournament">
+                    <div class="event-type" style="color:var(--accent-secondary);">BATTLE_ROYALE • ${t.map_name}</div>
+                    <div class="event-title">${t.prize_pool} PRIZE_POOL</div>
+                    <div class="event-meta">
+                        <span>👥 ${t.filled_slots}/${t.total_slots} Slots</span>
+                        <span>⏰ ${new Date(t.start_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                    </div>
+                    <div class="event-footer">
+                        <div style="font-size:0.6rem; color:var(--text-muted);">${t.status.toUpperCase()}</div>
+                        <button class="join-btn tournament" onclick="openTournamentJoin(${t.id})">${t.status === 'full' ? 'FULL' : 'JOIN_NOW'}</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderGiveaways(list) {
+            const container = document.getElementById('giveawaysHub');
+            if (!list || list.length === 0) {
+                container.innerHTML = '<div style="text-align:center; opacity:0.3; font-size:0.8rem; padding:2rem;">NO_GIVEAWAYS_FOUND</div>';
+                return;
+            }
+            container.innerHTML = list.map(g => `
+                <div class="event-card giveaway">
+                    <div class="event-type" style="color:var(--accent-primary);">${g.type.toUpperCase()}</div>
+                    <div class="event-title">${g.title}</div>
+                    <div class="event-meta">
+                        <span>🎁 ${g.prize_description}</span>
+                    </div>
+                    <div class="event-footer">
+                        <div style="font-size:0.6rem; color:var(--text-muted);">ENDS: ${new Date(g.end_at).toLocaleDateString()}</div>
+                        <button class="join-btn" onclick="openGiveawayEnter(${g.id}, '${g.type}')">ENTER</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function openTournamentJoin(id) {
+            const modal = document.getElementById('regModal');
+            const title = document.getElementById('modalTitle');
+            const body = document.getElementById('modalBody');
+            const submit = document.getElementById('modalSubmit');
+
+            title.textContent = 'Join Tournament';
+            body.innerHTML = `
+                <div class="form-group">
+                    <label class="form-label">Player Name</label>
+                    <input type="text" id="regName" class="form-input" placeholder="Your In-Game Name">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Player UID</label>
+                    <input type="number" id="regUid" class="form-input" placeholder="8-12 Digits UID">
+                </div>
+            `;
+
+            submit.onclick = async () => {
+                const name = document.getElementById('regName').value.trim();
+                const uid = document.getElementById('regUid').value.trim();
+                if (!name || !uid) return alert('FILL ALL FIELDS');
+
+                try {
+                    const res = await fetch(`${API_BASE}/tournaments/${id}/join`, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ user_name: name, user_uid: uid })
+                    });
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.error);
+                    alert(`SUCCESS! ENTRY_KEY: ${data.entry_key}\nSave this key to re-enter!`);
+                    closeModal();
+                    fetchHub();
+                } catch (e) {
+                    alert(e.message);
+                }
+            };
+
+            modal.classList.add('active');
+        }
+
+        function openGiveawayEnter(id, type) {
+            const modal = document.getElementById('regModal');
+            const title = document.getElementById('modalTitle');
+            const body = document.getElementById('modalBody');
+            const submit = document.getElementById('modalSubmit');
+
+            title.textContent = 'Enter Giveaway';
+            let label = 'TikTok Handle';
+            let placeholder = '@username';
+            if (type === 'cash_prize') { label = 'Account Number'; placeholder = 'Bank/PayPal ID'; }
+            if (type === 'gifting') { label = 'Game UID'; placeholder = '12345678'; }
+
+            body.innerHTML = `
+                <div class="form-group">
+                    <label class="form-label">${label}</label>
+                    <input type="text" id="gvInput" class="form-input" placeholder="${placeholder}">
+                </div>
+            `;
+
+            submit.onclick = async () => {
+                const input = document.getElementById('gvInput').value.trim();
+                if (!input) return alert('FILL INPUT');
+
+                try {
+                    const res = await fetch(`${API_BASE}/giveaways/${id}/enter`, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ input_data: input })
+                    });
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.error);
+                    alert('ENTRY REGISTERED!');
+                    closeModal();
+                    fetchHub();
+                } catch (e) {
+                    alert(e.message);
+                }
+            };
+
+            modal.classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('regModal').classList.remove('active');
+        }
+
+        window.onload = fetchHub;
+    </script>
+</body>
+</html>
