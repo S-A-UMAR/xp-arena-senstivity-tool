@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <title>AXP | DATA INSIGHTS</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;800&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="vendor_shared.css">
+    <link rel="stylesheet" href="vendor_nav.css">
+    <style>
+        .chart-container {
+            margin-top: 1.5rem;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            height: 120px;
+            gap: 8px;
+        }
+        .bar {
+            flex: 1;
+            background: linear-gradient(to top, var(--accent-primary), var(--accent-secondary));
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+            min-height: 4px;
+            transition: height 1s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+        }
+        .bar:hover::after {
+            content: attr(data-val);
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.5rem;
+            color: var(--accent-primary);
+        }
+        .log-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            border-bottom: 1px solid var(--glass-border);
+            font-size: 0.75rem;
+        }
+        .log-item:last-child { border: none; }
+        .log-user { font-weight: 800; color: white; }
+        .log-time { color: var(--text-muted); font-size: 0.6rem; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="glass-panel">
+            <div class="section-header">
+                <h2 class="section-title">DAILY UNLOCKS</h2>
+                <span class="section-link">LAST 7 DAYS</span>
+            </div>
+            <div class="chart-container" id="barChart">
+                <div class="bar" style="height: 40%;" data-val="120"></div>
+                <div class="bar" style="height: 60%;" data-val="180"></div>
+                <div class="bar" style="height: 30%;" data-val="90"></div>
+                <div class="bar" style="height: 80%;" data-val="240"></div>
+                <div class="bar" style="height: 50%;" data-val="150"></div>
+                <div class="bar" style="height: 90%;" data-val="270"></div>
+                <div class="bar" style="height: 70%;" data-val="210"></div>
+            </div>
+        </div>
+
+        <div class="glass-panel" style="padding: 0; overflow: hidden;">
+            <div style="padding: 1.5rem; border-bottom: 1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center;">
+                <h2 class="section-title">LIVE_TRANSFERS</h2>
+                <button class="btn-primary" style="padding: 0.6rem 1.2rem; width: auto; font-size: 0.7rem;">EXPORT CSV</button>
+            </div>
+            <div id="logsBody">
+                <div class="log-item">
+                    <div>
+                        <div class="log-user">USER_#3849</div>
+                        <div class="log-time">2 MINUTES AGO</div>
+                    </div>
+                    <div style="color: var(--accent-primary); font-weight: 800;">CALIBRATED</div>
+                </div>
+                <div class="log-item">
+                    <div>
+                        <div class="log-user">USER_#2941</div>
+                        <div class="log-time">15 MINUTES AGO</div>
+                    </div>
+                    <div style="color: var(--accent-primary); font-weight: 800;">CALIBRATED</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="vendor_layout.js"></script>
+    <script src="vendor_logic.js"></script>
+</body>
+</html>

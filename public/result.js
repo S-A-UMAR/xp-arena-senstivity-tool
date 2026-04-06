@@ -25,12 +25,12 @@
     }
 
     function storeLastResult(payload, fallbackBranding) {
-        localStorage.setItem('xp_last_entry_code', currentCode);
+        localStorage.setItem('axp_last_entry_code', currentCode);
         localStorage.setItem(
-            'xp_sensitivity_profile_last_result',
+            'axp_sensitivity_profile_last_result',
             JSON.stringify({ ...(payload.sensitivity || payload.results || {}), advice: payload.advice || payload.sensitivity?.advice || '' })
         );
-        localStorage.setItem('xp_last_branding', JSON.stringify(payload.branding || fallbackBranding || {}));
+        localStorage.setItem('axp_last_branding', JSON.stringify(payload.branding || fallbackBranding || {}));
     }
 
     function buildHydratedState({ payload = null, fallbackResults = {}, fallbackBranding = {}, likes = 0, validUntil = null, advice = '', displayName = '', vendorId = '' }) {
@@ -48,7 +48,7 @@
     }
 
     function t(key, fallback) {
-        const lang = localStorage.getItem('xp_lang') || 'en';
+        const lang = localStorage.getItem('axp_lang') || 'en';
         const fallbackDict = (window.LANGUAGES && window.LANGUAGES.en) || {};
         const currentDict = (window.LANGUAGES && window.LANGUAGES[lang]) || {};
         return currentDict[key] || fallbackDict[key] || fallback;
@@ -298,7 +298,7 @@
 
         ctx.fillStyle = '#f4f7fb';
         ctx.font = '700 64px "JetBrains Mono", monospace';
-        ctx.fillText('XP_ARENA', 225, 105);
+        ctx.fillText('AXP HUB', 225, 105);
         ctx.fillStyle = '#90a4b7';
         ctx.font = '600 24px "JetBrains Mono", monospace';
         ctx.fillText('PREMIUM SHARE CARD', 225, 165);
@@ -435,10 +435,10 @@
         });
 
         const params = new URLSearchParams(window.location.search);
-        const fallbackResults = JSON.parse(localStorage.getItem('xp_sensitivity_profile_last_result') || '{}');
-        const state = JSON.parse(localStorage.getItem('xp_sensitivity_profile') || '{}');
-        const fallbackBranding = JSON.parse(localStorage.getItem('xp_last_branding') || '{}');
-        currentCode = params.get('code') || localStorage.getItem('xp_last_entry_code') || '';
+        const fallbackResults = JSON.parse(localStorage.getItem('axp_sensitivity_profile_last_result') || '{}');
+        const state = JSON.parse(localStorage.getItem('axp_sensitivity_profile') || '{}');
+        const fallbackBranding = JSON.parse(localStorage.getItem('axp_last_branding') || '{}');
+        currentCode = params.get('code') || localStorage.getItem('axp_last_entry_code') || '';
         currentShareToken = params.get('share') || '';
 
         const hydrated = await hydrateFromStatus({
@@ -468,7 +468,7 @@
                 body: JSON.stringify({
                     event_type: 'result_view',
                     vendor_id: hydrated.vendorId || branding.id || 'XP-PUBLIC',
-                    session_id: localStorage.getItem('xp_session_id'),
+                    session_id: localStorage.getItem('axp_session_id'),
                     device: /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ? 'mobile' : 'desktop'
                 })
             });

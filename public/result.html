@@ -3,7 +3,8 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>axptool | CALIBRATION_PROFILE</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <title>AXP | CALIBRATION_PROFILE</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;800&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
@@ -14,13 +15,13 @@
 
     <div class="app-container">
         <header class="result-intro reveal">
-        <!-- New Arena Hub Link -->
+        <!-- New Events Hub Link -->
         <div id="arenaHubPromo" class="glass-panel" style="margin-bottom: 1.5rem; border: 1px solid var(--accent-primary); background: rgba(0, 240, 255, 0.03); display: flex; justify-content: space-between; align-items: center; padding: 1.2rem; border-radius: 8px;">
             <div>
-                <div style="font-size: 0.6rem; color: var(--accent-primary); font-weight: 800; letter-spacing: 0.1em;">XP_COMMUNITY</div>
-                <div style="font-size: 0.9rem; font-weight: 800; margin-top: 2px;">JOIN_LIVE_ARENA</div>
+                <div style="font-size: 0.6rem; color: var(--accent-primary); font-weight: 800; letter-spacing: 0.1em;">AXP_COMMUNITY</div>
+                <div style="font-size: 0.9rem; font-weight: 800; margin-top: 2px;">JOIN_EVENTS_HUB</div>
             </div>
-            <button class="v-btn-mini primary" id="goToArenaBtn" style="padding: 0.6rem 1.2rem; background: var(--accent-primary); color: #000; border: none; font-weight: 800; cursor: pointer; border-radius: 4px;">ENTER_HUB</button>
+            <button class="v-btn-mini primary" id="goToArenaBtn" onclick="window.location.href='events.html'" style="padding: 0.6rem 1.2rem; background: var(--accent-primary); color: #000; border: none; font-weight: 800; cursor: pointer; border-radius: 4px;">ENTER_HUB</button>
         </div>
 
         <div class="hero-banner">
@@ -35,7 +36,7 @@
             </div>
             <div class="overview-chip">
                 <span class="label" data-i18n="providerLabel">Provider</span>
-                <span class="value" id="chipVendor">XP_CORE</span>
+                <span class="value" id="chipVendor">AAXP_CORE</span>
             </div>
             <div class="overview-chip">
                 <span class="label" data-i18n="modeLabel">Mode</span>
@@ -52,7 +53,7 @@
                     <div class="brand-mark">
                         <img id="creatorLogo" src="favicon.png" alt="Creator logo">
                         <div class="brand-lockup">
-                            <div class="primary">XP_ARENA</div>
+                            <div class="primary">AXP_HUB</div>
                             <div class="secondary" data-i18n="premiumShareCard">PREMIUM SHARE CARD</div>
                         </div>
                     </div>
@@ -73,7 +74,7 @@
                         <div class="device-meta">
                             <div class="subtle">DEVICE_PROFILE</div>
                             <div class="headline" id="idModel">UNKNOWN_HARDWARE</div>
-                            <div class="subtle">UNIT_ID: <span id="creatorName">XP_CORE</span></div>
+                            <div class="subtle">UNIT_ID: <span id="creatorName">AAXP_CORE</span></div>
                         </div>
                     </div>
                 </div>
@@ -81,7 +82,7 @@
                 <div class="code-rail">
                     <div class="code-content">
                         <div class="subtle">ACCESS_CODE</div>
-                        <div class="value" id="codeRailText">XP-0000-0000</div>
+                        <div class="value" id="codeRailText">AXP-0000-0000</div>
                     </div>
                     <div class="synced-pill">SYNCED_PROFILE</div>
                     <button class="code-copy-btn" id="copyCodeBtn" type="button" aria-label="Copy access code">
@@ -150,7 +151,7 @@
                     <div class="share-brand">
                         <img id="shareLogo" src="favicon.png" alt="Brand logo">
                         <div>
-                            <div class="name">XP_ARENA</div>
+                            <div class="name">AXP_HUB</div>
                             <div class="sub" data-i18n="premiumShareCard">PREMIUM SHARE CARD</div>
                         </div>
                     </div>
@@ -166,14 +167,14 @@
                     <div class="share-device-meta">
                         <div class="eyebrow">DEVICE_PROFILE</div>
                         <div class="headline" id="shareDeviceModel">UNKNOWN_HARDWARE</div>
-                        <div class="unit" id="shareCreatorName">UNIT_ID: XP_CORE</div>
+                        <div class="unit" id="shareCreatorName">UNIT_ID: AAXP_CORE</div>
                     </div>
                 </div>
                 <div style="display:grid; gap:18px;">
                     <div class="share-code-strip">
                         <div class="share-code-main">
                             <div class="share-code-label">ACCESS_CODE</div>
-                            <div class="value" id="shareAccessCode">XP-0000-0000</div>
+                            <div class="value" id="shareAccessCode">AXP-0000-0000</div>
                         </div>
                         <div class="share-code-pill" data-i18n="syncedProfile">SYNCED_PROFILE</div>
                     </div>
@@ -195,6 +196,26 @@
             </div>
         </section>
     </div>
+
+    <!-- 📱 User Navigation -->
+    <nav class="user-nav">
+        <a href="index.html" class="nav-item">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+            <span class="nav-label">HOME</span>
+        </a>
+        <a href="leaderboard.html" class="nav-item">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 9.2h3V19H5V9.2zM10.6 5h2.8v14h-2.8V5zm5.6 8H19v6h-2.8v-6z"/></svg>
+            <span class="nav-label">VENDORS</span>
+        </a>
+        <a href="events.html" class="nav-item">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H7v2h10v-2h-4v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 10.63 21 8.55 21 8V7c0-1.1-.9-2-2-2zM7 10.82C5.84 10.4 5 9.3 5 8V7h2v3.82zM19 8c0 1.3-.84 2.4-2 2.82V7h2v1z"/></svg>
+            <span class="nav-label">EVENTS</span>
+        </a>
+        <a href="stats.html" class="nav-item">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+            <span class="nav-label">STATS</span>
+        </a>
+    </nav>
 
     <script src="analytics.js"></script>
     <script src="translations.js"></script>

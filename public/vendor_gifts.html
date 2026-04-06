@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <title>AXP | GIVEAWAY HUB</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;800&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="vendor_shared.css">
+    <link rel="stylesheet" href="vendor_nav.css">
+    <style>
+        .event-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 28px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: 0.3s;
+        }
+        .event-card:hover { border-color: var(--accent-primary); background: rgba(255, 255, 255, 0.05); }
+        .event-info { display: flex; flex-direction: column; gap: 4px; }
+        .event-title { font-size: 1rem; font-weight: 800; color: white; }
+        .event-meta { font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; }
+        .event-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            color: white;
+            padding: 0.6rem 1rem;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .event-btn:hover { background: var(--accent-primary); color: black; border-color: var(--accent-primary); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="glass-panel" style="background: linear-gradient(145deg, rgba(0, 255, 204, 0.1), rgba(0, 242, 254, 0.05));">
+            <div class="section-header">
+                <h2 class="section-title">GIVEAWAY HUB</h2>
+                <button class="btn-primary" style="padding: 0.75rem 1.5rem; width: auto; font-size: 0.8rem;">+ NEW GIFT</button>
+            </div>
+            <p style="font-size: 0.75rem; color: var(--text-muted); line-height: 1.6;">Reward your community with automated draws and secure reward distribution.</p>
+        </div>
+
+        <div id="giveawayList">
+            <div class="event-card">
+                <div class="event-info">
+                    <span class="event-title">1000 DIAMONDS MEGA</span>
+                    <span class="event-meta">TYPE: REDEEM_CODE · ENTRIES: 1,420</span>
+                </div>
+                <button class="event-btn" onclick="VendorLogic.openWinnerPicker('gv_1', '1000 DIAMONDS MEGA')">PICK WINNER</button>
+            </div>
+            <div class="event-card">
+                <div class="event-info">
+                    <span class="event-title">ELITE SKIN PACK</span>
+                    <span class="event-meta">TYPE: GIFTING · ENTRIES: 850</span>
+                </div>
+                <button class="event-btn" onclick="VendorLogic.openWinnerPicker('gv_2', 'ELITE SKIN PACK')">PICK WINNER</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="vendor_layout.js"></script>
+    <script src="vendor_logic.js"></script>
+</body>
+</html>

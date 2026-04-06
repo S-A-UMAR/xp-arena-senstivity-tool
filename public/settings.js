@@ -248,7 +248,7 @@
     function getBackTarget() {
         const pathName = getCurrentPageName();
         if (pathName === 'result.html') {
-            return sessionStorage.getItem('xp_nav_origin') === 'vendor_dashboard.html' ? '/vendor_dashboard.html' : '/verify.html';
+            return sessionStorage.getItem('axp_nav_origin') === 'vendor_dashboard.html' ? '/vendor_dashboard.html' : '/verify.html';
         }
         if (pathName === 'verify.html') return '/index.html';
         if (pathName === 'admin.html') return '/verify.html';

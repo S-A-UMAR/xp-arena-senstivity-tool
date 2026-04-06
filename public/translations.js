@@ -1,6 +1,6 @@
 window.LANGUAGES = {
     en: {
-        title: "Free Fire Tool",
+        title: "AXP Precision Hub",
         heroSubtitle: "NEURAL SENSITIVITY CALIBRATOR",
         brandLabel: "Device Architecture",
         seriesLabel: "Series Selection",
@@ -36,7 +36,7 @@ window.LANGUAGES = {
         noAdvice: "NO_EXTRA_ADVICE_PROVIDED"
     },
     pt: {
-        title: "Ferramenta Free Fire",
+        title: "AXP Hub de Precisão",
         heroSubtitle: "CALIBRADOR DE SENSIBILIDADE NEURAL",
         brandLabel: "Arquitetura do Dispositivo",
         seriesLabel: "Seleção de Série",
@@ -72,7 +72,7 @@ window.LANGUAGES = {
         noAdvice: "NENHUM_CONSELHO_ADICIONAL"
     },
     es: {
-        title: "Herramienta Free Fire",
+        title: "AXP Hub de Precisión",
         heroSubtitle: "CALIBRADOR DE SENSIBILIDAD NEURAL",
         brandLabel: "Arquitectura del Dispositivo",
         seriesLabel: "Selección de Serie",
@@ -108,7 +108,7 @@ window.LANGUAGES = {
         noAdvice: "SIN_CONSEJOS_ADICIONALES"
     },
     bn: {
-        title: "ফ্রি ফায়ার টুল",
+        title: "এএক্সপি প্রিসিশন হাব",
         heroSubtitle: "নিউরন সেনসিটিভিটি ক্যালিব্রেটর",
         brandLabel: "ডিভাইস আর্কিটেকচার",
         seriesLabel: "সিরিজ সিলেকশন",
@@ -142,7 +142,7 @@ window.LANGUAGES = {
         neuralSync: "নিউরন সিঙ্ক: সক্রিয়"
     },
     id: {
-        title: "Alat Free Fire",
+        title: "Hub Presisi AXP",
         heroSubtitle: "KALIBRATOR SENSITIVITAS NEURAL",
         brandLabel: "Arsitektur Perangkat",
         seriesLabel: "Pilihan Seri",
@@ -176,7 +176,7 @@ window.LANGUAGES = {
         neuralSync: "NEURAL_SYNC: AKTIF"
     },
     th: {
-        title: "เครื่องมือ Free Fire",
+        title: "AXP ฮับความแม่นยำ",
         heroSubtitle: "เครื่องปรับความไวระบบประสาท",
         brandLabel: "สถาปัตยกรรมอุปกรณ์",
         seriesLabel: "เลือกซีรีส์",
@@ -210,7 +210,7 @@ window.LANGUAGES = {
         neuralSync: "การซิงค์ประสาท: เปิดใช้งาน"
     },
     vi: {
-        title: "Công cụ Free Fire",
+        title: "AXP Hub Chính xác",
         heroSubtitle: "BỘ CHỈNH ĐỘ NHẠY NEURAL",
         brandLabel: "Kiến trúc thiết bị",
         seriesLabel: "Chọn dòng máy",
@@ -244,7 +244,7 @@ window.LANGUAGES = {
         neuralSync: "ĐỒNG BỘ NEURAL: HOẠT ĐỘNG"
     },
     hi: {
-        title: "Free Fire टूल",
+        title: "AXP प्रिसिशन हब",
         heroSubtitle: "न्यूरल संवेदनशीलता कैलिब्रेटर",
         brandLabel: "डिवाइस आर्किটেक्चर",
         seriesLabel: "सीरीज चयन",
@@ -278,7 +278,7 @@ window.LANGUAGES = {
         neuralSync: "न्यूरल सिंक: सक्रिय"
     },
     ar: {
-        title: "أداة فري فاير",
+        title: "مركز الدقة AXP",
         heroSubtitle: "معاير الحساسية العصبية",
         brandLabel: "هندسة الجهاز",
         seriesLabel: "اختيار السلسلة",
@@ -312,7 +312,7 @@ window.LANGUAGES = {
         neuralSync: "المزامنة العصبية: نشطة"
     },
     tr: {
-        title: "Free Fire Aracı",
+        title: "AXP Hassasiyet Hubı",
         heroSubtitle: "NÖRAL HASSASİYET KALİBRATÖRÜ",
         brandLabel: "Cihaz Mimarisi",
         seriesLabel: "Seri Seçimi",
@@ -346,7 +346,7 @@ window.LANGUAGES = {
         neuralSync: "NÖRAL SENK: AKTİF"
     },
     ru: {
-        title: "Инструмент Free Fire",
+        title: "Хаб точности AXP",
         heroSubtitle: "НЕЙРОННЫЙ КАЛИБРАТОР ЧУВСТВИТЕЛЬНОСТИ",
         brandLabel: "Архитектура устройства",
         seriesLabel: "Выбор серии",
@@ -414,7 +414,7 @@ window.LANGUAGE_PAGE_EXTRAS = {
         privacy: 'PRIVACY',
         terms: 'TERMS',
         support: 'SUPPORT',
-        poweredBy: 'POWERED BY axptool GLOBAL CLOUD',
+        poweredBy: 'POWERED BY AXP GLOBAL CLOUD',
         accentColor: 'ACCENT_COLOR',
         systemLanguage: 'SYSTEM_LANGUAGE',
         settingsTitle: 'TACTICAL_SETTINGS',
@@ -471,7 +471,7 @@ window.LANGUAGE_PAGE_EXTRAS = {
         privacy: 'PRIVACIDADE',
         terms: 'TERMOS',
         support: 'SUPORTE',
-        poweredBy: 'DESENVOLVIDO PELA axptool GLOBAL CLOUD',
+        poweredBy: 'DESENVOLVIDO PELA AXP GLOBAL CLOUD',
         accentColor: 'COR_DE_DESTAQUE',
         systemLanguage: 'IDIOMA_DO_SISTEMA',
         settingsTitle: 'CONFIG_TÁTICA',
@@ -528,7 +528,7 @@ window.LANGUAGE_PAGE_EXTRAS = {
         privacy: 'PRIVACIDAD',
         terms: 'TÉRMINOS',
         support: 'SOPORTE',
-        poweredBy: 'IMPULSADO POR axptool GLOBAL CLOUD',
+        poweredBy: 'IMPULSADO POR AXP GLOBAL CLOUD',
         accentColor: 'COLOR_DE_ACENTO',
         systemLanguage: 'IDIOMA_DEL_SISTEMA',
         settingsTitle: 'CONFIG_TÁCTICA',
@@ -642,7 +642,7 @@ window.LANGUAGE_PAGE_EXTRAS = {
         privacy: 'PRIVASI',
         terms: 'KETENTUAN',
         support: 'DUKUNGAN',
-        poweredBy: 'DIDUKUNG OLEH axptool GLOBAL CLOUD',
+        poweredBy: 'DIDUKUNG OLEH AXP GLOBAL CLOUD',
         accentColor: 'WARNA_AKSEN',
         systemLanguage: 'BAHASA_SISTEM',
         settingsTitle: 'PENGATURAN_TAKTIIS',
@@ -699,7 +699,7 @@ window.LANGUAGE_PAGE_EXTRAS = {
         privacy: 'ความเป็นส่วนตัว',
         terms: 'ข้อกำหนด',
         support: 'สนับสนุน',
-        poweredBy: 'ขับเคลื่อนโดย axptool GLOBAL CLOUD',
+        poweredBy: 'ขับเคลื่อนโดย AXP GLOBAL CLOUD',
         accentColor: 'สีเน้น',
         systemLanguage: 'ภาษาของระบบ',
         settingsTitle: 'การตั้งค่าทางยุทธวิธี',
@@ -756,7 +756,7 @@ window.LANGUAGE_PAGE_EXTRAS = {
         privacy: 'QUYỀN RIÊNG TƯ',
         terms: 'ĐIỀU KHOẢN',
         support: 'HỖ TRỢ',
-        poweredBy: 'ĐƯỢC CUNG CẤP BỞI axptool GLOBAL CLOUD',
+        poweredBy: 'ĐƯỢC CUNG CẤP BỞI AXP GLOBAL CLOUD',
         accentColor: 'MÀU_NHẤN',
         systemLanguage: 'NGÔN_NGỮ_HỆ_THỐNG',
         settingsTitle: 'CÀI_ĐẶT_CHIẾN_THUẬT',
@@ -813,7 +813,7 @@ window.LANGUAGE_PAGE_EXTRAS = {
         privacy: 'गोपनीयता',
         terms: 'शर्तें',
         support: 'सहायता',
-        poweredBy: 'axptool ग्लोबल क्लाउड द्वारा संचालित',
+        poweredBy: 'AXP ग्लोबल क्लाउड द्वारा संचालित',
         accentColor: 'अकेंट_कलर',
         systemLanguage: 'सिस्टम_लैंग्वेज',
         settingsTitle: 'सामरिक_सेटिंग्स',
@@ -870,7 +870,7 @@ window.LANGUAGE_PAGE_EXTRAS = {
         privacy: 'الخصوصية',
         terms: 'الشروط',
         support: 'الدعم',
-        poweredBy: 'بدعم من axptool GLOBAL CLOUD',
+        poweredBy: 'بدعم من AXP GLOBAL CLOUD',
         accentColor: 'لون_التمييز',
         systemLanguage: 'لغة_النظام',
         settingsTitle: 'الإعدادات_التكتيكية',
@@ -927,7 +927,7 @@ window.LANGUAGE_PAGE_EXTRAS = {
         privacy: 'GİZLİLİK',
         terms: 'ŞARTLAR',
         support: 'DESTEK',
-        poweredBy: 'axptool GLOBAL CLOUD TARAFINDAN DESTEKLENMEKTEDİR',
+        poweredBy: 'AXP GLOBAL CLOUD TARAFINDAN DESTEKLENMEKTEDİR',
         accentColor: 'VURGU_RENGİ',
         systemLanguage: 'SİSTEM_DİLİ',
         settingsTitle: 'TAKTIK_AYARLAR',
@@ -984,7 +984,7 @@ window.LANGUAGE_PAGE_EXTRAS = {
         privacy: 'КОНФИДЕНЦИАЛЬНОСТЬ',
         terms: 'УСЛОВИЯ',
         support: 'ПОДДЕРЖКА',
-        poweredBy: 'РАБОТАЕТ НА axptool GLOBAL CLOUD',
+        poweredBy: 'РАБОТАЕТ НА AXP GLOBAL CLOUD',
         accentColor: 'ЦВЕТ_АКЦЕНТА',
         systemLanguage: 'ЯЗЫК_СИСТЕМЫ',
         settingsTitle: 'ТАКТИЧЕСКИЕ_НАСТРОЙКИ',
@@ -1035,6 +1035,8 @@ const UNIVERSAL_UI_EXTRAS = {
         homeNav: 'HOME',
         statsNav: 'STATS',
         profileNav: 'PROFILE',
+        vendorsNav: 'VENDORS',
+        eventsNav: 'EVENTS',
         generateCode: 'GENERATE CODE',
         premiumShareCard: 'PREMIUM SHARE CARD',
         tacticalResultDossier: 'TACTICAL RESULT DOSSIER',
@@ -1067,7 +1069,7 @@ const UNIVERSAL_UI_EXTRAS = {
         likesLabel: 'LIKES',
         presetsNav: 'PRESETS',
         xpArenaBrand: 'AXP',
-        brandTagline: 'Pro-grade tools for competitive mobile gaming calibration and community events.',
+        brandTagline: 'AXP: Professional Mobile Calibration & Elite Gaming Ecosystem.',
         neuralEngineTitle: 'NEURAL ENGINE',
         neuralEngineDesc: 'Calibrate your sensitivity using our AI-driven hardware-optimized benchmarks.',
         liveArenaTitle: 'LIVE ARENA',
@@ -1084,12 +1086,12 @@ const UNIVERSAL_UI_EXTRAS = {
         vendorStep3: 'Monitor usage, likes, and profile quality signals from your dashboard.',
         liveInArena: 'LIVE IN ARENA',
         privacyPageTitle: 'Privacy Policy',
-        privacyIntro: 'axptool stores only the data required to generate, verify, and secure profile codes and creator activity.',
+        privacyIntro: 'AXP stores only the data required to generate, verify, and secure profile codes and creator activity.',
         privacyItem1: 'Access keys are handled through secure backend validation flows.',
         privacyItem2: 'Usage and analytics are used for platform health, abuse prevention, and feature improvements.',
         privacyItem3: 'Vendor data remains scoped to vendor/admin permissions.',
         termsPageTitle: 'Terms of Service',
-        termsIntro: 'By using axptool you agree to use generated settings, community links, and vendor tools responsibly.',
+        termsIntro: 'By using AXP you agree to use generated settings, community links, and vendor tools responsibly.',
         termsItem1: 'No abuse, fraud, or unauthorized attempts to access restricted panels.',
         termsItem2: 'Creator/vendor access is accountable and may be revoked for policy violations.',
         termsItem3: 'Platform features may evolve; users should verify event details before participation.',
@@ -1608,7 +1610,7 @@ mergeLanguageExtras(UNIVERSAL_UI_EXTRAS);
  */
 function applyLanguage() {
     try {
-        const lang = localStorage.getItem('xp_lang') || 'en';
+        const lang = localStorage.getItem('axp_lang') || 'en';
         const dict = (window.LANGUAGES && window.LANGUAGES[lang]) || {};
         const fallbackDict = (window.LANGUAGES && window.LANGUAGES.en) || {};
         

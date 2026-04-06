@@ -1,8 +1,8 @@
-# axptool - Elite Neural Sensitivity Tool
+# AXP HUB — Professional Mobile Calibration Ecosystem
 
-![axptool](public/favicon.svg)
+![AXP](public/favicon.svg)
 
-A professional-grade, mobile-first SaaS platform designed for high-precision hardware calibration in competitive mobile gaming.
+**AXP** is a high-performance, mobile-first SaaS platform engineered for elite hardware calibration in competitive mobile gaming. It leverages AI-driven neural benchmarks to deliver precise sensitivity profiles for professional athletes.
 
 ## 💎 Features
 - **Neural Engine V4**: Server-side sensitivity calculation to protect proprietary algorithms.
@@ -34,7 +34,7 @@ A professional-grade, mobile-first SaaS platform designed for high-precision har
    ```
 
 ## 🔒 Security Model
-axptool uses a 3-layer security model:
+AXP uses a 3-layer security model:
 1. **Master Admin**: Hardware-locked IP Access.
 2. **Vendor**: Provider-Key authentication with audit logging.
 3. **End-User**: Cryptographically hashed access codes.
@@ -45,4 +45,4 @@ axptool uses a 3-layer security model:
 - **Edge-Ready**: Designed for deployment on Vercel/Netlify/Heroku.
 
 ---
-**POWERED BY axptool GLOBAL CLOUD ARCHITECTURE**
+**POWERED BY AXP GLOBAL CLOUD ARCHITECTURE**

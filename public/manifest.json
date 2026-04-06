@@ -1,6 +1,6 @@
 {
-  "name": "axptool",
-  "short_name": "axptool",
+  "name": "AXP HUB",
+  "short_name": "AXP",
   "description": "Professional Mobile Sensitivity Guide",
   "start_url": "index.html",
   "display": "standalone",

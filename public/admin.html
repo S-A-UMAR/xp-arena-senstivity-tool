@@ -3,7 +3,8 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>axptool - Master Command Center</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <title>AXP - Master Command Center</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Outfit:wght@600;800&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
@@ -485,6 +486,29 @@
             cursor: pointer;
         }
 
+        /* Tier Selection Styling */
+        .tier-select input:checked + .tier-box {
+            border-color: var(--accent-primary);
+            background: rgba(0, 255, 136, 0.15);
+            color: white;
+            box-shadow: 0 0 15px var(--accent-primary-glow);
+        }
+        .tier-box {
+            padding: 1rem 0.5rem;
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            text-align: center;
+            font-size: 0.6rem;
+            font-weight: 800;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .tier-box.premium { color: #00f2fe; }
+        .tier-box.gold { color: #ffd700; }
+        .tier-select input:checked + .tier-box.premium { border-color: #00f2fe; box-shadow: 0 0 15px rgba(0, 242, 254, 0.4); }
+        .tier-select input:checked + .tier-box.gold { border-color: #ffd700; box-shadow: 0 0 15px rgba(255, 215, 0, 0.4); }
+
         .hidden { display: none !important; }
         
         /* Vault Overrides */
@@ -918,7 +942,7 @@
                         <div class="card-label" style="margin-top:1rem;">SUBJECT_HARDWARE</div>
                         <div class="card-value" id="admHardware" style="font-size:0.8rem; margin-bottom:0;">-</div>
                     </div>
-                    <div class="card-footer">XP_CORE_ADMIN_MASTER_UPLINK</div>
+                    <div class="card-footer">AXP_CORE_ADMIN_MASTER_UPLINK</div>
                 </div>
                 
                 <div class="card-actions">
@@ -989,6 +1013,24 @@
         <input type="number" id="vDuration" class="cyber-input" placeholder="Access Duration (Days) [e.g. 30]">
         <input type="number" id="vUsageLimit" class="cyber-input" placeholder="Usage Limit (Optional)">
         
+        <div class="form-control" style="margin-bottom: 1.5rem;">
+            <label class="stat-label" style="display:block; margin-bottom:0.75rem;">VENDOR_TIER_SELECTION</label>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem;">
+                <label class="tier-select">
+                    <input type="radio" name="vTier" value="normal" checked class="hidden">
+                    <div class="tier-box normal">NORMAL</div>
+                </label>
+                <label class="tier-select">
+                    <input type="radio" name="vTier" value="premium" class="hidden">
+                    <div class="tier-box premium">PREMIUM</div>
+                </label>
+                <label class="tier-select">
+                    <input type="radio" name="vTier" value="gold" class="hidden">
+                    <div class="tier-box gold">GOLD</div>
+                </label>
+            </div>
+        </div>
+
         <div style="margin-top: 1rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 1rem;">
             <p class="stat-label" style="margin-bottom: 0.5rem;">VENDOR_BRANDING (OPTIONAL)</p>
             <input type="text" id="vLogo" class="cyber-input" placeholder="Logo URL (e.g. https://...)">
@@ -1017,7 +1059,7 @@
                     <div class="card-label">ACCESS_KEY (PRIVATE)</div>
                     <div class="card-key-box" id="provisionAccessKey">-</div>
                 </div>
-                <div class="card-footer">XP_CORE_GLOBAL_UPLINK_SYSTEM</div>
+                <div class="card-footer">AXP_CORE_GLOBAL_UPLINK_SYSTEM</div>
             </div>
             
             <div class="card-actions">
@@ -1063,7 +1105,7 @@
                             <div class="card-label">ACCESS_KEY (RECOVERED)</div>
                             <div class="card-key-box" id="historyAccessKey" style="font-size: 0.7rem;">-</div>
                         </div>
-                        <div class="card-footer">XP_CORE_RECOVERY_UPLINK</div>
+                        <div class="card-footer">AXP_CORE_RECOVERY_UPLINK</div>
                     </div>
                     <div class="card-actions">
                         <button class="v-btn" style="background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1);" onclick="copyHistoryKey()">COPY_KEY</button>
@@ -1410,7 +1452,7 @@
                     <div class="vendor-card">
                         <div class="vendor-header">
                             <div class="vendor-info">
-                                <div style="font-size: 0.5rem; color: var(--text-muted); font-family:var(--font-mono); margin-bottom: 2px;">${v.org_id || 'XP-CORE'}</div>
+                                <div style="font-size: 0.5rem; color: var(--text-muted); font-family:var(--font-mono); margin-bottom: 2px;">${v.org_id || 'AXP-CORE'}</div>
                                 <h3>${v.vendor_id}</h3>
                             </div>
                             <div class="status-pill">
@@ -1525,7 +1567,7 @@
                     scale: 2
                 });
                 const link = document.createElement('a');
-                link.download = `XP_ACCESS_${vendor}.png`;
+                link.download = `AXP_ACCESS_${vendor}.png`;
                 link.href = canvas.toDataURL('image/png');
                 link.click();
             } catch (e) {
@@ -1638,7 +1680,7 @@
             try {
                 const canvas = await html2canvas(card, { backgroundColor: '#020617', scale: 2 });
                 const link = document.createElement('a');
-                link.download = `XP_RECOVERY_${vid}.png`;
+                link.download = `AXP_RECOVERY_${vid}.png`;
                 link.href = canvas.toDataURL('image/png');
                 link.click();
             } catch (e) {
@@ -1775,7 +1817,7 @@
             try {
                 const canvas = await html2canvas(card, { backgroundColor: '#020617', scale: 2 });
                 const link = document.createElement('a');
-                link.download = `XP_MASTER_${model}.png`;
+                link.download = `AXP_MASTER_${model}.png`;
                 link.href = canvas.toDataURL('image/png');
                 link.click();
             } catch (e) {

@@ -3,7 +3,8 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>axptool | Elite Mobile Hub</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <title>AXP HUB | Precision Mobile Calibration</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;800&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
@@ -35,124 +36,133 @@
             padding: 2rem 1.25rem;
         }
 
-        .landing-shell { width: 100%; max-width: 450px; text-align: center; }
+        .landing-shell { width: 100%; max-width: 500px; text-align: center; }
 
-        .brand-hero { margin-bottom: 3rem; animation: fadeInDown 0.8s ease-out; }
-        .brand-logo { font-size: 0.8rem; font-weight: 900; letter-spacing: 0.3em; color: var(--accent-primary); margin-bottom: 1rem; }
-        .brand-title { font-size: 2.5rem; font-weight: 800; line-height: 1; letter-spacing: -0.02em; margin-bottom: 1rem; }
-        .brand-tagline { font-size: 0.9rem; color: var(--text-muted); opacity: 0.8; }
+        .brand-hero { margin-bottom: 4rem; animation: fadeInDown 0.8s ease-out; }
+        .brand-logo { font-size: 0.9rem; font-weight: 900; letter-spacing: 0.4em; color: var(--accent-primary); margin-bottom: 1.5rem; }
+        .brand-title { font-size: 3.5rem; font-weight: 800; line-height: 0.9; letter-spacing: -0.04em; margin-bottom: 1.5rem; }
+        .brand-tagline { font-size: 1rem; color: var(--text-muted); opacity: 0.8; max-width: 400px; margin: 0 auto; line-height: 1.6; }
 
-        .choice-grid { display: grid; gap: 1.25rem; width: 100%; }
-        .how-grid { display: grid; gap: 1rem; margin-top: 1.5rem; text-align: left; }
-        .how-card {
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 18px;
-            padding: 1rem;
+        .main-action {
+            display: inline-flex;
+            align-items: center;
+            gap: 1rem;
+            background: var(--accent-primary);
+            color: black;
+            text-decoration: none;
+            padding: 1.25rem 2.5rem;
+            border-radius: 100px;
+            font-weight: 900;
+            font-size: 1.1rem;
+            letter-spacing: 0.05em;
+            box-shadow: 0 0 30px rgba(0, 240, 255, 0.3);
+            transition: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            margin-bottom: 3rem;
         }
-        .how-card h3 { margin: 0 0 0.5rem; font-size: 0.8rem; letter-spacing: 0.08em; color: var(--accent-primary); }
-        .how-card ol { margin: 0; padding-left: 1rem; }
-        .how-card li { font-size: 0.72rem; color: var(--text-muted); margin: 0.25rem 0; line-height: 1.4; }
+        .main-action:hover {
+            transform: scale(1.05) translateY(-5px);
+            box-shadow: 0 0 50px rgba(0, 240, 255, 0.5);
+        }
 
-        .choice-card {
+        .quick-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            width: 100%;
+            margin-top: 2rem;
+            padding: 2rem;
             background: var(--glass-bg);
             backdrop-filter: blur(24px);
             border: 1px solid var(--glass-border);
-            border-radius: 28px;
-            padding: 1.75rem;
-            text-align: left;
+            border-radius: 32px;
+        }
+        .stat-item .val { font-size: 1.5rem; font-weight: 800; color: white; display: block; }
+        .stat-item .label { font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; }
+
+        .user-nav {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            height: 85px;
+            background: rgba(2, 6, 23, 0.85);
+            backdrop-filter: blur(32px);
+            border-top: 1px solid var(--glass-border);
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            z-index: 1000;
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        .nav-item {
+            color: var(--text-muted);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
             text-decoration: none;
-            color: white;
-            transition: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .choice-card:hover {
-            transform: translateY(-5px);
-            border-color: rgba(255,255,255,0.2);
-            background: rgba(255,255,255,0.05);
-        }
-
-        .choice-card.primary { border-left: 5px solid var(--accent-primary); }
-        .choice-card.secondary { border-left: 5px solid var(--accent-secondary); }
-        .choice-card.neutral { border-left: 5px solid white; }
-
-        .choice-icon { font-size: 1.5rem; margin-bottom: 1rem; }
-        .choice-title { font-size: 1.2rem; font-weight: 800; margin-bottom: 0.4rem; }
-        .choice-desc { font-size: 0.75rem; color: var(--text-muted); line-height: 1.4; }
-
-        .choice-arrow {
-            position: absolute;
-            top: 50%; right: 1.5rem;
-            transform: translateY(-50%);
-            opacity: 0.3;
             transition: 0.3s;
         }
-        .choice-card:hover .choice-arrow { opacity: 1; transform: translateY(-50%) translateX(5px); }
+        .nav-item.active { color: var(--accent-primary); }
+        .nav-item svg { width: 22px; height: 22px; }
+        .nav-label { font-size: 0.65rem; font-weight: 800; letter-spacing: 0.05em; }
 
-        footer { margin-top: 4rem; text-align: center; }
-        .creator-link { font-size: 0.65rem; color: var(--text-muted); text-decoration: none; font-weight: 800; letter-spacing: 0.1em; transition: 0.3s; }
-        .creator-link:hover { color: var(--accent-primary); }
-
-        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
     <div class="landing-shell">
         <div class="brand-hero">
-            <div class="brand-logo" data-i18n="xpArenaBrand">AXP</div>
-            <h1 class="brand-title">ELITE MOBILE<br>ECOSYSTEM</h1>
-            <p class="brand-tagline" data-i18n="brandTagline">Pro-grade tools for competitive mobile gaming calibration and community events.</p>
+            <div class="brand-logo">AXP PRECISION</div>
+            <h1 class="brand-title">THE NEURAL<br>ENGINE</h1>
+            <p class="brand-tagline">Elite hardware calibration for pro-grade mobile gaming performance.</p>
         </div>
 
-        <div class="choice-grid">
-            <a href="generator.html" class="choice-card primary">
-                <div class="choice-icon">⚡</div>
-                <div class="choice-title" data-i18n="neuralEngineTitle">NEURAL ENGINE</div>
-                <div class="choice-desc" data-i18n="neuralEngineDesc">Calibrate your sensitivity using our AI-driven hardware-optimized benchmarks.</div>
-                <div class="choice-arrow">→</div>
-            </a>
+        <a href="generator.html" class="main-action">
+            OPEN CALIBRATOR
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
 
-            <a href="arena.html" class="choice-card secondary">
-                <div class="choice-icon">🏆</div>
-                <div class="choice-title" data-i18n="liveArenaTitle">LIVE ARENA</div>
-                <div class="choice-desc" data-i18n="liveArenaDesc">Join professional scrims, tournaments, and exclusive community giveaways.</div>
-                <div class="choice-arrow">→</div>
-            </a>
-
-            <a href="leaderboard.html" class="choice-card neutral">
-                <div class="choice-icon">💎</div>
-                <div class="choice-title" data-i18n="topVendorsTitle">TOP VENDORS</div>
-                <div class="choice-desc" data-i18n="topVendorsDesc">Explore the most trusted creators and their hall of fame achievements.</div>
-                <div class="choice-arrow">→</div>
-            </a>
+        <div class="quick-stats">
+            <div class="stat-item">
+                <span class="val">2.4M</span>
+                <span class="label">Profiles</span>
+            </div>
+            <div class="stat-item">
+                <span class="val">99.8%</span>
+                <span class="label">Accuracy</span>
+            </div>
+            <div class="stat-item">
+                <span class="val">142</span>
+                <span class="label">Countries</span>
+            </div>
         </div>
-
-        <section class="how-grid" aria-label="How axptool works">
-            <div class="how-card">
-                <h3 data-i18n="howItWorksPlayerTitle">HOW IT WORKS · PLAYER</h3>
-                <ol>
-                    <li data-i18n="playerStep1">Open NEURAL ENGINE and generate your calibrated sensitivity profile.</li>
-                    <li data-i18n="playerStep2">Save/share your result card, then verify your access code anytime in VERIFY.</li>
-                    <li data-i18n="playerStep3">Join events from LIVE ARENA and track creator performance in TOP VENDORS.</li>
-                </ol>
-            </div>
-            <div class="how-card">
-                <h3 data-i18n="howItWorksVendorTitle">HOW IT WORKS · VENDOR</h3>
-                <ol>
-                    <li data-i18n="vendorStep1">Sign in via CREATOR_PORTAL_ACCESS to manage your profile and issue codes.</li>
-                    <li data-i18n="vendorStep2">Publish tournaments/giveaways and distribute share links to your community.</li>
-                    <li data-i18n="vendorStep3">Monitor usage, likes, and profile quality signals from your dashboard.</li>
-                </ol>
-            </div>
-        </section>
-
-        <footer>
-            <a href="vendor_dashboard.html" class="creator-link" data-i18n="creatorPortalAccess">CREATOR_PORTAL_ACCESS</a>
-        </footer>
     </div>
+
+    <nav class="user-nav">
+        <a href="index.html" class="nav-item active">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+            <span class="nav-label" data-i18n="homeNav">HOME</span>
+        </a>
+        <a href="leaderboard.html" class="nav-item">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 9.2h3V19H5V9.2zM10.6 5h2.8v14h-2.8V5zm5.6 8H19v6h-2.8v-6z"/></svg>
+            <span class="nav-label" data-i18n="vendorsNav">VENDORS</span>
+        </a>
+        <a href="events.html" class="nav-item">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H7v2h10v-2h-4v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 10.63 21 8.55 21 8V7c0-1.1-.9-2-2-2zM7 10.82C5.84 10.4 5 9.3 5 8V7h2v3.82zM19 8c0 1.3-.84 2.4-2 2.82V7h2v1z"/></svg>
+            <span class="nav-label" data-i18n="eventsNav">EVENTS</span>
+        </a>
+        <a href="stats.html" class="nav-item">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+            <span class="nav-label" data-i18n="statsNav">STATS</span>
+        </a>
+    </nav>
+
     <script src="translations.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.applyLanguage) window.applyLanguage();
+        });
+    </script>
     <script src="settings.js"></script>
 </body>
 </html>
