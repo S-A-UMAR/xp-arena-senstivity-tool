@@ -44,6 +44,7 @@
             transform: rotateX(60deg) translateY(-100px);
             z-index: -1;
             mask-image: linear-gradient(to bottom, transparent, black);
+            animation: gridWarpAnim 10s ease-in-out infinite;
         }
 
         /* 🏆 Elite Header */
@@ -68,6 +69,7 @@
             gap: 12px;
             text-decoration: none;
             color: white;
+            animation: glowPulse 5s infinite;
         }
 
         .logo-box {
@@ -99,20 +101,51 @@
             position: fixed;
             bottom: 30px; left: 50%;
             transform: translateX(-50%);
-            width: calc(100% - 40px);
-            max-width: 380px;
-            height: 75px;
+            width: calc(100% - 30px);
+            max-width: 450px;
+            height: 70px;
             background: rgba(15, 15, 15, 0.75);
             backdrop-filter: blur(32px);
             -webkit-backdrop-filter: blur(32px);
             border: 1px solid var(--glass-border);
-            border-radius: 32px;
+            border-radius: 35px;
             display: grid;
-            grid-template-columns: repeat(5, 1fr);
+            grid-template-columns: 1fr 1fr 60px 1fr 1fr; /* 2-FAB-2 */
             z-index: 5000;
             box-shadow: 0 30px 60px rgba(0,0,0,0.6);
             padding: 0 10px;
+            align-items: center;
         }
+
+        .fab-container { 
+            position: relative; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 60px;
+            height: 100%;
+        }
+        .fab-btn {
+            position: absolute;
+            top: -35px;
+            width: 65px;
+            height: 65px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            border-radius: 50%;
+            border: 4px solid var(--bg-deep);
+            color: black;
+            font-size: 30px;
+            font-weight: 900;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 15px 35px rgba(0, 240, 255, 0.4);
+            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+            z-index: 5001;
+        }
+        .fab-btn:hover { transform: scale(1.1) rotate(90deg); }
+        .fab-btn:active { transform: scale(0.9); }
 
         .nav-item {
             background: none;
@@ -207,6 +240,19 @@
             position: relative;
             overflow: hidden;
             transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .event-card.joined {
+            border-color: var(--accent-secondary);
+            box-shadow: 0 0 20px var(--accent-secondary-glow);
+        }
+        .event-card.joined::after {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 50%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            transform: skewX(-25deg);
+            animation: winnerShine 3s infinite;
         }
 
         .event-card:hover {
@@ -705,9 +751,9 @@
         <!-- 👤 My Hub Section -->
         <section id="myHubSection" class="hub-section hidden">
             <div class="section-header">
-                <h2 class="section-title"><i></i>My Registered Events</h2>
+                <h2 class="section-title section-underline-draw"><i></i>My Registered Events</h2>
             </div>
-            <div id="myHubList" style="display: grid; gap: 1.5rem;">
+            <div id="myHubList" class="anim-stagger-in" style="display: grid; gap: 1.5rem;">
                 <!-- Joined events show up here -->
             </div>
         </section>
@@ -715,23 +761,23 @@
         <!-- 🏆 Tournaments Section -->
         <section class="hub-section">
             <div class="section-header">
-                <h2 class="section-title"><i></i>Active Scrims</h2>
+                <h2 class="section-title section-underline-draw"><i></i>Active Scrims</h2>
                 <div style="font-size:0.7rem; color:var(--text-muted); font-weight:800; letter-spacing:0.1em;">LIVE_FEED</div>
             </div>
-            <div id="tournamentsHub">
-                <div class="skeleton"></div>
-                <div class="skeleton"></div>
+            <div id="tournamentsHub" class="anim-stagger-in">
+                <div class="skeleton anim-shimmer"></div>
+                <div class="skeleton anim-shimmer"></div>
             </div>
         </section>
 
         <!-- 🎁 Giveaways Section -->
         <section class="hub-section">
             <div class="section-header">
-                <h2 class="section-title" style="color: var(--accent-primary);"><i></i>Open Giveaways</h2>
-                <a href="winners.html" style="font-size: 0.7rem; font-weight: 900; color: var(--accent-primary); text-decoration: none; border: 1px solid var(--accent-primary); padding: 8px 16px; border-radius: 12px; transition: 0.3s;">HALL OF FAME</a>
+                <h2 class="section-title section-underline-draw" style="color: var(--accent-primary);"><i></i>Open Giveaways</h2>
+                <a href="winners.html" class="press-compress hover-glow" style="font-size: 0.7rem; font-weight: 900; color: var(--accent-primary); text-decoration: none; border: 1px solid var(--accent-primary); padding: 8px 16px; border-radius: 12px; transition: 0.3s;">HALL OF FAME</a>
             </div>
-            <div id="giveawaysHub">
-                <div class="skeleton"></div>
+            <div id="giveawaysHub" class="anim-stagger-in">
+                <div class="skeleton anim-shimmer"></div>
             </div>
         </section>
     </div>
@@ -746,6 +792,9 @@
             <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H7v2h10v-2h-4v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 10.63 21 8.55 21 8V7c0-1.1-.9-2-2-2zM7 10.82C5.84 10.4 5 9.3 5 8V7h2v3.82zM19 8c0 1.3-.84 2.4-2 2.82V7h2v1z"/></svg>
             <span class="nav-label">ARENA</span>
         </a>
+        <div class="fab-container">
+            <button class="fab-btn" onclick="toggleHelpDrawer(true)">?</button>
+        </div>
         <a href="leaderboard.html" class="nav-item">
             <svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 9.2h3V19H5V9.2zM10.6 5h2.8v14h-2.8V5zm5.6 8H19v6h-2.8v-6z"/></svg>
             <span class="nav-label">TOP</span>
@@ -754,10 +803,6 @@
             <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
             <span class="nav-label">VERIFY</span>
         </a>
-        <button class="nav-item" onclick="toggleHelpDrawer(true)">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-            <span class="nav-label">HELP</span>
-        </button>
     </nav>
 
     <!-- ❓ Help Drawer -->
@@ -866,20 +911,10 @@
             el.style.fontSize = '2rem';
             el.style.pointerEvents = 'none';
             el.style.zIndex = '9999';
-            el.style.animation = 'floatUp 2s ease-out forwards';
+            el.style.animation = 'floatUpWiggle 2s ease-out forwards';
             document.body.appendChild(el);
             setTimeout(() => el.remove(), 2000);
         }
-
-        const floatAnim = `
-            @keyframes floatUp {
-                0% { transform: translateY(0) scale(1); opacity: 1; }
-                100% { transform: translateY(-100px) scale(1.5); opacity: 0; }
-            }
-        `;
-        const style = document.createElement('style');
-        style.textContent = floatAnim;
-        document.head.appendChild(style);
 
         async function sendHype(type) {
             if (!isUnlocked) return notify('UNLOCK_ARENA_FIRST', 'error');
@@ -1022,7 +1057,7 @@
                     <div class="card-content">
                         <div class="card-info">
                             <h3 style="color:white">ARENA_${t.map_name}</h3>
-                            <p class="card-desc">Showcase mode active. Use your unique code in the tool to participate.</p>
+                            <p class="card-desc">Elite competition in progress. Sync your neural link code to view live stats and brackets.</p>
                             <div class="card-stats">
                                 <div class="stat-item">
                                     <span class="stat-label">Prize Pool</span>
@@ -1038,10 +1073,10 @@
                     <div class="card-footer">
                         <div class="slot-pill">
                             <div class="slot-dot" style="background:${isFull ? '#ff4444' : '#00ff88'}; box-shadow:0 0 10px ${isFull ? '#ff4444' : '#00ff88'}"></div>
-                            <span class="slot-text">${t.filled_slots} / ${t.total_slots} SLOTS FILLED</span>
+                            <span class="slot-text">${t.filled_slots} / ${t.total_slots} COMBATANTS SYNCED</span>
                         </div>
-                        <button class="action-btn secondary" onclick="window.location.href='tournament_detail.html?id=${t.id}'">
-                            VIEW BRACKETS
+                        <button class="action-btn secondary press-compress" onclick="window.location.href='tournament_detail.html?id=${t.id}'">
+                            SHOWCASE_UPLINK
                         </button>
                     </div>
                 </div>
@@ -1096,6 +1131,18 @@
             
             overlay.classList.add('active');
             winnerDiv.classList.add('hidden');
+            
+            // 🎇 Add Sparkles
+            for(let i=0; i<20; i++) {
+                const sparkle = document.createElement('div');
+                sparkle.textContent = '✨';
+                sparkle.style.position = 'absolute';
+                sparkle.style.left = Math.random() * 100 + '%';
+                sparkle.style.top = Math.random() * 100 + '%';
+                sparkle.style.animation = `sparkleFade ${1 + Math.random()}s infinite`;
+                overlay.appendChild(sparkle);
+                setTimeout(() => sparkle.remove(), 4000);
+            }
             
             // Generate fake items for the "spin"
             const items = ['PLAYER_X', 'PLAYER_Y', 'PLAYER_Z', 'SHADOW_HUNTER', 'XP_ELITE', 'CYBER_WARRIOR', 'GHOST_RIDER', 'NEON_KNIGHT'];

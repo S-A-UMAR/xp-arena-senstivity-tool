@@ -492,6 +492,132 @@ body {
     filter: grayscale(1);
 }
 
+/* ✨ Elite Animations V2 */
+@keyframes liquidFlow {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+@keyframes pulseRing {
+    0% { transform: scale(0.8); opacity: 0.5; }
+    100% { transform: scale(2.4); opacity: 0; }
+}
+
+@keyframes shimmerEffect {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+@keyframes floatUpWiggle {
+    0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+    50% { transform: translateY(-50px) rotate(15deg); opacity: 0.8; }
+    100% { transform: translateY(-120px) rotate(-15deg); opacity: 0; }
+}
+
+@keyframes winnerShine {
+    0% { left: -100%; }
+    20%, 100% { left: 100%; }
+}
+
+@keyframes barGrow {
+    from { transform: scaleY(0); transform-origin: bottom; }
+    to { transform: scaleY(1); transform-origin: bottom; }
+}
+
+@keyframes gridWarpAnim {
+    0% { transform: rotateX(60deg) translateY(-100px) scale(1); }
+    50% { transform: rotateX(65deg) translateY(-110px) scale(1.05); }
+    100% { transform: rotateX(60deg) translateY(-100px) scale(1); }
+}
+
+@keyframes notificationBounce {
+    0% { transform: translate(-50%, -100%) scale(0.5); opacity: 0; }
+    70% { transform: translate(-50%, 20px) scale(1.1); opacity: 1; }
+    100% { transform: translate(-50%, 0) scale(1); opacity: 1; }
+}
+
+@keyframes rankSlideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes glowPulse {
+    0%, 100% { filter: drop-shadow(0 0 5px var(--accent-primary)); }
+    50% { filter: drop-shadow(0 0 15px var(--accent-primary)); }
+}
+
+@keyframes sectionDraw {
+    from { width: 0; }
+    to { width: 100%; }
+}
+
+@keyframes sparkleFade {
+    0% { transform: scale(0); opacity: 0; }
+    50% { transform: scale(1); opacity: 1; }
+    100% { transform: scale(0); opacity: 0; }
+}
+
+/* 🧬 Utility Animation Classes */
+.anim-liquid {
+    background: linear-gradient(-45deg, var(--accent-primary), var(--accent-secondary), var(--accent-success), var(--accent-primary));
+    background-size: 400% 400%;
+    animation: liquidFlow 3s ease infinite;
+}
+
+.anim-shimmer {
+    background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.05) 50%, rgba(255,255,255,0) 100%);
+    background-size: 200% 100%;
+    animation: shimmerEffect 2s infinite linear;
+}
+
+.anim-stagger-in > * {
+    opacity: 0;
+    animation: fadeInUp 0.5s ease forwards;
+}
+.anim-stagger-in > *:nth-child(1) { animation-delay: 0.1s; }
+.anim-stagger-in > *:nth-child(2) { animation-delay: 0.2s; }
+.anim-stagger-in > *:nth-child(3) { animation-delay: 0.3s; }
+.anim-stagger-in > *:nth-child(4) { animation-delay: 0.4s; }
+.anim-stagger-in > *:nth-child(5) { animation-delay: 0.5s; }
+
+.hover-glow {
+    transition: var(--transition-base);
+}
+.hover-glow:hover {
+    filter: drop-shadow(0 0 10px var(--accent-primary));
+    transform: translateY(-2px);
+}
+
+.press-compress {
+    transition: transform 0.1s;
+}
+.press-compress:active {
+    transform: scale(0.95);
+}
+
+.winner-card-shine::after {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%;
+    width: 50%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transform: skewX(-25deg);
+    animation: winnerShine 3s infinite;
+}
+
+.section-underline-draw {
+    position: relative;
+}
+.section-underline-draw::after {
+    content: '';
+    position: absolute;
+    bottom: -5px; left: 0;
+    height: 2px;
+    background: var(--accent-primary);
+    animation: sectionDraw 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
 /* Animations */
 @keyframes fadeInUp {
     from { opacity: 0; transform: translateY(20px); }

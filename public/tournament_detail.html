@@ -175,7 +175,15 @@
             border-bottom: 1px solid rgba(255,255,255,0.03);
             font-size: 0.95rem;
             transition: 0.3s;
+            animation: rankSlideUp 0.5s ease-out forwards;
+            opacity: 0;
         }
+
+        .participant-row:nth-child(1) { animation-delay: 0.1s; }
+        .participant-row:nth-child(2) { animation-delay: 0.2s; }
+        .participant-row:nth-child(3) { animation-delay: 0.3s; }
+        .participant-row:nth-child(4) { animation-delay: 0.4s; }
+        .participant-row:nth-child(5) { animation-delay: 0.5s; }
 
         .participant-row:hover { background: rgba(0, 240, 255, 0.02); }
         .participant-row:last-child { border-bottom: none; }
