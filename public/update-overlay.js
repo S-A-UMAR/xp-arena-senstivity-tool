@@ -22,7 +22,7 @@
     overlay.innerHTML = `
       <div style="max-width:520px;width:100%;border:1px solid rgba(0,240,255,0.35);border-radius:18px;background:rgba(8,10,14,0.96);padding:24px;box-shadow:0 0 40px rgba(0,240,255,0.15)">
         <div style="display:inline-block;font-size:12px;letter-spacing:.12em;color:#00f0ff;border:1px solid rgba(0,240,255,.5);padding:4px 10px;border-radius:999px;margin-bottom:14px;">SYSTEM UPDATE</div>
-        <h2 style="margin:0 0 10px 0;color:#fff;font-size:28px;line-height:1.2;">New XP ARENA build is ready</h2>
+        <h2 style="margin:0 0 10px 0;color:#fff;font-size:28px;line-height:1.2;">New AXP build is ready</h2>
         <p style="margin:0 0 18px 0;color:#a8b3c7;font-size:14px;line-height:1.6;">We’ve deployed performance and stability upgrades. Refresh now to sync the latest control-plane assets.</p>
         <div style="display:flex;gap:10px;flex-wrap:wrap;">
           <button id="xpDeployReloadBtn" style="cursor:pointer;border:none;border-radius:12px;background:#00f0ff;color:#021014;padding:12px 18px;font-weight:800;">Reload & Sync</button>

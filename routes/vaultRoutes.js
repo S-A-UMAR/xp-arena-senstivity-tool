@@ -1712,7 +1712,7 @@ router.post('/admin/vendors', authenticateAdmin, async (req, res) => {
             activeUntil = date.toISOString().slice(0, 19).replace('T', ' ');
         }
 
-        const orgName = rawOrgName || rawOrgId || 'XP ARENA GLOBAL';
+        const orgName = rawOrgName || rawOrgId || 'AXP GLOBAL';
         await db.run("INSERT IGNORE INTO organizations (org_id, org_name, plan_tier) VALUES (?, ?, 'enterprise')", [orgId, orgName]);
         await db.run(`
             INSERT INTO vendors (org_id, vendor_id, access_key, lookup_key, usage_limit, active_until, brand_config, status)

@@ -35,7 +35,7 @@
 
     function buildShareText(details) {
         return [
-            'XP ARENA ACCESS PROFILE',
+            'AXP ACCESS PROFILE',
             `DEVICE: ${details.modelText || 'UNKNOWN'}`,
             `GENERAL: ${details.general || '--'}`,
             `RED DOT: ${details.redDot || '--'}`,

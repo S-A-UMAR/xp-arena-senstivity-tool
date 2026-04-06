@@ -1,5 +1,5 @@
 /**
- * XP ARENA - 3D NEURAL HUB
+ * AXP - 3D NEURAL HUB
  * Powered by Three.js
  */
 const ThreeHub = {

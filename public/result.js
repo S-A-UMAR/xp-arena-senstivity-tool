@@ -572,7 +572,7 @@
                 window.notify?.('PROFILE_COPIED_TO_CLIPBOARD', 'haptic');
             };
             if (navigator.share) {
-                navigator.share({ title: 'XP ARENA Calibration Profile', text, url: currentShareUrl || undefined })
+                navigator.share({ title: 'AXP Calibration Profile', text, url: currentShareUrl || undefined })
                     .then(afterCopy)
                     .catch(() => navigator.clipboard.writeText(text).then(afterCopy));
             } else {

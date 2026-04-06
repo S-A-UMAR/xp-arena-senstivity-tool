@@ -1,6 +1,6 @@
 const Calculator = require('./lib/calculator');
 
-console.log('--- XP ARENA SYSTEM VALIDATION PROOF ---');
+console.log('--- AXP SYSTEM VALIDATION PROOF ---');
 
 // 1. PROOF: Global Offset (THE POWER) Works
 console.log('\n[1] VERIFYING MASTER POWER (GLOBAL OFFSET)...');

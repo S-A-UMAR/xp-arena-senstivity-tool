@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>XP ARENA - Master Command Center</title>
+    <title>axptool - Master Command Center</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Outfit:wght@600;800&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
@@ -739,7 +739,7 @@
         <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
             <div>
                 <div class="logo-badge">COMMAND_CENTER</div>
-                <h2 style="margin: 0; font-family: var(--font-heading); font-size: 1.5rem;">XP ARENA PRO</h2>
+                <h2 style="margin: 0; font-family: var(--font-heading); font-size: 1.5rem;">AXP PRO</h2>
             </div>
             <button class="v-btn danger" onclick="logoutAdmin()" style="padding: 0.5rem 1rem;">EXIT</button>
         </header>
@@ -890,7 +890,7 @@
             <div id="adminToolResult" class="hidden" style="margin-top: 2rem;">
                 <div class="premium-access-card" id="adminCardCapture">
                     <div class="card-header">
-                        <div class="card-logo">XP ARENA MASTER</div>
+                        <div class="card-logo">AXP MASTER</div>
                         <div class="card-chip">NEURAL_CALIBRATION_ID</div>
                     </div>
                     <div style="padding: 0 0 1rem; border-bottom: 1px solid rgba(255,255,255,0.06); margin-bottom: 1rem;">
@@ -1007,7 +1007,7 @@
         <div class="modal-content">
             <div class="premium-access-card" id="cardToCapture">
                 <div class="card-header">
-                    <div class="card-logo">XP ARENA PRO</div>
+                    <div class="card-logo">AXP PRO</div>
                     <div class="card-chip">PREMIUM_VENDOR</div>
                 </div>
                 <div class="card-body">
@@ -1053,7 +1053,7 @@
                     <div class="stat-label" style="margin-bottom: 1rem;">VENDOR_IDENTIFICATION_CARD</div>
                     <div class="premium-access-card" id="historyCardCapture">
                         <div class="card-header">
-                            <div class="card-logo">XP ARENA PRO</div>
+                            <div class="card-logo">AXP PRO</div>
                             <div class="card-chip">PRO_VENDOR_ID</div>
                         </div>
                         <div class="card-body">
@@ -1764,7 +1764,7 @@
             const red = document.getElementById('admRed').textContent;
             const model = document.getElementById('admHardware').textContent;
             const accessCode = document.getElementById('admAccessCode').textContent;
-            const text = `XP ARENA MASTER CALIBRATION\nHardware: ${model}\nAccess Code: ${accessCode}\nGeneral: ${gen}\nRed Dot: ${red}\nGenerated via Admin Uplink`;
+            const text = `AXP MASTER CALIBRATION\nHardware: ${model}\nAccess Code: ${accessCode}\nGeneral: ${gen}\nRed Dot: ${red}\nGenerated via Admin Uplink`;
             navigator.clipboard.writeText(text);
             if (window.notify) window.notify('RESULTS_COPIED', 'success');
         }

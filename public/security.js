@@ -1,5 +1,5 @@
 /**
- * XP ARENA - HARDENED SECURITY ENGINE
+ * AXP - HARDENED SECURITY ENGINE
  * Implements AES-256 encryption for data integrity.
  */
 const SecurityEngine = {

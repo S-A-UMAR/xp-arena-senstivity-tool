@@ -23,7 +23,7 @@ async function migrate() {
     });
 
     try {
-        console.log('--- XP ARENA DATABASE INITIALIZATION ---');
+        console.log('--- AXP DATABASE INITIALIZATION ---');
         console.log('Connecting to TiDB: ', process.env.DB_HOST);
         
         const dbName = process.env.DB_NAME || 'xp_sensitivity_tool';
@@ -112,7 +112,7 @@ async function migrate() {
             await connection.query(`ALTER TABLE code_activity ADD COLUMN IF NOT EXISTS feedback_fingerprint VARCHAR(64) NULL`);
             await connection.query(`ALTER TABLE code_activity ADD INDEX IF NOT EXISTS idx_lookup_key (lookup_key)`);
             await connection.query(`ALTER TABLE code_activity ADD INDEX IF NOT EXISTS idx_feedback_fingerprint (feedback_fingerprint)`);
-            await connection.query(`INSERT IGNORE INTO organizations (org_id, org_name) VALUES ('XP-CORE-ORG', 'XP ARENA GLOBAL')`);
+            await connection.query(`INSERT IGNORE INTO organizations (org_id, org_name) VALUES ('XP-CORE-ORG', 'AXP GLOBAL')`);
             await connection.query(`INSERT IGNORE INTO system_settings (setting_key, setting_value) VALUES ('global_sensitivity_offset', '1.0')`);
 
             await connection.query(`ALTER TABLE organizations ADD COLUMN IF NOT EXISTS admin_email VARCHAR(255) DEFAULT 'admin@xp-arena.pro'`);
@@ -150,7 +150,7 @@ async function migrate() {
             await connection.query(`ALTER TABLE code_activity MODIFY COLUMN entry_code VARCHAR(100) NOT NULL`);
             await connection.query(`ALTER TABLE code_activity MODIFY COLUMN lookup_key VARCHAR(16) NOT NULL`);
 
-            await connection.query(`INSERT IGNORE INTO organizations (org_id, org_name) VALUES ('XP-CORE-ORG', 'XP ARENA GLOBAL')`);
+            await connection.query(`INSERT IGNORE INTO organizations (org_id, org_name) VALUES ('XP-CORE-ORG', 'AXP GLOBAL')`);
             await connection.query(`INSERT IGNORE INTO system_settings (setting_key, setting_value) VALUES ('global_sensitivity_offset', '1.0')`);
             for (const [version, description] of MIGRATION_MARKERS) {
                 await connection.query(
