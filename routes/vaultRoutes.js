@@ -971,6 +971,40 @@ router.post('/giveaways', authenticateVendor, async (req, res) => {
     }
 });
 
+router.put('/giveaways/:id', authenticateVendor, async (req, res) => {
+    try {
+        const data = z.object({
+            type: z.enum(['redeem_code', 'cash_prize', 'gifting', 'custom']).optional(),
+            title: z.string().min(3).max(120).optional(),
+            prize_description: z.string().min(3).max(500).optional(),
+            end_at: z.string().refine((val) => !isNaN(Date.parse(val)), { message: 'Invalid end date' }).optional(),
+            max_winners: z.number().int().positive().optional(),
+            status: z.enum(['active', 'drawn', 'cancelled']).optional()
+        }).parse(req.body || {});
+        if (Object.keys(data).length === 0) return res.status(400).json({ error: 'NO_UPDATE_FIELDS' });
+
+        const current = await db.get('SELECT id FROM giveaways WHERE id = ? AND vendor_id = ?', [req.params.id, req.vendorId]);
+        if (!current) return res.status(404).json({ error: 'GIVEAWAY_NOT_FOUND' });
+
+        const sets = [];
+        const values = [];
+        if (data.type !== undefined) { sets.push('type = ?'); values.push(data.type); }
+        if (data.title !== undefined) { sets.push('title = ?'); values.push(data.title); }
+        if (data.prize_description !== undefined) { sets.push('prize_description = ?'); values.push(data.prize_description); }
+        if (data.end_at !== undefined) { sets.push('end_at = ?'); values.push(new Date(data.end_at)); }
+        if (data.max_winners !== undefined) { sets.push('max_winners = ?'); values.push(data.max_winners); }
+        if (data.status !== undefined) { sets.push('status = ?'); values.push(data.status); }
+        values.push(req.params.id, req.vendorId);
+
+        await db.run(`UPDATE giveaways SET ${sets.join(', ')} WHERE id = ? AND vendor_id = ?`, values);
+        await logAudit('vendor', req.vendorId, 'UPDATE_GIVEAWAY', { giveaway_id: req.params.id }, getClientIp(req));
+        return res.json({ success: true });
+    } catch (err) {
+        if (err instanceof z.ZodError) return res.status(400).json({ error: 'VALIDATION_FAILED', details: err.errors });
+        return res.status(500).json({ error: 'UPDATE_GIVEAWAY_FAILED' });
+    }
+});
+
 // --- ELITE TOURNAMENT ROUTES ---
 
 const tournamentSchema = z.object({
@@ -1015,6 +1049,44 @@ router.post('/tournaments', authenticateVendor, async (req, res) => {
     } catch (err) {
         if (err instanceof z.ZodError) return res.status(400).json({ error: 'VALIDATION_FAILED', details: err.errors });
         return res.status(500).json({ error: 'CREATE_TOURNAMENT_FAILED' });
+    }
+});
+
+router.put('/tournaments/:id', authenticateVendor, async (req, res) => {
+    try {
+        const data = z.object({
+            type: z.enum(['prize_pool', 'battle_royale']).optional(),
+            map_name: z.string().max(50).optional(),
+            total_slots: z.number().int().positive().optional(),
+            prize_pool: z.string().min(1).max(100).optional(),
+            start_at: z.string().refine((val) => !isNaN(Date.parse(val)), { message: 'Invalid start date' }).optional(),
+            end_at: z.string().refine((val) => !isNaN(Date.parse(val)), { message: 'Invalid end date' }).optional(),
+            comm_link: z.string().url().max(500).nullable().optional(),
+            status: z.enum(['open', 'full', 'closed', 'cancelled']).optional()
+        }).parse(req.body || {});
+        if (Object.keys(data).length === 0) return res.status(400).json({ error: 'NO_UPDATE_FIELDS' });
+
+        const current = await db.get('SELECT id FROM tournaments WHERE id = ? AND vendor_id = ?', [req.params.id, req.vendorId]);
+        if (!current) return res.status(404).json({ error: 'TOURNAMENT_NOT_FOUND' });
+
+        const sets = [];
+        const values = [];
+        if (data.type !== undefined) { sets.push('type = ?'); values.push(data.type); }
+        if (data.map_name !== undefined) { sets.push('map_name = ?'); values.push(data.map_name); }
+        if (data.total_slots !== undefined) { sets.push('total_slots = ?'); values.push(data.total_slots); }
+        if (data.prize_pool !== undefined) { sets.push('prize_pool = ?'); values.push(data.prize_pool); }
+        if (data.start_at !== undefined) { sets.push('start_at = ?'); values.push(new Date(data.start_at)); }
+        if (data.end_at !== undefined) { sets.push('end_at = ?'); values.push(new Date(data.end_at)); }
+        if (data.comm_link !== undefined) { sets.push('comm_link = ?'); values.push(data.comm_link || null); }
+        if (data.status !== undefined) { sets.push('status = ?'); values.push(data.status); }
+        values.push(req.params.id, req.vendorId);
+
+        await db.run(`UPDATE tournaments SET ${sets.join(', ')} WHERE id = ? AND vendor_id = ?`, values);
+        await logAudit('vendor', req.vendorId, 'UPDATE_TOURNAMENT', { tournament_id: req.params.id }, getClientIp(req));
+        return res.json({ success: true });
+    } catch (err) {
+        if (err instanceof z.ZodError) return res.status(400).json({ error: 'VALIDATION_FAILED', details: err.errors });
+        return res.status(500).json({ error: 'UPDATE_TOURNAMENT_FAILED' });
     }
 });
 
