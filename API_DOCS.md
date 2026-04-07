@@ -1,6 +1,6 @@
-# XP ARENA - Public API Documentation (V1)
+# AXP - Public API Documentation (V1)
 
-The XP Arena API allows enterprise partners to integrate our proprietary Neural Sensitivity Engine into their own platforms.
+The AXP API allows enterprise partners to integrate our proprietary Neural Sensitivity Engine into their own platforms.
 
 ## Authentication
 All requests must include your `access_key` as the `api_key` in the request body.

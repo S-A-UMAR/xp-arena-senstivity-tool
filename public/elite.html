@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
-    <title>AXP | Top Vendors</title>
+    <title>AXP | Elite Membership</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;800&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
@@ -79,67 +79,75 @@
 
         .container { max-width: 600px; margin: 0 auto; padding: 0 1.25rem; }
         
-        .vendor-card {
-            background: var(--glass-bg);
+        .elite-card {
+            background: linear-gradient(135deg, rgba(0, 240, 255, 0.1), rgba(112, 0, 255, 0.1));
             backdrop-filter: blur(24px);
+            border: 1px solid var(--accent-primary);
+            border-radius: 32px;
+            padding: 2.5rem;
+            text-align: center;
+            margin-bottom: 2rem;
+            box-shadow: 0 0 40px rgba(0, 240, 255, 0.1);
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+
+        .feature-item {
+            background: var(--glass-bg);
             border: 1px solid var(--glass-border);
-            border-radius: 28px;
+            border-radius: 20px;
             padding: 1.5rem;
-            margin-bottom: 1.25rem;
             display: flex;
             align-items: center;
             gap: 1.5rem;
-            transition: 0.4s;
-            text-decoration: none;
-            color: inherit;
-        }
-        .vendor-card:hover {
-            transform: translateY(-5px);
-            border-color: rgba(255,255,255,0.2);
-            background: rgba(255,255,255,0.05);
         }
 
-        .rank {
-            font-size: 1.5rem;
-            font-weight: 900;
-            color: var(--accent-primary);
-            width: 40px;
-            text-align: center;
-        }
-
-        .avatar {
-            width: 60px;
-            height: 60px;
-            background: var(--glass-border);
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-        }
-
-        .info { flex: 1; }
-        .name { font-size: 1.1rem; font-weight: 800; margin-bottom: 0.2rem; display: block; }
-        .meta { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
-
-        .stats { text-align: right; }
-        .hits { font-size: 1.1rem; font-weight: 900; color: white; display: block; }
-        .hits-label { font-size: 0.55rem; color: var(--text-muted); text-transform: uppercase; }
+        .feature-icon { font-size: 1.5rem; color: var(--accent-primary); }
+        .feature-info { text-align: left; }
+        .feature-title { font-size: 1rem; font-weight: 800; display: block; }
+        .feature-desc { font-size: 0.75rem; color: var(--text-muted); }
     </style>
 </head>
 <body>
     <header>
         <a href="index.html" class="header-logo">AXP PRECISION</a>
-        <div class="header-title">TOP VENDORS</div>
-        <div style="width: 80px;"></div> <!-- Spacer -->
+        <div class="header-title">ELITE ACCESS</div>
+        <div style="width: 80px;"></div>
     </header>
 
     <div class="container">
-        <div id="vendorList">
-            <!-- Loading State -->
-            <div style="text-align: center; padding: 3rem; color: var(--text-muted);">
-                <div class="spinner"></div>
-                <p style="margin-top: 1rem; font-size: 0.8rem; letter-spacing: 0.1em;">SYNCING_VENDORS...</p>
+        <div class="elite-card">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">💎</div>
+            <h2 style="font-weight: 800; letter-spacing: -0.02em; margin-bottom: 0.5rem;">AXP ELITE</h2>
+            <p style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.6;">Unlock the full potential of the Neural Engine with pro-grade features and priority access.</p>
+            <button class="action-btn" style="margin-top: 1.5rem; width: auto; padding: 1rem 2.5rem; border-radius: 100px;">COMING SOON</button>
+        </div>
+
+        <div class="feature-grid">
+            <div class="feature-item">
+                <div class="feature-icon">⚡</div>
+                <div class="feature-info">
+                    <span class="feature-title">Priority Calibration</span>
+                    <span class="feature-desc">Bypass the queue with dedicated neural processing nodes.</span>
+                </div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">📊</div>
+                <div class="feature-info">
+                    <span class="feature-title">Advanced Analytics</span>
+                    <span class="feature-desc">Detailed heatmaps and response curve breakdowns.</span>
+                </div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">🏆</div>
+                <div class="feature-info">
+                    <span class="feature-title">Exclusive Scrims</span>
+                    <span class="feature-desc">Access to private high-stakes tournaments.</span>
+                </div>
             </div>
         </div>
     </div>
@@ -157,46 +165,10 @@
             <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
             <span class="nav-label">WINNERS</span>
         </a>
-        <a href="elite.html" class="nav-item">
+        <a href="elite.html" class="nav-item active">
             <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
             <span class="nav-label">ELITE</span>
         </a>
     </nav>
-
-    <script src="translations.js"></script>
-    <script>
-        async function loadVendors() {
-            if (window.applyLanguage) window.applyLanguage();
-            try {
-                // Mocking data for now, ideally fetch from /api/leaderboard
-                const vendors = [
-                    { name: 'EliteSensi', hits: '42.5K', status: 'VERIFIED', icon: '⚡' },
-                    { name: 'ProCalibrate', hits: '31.2K', status: 'PARTNER', icon: '🎯' },
-                    { name: 'MobileKing', hits: '28.9K', status: 'VERIFIED', icon: '👑' },
-                    { name: 'AlphaGuides', hits: '15.4K', status: 'VERIFIED', icon: '🐺' },
-                    { name: 'GhostTarget', hits: '12.8K', status: 'PARTNER', icon: '👻' }
-                ];
-
-                const list = document.getElementById('vendorList');
-                list.innerHTML = vendors.map((v, i) => `
-                    <a href="#" class="vendor-card">
-                        <div class="rank">#${i + 1}</div>
-                        <div class="avatar">${v.icon}</div>
-                        <div class="info">
-                            <span class="name">${v.name}</span>
-                            <span class="meta">${v.status}</span>
-                        </div>
-                        <div class="stats">
-                            <span class="hits">${v.hits}</span>
-                            <span class="hits-label">Calibrations</span>
-                        </div>
-                    </a>
-                `).join('');
-            } catch (err) {
-                console.error('Failed to load vendors');
-            }
-        }
-        document.addEventListener('DOMContentLoaded', loadVendors);
-    </script>
 </body>
 </html>

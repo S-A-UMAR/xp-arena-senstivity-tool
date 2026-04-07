@@ -3,28 +3,29 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>XP ARENA | AI NEURAL SENSITIVITY</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <title>AXP | AI NEURAL SENSITIVITY</title>
     <meta name="description" content="Elite hardware-optimized sensitivity benchmarks for mobile shooters. Powered by the Neural Engine V4.">
     
     <!-- 🔓 Open Graph / Viral Meta (10/10 SEO) -->
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://xparena.pro/">
-    <meta property="og:title" content="XP ARENA | AI NEURAL CALIBRATION">
+    <meta property="og:url" content="https://axp.pro/">
+    <meta property="og:title" content="AXP | AI NEURAL CALIBRATION">
     <meta property="og:description" content="Get professional mobile sensitivity settings calibrated to your exact device architecture and grip style.">
-    <meta property="og:image" content="https://xparena.pro/icons/og-preview.png">
+    <meta property="og:image" content="https://axp.pro/icons/og-preview.png">
 
     <!-- 🐦 Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="XP ARENA | NEURAL ENGINE">
+    <meta name="twitter:title" content="AXP | NEURAL ENGINE">
     <meta name="twitter:description" content="Elite sensitivity guides for pro mobile players. 60FPS precision engineering.">
-    <meta name="twitter:image" content="https://xparena.pro/icons/og-preview.png">
+    <meta name="twitter:image" content="https://axp.pro/icons/og-preview.png">
 
     <!-- 💎 Structured Data (JSON-LD) -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "SoftwareApplication",
-      "name": "XP ARENA NEURAL VAULT",
+      "name": "AXP NEURAL VAULT",
       "operatingSystem": "iOS, Android, Windows",
       "applicationCategory": "UtilitiesApplication",
       "offers": {
@@ -35,7 +36,7 @@
     }
     </script>
 
-    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Outfit:wght@600;800&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
@@ -252,7 +253,7 @@
     <!-- The Vault (Secure Access) -->
     <div id="vaultOverlay" class="vault-root" style="display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--bg-dark);">
         <div style="text-align: center; max-width: 400px; width: 100%; padding: 2rem; animation: fade-in-up 0.5s ease-out;">
-            <div class="logo-badge" style="margin-bottom: 1.5rem; font-size: 0.8rem; padding: 0.6rem 1.2rem; border-radius: 100px; cursor: pointer;">XP SECURE</div>
+            <div class="logo-badge" style="margin-bottom: 1.5rem; font-size: 0.8rem; padding: 0.6rem 1.2rem; border-radius: 100px; cursor: pointer;">AXP SECURE</div>
             <h1 class="glitch-header" style="font-family: var(--font-heading); font-size: 3.5rem; margin-bottom: 2.5rem; font-weight: 900; letter-spacing: -2px; color: white;">THE VAULT</h1>
             
             <div style="margin-bottom: 2rem; position: relative;">
@@ -306,13 +307,19 @@
         </header>
 
         <main>
+            <!-- Mode Selection Tabs -->
+            <div style="display: flex; gap: 10px; margin-bottom: 2rem; padding: 0 0.5rem;">
+                <button onclick="UI.toggleManualMode(false)" id="neuralTab" class="logo-badge" style="flex: 1; justify-content: center; padding: 0.8rem; border-radius: 12px; background: var(--accent-primary); color: black; border: none; cursor: pointer; font-size: 0.7rem;">NEURAL GENERATOR</button>
+                <button onclick="UI.toggleManualMode(true)" id="manualTab" class="logo-badge" style="flex: 1; justify-content: center; padding: 0.8rem; border-radius: 12px; background: rgba(255,255,255,0.05); color: var(--text-muted); border: 1px solid rgba(255,255,255,0.1); cursor: pointer; font-size: 0.7rem;">PRO_MANUAL_SUITE</button>
+            </div>
+
             <!-- Device Profiling -->
             <div id="hardwareSection">
                 <section class="glass-card neon-border card-3d reveal">
                     <div class="form-group">
                         <label class="form-label" data-i18n="brandLabel">Hardware Signature</label>
                         <div class="select-container">
-                            <select id="brandSelect" class="cyber-select">
+                            <select id="brandSelect" class="pro-select">
                                 <option value="" data-i18n="brandLabel">SELECT BRAND</option>
                             </select>
                         </div>
@@ -320,7 +327,7 @@
 
                     <div class="form-group">
                         <div class="select-container">
-                            <select id="seriesSelect" class="cyber-select" disabled>
+                            <select id="seriesSelect" class="pro-select" disabled>
                                 <option value="" data-i18n="seriesLabel">SELECT SERIES</option>
                             </select>
                         </div>
@@ -328,7 +335,7 @@
 
                     <div class="form-group">
                         <div class="select-container">
-                            <select id="modelSelect" class="cyber-select" disabled>
+                            <select id="modelSelect" class="pro-select" disabled>
                                 <option value="" data-i18n="modelLabel">SELECT MODEL</option>
                             </select>
                         </div>
@@ -337,7 +344,7 @@
                     <div class="form-group" id="ramGroup">
                         <label class="form-label" data-i18n="ramLabel">Hardware RAM</label>
                         <div class="select-container">
-                            <select id="ramSelect" class="cyber-select">
+                            <select id="ramSelect" class="pro-select">
                                 <option value="4">4 GB</option>
                                 <option value="6">6 GB</option>
                                 <option value="8" selected>8 GB</option>
@@ -414,28 +421,29 @@
                 <a href="support.html" style="color: var(--accent-primary); text-decoration: none;">SUPPORT</a>
             </div>
             <div class="premium-footer-note">
-                <p style="letter-spacing: 0.15em; font-weight: 800; color: white; margin:0;">POWERED BY XP ARENA GLOBAL CLOUD</p>
+                <p style="letter-spacing: 0.15em; font-weight: 800; color: white; margin:0;">POWERED BY AXP GLOBAL CLOUD</p>
             </div>
         </footer>
     </div>
 
     <!-- 📱 User Navigation -->
+    <!-- 📱 User Navigation -->
     <nav class="user-nav">
-        <a href="generator.html" class="nav-item active">
+        <a href="index.html" class="nav-item">
             <svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
-            <span class="nav-label">GEN</span>
+            <span class="nav-label">HOME</span>
         </a>
-        <a href="arena.html" class="nav-item">
+        <a href="events.html" class="nav-item">
             <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H7v2h10v-2h-4v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 10.63 21 8.55 21 8V7c0-1.1-.9-2-2-2zM7 10.82C5.84 10.4 5 9.3 5 8V7h2v3.82zM19 8c0 1.3-.84 2.4-2 2.82V7h2v1z"/></svg>
-            <span class="nav-label">ARENA</span>
+            <span class="nav-label">SCRIMS</span>
         </a>
-        <a href="leaderboard.html" class="nav-item">
-            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 9.2h3V19H5V9.2zM10.6 5h2.8v14h-2.8V5zm5.6 8H19v6h-2.8v-6z"/></svg>
-            <span class="nav-label">TOP</span>
-        </a>
-        <a href="verify.html" class="nav-item">
+        <a href="winners.html" class="nav-item">
             <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
-            <span class="nav-label">VERIFY</span>
+            <span class="nav-label">WINNERS</span>
+        </a>
+        <a href="elite.html" class="nav-item">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+            <span class="nav-label">ELITE</span>
         </a>
     </nav>
 

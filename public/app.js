@@ -1,7 +1,7 @@
 const state = {
-    lang: localStorage.getItem('xp_lang') || 'en',
-    ign: localStorage.getItem('xp_end_user_ign') || 'GUEST',
-    region: localStorage.getItem('xp_end_user_region') || 'GLOBAL'
+    lang: localStorage.getItem('axp_lang') || 'en',
+    ign: localStorage.getItem('axp_end_user_ign') || 'GUEST',
+    region: localStorage.getItem('axp_end_user_region') || 'GLOBAL'
 };
 
 const SoftRecovery = {
@@ -84,7 +84,7 @@ const UI = {
         if (!vaultInput) return;
 
         const params = new URLSearchParams(window.location.search);
-        const prefilled = params.get('code') || localStorage.getItem('xp_last_entry_code') || '';
+        const prefilled = params.get('code') || localStorage.getItem('axp_last_entry_code') || '';
         if (prefilled) vaultInput.value = prefilled.toUpperCase();
 
         vaultInput.addEventListener('input', (event) => {
@@ -133,14 +133,14 @@ const UI = {
             const generatedId = (window.crypto && typeof window.crypto.randomUUID === 'function')
                 ? window.crypto.randomUUID()
                 : `xp-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
-            const sessionId = localStorage.getItem('xp_session_id') || generatedId;
-            localStorage.setItem('xp_session_id', sessionId);
+            const sessionId = localStorage.getItem('axp_session_id') || generatedId;
+            localStorage.setItem('axp_session_id', sessionId);
             await fetch('/api/vault/track', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     event_type: type,
-                    vendor_id: 'XP-PUBLIC',
+                    vendor_id: 'AXP-PUBLIC',
                     session_id: sessionId,
                     device: /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ? 'mobile' : 'desktop'
                 })
@@ -171,17 +171,17 @@ const UI = {
                 throw new Error(payload.error || payload.message || 'INVALID_ACCESS_KEY');
             }
 
-            localStorage.setItem('xp_last_entry_code', code);
-            if (payload.branding) localStorage.setItem('xp_last_branding', JSON.stringify(payload.branding));
+            localStorage.setItem('axp_last_entry_code', code);
+            if (payload.branding) localStorage.setItem('axp_last_branding', JSON.stringify(payload.branding));
             if (payload.results || payload.sensitivity) {
-                localStorage.setItem('xp_sensitivity_profile_last_result', JSON.stringify(payload.results || payload.sensitivity));
+                localStorage.setItem('axp_sensitivity_profile_last_result', JSON.stringify(payload.results || payload.sensitivity));
             }
 
             status.textContent = payload.message || 'ACCESS GRANTED // LOADING DESTINATION';
             status.style.color = 'var(--accent-primary)';
             window.SFX?.play?.('ping');
 
-            sessionStorage.setItem('xp_nav_origin', 'verify.html');
+            sessionStorage.setItem('axp_nav_origin', 'verify.html');
             await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
             window.location.href = payload.redirect || `/result.html?code=${encodeURIComponent(code)}`;
         } catch (err) {
@@ -195,6 +195,40 @@ const UI = {
                 this.elements.scannerOverlay?.classList.add('hidden');
                 this.verifying = false;
             }, 400);
+        }
+    },
+
+    toggleManualMode(isManual) {
+        const hardwareSection = document.getElementById('hardwareSection');
+        const standardMastering = document.getElementById('standardMastering');
+        const manualMastering = document.getElementById('manualMastering');
+        const neuralTab = document.getElementById('neuralTab');
+        const manualTab = document.getElementById('manualTab');
+
+        if (isManual) {
+            if (hardwareSection) hardwareSection.style.display = 'none';
+            if (standardMastering) standardMastering.style.display = 'none';
+            if (manualMastering) manualMastering.style.display = 'block';
+            if (manualTab) {
+                manualTab.style.background = 'var(--accent-primary)';
+                manualTab.style.color = 'black';
+            }
+            if (neuralTab) {
+                neuralTab.style.background = 'rgba(255,255,255,0.05)';
+                neuralTab.style.color = 'var(--text-muted)';
+            }
+        } else {
+            if (hardwareSection) hardwareSection.style.display = 'block';
+            if (standardMastering) standardMastering.style.display = 'block';
+            if (manualMastering) manualMastering.style.display = 'none';
+            if (neuralTab) {
+                neuralTab.style.background = 'var(--accent-primary)';
+                neuralTab.style.color = 'black';
+            }
+            if (manualTab) {
+                manualTab.style.background = 'rgba(255,255,255,0.05)';
+                manualTab.style.color = 'var(--text-muted)';
+            }
         }
     }
 };

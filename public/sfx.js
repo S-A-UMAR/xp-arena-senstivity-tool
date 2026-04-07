@@ -1,5 +1,5 @@
 /**
- * XP ARENA - NEURAL AUDIO ENGINE
+ * AXP - NEURAL AUDIO ENGINE
  * Synthesizes high-end tactical audio using the Web Audio API.
  * No external assets required.
  */

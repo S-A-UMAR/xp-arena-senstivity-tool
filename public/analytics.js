@@ -1,5 +1,5 @@
 /**
- * XP ARENA - SAAS ANALYTICS ENGINE
+ * AXP - SAAS ANALYTICS ENGINE
  * Powered by Neural Conversion Tracking
  */
 const SaaSAnalytics = {
@@ -7,7 +7,7 @@ const SaaSAnalytics = {
 
     async track(eventType) {
         try {
-            const profile = JSON.parse(localStorage.getItem('xp_sensitivity_profile') || '{}');
+            const profile = JSON.parse(localStorage.getItem('axp_sensitivity_profile') || '{}');
             await fetch('/api/vault/track', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
