@@ -67,7 +67,7 @@ CREATE TABLE IF NOT EXISTS winner_cards (
 CREATE TABLE IF NOT EXISTS tournament_results (
     id INT AUTO_INCREMENT PRIMARY KEY,
     tournament_id INT NOT NULL,
-    rank INT NOT NULL,
+    `rank` INT NOT NULL,
     user_name VARCHAR(100) NOT NULL,
     user_uid VARCHAR(50) NOT NULL,
     prize_awarded VARCHAR(100),

@@ -9,7 +9,8 @@ const VendorUI = {
         const navContainer = document.createElement('div');
         navContainer.className = 'vendor-nav-container';
         
-        const currentPage = window.location.pathname.split('/').pop() || 'vendor_dashboard.html';
+        const pathParts = window.location.pathname.split('/');
+        const currentPage = pathParts[pathParts.length - 1] || 'vendor_dashboard.html';
 
         navContainer.innerHTML = `
             <div class="floating-settings" onclick="window.location.href='vendor_settings.html'">
@@ -20,7 +21,7 @@ const VendorUI = {
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
                     <span class="nav-label">DATA</span>
                 </a>
-                <a href="vendor_dashboard.html" class="nav-item ${currentPage === 'vendor_dashboard.html' ? 'active' : ''}">
+                <a href="vendor_dashboard.html" class="nav-item ${currentPage === 'vendor_dashboard.html' || currentPage === '' ? 'active' : ''}">
                     <svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
                     <span class="nav-label">HOME</span>
                 </a>

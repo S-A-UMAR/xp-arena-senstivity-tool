@@ -68,7 +68,7 @@ async function migrate() {
                     await connection.query(statement);
                 }
                 await connection.query(
-                    'INSERT INTO schema_migrations (version, description) VALUES (?, ?)',
+                    'INSERT IGNORE INTO schema_migrations (version, description) VALUES (?, ?)',
                     [version, `Applied from migrations/${file}`]
                 );
                 console.log(`✅ Applied migration: ${file}`);

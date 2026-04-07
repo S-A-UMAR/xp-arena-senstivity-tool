@@ -536,6 +536,111 @@ async function updateVendorProfile(vendorId, payload) {
     return { success: true, brand_config: mergedConfig };
 }
 
+// --- VENDOR ENDPOINTS ---
+
+router.post('/vendor/generate', authenticateVendor, async (req, res) => {
+    try {
+        const { brand, model, ram, playstyle, claw } = z.object({
+            brand: z.string().min(1),
+            model: z.string().min(1),
+            ram: z.string().min(1),
+            playstyle: z.string().optional(),
+            claw: z.string().optional()
+        }).parse(req.body);
+
+        const results = Calculator.calculate({ brand, model, ram, playstyle, claw });
+        const { accessKey } = await createVendorCode(req.vendorId, results);
+
+        return res.json({ success: true, code: accessKey });
+    } catch (err) {
+        console.error('VENDOR_GEN_ERR:', err);
+        return res.status(500).json({ error: 'GENERATION_FAILED' });
+    }
+});
+
+router.get('/vendor/profile', authenticateVendor, async (req, res) => {
+    try {
+        const vendor = await db.get(`
+            SELECT vendor_id, display_name, status, tier, is_verified, active_until, brand_config, webhook_url, usage_limit
+            FROM vendors WHERE vendor_id = ?
+        `, [req.vendorId]);
+        if (!vendor) return res.status(404).json({ error: 'VENDOR_NOT_FOUND' });
+
+        const stats = await db.get(`
+            SELECT COUNT(*) as codes, COALESCE(SUM(current_usage), 0) as hits
+            FROM sensitivity_keys WHERE vendor_id = ?
+        `, [req.vendorId]);
+
+        const config = normalizeBranding(vendor.brand_config);
+        return res.json({
+            vendor_id: vendor.vendor_id,
+            display_name: vendor.display_name || config.display_name || vendor.vendor_id,
+            total_codes: stats?.codes || 0,
+            total_hits: stats?.hits || 0,
+            status: vendor.status,
+            tier: vendor.tier || 'normal',
+            is_verified: !!vendor.is_verified,
+            active_until: vendor.active_until,
+            webhook_url: vendor.webhook_url || '',
+            brand_config: config
+        });
+    } catch (err) {
+        console.error('VENDOR_PROFILE_ERR:', err);
+        return res.status(500).json({ error: 'VENDOR_PROFILE_UNAVAILABLE' });
+    }
+});
+
+router.get('/vendor/stats', authenticateVendor, async (req, res) => {
+    try {
+        const stats = await db.get(`
+            SELECT COUNT(*) as total_codes, COALESCE(SUM(current_usage), 0) as total_hits
+            FROM sensitivity_keys WHERE vendor_id = ?
+        `, [req.vendorId]);
+        
+        // Mock regional data for now, could be derived from code_activity.user_region
+        const regions = [
+            { name: 'LATAM', val: 85 },
+            { name: 'MENA', val: 62 },
+            { name: 'EUROPE', val: 45 }
+        ];
+
+        return res.json({
+            total_codes: stats?.total_codes || 0,
+            total_hits: stats?.total_hits || 0,
+            regions
+        });
+    } catch (err) {
+        return res.status(500).json({ error: 'STATS_UNAVAILABLE' });
+    }
+});
+
+router.post('/vendor/event/create', authenticateVendor, async (req, res) => {
+    try {
+        const { type, title, limit, desc, mode, link, duration, map } = req.body;
+        
+        if (type === 'scrim') {
+            const result = await db.run(`
+                INSERT INTO tournaments (vendor_id, type, title, map_name, total_slots, prize_pool, start_at, end_at, comm_link)
+                VALUES (?, 'battle_royale', ?, ?, ?, ?, NOW(), DATE_ADD(NOW(), INTERVAL 24 HOUR), ?)
+            `, [req.vendorId, title, map || 'BERMUDA', limit || 48, desc || 'Scrim Event', link]);
+            
+            const eventCode = `SCRIM-${result.lastID}-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
+            return res.json({ success: true, event_code: eventCode, id: result.lastID });
+        } else {
+            const result = await db.run(`
+                INSERT INTO giveaways (vendor_id, title, prize_description, type, max_winners, end_at)
+                VALUES (?, ?, ?, 'cash', ?, DATE_ADD(NOW(), INTERVAL 24 HOUR))
+            `, [req.vendorId, title, desc, limit || 1]);
+            
+            const eventCode = `GIFT-${result.lastID}-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
+            return res.json({ success: true, event_code: eventCode, id: result.lastID });
+        }
+    } catch (err) {
+        console.error('EVENT_CREATE_ERR:', err);
+        return res.status(500).json({ error: 'CREATION_FAILED' });
+    }
+});
+
 router.post('/action', async (req, res) => {
     try {
         const { action } = z.object({ action: z.string(), code: z.string().optional() }).parse(req.body);

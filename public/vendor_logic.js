@@ -15,7 +15,12 @@ const VendorLogic = {
     async fetchVendorProfile() {
         try {
             const res = await fetch('/api/vault/vendor/profile');
-            if (!res.ok) throw new Error('NOT_AUTHORIZED');
+            if (!res.ok) {
+                if (res.status === 401 || res.status === 403) {
+                    this.handleLogout();
+                }
+                throw new Error('NOT_AUTHORIZED');
+            }
             this.state.vendorData = await res.json();
             
             // Apply Tier-based styling to all glass-panels
@@ -87,7 +92,25 @@ const VendorLogic = {
             const hitsEl = document.getElementById('statHits');
             if (codesEl) codesEl.textContent = this.state.stats.total_codes || '0';
             if (hitsEl) hitsEl.textContent = this.state.stats.total_hits || '0';
+
+            // Update heatmap if on stats page
+            if (this.state.stats.regions) {
+                this.updateHeatmap(this.state.stats.regions);
+            }
         } catch (err) {}
+    },
+
+    updateHeatmap(regions) {
+        const grid = document.querySelector('.heatmap-grid');
+        if (!grid) return;
+
+        grid.innerHTML = regions.map(r => `
+            <div class="region-row">
+                <span class="region-name">${r.name}</span>
+                <div class="region-bar-container"><div class="region-bar" style="width: ${r.val}%;"></div></div>
+                <span class="region-val">${r.val}%</span>
+            </div>
+        `).join('');
     },
 
     populateDevices() {
@@ -309,7 +332,7 @@ const VendorLogic = {
             limit: document.getElementById('eventLimit').value,
             req: document.getElementById('eventReq').value,
             desc: document.getElementById('eventDesc').value,
-            mode: document.getElementById('eventMode').value,
+            mode: document.getElementById('eventMode')?.value || null,
             link: document.getElementById('eventLink').value,
             duration: document.getElementById('eventDuration')?.value || null,
             map: document.getElementById('eventMap')?.value || null
@@ -325,8 +348,11 @@ const VendorLogic = {
             });
             const data = await res.json();
             if (data.event_code) {
-                document.querySelector('.quick-action-overlay.active').remove();
+                const overlay = document.querySelector('.quick-action-overlay.active');
+                if (overlay) overlay.remove();
                 this.showEventCard(data.event_code, type, payload.title, payload);
+            } else {
+                alert(data.error || 'CREATION_FAILED');
             }
         } catch (err) {
             alert('CREATION_FAILED');
