@@ -274,7 +274,7 @@ body {
         inset 0 1px 1px var(--glass-highlight);
     margin-bottom: var(--space-md);
     position: relative;
-    overflow: hidden;
+    overflow: visible !important;
     transition: var(--transition-base);
 }
 
@@ -392,9 +392,53 @@ body {
 }
 
 .pro-select {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    color: white;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     appearance: none;
-    background-image: none;
-    padding-right: 3rem;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 1.2rem;
+    margin-bottom: 0.5rem;
+}
+
+.pro-select:hover {
+    background-color: rgba(255, 255, 255, 0.06);
+    border-color: var(--accent-primary);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.pro-select:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+    background-color: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 0 0 4px rgba(0, 255, 204, 0.1), 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.pro-select option {
+    background: #0a0e12;
+    color: white;
+    padding: 1rem;
+    font-family: var(--font-mono);
+}
+
+/* Ensure dropdowns always have space to drop down */
+.glass-panel {
+    position: relative;
+    overflow: visible !important; /* Allow selects to overflow their container */
+    padding-bottom: 2rem; /* Add breathing room at the bottom */
 }
 
 /* Segmented Buttons */

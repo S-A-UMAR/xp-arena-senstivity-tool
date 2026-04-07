@@ -59,11 +59,11 @@ const VendorUI = {
                     <span class="quick-icon">⚡</span>
                     <span class="quick-label">NEW CODE</span>
                 </div>
-                <div class="quick-item" onclick="VendorUI.toggleQuickActions(false); createEvent('giveaway')">
+                <div class="quick-item" onclick="VendorUI.toggleQuickActions(false); VendorLogic.createEvent('giveaway')">
                     <span class="quick-icon">🎁</span>
                     <span class="quick-label">NEW GIFT</span>
                 </div>
-                <div class="quick-item" onclick="VendorUI.toggleQuickActions(false); createEvent('scrim')">
+                <div class="quick-item" onclick="VendorUI.toggleQuickActions(false); VendorLogic.createEvent('scrim')">
                     <span class="quick-icon">🏆</span>
                     <span class="quick-label">NEW SCRIM</span>
                 </div>

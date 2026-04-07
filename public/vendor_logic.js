@@ -251,7 +251,7 @@ const VendorLogic = {
         overlay.style.zIndex = '10000';
         
         overlay.innerHTML = `
-            <div class="glass-panel tier-${tier}" style="width: 95%; max-width: 480px; padding: 2.5rem;">
+            <div class="glass-panel tier-${tier}" style="width: 95%; max-width: 480px; padding: 2.5rem; max-height: 90vh; overflow-y: auto;">
                 <div class="section-header">
                     <h2 class="section-title">${type.toUpperCase()}_PROVISIONING</h2>
                     <span class="tier-badge badge-${tier}">${tier}</span>
@@ -262,59 +262,54 @@ const VendorLogic = {
                     <input type="text" id="eventTitle" class="cyber-input" placeholder="e.g. ${isScrim ? 'PRO SCRIMS' : '1000 DIAMONDS'}">
                 </div>
 
-                ${isScrim ? `
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
-                    <div class="form-group" style="margin-bottom:0;">
-                        <label class="form-label">TEAM_MODE</label>
-                        <select id="eventMode" class="cyber-input">
-                            <option value="solo">SOLO</option>
-                            <option value="duo">DUO</option>
-                            <option value="squad" selected>SQUAD</option>
-                        </select>
-                    </div>
-                    <div class="form-group" style="margin-bottom:0;">
-                        <label class="form-label">MAP</label>
-                        <select id="eventMap" class="cyber-input">
-                            <option value="bermuda">BERMUDA</option>
-                            <option value="purgatory">PURGATORY</option>
-                        </select>
-                    </div>
+                <div class="form-group">
+                    <label class="form-label">PRIZE / DESCRIPTION</label>
+                    <textarea id="eventDesc" class="cyber-input" style="height: 80px; resize: none;" placeholder="${isScrim ? 'Prize Pool amount...' : 'Giveaway items...'}"></textarea>
                 </div>
-                ` : `
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
-                    <div class="form-group" style="margin-bottom:0;">
-                        <label class="form-label">GIVEAWAY_TYPE</label>
-                        <select id="eventMode" class="cyber-input">
-                            <option value="diamonds">DIAMONDS</option>
-                            <option value="cash">CASH_PRIZE</option>
-                        </select>
-                    </div>
-                    <div class="form-group" style="margin-bottom:0;">
-                        <label class="form-label">DURATION</label>
-                        <select id="eventDuration" class="cyber-input">
-                            <option value="24h">24 HOURS</option>
-                            <option value="7d">7 DAYS</option>
-                        </select>
-                    </div>
-                </div>
-                `}
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
                     <div class="form-group" style="margin-bottom:0;">
-                        <label class="form-label">${isScrim ? 'SLOTS' : 'WINNERS'}</label>
+                        <label class="form-label">TYPE</label>
+                        <select id="eventMode" class="pro-select">
+                            ${isScrim ? `
+                                <option value="prize_pool">PRIZE_POOL</option>
+                                <option value="battle_royale">BATTLE_ROYALE</option>
+                            ` : `
+                                <option value="redeem_code">REDEEM_CODE</option>
+                                <option value="cash_prize">CASH_PRIZE</option>
+                                <option value="gifting">GIFTING</option>
+                                <option value="custom">CUSTOM</option>
+                            `}
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label class="form-label">END_DATE</label>
+                        <input type="datetime-local" id="eventEnd" class="cyber-input">
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label class="form-label">${isScrim ? 'TOTAL_SLOTS' : 'MAX_WINNERS'}</label>
                         <input type="number" id="eventLimit" class="cyber-input" value="${isScrim ? '48' : '1'}">
                     </div>
                     <div class="form-group" style="margin-bottom:0;">
-                        <label class="form-label">REQUIREMENT</label>
-                        <select id="eventReq" class="cyber-input">
-                            <option value="none">NONE</option>
-                            <option value="sub">SUBSCRIBER</option>
+                        <label class="form-label">${isScrim ? 'MAP' : 'REQUIREMENT'}</label>
+                        <select id="eventSub" class="pro-select">
+                            ${isScrim ? `
+                                <option value="bermuda">BERMUDA</option>
+                                <option value="purgatory">PURGATORY</option>
+                                <option value="kalahari">KALAHARI</option>
+                            ` : `
+                                <option value="none">NONE</option>
+                                <option value="subscriber">SUBSCRIBER</option>
+                            `}
                         </select>
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">${isScrim ? 'ROOM_LINK' : 'TASK_URL'}</label>
+                    <label class="form-label">${isScrim ? 'COMM_LINK' : 'TASK_URL'}</label>
                     <input type="text" id="eventLink" class="cyber-input" placeholder="https://...">
                 </div>
 
@@ -325,34 +320,56 @@ const VendorLogic = {
             </div>
         `;
         document.body.appendChild(overlay);
+        
+        // Default end date (24h from now)
+        const tomorrow = new Date();
+        tomorrow.setHours(tomorrow.getHours() + 24);
+        document.getElementById('eventEnd').value = tomorrow.toISOString().slice(0, 16);
     },
 
     async submitEvent(type) {
-        const payload = {
-            type,
+        const isScrim = type === 'scrim';
+        const endpoint = isScrim ? '/api/vault/vendor/tournaments' : '/api/vault/vendor/giveaways';
+        
+        const payload = isScrim ? {
+            type: document.getElementById('eventMode').value,
+            map_name: document.getElementById('eventSub').value,
+            total_slots: parseInt(document.getElementById('eventLimit').value),
+            prize_pool: document.getElementById('eventDesc').value,
+            start_at: new Date().toISOString(),
+            end_at: new Date(document.getElementById('eventEnd').value).toISOString(),
+            comm_link: document.getElementById('eventLink').value
+        } : {
+            type: document.getElementById('eventMode').value,
             title: document.getElementById('eventTitle').value,
-            limit: document.getElementById('eventLimit').value,
-            req: document.getElementById('eventReq').value,
-            mode: document.getElementById('eventMode')?.value || null,
-            link: document.getElementById('eventLink').value,
-            duration: document.getElementById('eventDuration')?.value || null,
-            map: document.getElementById('eventMap')?.value || null
+            prize_description: document.getElementById('eventDesc').value,
+            end_at: new Date(document.getElementById('eventEnd').value).toISOString(),
+            max_winners: parseInt(document.getElementById('eventLimit').value)
         };
 
-        if (!payload.title) return window.notify('TITLE_REQUIRED', 'warning');
+        if (isScrim && !payload.prize_pool) return window.notify('PRIZE_POOL_REQUIRED', 'warning');
+        if (!isScrim && !payload.title) return window.notify('TITLE_REQUIRED', 'warning');
 
         try {
-            const res = await fetch('/api/vault/vendor/event/create', {
+            const res = await fetch(endpoint, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
             const data = await res.json();
-            if (data.event_code) {
+            if (data.success || data.id) {
                 const overlay = document.querySelector('.quick-action-overlay.active');
                 if (overlay) overlay.remove();
-                this.showEventCard(data.event_code, type, payload.title, payload);
+                
+                // Show a success card with the ID or a general message
+                const displayId = data.id || 'SUCCESS';
+                this.showEventCard(displayId, type, payload.title || payload.prize_pool, payload);
                 window.notify('EVENT_PROVISIONED', 'success');
+                
+                // Refresh data if needed
+                if (window.location.pathname.includes('vendor_dashboard')) {
+                    setTimeout(() => window.location.reload(), 2000);
+                }
             } else {
                 window.notify(data.error || 'CREATION_FAILED', 'error');
             }
