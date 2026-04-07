@@ -62,8 +62,7 @@
         return dict[key] || fallback || key;
     }
 
-    const selectorTranslationMap = {
-        'index.html': [
+    const generatorPageTranslations = [
             ['.hero-headline', 'heroTitle', 'html'],
             ['.hero-sub', 'heroSubtitleFull'],
             ['#vaultOverlay h1', 'vaultTitle'],
@@ -94,7 +93,11 @@
             ['footer a:nth-of-type(2)', 'terms'],
             ['footer a:nth-of-type(3)', 'support'],
             ['.premium-footer-note p', 'poweredBy']
-        ],
+    ];
+
+    const selectorTranslationMap = {
+        'index.html': generatorPageTranslations,
+        'generator.html': generatorPageTranslations,
         'verify.html': [
             ['#guidanceBox .stat-label', 'verificationGuide'],
             ['.terminal-content .action-btn', 'returnToGateway']

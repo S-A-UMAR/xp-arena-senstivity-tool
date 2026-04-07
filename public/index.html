@@ -43,6 +43,16 @@
         .brand-tagline { font-size: 0.9rem; color: var(--text-muted); opacity: 0.8; }
 
         .choice-grid { display: grid; gap: 1.25rem; width: 100%; }
+        .how-grid { display: grid; gap: 1rem; margin-top: 1.5rem; text-align: left; }
+        .how-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 18px;
+            padding: 1rem;
+        }
+        .how-card h3 { margin: 0 0 0.5rem; font-size: 0.8rem; letter-spacing: 0.08em; color: var(--accent-primary); }
+        .how-card ol { margin: 0; padding-left: 1rem; }
+        .how-card li { font-size: 0.72rem; color: var(--text-muted); margin: 0.25rem 0; line-height: 1.4; }
 
         .choice-card {
             background: var(--glass-bg);
@@ -91,37 +101,58 @@
 <body>
     <div class="landing-shell">
         <div class="brand-hero">
-            <div class="brand-logo">XP ARENA</div>
+            <div class="brand-logo" data-i18n="xpArenaBrand">XP ARENA</div>
             <h1 class="brand-title">ELITE MOBILE<br>ECOSYSTEM</h1>
-            <p class="brand-tagline">Pro-grade tools for competitive mobile gaming calibration and community events.</p>
+            <p class="brand-tagline" data-i18n="brandTagline">Pro-grade tools for competitive mobile gaming calibration and community events.</p>
         </div>
 
         <div class="choice-grid">
             <a href="generator.html" class="choice-card primary">
                 <div class="choice-icon">⚡</div>
-                <div class="choice-title">NEURAL ENGINE</div>
-                <div class="choice-desc">Calibrate your sensitivity using our AI-driven hardware-optimized benchmarks.</div>
+                <div class="choice-title" data-i18n="neuralEngineTitle">NEURAL ENGINE</div>
+                <div class="choice-desc" data-i18n="neuralEngineDesc">Calibrate your sensitivity using our AI-driven hardware-optimized benchmarks.</div>
                 <div class="choice-arrow">→</div>
             </a>
 
             <a href="arena.html" class="choice-card secondary">
                 <div class="choice-icon">🏆</div>
-                <div class="choice-title">LIVE ARENA</div>
-                <div class="choice-desc">Join professional scrims, tournaments, and exclusive community giveaways.</div>
+                <div class="choice-title" data-i18n="liveArenaTitle">LIVE ARENA</div>
+                <div class="choice-desc" data-i18n="liveArenaDesc">Join professional scrims, tournaments, and exclusive community giveaways.</div>
                 <div class="choice-arrow">→</div>
             </a>
 
             <a href="leaderboard.html" class="choice-card neutral">
                 <div class="choice-icon">💎</div>
-                <div class="choice-title">TOP VENDORS</div>
-                <div class="choice-desc">Explore the most trusted creators and their hall of fame achievements.</div>
+                <div class="choice-title" data-i18n="topVendorsTitle">TOP VENDORS</div>
+                <div class="choice-desc" data-i18n="topVendorsDesc">Explore the most trusted creators and their hall of fame achievements.</div>
                 <div class="choice-arrow">→</div>
             </a>
         </div>
 
+        <section class="how-grid" aria-label="How XP Arena works">
+            <div class="how-card">
+                <h3 data-i18n="howItWorksPlayerTitle">HOW IT WORKS · PLAYER</h3>
+                <ol>
+                    <li data-i18n="playerStep1">Open NEURAL ENGINE and generate your calibrated sensitivity profile.</li>
+                    <li data-i18n="playerStep2">Save/share your result card, then verify your access code anytime in VERIFY.</li>
+                    <li data-i18n="playerStep3">Join events from LIVE ARENA and track creator performance in TOP VENDORS.</li>
+                </ol>
+            </div>
+            <div class="how-card">
+                <h3 data-i18n="howItWorksVendorTitle">HOW IT WORKS · VENDOR</h3>
+                <ol>
+                    <li data-i18n="vendorStep1">Sign in via CREATOR_PORTAL_ACCESS to manage your profile and issue codes.</li>
+                    <li data-i18n="vendorStep2">Publish tournaments/giveaways and distribute share links to your community.</li>
+                    <li data-i18n="vendorStep3">Monitor usage, likes, and profile quality signals from your dashboard.</li>
+                </ol>
+            </div>
+        </section>
+
         <footer>
-            <a href="vendor_dashboard.html" class="creator-link">CREATOR_PORTAL_ACCESS</a>
+            <a href="vendor_dashboard.html" class="creator-link" data-i18n="creatorPortalAccess">CREATOR_PORTAL_ACCESS</a>
         </footer>
     </div>
+    <script src="translations.js"></script>
+    <script src="settings.js"></script>
 </body>
 </html>

@@ -665,35 +665,46 @@
         <div class="header-profile-btn" onclick="openProfileDrawer()">👤</div>
     </header>
 
-    <!-- 📊 Stats Section -->
-    <div class="stat-grid">
-        <div class="stat-tile">
-            <span class="stat-val" id="statCodes">--</span>
-            <span class="stat-label" data-t="codesLabel">CODES</span>
-        </div>
-        <div class="stat-tile">
-            <span class="stat-val" id="statHits">--</span>
-            <span class="stat-label" data-t="hitsLabel">HITS</span>
-        </div>
-        <div class="stat-tile">
-            <span class="stat-val" id="statLikes">--</span>
-            <span class="stat-label" data-t="likesLabel">LIKES</span>
-        </div>
-        <div class="stat-tile">
-            <span class="stat-val" id="statTime">--</span>
-            <span class="stat-label" data-t="expiryLabel">EXPIRY</span>
-        </div>
-    </div>
+    <!-- 📊 Command Center (Restructured Top Zone) -->
     <div class="glass-panel" style="margin-top: 1rem;">
-        <div id="vendorMeta" style="font-size: 0.7rem; color: var(--text-muted); display: grid; gap: 0.65rem;">
-            <div id="activeUntilText">Active until: --</div>
+        <div id="vendorMeta" style="display:grid; gap:0.85rem;">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:0.75rem;">
+                <div style="font-size:0.7rem; color:var(--text-muted); letter-spacing:0.08em;">PROFILE_CLASS</div>
+                <div id="profileTierBadge" style="font-size:0.62rem; font-weight:800; letter-spacing:0.08em; padding:0.35rem 0.65rem; border-radius:999px; border:1px solid rgba(255,255,255,0.14); color:var(--accent-primary);">STANDARD</div>
+            </div>
+
+            <div class="stat-grid" style="margin-top:0;">
+                <div class="stat-tile">
+                    <span class="stat-val" id="statCodes">--</span>
+                    <span class="stat-label" data-t="codesLabel">CODES</span>
+                </div>
+                <div class="stat-tile">
+                    <span class="stat-val" id="statHits">--</span>
+                    <span class="stat-label" data-t="hitsLabel">HITS</span>
+                </div>
+                <div class="stat-tile">
+                    <span class="stat-val" id="statLikes">--</span>
+                    <span class="stat-label" data-t="likesLabel">LIKES</span>
+                </div>
+                <div class="stat-tile">
+                    <span class="stat-val" id="statTime">--</span>
+                    <span class="stat-label" data-t="expiryLabel">EXPIRY</span>
+                </div>
+            </div>
+
+            <div id="activeUntilText" style="font-size:0.68rem; color:var(--text-muted);">UPLINK_UNTIL: --</div>
             <div>
-                <div id="usageText">Usage: 0 / --</div>
+                <div id="usageText" style="font-size:0.68rem; color:var(--text-muted);">Usage: 0 / --</div>
                 <div style="height: 8px; background: rgba(255,255,255,0.06); border-radius: 999px; overflow: hidden; margin-top: 0.4rem;">
                     <div id="usageBar" style="height: 100%; width: 0%; background: var(--accent-primary);"></div>
                 </div>
             </div>
-            <button class="btn-primary" type="button" onclick="copyLastResultLink()" style="margin-top: 0; width: auto; padding: 0.6rem 1rem;">COPY LAST CARD LINK</button>
+
+            <div style="display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:0.55rem;">
+                <button class="v-btn-mini primary" type="button" onclick="copyLastResultLink()">LAST_CARD</button>
+                <button class="v-btn-mini" type="button" onclick="openGiveawayCreator()">NEW_GIVEAWAY</button>
+                <button class="v-btn-mini" type="button" onclick="openTournamentCreator()" style="border-color:var(--accent-secondary); color:var(--accent-secondary);">NEW_SCRIM</button>
+            </div>
             <div id="dashError" style="display: none; color: #ff6b6b; font-size: 0.65rem;"></div>
         </div>
     </div>
@@ -1067,6 +1078,7 @@
                 <div id="proofHash" style="font-size: 0.7rem; font-family: var(--font-mono); word-break: break-all; opacity: 0.7;">--</div>
             </div>
             <p style="font-size: 0.7rem; color: var(--text-muted); text-align: center;">WINNER HAS BEEN NOTIFIED ON HALL OF FAME</p>
+            <button class="v-btn-mini" style="width:100%; margin-top:0.75rem;" onclick="downloadWinnerVideo()">DOWNLOAD_DRAW_VIDEO</button>
         </div>
 
         <button class="v-btn-mini" style="width:100%; margin-top: 1rem; color: #ff4444;" onclick="archiveGiveaway()">ARCHIVE_GIVEAWAY</button>
@@ -1559,6 +1571,16 @@
                 document.getElementById('statCodes').textContent = profile.total_codes || 0;
                 document.getElementById('statHits').textContent = profile.total_hits || 0;
                 document.getElementById('statLikes').textContent = profile.total_likes || 0;
+                const tierBadge = document.getElementById('profileTierBadge');
+                if (tierBadge) {
+                    const cfg = profile.brand_config || {};
+                    const normalizedTier = String(cfg?.profile_tier || profile?.status || 'standard').toUpperCase();
+                    const isGold = /GOLD|ELITE|PREMIUM/.test(normalizedTier);
+                    tierBadge.textContent = normalizedTier;
+                    tierBadge.style.color = isGold ? '#ffd166' : 'var(--accent-primary)';
+                    tierBadge.style.borderColor = isGold ? 'rgba(255,209,102,0.45)' : 'rgba(255,255,255,0.14)';
+                    tierBadge.style.background = isGold ? 'rgba(255,209,102,0.08)' : 'rgba(0,240,255,0.06)';
+                }
                 
                 // Start Countdown
                 if (typeof startCountdown === 'function') {
@@ -1794,6 +1816,7 @@
 
         // --- 🎁 ELITE GIVEAWAY MANAGEMENT ---
         let activeGvId = null;
+        let lastDrawSnapshot = null;
         async function manageGiveaway(id) {
             activeGvId = id;
             try {
@@ -1846,21 +1869,21 @@
             try {
                 const res = await api(`${API_BASE}/giveaways/${activeGvId}/draw`, 'POST');
                 
-                // Start Animation
+                // Start winner reveal using real result data (no fake IDs)
                 const winnerDisplay = document.getElementById('winnerDisplay');
                 const rollInner = document.getElementById('rollInner');
                 winnerDisplay.classList.remove('hidden');
                 
-                // Create random items for rolling effect
-                const fakeItems = Array(20).fill(0).map(() => `ID: ${Math.floor(10000000 + Math.random() * 90000000)}`);
                 const winner = res.winners[0];
-                fakeItems.push(`WINNER: ${winner.input_data}`);
-                
-                rollInner.innerHTML = fakeItems.map(item => `<div class="roll-item">${item}</div>`).join('');
-                
-                // Trigger animation
+                const revealItems = [
+                    `EVENT_ID: ${activeGvId}`,
+                    `TOTAL_ENTRIES: ${entriesCount}`,
+                    `WINNER: ${winner.input_data}`
+                ];
+                rollInner.style.transform = 'translateY(0)';
+                rollInner.innerHTML = revealItems.map(item => `<div class="roll-item">${item}</div>`).join('');
                 setTimeout(() => {
-                    rollInner.style.transform = `translateY(-${(fakeItems.length - 1) * 100}px)`;
+                    rollInner.style.transform = `translateY(-${(revealItems.length - 1) * 100}px)`;
                 }, 100);
 
                 setTimeout(() => {
@@ -1868,6 +1891,12 @@
                     document.getElementById('drawBtn').classList.add('hidden');
                     document.getElementById('drawnSection').classList.remove('hidden');
                     document.getElementById('proofHash').textContent = res.proof_hash;
+                    lastDrawSnapshot = {
+                        giveawayId: activeGvId,
+                        winnerUid: winner.input_data,
+                        proofHash: res.proof_hash,
+                        entries: entriesCount
+                    };
                     showToast('WINNER_SECURED_AND_NOTIFIED', 'success');
                     loadGiveaways();
                 }, 3500);
@@ -1888,6 +1917,81 @@
                 loadGiveaways();
             } catch (e) {
                 showToast('ARCHIVE_FAILED', 'error');
+            }
+        }
+
+        async function downloadWinnerVideo() {
+            if (!lastDrawSnapshot) {
+                return showToast('DRAW_A_WINNER_FIRST', 'error');
+            }
+            if (typeof MediaRecorder === 'undefined') {
+                return showToast('VIDEO_EXPORT_UNSUPPORTED_ON_DEVICE', 'error');
+            }
+            try {
+                const canvas = document.createElement('canvas');
+                canvas.width = 1080;
+                canvas.height = 1080;
+                const ctx = canvas.getContext('2d');
+                const drawFrame = (phase = 0) => {
+                    ctx.fillStyle = '#020617';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    const grad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+                    grad.addColorStop(0, '#00f0ff22');
+                    grad.addColorStop(1, '#7000ff22');
+                    ctx.fillStyle = grad;
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                    ctx.fillStyle = '#00f0ff';
+                    ctx.font = '700 42px JetBrains Mono';
+                    ctx.fillText('XP ARENA GIVEAWAY DRAW', 110, 140);
+                    ctx.strokeStyle = '#00f0ff66';
+                    ctx.strokeRect(80, 190, 920, 650);
+
+                    ctx.fillStyle = '#cbd5e1';
+                    ctx.font = '600 30px JetBrains Mono';
+                    ctx.fillText(`EVENT ID: ${lastDrawSnapshot.giveawayId}`, 130, 280);
+                    ctx.fillText(`ENTRIES: ${lastDrawSnapshot.entries}`, 130, 340);
+
+                    ctx.fillStyle = phase % 2 === 0 ? '#7CFFB0' : '#00f0ff';
+                    ctx.font = '800 64px JetBrains Mono';
+                    ctx.fillText(`WINNER`, 130, 470);
+                    ctx.fillText(String(lastDrawSnapshot.winnerUid), 130, 560);
+
+                    ctx.fillStyle = '#94a3b8';
+                    ctx.font = '500 24px JetBrains Mono';
+                    ctx.fillText('PROOF HASH', 130, 670);
+                    ctx.fillText(String(lastDrawSnapshot.proofHash).slice(0, 48), 130, 715);
+                    ctx.fillText(String(lastDrawSnapshot.proofHash).slice(48, 96), 130, 750);
+                };
+
+                const stream = canvas.captureStream(30);
+                const chunks = [];
+                const recorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9' });
+                recorder.ondataavailable = (e) => { if (e.data?.size) chunks.push(e.data); };
+                const done = new Promise((resolve) => {
+                    recorder.onstop = resolve;
+                });
+
+                recorder.start();
+                for (let i = 0; i < 120; i++) {
+                    drawFrame(i);
+                    await new Promise((r) => setTimeout(r, 1000 / 30));
+                }
+                recorder.stop();
+                await done;
+
+                const blob = new Blob(chunks, { type: 'video/webm' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `giveaway_draw_${lastDrawSnapshot.giveawayId}.webm`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                URL.revokeObjectURL(url);
+                showToast('DRAW_VIDEO_DOWNLOADED', 'success');
+            } catch (e) {
+                showToast('VIDEO_EXPORT_FAILED', 'error');
             }
         }
 
@@ -1969,6 +2073,81 @@
             const manualSheet = document.getElementById('manualSheet');
             if (overlay) overlay.classList.toggle('active', show);
             if (manualSheet) manualSheet.classList.toggle('active', show);
+        }
+
+        function openGiveawayCreator() {
+            const overlay = document.getElementById('giveawayOverlay');
+            const sheet = document.getElementById('giveawaySheet');
+            if (overlay) overlay.classList.add('active');
+            if (sheet) sheet.classList.add('active');
+        }
+
+        function closeGiveawayCreator() {
+            const overlay = document.getElementById('giveawayOverlay');
+            const sheet = document.getElementById('giveawaySheet');
+            if (overlay) overlay.classList.remove('active');
+            if (sheet) sheet.classList.remove('active');
+        }
+
+        function openTournamentCreator() {
+            const overlay = document.getElementById('tournamentOverlay');
+            const sheet = document.getElementById('tournamentSheet');
+            if (overlay) overlay.classList.add('active');
+            if (sheet) sheet.classList.add('active');
+        }
+
+        function closeTournamentCreator() {
+            const overlay = document.getElementById('tournamentOverlay');
+            const sheet = document.getElementById('tournamentSheet');
+            if (overlay) overlay.classList.remove('active');
+            if (sheet) sheet.classList.remove('active');
+        }
+
+        async function submitGiveaway() {
+            try {
+                const payload = {
+                    type: document.getElementById('gvType').value,
+                    title: document.getElementById('gvTitle').value.trim(),
+                    prize_description: document.getElementById('gvPrize').value.trim(),
+                    end_at: document.getElementById('gvEnd').value,
+                    max_winners: Number(document.getElementById('gvWinners').value || 1)
+                };
+                if (!payload.title || !payload.prize_description || !payload.end_at) {
+                    return showToast('FILL_REQUIRED_GIVEAWAY_FIELDS', 'error');
+                }
+                await api(`${API_BASE}/giveaways`, 'POST', payload);
+                closeGiveawayCreator();
+                showToast('GIVEAWAY_PUBLISHED', 'success');
+                await loadGiveaways();
+            } catch (e) {
+                showToast(e.message || 'GIVEAWAY_CREATE_FAILED', 'error');
+            }
+        }
+
+        async function submitTournament() {
+            try {
+                const payload = {
+                    type: 'prize_pool',
+                    map_name: document.getElementById('tmMap').value,
+                    total_slots: Number(document.getElementById('tmSlots').value || 0),
+                    prize_pool: document.getElementById('tmPrize').value.trim(),
+                    start_at: document.getElementById('tmStart').value,
+                    end_at: document.getElementById('tmEnd').value,
+                    comm_link: document.getElementById('tmLink').value.trim() || undefined
+                };
+                if (!payload.total_slots || !payload.prize_pool || !payload.start_at || !payload.end_at) {
+                    return showToast('FILL_REQUIRED_SCRIM_FIELDS', 'error');
+                }
+                if (new Date(payload.end_at) <= new Date(payload.start_at)) {
+                    return showToast('END_TIME_MUST_BE_AFTER_START', 'error');
+                }
+                await api(`${API_BASE}/tournaments`, 'POST', payload);
+                closeTournamentCreator();
+                showToast('SCRIM_INITIALIZED', 'success');
+                await loadTournaments();
+            } catch (e) {
+                showToast(e.message || 'SCRIM_CREATE_FAILED', 'error');
+            }
         }
 
         function setSegment(type, el) {

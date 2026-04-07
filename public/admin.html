@@ -986,6 +986,11 @@
         <input type="text" id="vName" class="cyber-input" placeholder="Vendor Name (e.g. SKY-NET)">
         <input type="text" id="vBrand" class="cyber-input" placeholder="Organization ID (Optional)">
         <input type="text" id="vOrgName" class="cyber-input" placeholder="Organization Name (Optional)">
+        <select id="vTier" class="cyber-input">
+            <option value="STANDARD">Profile Tier: STANDARD</option>
+            <option value="GOLD">Profile Tier: GOLD</option>
+            <option value="ELITE">Profile Tier: ELITE</option>
+        </select>
         <input type="number" id="vDuration" class="cyber-input" placeholder="Access Duration (Days) [e.g. 30]">
         <input type="number" id="vUsageLimit" class="cyber-input" placeholder="Usage Limit (Optional)">
         
@@ -1449,6 +1454,7 @@
             const vid = document.getElementById('vName').value.trim();
             const orgId = document.getElementById('vBrand').value.trim();
             const orgName = document.getElementById('vOrgName').value.trim();
+            const profileTier = document.getElementById('vTier').value;
             const vDays = parseInt(document.getElementById('vDuration').value, 10);
             const vUsageLimit = parseInt(document.getElementById('vUsageLimit').value, 10);
             
@@ -1472,7 +1478,8 @@
                         youtube: youtube || null,
                         tiktok: tiktok || null,
                         discord: discord || null,
-                        display_name: vid
+                        display_name: vid,
+                        profile_tier: profileTier
                     }
                 };
                 if (Number.isFinite(vDays) && vDays > 0) payload.durationDays = vDays;
@@ -1488,6 +1495,7 @@
                 document.getElementById('vName').value = '';
                 document.getElementById('vBrand').value = '';
                 document.getElementById('vOrgName').value = '';
+                document.getElementById('vTier').value = 'STANDARD';
                 document.getElementById('vDuration').value = '';
                 document.getElementById('vUsageLimit').value = '';
                 document.getElementById('vLogo').value = '';
@@ -1621,6 +1629,13 @@
             } catch (e) {
                 body.innerHTML = '<div style="text-align:center; padding:2rem; color:#ff4444;">LOG_FETCH_FAILED</div>';
             }
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('analyticsModal');
+            if (!modal) return;
+            modal.classList.add('hidden');
+            modal.style.display = 'none';
         }
 
         function copyHistoryKey() {

@@ -201,4 +201,22 @@ const UI = {
 
 window.UI = UI;
 
+window.toggleLowPerf = function toggleLowPerf() {
+    const key = 'xp_low_perf_mode';
+    const isEnabled = localStorage.getItem(key) === 'true';
+    const next = !isEnabled;
+    localStorage.setItem(key, next ? 'true' : 'false');
+    document.documentElement.dataset.lowPerf = next ? 'true' : 'false';
+    const btn = document.getElementById('perfBtn');
+    if (btn) {
+        btn.textContent = next ? 'MODE: LOW_PERF' : 'MODE: FULL_NEURAL';
+    }
+};
+
 document.addEventListener('DOMContentLoaded', () => UI.init());
+document.addEventListener('DOMContentLoaded', () => {
+    const enabled = localStorage.getItem('xp_low_perf_mode') === 'true';
+    document.documentElement.dataset.lowPerf = enabled ? 'true' : 'false';
+    const btn = document.getElementById('perfBtn');
+    if (btn) btn.textContent = enabled ? 'MODE: LOW_PERF' : 'MODE: FULL_NEURAL';
+});

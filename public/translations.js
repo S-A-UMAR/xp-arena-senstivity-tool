@@ -1061,10 +1061,44 @@ const UNIVERSAL_UI_EXTRAS = {
         noFeedbackBreakdown: 'NO_FEEDBACK_BREAKDOWN',
         loadingProfile: 'LOADING_PROFILE...',
         creatorAccess: 'CREATOR_ACCESS',
+        creatorPortalAccess: 'CREATOR_PORTAL_ACCESS',
         codesLabel: 'CODES',
         hitsLabel: 'HITS',
         likesLabel: 'LIKES',
-        presetsNav: 'PRESETS'
+        presetsNav: 'PRESETS',
+        xpArenaBrand: 'XP ARENA',
+        brandTagline: 'Pro-grade tools for competitive mobile gaming calibration and community events.',
+        neuralEngineTitle: 'NEURAL ENGINE',
+        neuralEngineDesc: 'Calibrate your sensitivity using our AI-driven hardware-optimized benchmarks.',
+        liveArenaTitle: 'LIVE ARENA',
+        liveArenaDesc: 'Join professional scrims, tournaments, and exclusive community giveaways.',
+        topVendorsTitle: 'TOP VENDORS',
+        topVendorsDesc: 'Explore the most trusted creators and their hall of fame achievements.',
+        howItWorksPlayerTitle: 'HOW IT WORKS · PLAYER',
+        playerStep1: 'Open NEURAL ENGINE and generate your calibrated sensitivity profile.',
+        playerStep2: 'Save/share your result card, then verify your access code anytime in VERIFY.',
+        playerStep3: 'Join events from LIVE ARENA and track creator performance in TOP VENDORS.',
+        howItWorksVendorTitle: 'HOW IT WORKS · VENDOR',
+        vendorStep1: 'Sign in via CREATOR_PORTAL_ACCESS to manage your profile and issue codes.',
+        vendorStep2: 'Publish tournaments/giveaways and distribute share links to your community.',
+        vendorStep3: 'Monitor usage, likes, and profile quality signals from your dashboard.',
+        liveInArena: 'LIVE IN ARENA',
+        privacyPageTitle: 'Privacy Policy',
+        privacyIntro: 'XP ARENA stores only the data required to generate, verify, and secure profile codes and creator activity.',
+        privacyItem1: 'Access keys are handled through secure backend validation flows.',
+        privacyItem2: 'Usage and analytics are used for platform health, abuse prevention, and feature improvements.',
+        privacyItem3: 'Vendor data remains scoped to vendor/admin permissions.',
+        termsPageTitle: 'Terms of Service',
+        termsIntro: 'By using XP ARENA you agree to use generated settings, community links, and vendor tools responsibly.',
+        termsItem1: 'No abuse, fraud, or unauthorized attempts to access restricted panels.',
+        termsItem2: 'Creator/vendor access is accountable and may be revoked for policy violations.',
+        termsItem3: 'Platform features may evolve; users should verify event details before participation.',
+        supportPageTitle: 'Support',
+        supportIntro: 'Need help with access, calibration output, or creator links? Use one of the channels below:',
+        supportItem1: 'Contact your creator/vendor for profile-specific issues.',
+        supportItem2: 'Use the Verify page to validate card codes before reporting a mismatch.',
+        supportItem3: 'Email support via your organization workflow if available.',
+        backToGenerator: '← Back to Generator'
     },
     pt: {
         profileFeedback: 'FEEDBACK_DO_PERFIL',
@@ -1096,6 +1130,10 @@ const UNIVERSAL_UI_EXTRAS = {
         profileNotesPrefix: 'NOTAS DO PERFIL: OTIMIZADO PARA JOGO COMPETITIVO',
         currentUtcLabel: 'UTC ATUAL',
         expiryLabel: 'EXPIRAÇÃO',
+        verificationLabel: 'Verificação',
+        providerLabel: 'Fornecedor',
+        modeLabel: 'Modo',
+        viewExportMode: 'VER / EXPORTAR',
         profileEfficiencyText: 'EFICIÊNCIA_DO_PERFIL',
         unitIdLabel: 'ID_DA_UNIDADE',
         settingsByLabel: 'CONFIGURAÇÕES POR',
@@ -1141,6 +1179,10 @@ const UNIVERSAL_UI_EXTRAS = {
         profileNotesPrefix: 'NOTAS DEL PERFIL: OPTIMIZADO PARA JUEGO COMPETITIVO',
         currentUtcLabel: 'UTC ACTUAL',
         expiryLabel: 'EXPIRACIÓN',
+        verificationLabel: 'Verificación',
+        providerLabel: 'Proveedor',
+        modeLabel: 'Modo',
+        viewExportMode: 'VER / EXPORTAR',
         profileEfficiencyText: 'EFICIENCIA_DEL_PERFIL',
         unitIdLabel: 'ID_DE_UNIDAD',
         settingsByLabel: 'AJUSTES DE',
@@ -1186,6 +1228,10 @@ const UNIVERSAL_UI_EXTRAS = {
         profileNotesPrefix: 'প্রোফাইল নোট: প্রতিযোগিতামূলক খেলার জন্য অপ্টিমাইজড',
         currentUtcLabel: 'বর্তমান UTC',
         expiryLabel: 'মেয়াদ',
+        verificationLabel: 'যাচাইকরণ',
+        providerLabel: 'প্রদানকারী',
+        modeLabel: 'মোড',
+        viewExportMode: 'দেখুন / এক্সপোর্ট',
         profileEfficiencyText: 'প্রোফাইল_দক্ষতা',
         unitIdLabel: 'ইউনিট_আইডি',
         settingsByLabel: 'সেটিংস_দিয়েছেন',
@@ -1231,6 +1277,10 @@ const UNIVERSAL_UI_EXTRAS = {
         profileNotesPrefix: 'CATATAN PROFIL: DIOPTIMALKAN UNTUK PERMAINAN KOMPETITIF',
         currentUtcLabel: 'UTC SAAT INI',
         expiryLabel: 'KEDALUWARSA',
+        verificationLabel: 'Verifikasi',
+        providerLabel: 'Penyedia',
+        modeLabel: 'Mode',
+        viewExportMode: 'LIHAT / EKSPOR',
         profileEfficiencyText: 'EFISIENSI_PROFIL',
         unitIdLabel: 'ID_UNIT',
         settingsByLabel: 'PENGATURAN OLEH',
@@ -1276,6 +1326,10 @@ const UNIVERSAL_UI_EXTRAS = {
         profileNotesPrefix: 'บันทึกโปรไฟล์: ปรับให้เหมาะกับการเล่นแบบแข่งขัน',
         currentUtcLabel: 'UTC ปัจจุบัน',
         expiryLabel: 'หมดอายุ',
+        verificationLabel: 'การยืนยัน',
+        providerLabel: 'ผู้ให้บริการ',
+        modeLabel: 'โหมด',
+        viewExportMode: 'ดู / ส่งออก',
         profileEfficiencyText: 'ประสิทธิภาพ_โปรไฟล์',
         unitIdLabel: 'รหัสยูนิต',
         settingsByLabel: 'ตั้งค่าโดย',
@@ -1321,6 +1375,10 @@ const UNIVERSAL_UI_EXTRAS = {
         profileNotesPrefix: 'GHI CHÚ HỒ SƠ: TỐI ƯU CHO CHƠI CẠNH TRANH',
         currentUtcLabel: 'UTC HIỆN TẠI',
         expiryLabel: 'HẾT HẠN',
+        verificationLabel: 'Xác minh',
+        providerLabel: 'Nhà cung cấp',
+        modeLabel: 'Chế độ',
+        viewExportMode: 'XEM / XUẤT',
         profileEfficiencyText: 'HIỆU_SUẤT_HỒ_SƠ',
         unitIdLabel: 'MÃ_ĐƠN_VỊ',
         settingsByLabel: 'CÀI_ĐẶT_BỞI',
@@ -1366,6 +1424,10 @@ const UNIVERSAL_UI_EXTRAS = {
         profileNotesPrefix: 'प्रोफ़ाइल नोट्स: प्रतिस्पर्धी खेल के लिए अनुकूलित',
         currentUtcLabel: 'वर्तमान UTC',
         expiryLabel: 'समाप्ति',
+        verificationLabel: 'सत्यापन',
+        providerLabel: 'प्रदाता',
+        modeLabel: 'मोड',
+        viewExportMode: 'देखें / एक्सपोर्ट',
         profileEfficiencyText: 'प्रोफ़ाइल_दक्षता',
         unitIdLabel: 'यूनिट_आईडी',
         settingsByLabel: 'सेटिंग्स_द्वारा',
@@ -1411,6 +1473,10 @@ const UNIVERSAL_UI_EXTRAS = {
         profileNotesPrefix: 'ملاحظات الملف: محسّن للعب التنافسي',
         currentUtcLabel: 'التوقيت UTC الحالي',
         expiryLabel: 'الانتهاء',
+        verificationLabel: 'التحقق',
+        providerLabel: 'المزوّد',
+        modeLabel: 'الوضع',
+        viewExportMode: 'عرض / تصدير',
         profileEfficiencyText: 'كفاءة_الملف',
         unitIdLabel: 'معرّف_الوحدة',
         settingsByLabel: 'الإعدادات بواسطة',
@@ -1456,6 +1522,10 @@ const UNIVERSAL_UI_EXTRAS = {
         profileNotesPrefix: 'PROFIL NOTLARI: REKABETCI OYUN IÇIN OPTIMIZE EDILDI',
         currentUtcLabel: 'GUNCEL UTC',
         expiryLabel: 'BITIS',
+        verificationLabel: 'Doğrulama',
+        providerLabel: 'Sağlayıcı',
+        modeLabel: 'Mod',
+        viewExportMode: 'GORUNTULE / DISA AKTAR',
         profileEfficiencyText: 'PROFIL_VERIMLILIGI',
         unitIdLabel: 'BIRIM_ID',
         settingsByLabel: 'AYARLAYAN',
@@ -1501,6 +1571,10 @@ const UNIVERSAL_UI_EXTRAS = {
         profileNotesPrefix: 'ЗАМЕТКИ ПРОФИЛЯ: ОПТИМИЗИРОВАНО ДЛЯ СОРЕВНОВАТЕЛЬНОЙ ИГРЫ',
         currentUtcLabel: 'ТЕКУЩИЙ UTC',
         expiryLabel: 'СРОК_ДЕЙСТВИЯ',
+        verificationLabel: 'Проверка',
+        providerLabel: 'Поставщик',
+        modeLabel: 'Режим',
+        viewExportMode: 'ПРОСМОТР / ЭКСПОРТ',
         profileEfficiencyText: 'ЭФФЕКТИВНОСТЬ_ПРОФИЛЯ',
         unitIdLabel: 'ID_ЮНИТА',
         settingsByLabel: 'НАСТРОЙКИ_ОТ',
@@ -1525,6 +1599,7 @@ function mergeLanguageExtras(extrasByLanguage) {
 }
 
 window.UNIVERSAL_UI_EXTRAS = UNIVERSAL_UI_EXTRAS;
+mergeLanguageExtras(window.LANGUAGE_PAGE_EXTRAS || {});
 mergeLanguageExtras(UNIVERSAL_UI_EXTRAS);
 
 /**
@@ -1535,20 +1610,23 @@ function applyLanguage() {
     try {
         const lang = localStorage.getItem('xp_lang') || 'en';
         const dict = (window.LANGUAGES && window.LANGUAGES[lang]) || {};
+        const fallbackDict = (window.LANGUAGES && window.LANGUAGES.en) || {};
         
         // 1. Scan for data-t (legacy / specific translations)
         document.querySelectorAll('[data-t]').forEach(el => {
             const key = el.getAttribute('data-t');
-            if (dict[key]) {
-                el.textContent = dict[key];
+            const value = dict[key] || fallbackDict[key];
+            if (value) {
+                el.textContent = value;
             }
         });
 
         // 2. Scan for data-i18n (new standard)
         document.querySelectorAll('[data-i18n]').forEach(el => {
             const key = el.getAttribute('data-i18n');
-            if (dict[key]) {
-                el.textContent = dict[key];
+            const value = dict[key] || fallbackDict[key];
+            if (value) {
+                el.textContent = value;
             }
         });
 
