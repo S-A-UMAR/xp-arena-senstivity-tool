@@ -40,12 +40,71 @@ const UI = {
     verifying: false,
 
     init() {
+        this.populateDevices();
         this.attachVaultListeners();
         this.initPWA();
         this.initLanguage();
         this.trackFunnel('landing_view');
         this.animateScannerDots();
         document.body.addEventListener('click', () => window.SFX?.init?.(), { once: true });
+    },
+
+    populateDevices() {
+        const brandSelect = document.getElementById('brandSelect');
+        const seriesSelect = document.getElementById('seriesSelect');
+        const modelSelect = document.getElementById('modelSelect');
+        const ramSelect = document.getElementById('ramSelect');
+
+        if (!brandSelect) return;
+
+        const deviceList = window.devices || (typeof devices !== 'undefined' ? devices : []);
+        if (deviceList.length === 0) {
+            setTimeout(() => this.populateDevices(), 200);
+            return;
+        }
+
+        window.devices = deviceList;
+
+        // 1. Populate Brands
+        brandSelect.innerHTML = '<option value="">SELECT BRAND</option>' + 
+            deviceList.map(d => `<option value="${d.brand}">${d.brand.toUpperCase()}</option>`).join('');
+
+        // 2. Brand Change -> Populate Series
+        brandSelect.onchange = () => {
+            const brand = deviceList.find(d => d.brand === brandSelect.value);
+            if (brand) {
+                seriesSelect.disabled = false;
+                seriesSelect.innerHTML = '<option value="">SELECT SERIES</option>' +
+                    brand.series.map(s => `<option value="${s.name}">${s.name.toUpperCase()}</option>`).join('');
+                modelSelect.disabled = true;
+                modelSelect.innerHTML = '<option value="">SELECT MODEL</option>';
+            } else {
+                seriesSelect.disabled = true;
+                modelSelect.disabled = true;
+            }
+        };
+
+        // 3. Series Change -> Populate Models
+        seriesSelect.onchange = () => {
+            const brand = deviceList.find(d => d.brand === brandSelect.value);
+            const series = brand?.series.find(s => s.name === seriesSelect.value);
+            if (series) {
+                modelSelect.disabled = false;
+                modelSelect.innerHTML = '<option value="">SELECT MODEL</option>' +
+                    series.models.map(m => `<option value="${m.name}" data-ram="${m.ram}">${m.name.toUpperCase()}</option>`).join('');
+            } else {
+                modelSelect.disabled = true;
+            }
+        };
+
+        // 4. Model Change -> Auto-select RAM
+        modelSelect.onchange = () => {
+            const selectedOption = modelSelect.options[modelSelect.selectedIndex];
+            const ram = selectedOption.getAttribute('data-ram');
+            if (ram && ramSelect) {
+                ramSelect.value = ram;
+            }
+        };
     },
 
     initLanguage() {
@@ -235,22 +294,4 @@ const UI = {
 
 window.UI = UI;
 
-window.toggleLowPerf = function toggleLowPerf() {
-    const key = 'xp_low_perf_mode';
-    const isEnabled = localStorage.getItem(key) === 'true';
-    const next = !isEnabled;
-    localStorage.setItem(key, next ? 'true' : 'false');
-    document.documentElement.dataset.lowPerf = next ? 'true' : 'false';
-    const btn = document.getElementById('perfBtn');
-    if (btn) {
-        btn.textContent = next ? 'MODE: LOW_PERF' : 'MODE: FULL_NEURAL';
-    }
-};
-
 document.addEventListener('DOMContentLoaded', () => UI.init());
-document.addEventListener('DOMContentLoaded', () => {
-    const enabled = localStorage.getItem('xp_low_perf_mode') === 'true';
-    document.documentElement.dataset.lowPerf = enabled ? 'true' : 'false';
-    const btn = document.getElementById('perfBtn');
-    if (btn) btn.textContent = enabled ? 'MODE: LOW_PERF' : 'MODE: FULL_NEURAL';
-});

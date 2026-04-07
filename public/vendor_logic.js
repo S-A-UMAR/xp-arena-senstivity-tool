@@ -7,8 +7,8 @@ const VendorLogic = {
     },
 
     async init() {
-        await this.fetchVendorProfile();
         this.populateDevices();
+        await this.fetchVendorProfile();
         this.updateUI();
     },
 
@@ -30,7 +30,6 @@ const VendorLogic = {
                 // Add staggered entrance animation
                 panel.style.animation = `panelSlideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards`;
                 panel.style.animationDelay = `${index * 0.1}s`;
-                panel.style.opacity = '0';
             });
             
             // Update profile elements across pages
@@ -118,11 +117,24 @@ const VendorLogic = {
         const brandSelect = document.getElementById('genBrand');
         if (!brandSelect) return;
 
-        const deviceList = window.devices || [];
-        if (deviceList.length === 0) return;
+        // Try to get devices from window.devices or global devices (from devices.js)
+        const deviceList = window.devices || (typeof devices !== 'undefined' ? devices : []);
+        
+        if (!deviceList || deviceList.length === 0) {
+            console.warn('Waiting for device data...');
+            setTimeout(() => this.populateDevices(), 200);
+            return;
+        }
 
-        brandSelect.innerHTML = '<option value="">SELECT BRAND</option>' + 
-            deviceList.map(d => `<option value="${d.brand}">${d.brand.toUpperCase()}</option>`).join('');
+        // Cache it back to window.devices for consistency
+        window.devices = deviceList;
+
+        const options = ['<option value="">SELECT BRAND</option>'];
+        deviceList.forEach(d => {
+            options.push(`<option value="${d.brand}">${d.brand.toUpperCase()}</option>`);
+        });
+        
+        brandSelect.innerHTML = options.join('');
     },
 
     updateSeries() {
