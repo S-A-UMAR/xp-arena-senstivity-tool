@@ -196,6 +196,40 @@ const UI = {
                 this.verifying = false;
             }, 400);
         }
+    },
+
+    toggleManualMode(isManual) {
+        const hardwareSection = document.getElementById('hardwareSection');
+        const standardMastering = document.getElementById('standardMastering');
+        const manualMastering = document.getElementById('manualMastering');
+        const neuralTab = document.getElementById('neuralTab');
+        const manualTab = document.getElementById('manualTab');
+
+        if (isManual) {
+            if (hardwareSection) hardwareSection.style.display = 'none';
+            if (standardMastering) standardMastering.style.display = 'none';
+            if (manualMastering) manualMastering.style.display = 'block';
+            if (manualTab) {
+                manualTab.style.background = 'var(--accent-primary)';
+                manualTab.style.color = 'black';
+            }
+            if (neuralTab) {
+                neuralTab.style.background = 'rgba(255,255,255,0.05)';
+                neuralTab.style.color = 'var(--text-muted)';
+            }
+        } else {
+            if (hardwareSection) hardwareSection.style.display = 'block';
+            if (standardMastering) standardMastering.style.display = 'block';
+            if (manualMastering) manualMastering.style.display = 'none';
+            if (neuralTab) {
+                neuralTab.style.background = 'var(--accent-primary)';
+                neuralTab.style.color = 'black';
+            }
+            if (manualTab) {
+                manualTab.style.background = 'rgba(255,255,255,0.05)';
+                manualTab.style.color = 'var(--text-muted)';
+            }
+        }
     }
 };
 

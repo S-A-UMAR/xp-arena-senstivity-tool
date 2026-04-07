@@ -350,44 +350,51 @@ body {
     letter-spacing: 0.05em;
 }
 
-.cyber-input, .cyber-select {
+.cyber-input, .pro-select {
     width: 100%;
-    background: rgba(0, 0, 0, 0.4);
-    border: 1px solid var(--border-light);
-    border-radius: var(--radius-md);
-    padding: 1rem 1.25rem;
-    color: var(--text-primary);
+    background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+    border: 2px solid #475569;
+    border-radius: 12px;
+    padding: 0.8rem 1.25rem;
+    color: #fff;
     font-family: var(--font-body);
-    font-weight: 500;
+    font-weight: 700;
+    font-size: 0.9rem;
     outline: none;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    box-shadow: inset 0 1px 1px rgba(255,255,255,0.1), 0 4px 6px rgba(0,0,0,0.3);
+    cursor: pointer;
 }
 
-.cyber-input:focus, .cyber-select:focus {
+.cyber-input:focus, .pro-select:focus {
     border-color: var(--accent-primary);
-    box-shadow: 0 0 20px var(--accent-primary-glow);
-    background: rgba(0, 240, 255, 0.03);
+    box-shadow: 0 0 15px var(--accent-primary-glow), inset 0 1px 1px rgba(255,255,255,0.1);
 }
 
 /* Custom Select Styling */
 .select-container {
     position: relative;
+    margin-bottom: 0.75rem;
 }
 
 .select-container::after {
-    content: '→';
+    content: '↕';
     position: absolute;
     right: 1.25rem;
     top: 50%;
-    transform: translateY(-50%) rotate(90deg);
-    color: var(--text-muted);
+    transform: translateY(-50%);
+    color: #94a3b8;
     pointer-events: none;
-    font-size: 0.8rem;
+    font-size: 1rem;
+    font-weight: 900;
 }
 
-.cyber-select {
+.pro-select {
     appearance: none;
     background-image: none;
+    padding-right: 3rem;
 }
 
 /* Segmented Buttons */
@@ -449,18 +456,23 @@ body {
 
 .cyber-slider::-webkit-slider-thumb {
     appearance: none;
-    width: 24px;
-    height: 24px;
-    background: #fff;
-    border: 4px solid var(--accent-primary);
+    width: 28px;
+    height: 28px;
+    background: var(--accent-primary);
+    border: 3px solid #fff;
     border-radius: 50%;
-    box-shadow: 0 0 20px var(--accent-primary-glow);
+    box-shadow: 0 0 25px var(--accent-primary-glow), inset 0 0 10px rgba(0,0,0,0.3);
     cursor: pointer;
-    transition: transform 0.2s;
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.cyber-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 35px var(--accent-primary-glow), inset 0 0 10px rgba(0,0,0,0.3);
 }
 
 .cyber-slider::-webkit-slider-thumb:active {
-    transform: scale(1.2);
+    transform: scale(1.3);
 }
 
 /* Primary Action Button */
