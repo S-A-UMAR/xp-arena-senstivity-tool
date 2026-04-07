@@ -287,6 +287,20 @@
             </div>
         </div>
 
+        <!-- 🏆 My Active Events -->
+        <div class="glass-panel" id="myEventsSection">
+            <div class="section-header">
+                <h2 class="section-title">ACTIVE_EVENTS</h2>
+                <div style="display: flex; gap: 0.5rem;">
+                    <button class="section-link" onclick="createEvent('giveaway')" style="background: none; border: none; cursor: pointer;">+ GIVEAWAY</button>
+                    <button class="section-link" onclick="createEvent('scrim')" style="background: none; border: none; cursor: pointer;">+ SCRIM</button>
+                </div>
+            </div>
+            <div id="myEventsList" style="display: grid; gap: 1rem;">
+                <div style="padding: 2rem; text-align: center; color: var(--text-muted); font-size: 0.7rem;">SYNCING_EVENTS...</div>
+            </div>
+        </div>
+
         <!-- 🛡️ Command Center (New Section) -->
         <div class="glass-panel" style="background: linear-gradient(145deg, rgba(15, 20, 25, 0.9), rgba(5, 7, 10, 0.95)); border: 1px solid rgba(255, 255, 255, 0.05);">
             <div class="section-header">

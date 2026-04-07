@@ -9,7 +9,73 @@ const VendorLogic = {
     async init() {
         this.populateDevices();
         await this.fetchVendorProfile();
+        this.loadMyEvents();
         this.updateUI();
+    },
+
+    async loadMyEvents() {
+        const list = document.getElementById('myEventsList');
+        if (!list) return;
+
+        try {
+            const [gRes, sRes] = await Promise.all([
+                fetch('/api/vault/giveaways'),
+                fetch('/api/vault/tournaments')
+            ]);
+            
+            const giveaways = await gRes.json();
+            const scrims = await sRes.json();
+            
+            const events = [
+                ...giveaways.map(g => ({...g, ev_type: 'giveaway'})),
+                ...scrims.map(s => ({...s, ev_type: 'scrim'}))
+            ];
+
+            if (events.length === 0) {
+                list.innerHTML = `<div style="padding: 2rem; text-align: center; color: var(--text-muted); font-size: 0.7rem;">NO_EVENTS_FOUND</div>`;
+                return;
+            }
+
+            list.innerHTML = events.map(ev => {
+                const isScrim = ev.ev_type === 'scrim';
+                const accent = isScrim ? 'var(--accent-secondary)' : 'var(--accent-primary)';
+                const title = ev.title || ev.prize_pool || 'Elite Event';
+                
+                return `
+                    <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); border-radius: 20px; padding: 1.25rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                            <div>
+                                <div style="font-size: 0.55rem; color: ${accent}; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase;">${ev.ev_type}</div>
+                                <div style="color: white; font-weight: 800; font-size: 0.9rem;">${title}</div>
+                            </div>
+                            <span style="font-size: 0.6rem; background: rgba(0,255,204,0.1); color: var(--accent-primary); padding: 4px 8px; border-radius: 6px; font-weight: 800;">ACTIVE</span>
+                        </div>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button class="btn-primary" style="flex: 1; padding: 0.6rem; font-size: 0.65rem; background: ${accent}; color: ${isScrim ? 'white' : 'black'};" 
+                                onclick="VendorLogic.${isScrim ? 'manageScrim' : 'openWinnerPicker'}('${ev.id}', '${title.replace(/'/g, "\\'")}')">
+                                ${isScrim ? 'MANAGE ENTRIES' : 'PICK WINNER'}
+                            </button>
+                            <button class="btn-secondary" style="width: auto; padding: 0.6rem 1rem; font-size: 0.65rem;" onclick="VendorLogic.archiveEvent('${ev.ev_type}', '${ev.id}')">ARCHIVE</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        } catch (err) {
+            list.innerHTML = `<div style="padding: 2rem; text-align: center; color: var(--text-muted); font-size: 0.7rem;">SYNC_FAILED</div>`;
+        }
+    },
+
+    async archiveEvent(type, id) {
+        this.showConfirm(`ARCHIVE_${type.toUpperCase()}?`, async () => {
+            try {
+                const endpoint = type === 'scrim' ? `/api/vault/tournaments/${id}` : `/api/vault/giveaways/${id}`;
+                await fetch(endpoint, { method: 'DELETE' });
+                window.notify('EVENT_ARCHIVED', 'success');
+                this.loadMyEvents();
+            } catch (err) {
+                window.notify('ARCHIVE_FAILED', 'error');
+            }
+        });
     },
 
     async fetchVendorProfile() {
@@ -269,15 +335,15 @@ const VendorLogic = {
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
                     <div class="form-group" style="margin-bottom:0;">
-                        <label class="form-label">TYPE</label>
+                        <label class="form-label">EVENT TYPE</label>
                         <select id="eventMode" class="pro-select">
                             ${isScrim ? `
-                                <option value="prize_pool">PRIZE_POOL</option>
                                 <option value="battle_royale">BATTLE_ROYALE</option>
+                                <option value="prize_pool">PRIZE_POOL</option>
                             ` : `
+                                <option value="gifting">GIFTING (NEW_GIFT)</option>
                                 <option value="redeem_code">REDEEM_CODE</option>
                                 <option value="cash_prize">CASH_PRIZE</option>
-                                <option value="gifting">GIFTING</option>
                                 <option value="custom">CUSTOM</option>
                             `}
                         </select>
@@ -422,8 +488,9 @@ const VendorLogic = {
         try {
             const res = await fetch(`/api/vault/vendor/event/participants/giveaway/${eventId}`);
             const data = await res.json();
+            this.state.currentParticipants = data.participants || [];
             const el = document.getElementById('participantCount');
-            if(el) el.textContent = `PARTICIPANTS: ${data.participants?.length || 0}`;
+            if(el) el.textContent = `PARTICIPANTS: ${this.state.currentParticipants.length}`;
         } catch (err) {}
     },
 
@@ -483,6 +550,10 @@ const VendorLogic = {
     },
 
      async rollWinner(eventId) {
+         if (!this.state.currentParticipants || this.state.currentParticipants.length === 0) {
+             return window.notify('NO_PARTICIPANTS_TO_PICK_FROM', 'warning');
+         }
+
          const display = document.getElementById('pickerAnimation');
          const btn = document.getElementById('startPickBtn');
          if (!btn) return;
@@ -491,57 +562,100 @@ const VendorLogic = {
 
          window.notify('INITIALIZING_RANDOM_ROLL...', 'info');
 
-         const names = ['USER_#2849', 'PLAYER_PRO_1', 'SHADOW_X', 'NINJA_FF', 'AXP_BEAST', 'ELITE_MOBI'];
+         const names = this.state.currentParticipants.map(p => p.ign);
          let count = 0;
          const interval = setInterval(() => {
              display.textContent = names[Math.floor(Math.random() * names.length)];
              display.style.borderColor = count % 2 === 0 ? 'var(--accent-primary)' : 'var(--glass-border)';
              count++;
-             if (count > 20) {
+             if (count > 30) {
                  clearInterval(interval);
-                 this.finalizeWinner(eventId);
+                 this.performActualDraw(eventId);
              }
-         }, 100);
+         }, 80);
      },
 
-     async finalizeWinner(eventId) {
+     async performActualDraw(eventId) {
          try {
-             const winner = "USER_#7721_AXP";
-             const display = document.getElementById('pickerAnimation');
-             if (display) display.style.display = 'none';
+             const res = await fetch(`/api/vault/giveaways/${eventId}/draw`, { method: 'POST' });
+             const data = await res.json();
              
-             const card = document.createElement('div');
-             card.className = 'gold-winner-card';
-             card.innerHTML = `
-                 <div class="sparkles-container"></div>
-                 <div style="font-size: 0.8rem; font-weight: 800; letter-spacing: 0.2em; opacity: 0.8;">OFFICIAL_WINNER</div>
-                 <div class="winner-ign">${winner}</div>
-                 <button class="btn-primary" style="margin-top: 2rem; background: #1a1a1a; color: gold;" onclick="VendorLogic.downloadWinnerCard()">DOWNLOAD_CERTIFICATE</button>
-             `;
-             
-             const parent = document.querySelector('#pickerAnimation').parentElement;
-             parent.appendChild(card);
-             
-             const container = card.querySelector('.sparkles-container');
-             for(let i=0; i<20; i++) {
-                 const s = document.createElement('div');
-                 s.className = 'sparkle';
-                 s.style.left = Math.random() * 100 + '%';
-                 s.style.top = Math.random() * 100 + '%';
-                 s.style.animationDelay = Math.random() * 2 + 's';
-                 container.appendChild(s);
+             if (data.success && data.winners) {
+                 this.finalizeWinners(data.winners, data.proof_hash);
+             } else {
+                 window.notify(data.error || 'DRAW_FAILED', 'error');
              }
-             const pickBtn = document.getElementById('startPickBtn');
-             if (pickBtn) pickBtn.style.display = 'none';
-             window.notify('WINNER_SELECTED', 'success');
          } catch (err) {
-             window.notify('PICK_FAILED', 'error');
+             window.notify('DRAW_SYSTEM_OFFLINE', 'error');
          }
      },
 
-     downloadWinnerCard() {
-         window.notify('PREPARING_HIGH_RES_CERTIFICATE...', 'info');
+     async finalizeWinners(winners, proofHash) {
+         const display = document.getElementById('pickerAnimation');
+         if (display) display.style.display = 'none';
+         
+         const card = document.createElement('div');
+         card.className = 'gold-winner-card';
+         
+         const winnersHtml = winners.map(w => `
+             <div class="winner-ign" style="font-size: ${winners.length > 1 ? '1.2rem' : '1.8rem'}; margin: 0.5rem 0;">${w.ign || w.user_id}</div>
+         `).join('');
+
+         card.innerHTML = `
+             <div class="sparkles-container"></div>
+             <div style="font-size: 0.6rem; font-weight: 800; letter-spacing: 0.2em; opacity: 0.8;">OFFICIAL_WINNER${winners.length > 1 ? 'S' : ''}</div>
+             <div style="margin: 1rem 0;">${winnersHtml}</div>
+             <div style="font-family: var(--font-mono); font-size: 0.5rem; color: gold; opacity: 0.6; margin-top: 1rem; word-break: break-all; padding: 0 1rem;">
+                PROOF_HASH: ${proofHash.substring(0, 32)}...
+             </div>
+             <button class="btn-primary" style="margin-top: 1.5rem; background: #1a1a1a; color: gold; font-size: 0.7rem; padding: 0.8rem;" onclick="VendorLogic.downloadWinnerCard()">DOWNLOAD_CERTIFICATE</button>
+         `;
+         
+         const parent = document.querySelector('#pickerAnimation').parentElement;
+         parent.appendChild(card);
+         
+         const container = card.querySelector('.sparkles-container');
+         for(let i=0; i<30; i++) {
+             const s = document.createElement('div');
+             s.className = 'sparkle';
+             s.style.left = Math.random() * 100 + '%';
+             s.style.top = Math.random() * 100 + '%';
+             s.style.animationDelay = Math.random() * 2 + 's';
+             container.appendChild(s);
+         }
+         
+         const pickBtn = document.getElementById('startPickBtn');
+         if (pickBtn) pickBtn.style.display = 'none';
+         window.notify('DRAW_COMPLETED_SUCCESSFULLY', 'success');
      },
+
+      downloadWinnerCard() {
+          const card = document.querySelector('.gold-winner-card');
+          if (!card) return;
+          
+          const text = `
+AXP ELITE WINNER CERTIFICATE
+---------------------------
+EVENT: ${card.querySelector('.winner-event')?.textContent || 'AXP GIVEAWAY'}
+WINNER(S): ${Array.from(card.querySelectorAll('.winner-ign')).map(el => el.textContent).join(', ')}
+DATE: ${new Date().toLocaleString()}
+PROOF_HASH: ${card.textContent.match(/PROOF_HASH: (.*)/)?.[1] || 'N/A'}
+---------------------------
+VERIFY AT: AXP-SENSITIVITY.COM/WINNERS
+          `;
+          
+          const blob = new Blob([text], { type: 'text/plain' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `AXP_WINNER_${Date.now()}.txt`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+          
+          window.notify('CERTIFICATE_DOWNLOADED', 'success');
+      },
 
     async openManualCreator() {
         const tier = this.state.vendorData?.tier || 'normal';

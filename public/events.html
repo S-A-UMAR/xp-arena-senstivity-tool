@@ -202,11 +202,93 @@
         </a>
     </nav>
 
+    <script src="notifications.js"></script>
+    <script src="vendor_logic.js"></script>
+    <script src="vendor_layout.js"></script>
     <script src="translations.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             if (window.applyLanguage) window.applyLanguage();
+            loadEvents();
         });
+
+        async function loadEvents() {
+            try {
+                // Fetch from all vendors or specific ones? For now, we'll need an endpoint that lists active events.
+                // Assuming we have /api/vault/events/active
+                const res = await fetch('/api/vault/giveaways'); // Simplified for now
+                const giveaways = await res.json();
+                
+                const res2 = await fetch('/api/vault/tournaments');
+                const tournaments = await res2.json();
+
+                renderEvents([...giveaways.map(g => ({...g, event_type: 'giveaway'})), ...tournaments.map(t => ({...t, event_type: 'scrim'}))]);
+            } catch (err) {
+                console.error('Failed to load events');
+            }
+        }
+
+        function renderEvents(events) {
+            const list = document.getElementById('eventList');
+            if (events.length === 0) {
+                list.innerHTML = '<div style="text-align:center; padding:3rem; color:var(--text-muted);">NO_ACTIVE_EVENTS_FOUND</div>';
+                return;
+            }
+
+            list.innerHTML = events.map(ev => {
+                const isScrim = ev.event_type === 'scrim';
+                const accent = isScrim ? 'var(--accent-secondary)' : 'var(--accent-primary)';
+                const date = new Date(ev.end_at || ev.start_at).toLocaleDateString();
+                
+                return `
+                    <div class="event-card unlocked" style="border-color: ${accent}">
+                        <span class="lock-badge" style="background: ${accent}; color: ${isScrim ? 'white' : 'black'};">ACTIVE</span>
+                        <span class="event-title">${ev.title || ev.prize_pool || 'Elite Event'}</span>
+                        <span class="event-meta">${isScrim ? 'MAP: ' + ev.map_name : 'PRIZE: ' + ev.prize_description} · ${isScrim ? 'Starts' : 'Ends'}: ${date}</span>
+                        <button class="vault-btn" style="margin-top: 1rem; font-size: 0.7rem; padding: 0.6rem; background: ${accent}; color: ${isScrim ? 'white' : 'black'};" 
+                            onclick="openEventEntry('${ev.event_type}', '${ev.id}', '${ev.title || ev.prize_pool}')">
+                            ${isScrim ? 'REGISTER NOW' : 'ENTER GIVEAWAY'}
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function openEventEntry(type, id, title) {
+            // Check if user has an access code first (as per current design)
+            const code = prompt('ENTER_ACCESS_CODE_TO_JOIN:');
+            if (!code) return;
+
+            try {
+                const endpoint = type === 'scrim' ? `/api/vault/tournaments/${id}/join` : `/api/vault/giveaways/${id}/enter`;
+                const payload = type === 'scrim' ? {
+                    user_name: prompt('ENTER_YOUR_IGN:'),
+                    user_uid: prompt('ENTER_YOUR_GAME_UID:'),
+                    access_code: code
+                } : {
+                    input_data: prompt('ENTER_YOUR_IGN:'),
+                    access_code: code
+                };
+
+                if (type === 'scrim' && (!payload.user_name || !payload.user_uid)) return;
+                if (type === 'giveaway' && !payload.input_data) return;
+
+                const res = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    alert('ENTRY_SUCCESSFUL! YOU ARE NOW REGISTERED.');
+                } else {
+                    alert(data.error || 'ENTRY_FAILED');
+                }
+            } catch (err) {
+                alert('CONNECTION_ERROR');
+            }
+        }
 
         async function verifyEvent() {
             const code = document.getElementById('eventPasskey').value;
@@ -216,17 +298,19 @@
                 const res = await fetch('/api/vault/verify', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ code })
+                    body: JSON.stringify({ input: code }) // Fixed field name to 'input'
                 });
                 const data = await res.json();
                 
-                if (data.valid && data.type !== 'sensitivity') {
-                    showEntryPrompt(data);
+                if (data.sensitivity) {
+                    alert('SENSITIVITY_CODE_DETECTED - REDIRECTING...');
+                    window.location.href = `result.html?code=${code}`;
                 } else {
-                    alert('INVALID_EVENT_CODE');
+                    // It's a special event code
+                    showEntryPrompt(data);
                 }
             } catch (err) {
-                alert('CONNECTION_ERROR');
+                alert('INVALID_EVENT_CODE');
             }
         }
 
