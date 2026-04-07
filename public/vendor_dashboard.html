@@ -182,6 +182,10 @@
         }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes panelSlideUp {
+            from { opacity: 0; transform: translateY(20px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
     </style>
 </head>
 <body>
@@ -281,12 +285,166 @@
                 <!-- Recent codes will appear here -->
             </div>
         </div>
+
+        <!-- 🛡️ Command Center (New Section) -->
+        <div class="glass-panel" style="background: linear-gradient(145deg, rgba(15, 20, 25, 0.9), rgba(5, 7, 10, 0.95)); border: 1px solid rgba(255, 255, 255, 0.05);">
+            <div class="section-header">
+                <h2 class="section-title" style="letter-spacing: 0.05em; font-family: var(--font-mono); font-size: 0.9rem; opacity: 0.8;">COMMAND_CENTER</h2>
+            </div>
+            
+            <div style="display: grid; gap: 1rem;">
+                <!-- Pro Branding -->
+                <div class="command-tile" onclick="openBrandingEditor()">
+                    <div class="command-icon">🎨</div>
+                    <div class="command-info">
+                        <h3>PRO_BRANDING</h3>
+                        <p>Update your logo, links, and display name.</p>
+                    </div>
+                </div>
+
+                <!-- Vault Access -->
+                <div class="command-tile" onclick="openVaultManager()">
+                    <div class="command-icon">🔑</div>
+                    <div class="command-info">
+                        <h3>VAULT_ACCESS</h3>
+                        <p>Manage and revoke active access keys.</p>
+                    </div>
+                </div>
+
+                <!-- Master Presets -->
+                <div class="command-tile" onclick="openMasterPresets()">
+                    <div class="command-icon">📦</div>
+                    <div class="command-info">
+                        <h3>MASTER_PRESETS</h3>
+                        <p>Quick-load your saved configurations.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- 🍞 Neural Toasts -->
     <div id="toastContainer" class="toast-container"></div>
 
-    <script src="devices.js"></script>
+    <style>
+        .command-tile {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+            cursor: pointer;
+            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .command-tile:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--accent-primary);
+            transform: translateX(5px);
+        }
+        .command-icon {
+            font-size: 1.5rem;
+            width: 48px;
+            height: 48px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .command-info h3 {
+            margin: 0;
+            font-size: 0.85rem;
+            font-weight: 800;
+            letter-spacing: 0.05em;
+            color: white;
+        }
+        .command-info p {
+            margin: 4px 0 0;
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        /* Tier Specific Styles for Panels */
+        .glass-panel.tier-gold { border-color: gold; box-shadow: 0 0 30px rgba(255, 215, 0, 0.1); }
+        .glass-panel.tier-premium { border-color: var(--accent-secondary); }
+        .glass-panel.tier-pro { border-color: var(--accent-primary); }
+    </style>
+
+    <script>
+        // Ensure devices.js is loaded before vendor_logic.js init
+        window.devices = [
+            {
+                brand: "Apple",
+                series: [
+                    {
+                        name: "iPhone Pro Max/Plus Series",
+                        models: [
+                            { name: "iPhone 17 Pro Max", ram: 12 }, { name: "iPhone 17 Plus", ram: 8 },
+                            { name: "iPhone 16 Pro Max", ram: 8 }, { name: "iPhone 16 Plus", ram: 8 },
+                            { name: "iPhone 15 Pro Max", ram: 8 }, { name: "iPhone 15 Plus", ram: 6 },
+                            { name: "iPhone 14 Pro Max", ram: 6 }, { name: "iPhone 14 Plus", ram: 6 },
+                            { name: "iPhone 13 Pro Max", ram: 6 }, { name: "iPhone 12 Pro Max", ram: 6 },
+                            { name: "iPhone 11 Pro Max", ram: 4 }, { name: "iPhone XS Max", ram: 4 },
+                            { name: "iPhone 8 Plus", ram: 3 }, { name: "iPhone 7 Plus", ram: 3 }
+                        ]
+                    },
+                    {
+                        name: "iPhone standard/Pro/Mini",
+                        models: [
+                            { name: "iPhone 17 Pro", ram: 12 }, { name: "iPhone 17", ram: 8 },
+                            { name: "iPhone 16 Pro", ram: 8 }, { name: "iPhone 16", ram: 8 },
+                            { name: "iPhone 15 Pro", ram: 8 }, { name: "iPhone 15", ram: 6 },
+                            { name: "iPhone 14 Pro", ram: 6 }, { name: "iPhone 14", ram: 6 },
+                            { name: "iPhone 13 Pro", ram: 6 }, { name: "iPhone 13", ram: 4 },
+                            { name: "iPhone 12 Pro", ram: 6 }, { name: "iPhone 12", ram: 4 },
+                            { name: "iPhone 11 Pro", ram: 4 }, { name: "iPhone 11", ram: 4 }
+                        ]
+                    }
+                ]
+            },
+            {
+                brand: "Samsung",
+                series: [
+                    {
+                        name: "Galaxy S Series",
+                        models: [
+                            { name: "Galaxy S25 Ultra", ram: 16 }, { name: "Galaxy S25+", ram: 12 },
+                            { name: "Galaxy S24 Ultra", ram: 12 }, { name: "Galaxy S24+", ram: 12 },
+                            { name: "Galaxy S23 Ultra", ram: 12 }, { name: "Galaxy S22 Ultra", ram: 12 },
+                            { name: "Galaxy S21 Ultra", ram: 12 }, { name: "Galaxy S20 Ultra", ram: 12 }
+                        ]
+                    }
+                ]
+            },
+            {
+                brand: "Xiaomi",
+                series: [
+                    {
+                        name: "Xiaomi/Mi Series",
+                        models: [
+                            { name: "Xiaomi 15 Ultra", ram: 16 }, { name: "Xiaomi 14 Ultra", ram: 16 },
+                            { name: "Xiaomi 13 Ultra", ram: 12 }, { name: "Xiaomi 12 Pro", ram: 12 }
+                        ]
+                    }
+                ]
+            },
+            {
+                brand: "Nubia / RedMagic",
+                series: [
+                    {
+                        name: "RedMagic Series",
+                        models: [
+                            { name: "RedMagic 10 Pro+", ram: 24 }, { name: "RedMagic 9S Pro+", ram: 16 },
+                            { name: "RedMagic 8 Pro", ram: 12 }, { name: "RedMagic 7 Pro", ram: 12 }
+                        ]
+                    }
+                ]
+            }
+        ];
+    </script>
     <script src="notifications.js"></script>
     <script src="translations.js"></script>
     <script src="settings.js"></script>

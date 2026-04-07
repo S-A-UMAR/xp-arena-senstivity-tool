@@ -536,6 +536,36 @@ async function updateVendorProfile(vendorId, payload) {
     return { success: true, brand_config: mergedConfig };
 }
 
+router.get('/vendor/event/participants/:type/:id', authenticateVendor, async (req, res) => {
+    try {
+        const { type, id } = req.params;
+        let query = '';
+        if (type === 'scrim') {
+            query = `SELECT u.ign, u.uid FROM tournament_registrations tr JOIN users u ON tr.user_uid = u.uid WHERE tr.tournament_id = ?`;
+        } else {
+            query = `SELECT u.ign, u.uid FROM giveaway_entries ge JOIN users u ON ge.user_id = u.id WHERE ge.giveaway_id = ?`;
+        }
+        const participants = await db.all(query, [id]);
+        return res.json({ success: true, participants });
+    } catch (err) {
+        return res.status(500).json({ error: 'FETCH_PARTICIPANTS_FAILED' });
+    }
+});
+
+router.post('/vendor/event/remove-participant', authenticateVendor, async (req, res) => {
+    try {
+        const { type, eventId, userId } = req.body;
+        if (type === 'scrim') {
+            await db.run(`DELETE FROM tournament_registrations WHERE tournament_id = ? AND user_uid = ?`, [eventId, userId]);
+        } else {
+            await db.run(`DELETE FROM giveaway_entries WHERE giveaway_id = ? AND user_id = ?`, [eventId, userId]);
+        }
+        return res.json({ success: true });
+    } catch (err) {
+        return res.status(500).json({ error: 'REMOVE_FAILED' });
+    }
+});
+
 // --- VENDOR ENDPOINTS ---
 
 router.post('/vendor/generate', authenticateVendor, async (req, res) => {

@@ -1190,3 +1190,54 @@ body {
 @keyframes spin {
     to { transform: rotate(360deg); }
 }
+
+/* 🏆 Gold Winner Card & Sparkles */
+.gold-winner-card {
+    background: linear-gradient(135deg, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
+    border-radius: 24px;
+    padding: 3rem;
+    position: relative;
+    overflow: hidden;
+    color: #1a1a1a;
+    box-shadow: 0 0 50px rgba(212, 175, 55, 0.4);
+    animation: goldShimmer 3s infinite linear, cardPop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes goldShimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+@keyframes cardPop {
+    0% { transform: scale(0.5); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.sparkle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: white;
+    border-radius: 50%;
+    filter: blur(1px);
+    animation: sparkleAnim 1.5s infinite ease-in-out;
+}
+
+@keyframes sparkleAnim {
+    0%, 100% { transform: scale(0); opacity: 0; }
+    50% { transform: scale(1.5); opacity: 1; }
+}
+
+.winner-ign {
+    font-size: 2.5rem;
+    font-weight: 900;
+    margin: 1rem 0;
+    text-transform: uppercase;
+    letter-spacing: -0.05em;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Tier Specific Branding */
+.tier-gold { border: 2px solid #ffd700; box-shadow: 0 0 20px rgba(255, 215, 0, 0.2); }
+.tier-premium { border: 2px solid #00f0ff; box-shadow: 0 0 20px rgba(0, 240, 255, 0.2); }
+.tier-admin { border: 2px solid #ff4444; box-shadow: 0 0 20px rgba(255, 68, 68, 0.2); }
