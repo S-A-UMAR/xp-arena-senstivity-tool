@@ -108,6 +108,17 @@ const VendorLogic = {
         if (parts.length === 2) return parts.pop().split(';').shift();
     },
 
+    async apiFetch(url, options = {}) {
+        const token = localStorage.getItem('axp_vendor_token') || this.getCookie('xp_vendor_token');
+        const headers = { ...(options.headers || {}) };
+        if (token && !headers.Authorization) headers.Authorization = `Bearer ${token}`;
+        return fetch(url, {
+            credentials: 'include',
+            ...options,
+            headers
+        });
+    },
+
     handleLogout() {
         localStorage.removeItem('axp_vendor_token');
         document.cookie = "xp_vendor_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
@@ -186,7 +197,7 @@ const VendorLogic = {
         if (!brand || !model) return window.notify('SELECT_DEVICE_FIRST', 'warning');
 
         try {
-            const res = await fetch('/api/vault/vendor/generate/auto', {
+            const res = await this.apiFetch('/api/vault/vendor/generate/auto', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ brand, model })
@@ -209,8 +220,8 @@ const VendorLogic = {
 
         try {
             const [gRes, sRes] = await Promise.all([
-                fetch('/api/vault/giveaways'),
-                fetch('/api/vault/tournaments')
+                this.apiFetch('/api/vault/giveaways'),
+                this.apiFetch('/api/vault/tournaments')
             ]);
             
             const giveaways = await gRes.json();
@@ -259,7 +270,7 @@ const VendorLogic = {
         this.showConfirm(`ARCHIVE_${type.toUpperCase()}?`, async () => {
             try {
                 const endpoint = type === 'scrim' ? `/api/vault/tournaments/${id}` : `/api/vault/giveaways/${id}`;
-                await fetch(endpoint, { method: 'DELETE' });
+                await this.apiFetch(endpoint, { method: 'DELETE' });
                 window.notify('EVENT_ARCHIVED', 'success');
                 this.loadMyEvents();
             } catch (err) {
@@ -270,7 +281,7 @@ const VendorLogic = {
 
     async fetchVendorProfile() {
         try {
-            const res = await fetch('/api/vault/vendor/profile');
+            const res = await this.apiFetch('/api/vault/vendor/profile');
             if (!res.ok) {
                 if (res.status === 401 || res.status === 403) {
                     this.handleLogout();
@@ -342,7 +353,7 @@ const VendorLogic = {
 
     async fetchStats() {
         try {
-            const res = await fetch('/api/vault/vendor/stats');
+            const res = await this.apiFetch('/api/vault/vendor/stats');
             this.state.stats = await res.json();
             
             const codesEl = document.getElementById('statCodes');
@@ -444,7 +455,7 @@ const VendorLogic = {
         if (!brand || !model) return window.notify('PLEASE_SELECT_DEVICE', 'warning');
 
         try {
-            const res = await fetch('/api/vault/vendor/generate', {
+            const res = await this.apiFetch('/api/vault/vendor/generate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -612,7 +623,7 @@ const VendorLogic = {
         if (!isScrim && !payload.title) return window.notify('TITLE_REQUIRED', 'warning');
 
         try {
-            const res = await fetch(endpoint, {
+            const res = await this.apiFetch(endpoint, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
@@ -676,7 +687,7 @@ const VendorLogic = {
 
     async loadParticipantCount(eventId) {
         try {
-            const res = await fetch(`/api/vault/vendor/event/participants/giveaway/${eventId}`);
+            const res = await this.apiFetch(`/api/vault/vendor/event/participants/giveaway/${eventId}`);
             const data = await res.json();
             this.state.currentParticipants = data.participants || [];
             const el = document.getElementById('participantCount');
@@ -706,7 +717,7 @@ const VendorLogic = {
 
     async loadParticipants(type, eventId) {
         try {
-            const res = await fetch(`/api/vault/vendor/event/participants/${type}/${eventId}`);
+            const res = await this.apiFetch(`/api/vault/vendor/event/participants/${type}/${eventId}`);
             const data = await res.json();
             const list = document.getElementById('participantList');
             if (!list) return;
@@ -726,7 +737,7 @@ const VendorLogic = {
     async removeParticipant(type, eventId, userId) {
         this.showConfirm('REMOVE_PARTICIPANT_CONFIRM?', async () => {
             try {
-                await fetch('/api/vault/vendor/event/remove-participant', {
+                await this.apiFetch('/api/vault/vendor/event/remove-participant', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ type, eventId, userId })
@@ -767,7 +778,7 @@ const VendorLogic = {
 
      async performActualDraw(eventId) {
          try {
-             const res = await fetch(`/api/vault/giveaways/${eventId}/draw`, { method: 'POST' });
+             const res = await this.apiFetch(`/api/vault/giveaways/${eventId}/draw`, { method: 'POST' });
              const data = await res.json();
              
              if (data.success && data.winners) {
@@ -880,7 +891,7 @@ VERIFY AT: AXP-SENSITIVITY.COM/WINNERS
             curve: document.getElementById('manualCurve').value
         };
         try {
-            const res = await fetch('/api/vault/vendor/generate/manual', {
+            const res = await this.apiFetch('/api/vault/vendor/generate/manual', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
@@ -928,7 +939,7 @@ VERIFY AT: AXP-SENSITIVITY.COM/WINNERS
             }
         };
         try {
-            const res = await fetch('/api/vault/vendor/profile', {
+            const res = await this.apiFetch('/api/vault/vendor/profile', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
@@ -965,7 +976,7 @@ VERIFY AT: AXP-SENSITIVITY.COM/WINNERS
 
     async loadKeys() {
         try {
-            const res = await fetch('/api/vault/vendor/keys');
+            const res = await this.apiFetch('/api/vault/vendor/keys');
             const data = await res.json();
             const list = document.getElementById('keysList');
             if (!data.keys || data.keys.length === 0) {
@@ -987,7 +998,7 @@ VERIFY AT: AXP-SENSITIVITY.COM/WINNERS
     async revokeKey(key) {
         this.showConfirm('REVOKE_ACCESS_KEY?', async () => {
             try {
-                await fetch(`/api/vault/vendor/keys/${key}`, { method: 'DELETE' });
+                await this.apiFetch(`/api/vault/vendor/keys/${key}`, { method: 'DELETE' });
                 this.loadKeys();
                 window.notify('KEY_REVOKED', 'success');
             } catch (err) {
@@ -1020,7 +1031,7 @@ VERIFY AT: AXP-SENSITIVITY.COM/WINNERS
 
     async loadPresets() {
         try {
-            const res = await fetch('/api/vault/vendor/presets');
+            const res = await this.apiFetch('/api/vault/vendor/presets');
             const data = await res.json();
             const list = document.getElementById('presetsList');
             if (!data || data.length === 0) {
@@ -1055,7 +1066,7 @@ VERIFY AT: AXP-SENSITIVITY.COM/WINNERS
         };
 
         try {
-            const res = await fetch('/api/vault/vendor/presets', {
+            const res = await this.apiFetch('/api/vault/vendor/presets', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name, config })
@@ -1104,7 +1115,7 @@ VERIFY AT: AXP-SENSITIVITY.COM/WINNERS
     async deletePreset(id) {
         this.showConfirm('DELETE_PRESET_CONFIRM?', async () => {
             try {
-                await fetch(`/api/vault/vendor/presets/${id}`, { method: 'DELETE' });
+                await this.apiFetch(`/api/vault/vendor/presets/${id}`, { method: 'DELETE' });
                 this.loadPresets();
                 window.notify('PRESET_DELETED', 'success');
             } catch (err) {

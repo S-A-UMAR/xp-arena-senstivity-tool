@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>AXP | Device Catalog</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="devices.js"></script>
+  <style>
+    body { margin:0; background:#05070a; color:#fff; font-family:Outfit,sans-serif; }
+    .wrap { max-width:980px; margin:0 auto; padding:1rem; }
+    .card { border:1px solid rgba(255,255,255,.1); background:rgba(255,255,255,.03); border-radius:16px; padding:1rem; margin-bottom:1rem; }
+    .grid { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:.75rem; }
+    .metric { padding:.8rem; border-radius:12px; background:rgba(0,0,0,.3); border:1px solid rgba(255,255,255,.08); font-size:.78rem; }
+    input { width:100%; border-radius:10px; border:1px solid rgba(255,255,255,.2); background:#0f172a; color:#fff; padding:.8rem; }
+    table { width:100%; border-collapse:collapse; font-size:.8rem; }
+    th,td { border-bottom:1px solid rgba(255,255,255,.08); padding:.6rem; text-align:left; }
+    @media (max-width:760px){ .grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1 style="margin:.2rem 0 1rem; font-size:1.2rem;">Device Catalog Command Center</h1>
+      <div class="grid">
+        <div class="metric">Brands: <b id="mBrands">--</b></div>
+        <div class="metric">Series: <b id="mSeries">--</b></div>
+        <div class="metric">Models: <b id="mModels">--</b></div>
+        <div class="metric">Profiles: <b id="mProfiles">--</b></div>
+        <div class="metric">Avg RAM: <b id="mRam">--</b></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <input id="q" placeholder="Search brand, series, model..." />
+      <div style="overflow:auto; margin-top:1rem; max-height:65vh;">
+        <table>
+          <thead><tr><th>Brand</th><th>Series</th><th>Model</th><th>RAM (GB)</th><th>Tier</th></tr></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const catalog = window.devices || (typeof devices !== 'undefined' ? devices : []);
+    const rows = (catalog || []).flatMap((b) =>
+      (b.series || []).flatMap((s) =>
+        (s.models || []).map((m) => ({ brand: b.brand, series: s.name, model: m.name, ram: Number(m.ram || 0) }))
+      )
+    );
+
+    function tier(ram) {
+      if (ram >= 12) return 'ELITE';
+      if (ram >= 8) return 'PRO';
+      if (ram >= 4) return 'CORE';
+      return 'LEGACY';
+    }
+
+    function render(list) {
+      const body = document.getElementById('tbody');
+      body.innerHTML = list.slice(0, 1500).map((r) => `<tr><td>${r.brand}</td><td>${r.series}</td><td>${r.model}</td><td>${r.ram}</td><td>${tier(r.ram)}</td></tr>`).join('');
+    }
+
+    document.getElementById('q').addEventListener('input', (e) => {
+      const q = e.target.value.trim().toLowerCase();
+      if (!q) return render(rows);
+      render(rows.filter((r) => `${r.brand} ${r.series} ${r.model}`.toLowerCase().includes(q)));
+    });
+
+    if (!rows.length) {
+      document.getElementById('tbody').innerHTML = '<tr><td colspan=\"5\" style=\"text-align:center;color:#94a3b8;padding:1.2rem;\">No device data loaded</td></tr>';
+    } else {
+      render(rows);
+    }
+
+    fetch('/api/vault/device-catalog/summary')
+      .then((r) => r.json())
+      .then((s) => {
+        document.getElementById('mBrands').textContent = s.total_brands ?? '--';
+        document.getElementById('mSeries').textContent = s.total_series ?? '--';
+        document.getElementById('mModels').textContent = s.total_models ?? '--';
+        document.getElementById('mProfiles').textContent = s.total_profiles ?? '--';
+        document.getElementById('mRam').textContent = s.avg_ram ?? '--';
+      })
+      .catch(() => {});
+  </script>
+</body>
+</html>
