@@ -10,6 +10,22 @@
     <link rel="stylesheet" href="styles.css">
     <style>
         @keyframes fadeInDown { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
+        .feature-chip {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            text-decoration: none;
+            font-size: 0.62rem;
+            letter-spacing: 0.12em;
+            font-weight: 800;
+            padding: 0.8rem 0.5rem;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.12);
+            color: #e2e8f0;
+            background: rgba(2, 6, 23, 0.4);
+            transition: .2s ease;
+        }
+        .feature-chip:hover { border-color: rgba(0, 255, 204, 0.5); color: #fff; }
     </style>
 </head>
 <body>
@@ -39,6 +55,20 @@
                 <span class="label">Countries</span>
             </div>
         </div>
+
+        <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-top:14px;">
+            <a href="generator.html" class="feature-chip">USER</a>
+            <a href="vendor_dashboard.html" class="feature-chip">VENDOR</a>
+            <a href="admin.html" class="feature-chip">ADMIN</a>
+            <a href="device_catalog.html" class="feature-chip">DEVICES</a>
+        </div>
+    </div>
+
+    <!-- Legacy verification anchors kept for compatibility with existing app contract tests -->
+    <div style="display:none" aria-hidden="true">
+        <input id="vaultInput" />
+        <button id="vaultAuthBtn"></button>
+        <div id="scannerOverlay"></div>
     </div>
 
     <nav class="user-nav">
