@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;800&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="vendor_shared.css">
     <link rel="stylesheet" href="vendor_nav.css">
     <script src="devices.js"></script>
     <style>
@@ -145,23 +146,7 @@
         }
         .cyber-input:focus { border-color: var(--accent-primary); background: rgba(0, 255, 204, 0.02); }
 
-        .btn-primary {
-            width: 100%;
-            background: var(--accent-primary);
-            color: #000;
-            border: none;
-            padding: 1.25rem;
-            border-radius: 100px;
-            font-weight: 900;
-            font-size: 1rem;
-            cursor: pointer;
-            box-shadow: 0 10px 25px var(--accent-primary-glow);
-            transition: 0.3s;
-            letter-spacing: 0.05em;
-        }
-        .btn-primary:hover { transform: scale(1.02); box-shadow: 0 15px 35px var(--accent-primary-glow); }
-
-        /* 🎚️ Custom Cyber Slider */
+        /* Tier Specific Styles for Panels */
         .cyber-slider {
             -webkit-appearance: none;
             width: 100%;
@@ -273,7 +258,7 @@
                 </div>
             </div>
 
-            <button class="btn-primary" onclick="autoGenerate()">GENERATE ACCESS KEY</button>
+            <button class="btn-primary" onclick="VendorLogic.autoGenerate()">GENERATE ACCESS KEY</button>
         </div>
 
         <!-- Recently Generated Section (Optional Enhancement) -->
@@ -287,13 +272,28 @@
             </div>
         </div>
 
+        <!-- 📊 Live Activity Feed -->
+        <div class="glass-panel" style="padding: 1.5rem;">
+            <div class="section-header">
+                <h2 class="section-title">UPLINK_ACTIVITY</h2>
+                <div id="statusPulse" style="display: flex; align-items: center; gap: 6px;">
+                    <span style="width: 6px; height: 6px; background: var(--accent-primary); border-radius: 50%; box-shadow: 0 0 10px var(--accent-primary); animation: pulse 2s infinite;"></span>
+                    <span style="font-size: 0.55rem; font-weight: 900; color: var(--accent-primary); letter-spacing: 0.1em;">SYSTEM_LIVE</span>
+                </div>
+            </div>
+            <div id="activityFeed" style="display: flex; flex-direction: column; gap: 0.75rem; max-height: 120px; overflow: hidden; position: relative;">
+                <!-- Activity items will be injected here -->
+                <div style="padding: 1rem; text-align: center; color: var(--text-muted); font-size: 0.65rem;">SCANNING_NETWORK...</div>
+            </div>
+        </div>
+
         <!-- 🏆 My Active Events -->
         <div class="glass-panel" id="myEventsSection">
             <div class="section-header">
                 <h2 class="section-title">ACTIVE_EVENTS</h2>
                 <div style="display: flex; gap: 0.5rem;">
-                    <button class="section-link" onclick="createEvent('giveaway')" style="background: none; border: none; cursor: pointer;">+ GIVEAWAY</button>
-                    <button class="section-link" onclick="createEvent('scrim')" style="background: none; border: none; cursor: pointer;">+ SCRIM</button>
+                    <button class="section-link" onclick="VendorLogic.createEvent('giveaway')" style="background: none; border: none; cursor: pointer;">+ GIVEAWAY</button>
+                    <button class="section-link" onclick="VendorLogic.createEvent('scrim')" style="background: none; border: none; cursor: pointer;">+ SCRIM</button>
                 </div>
             </div>
             <div id="myEventsList" style="display: grid; gap: 1rem;">

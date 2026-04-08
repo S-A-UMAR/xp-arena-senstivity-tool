@@ -8,9 +8,199 @@ const VendorLogic = {
 
     async init() {
         this.populateDevices();
-        await this.fetchVendorProfile();
-        this.loadMyEvents();
+        
+        // Only enforce vendor auth on dashboard pages
+        const isDashboard = window.location.pathname.includes('vendor_');
+        if (isDashboard || localStorage.getItem('axp_vendor_token')) {
+            try {
+                await this.fetchVendorProfile();
+                this.loadMyEvents();
+                this.initActivityFeed();
+            } catch (err) {
+                if (isDashboard) this.handleLogout();
+            }
+        }
+        
         this.updateUI();
+    },
+
+    initActivityFeed() {
+        const feed = document.getElementById('activityFeed');
+        if (!feed) return;
+
+        const events = [
+            'USER_ENTRY: @{user} joined SCRIM_7',
+            'SYSTEM: Vault key {id} generated',
+            'GIVEAWAY: Winner picked for {item}',
+            'USER_ENTRY: @{user} entered GIVEAWAY_3',
+            'SYSTEM: Brand config updated',
+            'USER_ENTRY: @{user} verified elite key'
+        ];
+
+        const users = ['Ninja', 'Slayer', 'Ghost', 'Pro_01', 'King', 'Legend', 'Volt'];
+        const items = ['1000 DIAMONDS', 'ELITE PASS', 'SKIN PACK', 'CUSTOM KEY'];
+
+        const addActivity = () => {
+            const template = events[Math.floor(Math.random() * events.length)];
+            const user = users[Math.floor(Math.random() * users.length)];
+            const item = items[Math.floor(Math.random() * items.length)];
+            const id = Math.random().toString(36).substr(2, 6).toUpperCase();
+
+            const text = template.replace('{user}', user).replace('{item}', item).replace('{id}', id);
+            
+            const itemEl = document.createElement('div');
+            itemEl.style.cssText = `
+                font-size: 0.6rem;
+                font-family: var(--font-mono);
+                color: rgba(255,255,255,0.4);
+                padding: 0.5rem 0.75rem;
+                background: rgba(255,255,255,0.02);
+                border-radius: 8px;
+                border-left: 2px solid var(--accent-primary);
+                animation: slideInLeft 0.5s ease-out;
+            `;
+            itemEl.textContent = `[${new Date().toLocaleTimeString()}] ${text}`;
+            
+            feed.prepend(itemEl);
+            if (feed.children.length > 5) feed.lastElementChild.remove();
+        };
+
+        // Initial items
+        for (let i = 0; i < 3; i++) addActivity();
+        
+        // Randomly add new activity
+        setInterval(() => {
+            if (Math.random() > 0.7) addActivity();
+        }, 3000);
+    },
+
+    populateDevices() {
+        const brandSelect = document.getElementById('genBrand');
+        if (!brandSelect || !window.devices) return;
+
+        brandSelect.innerHTML = '<option value="" disabled selected>SELECT_BRAND</option>' + 
+            window.devices.map(b => `<option value="${b.brand}">${b.brand.toUpperCase()}</option>`).join('');
+
+        brandSelect.onchange = (e) => {
+            const brand = window.devices.find(b => b.brand === e.target.value);
+            const seriesSelect = document.getElementById('genSeries');
+            if (brand && seriesSelect) {
+                seriesSelect.disabled = false;
+                seriesSelect.innerHTML = '<option value="" disabled selected>SELECT_SERIES</option>' + 
+                    brand.series.map(s => `<option value="${s.name}">${s.name.toUpperCase()}</option>`).join('');
+                
+                seriesSelect.onchange = (e2) => {
+                    const series = brand.series.find(s => s.name === e2.target.value);
+                    const modelSelect = document.getElementById('genModel');
+                    if (series && modelSelect) {
+                        modelSelect.disabled = false;
+                        modelSelect.innerHTML = '<option value="" disabled selected>SELECT_MODEL</option>' + 
+                            series.models.map(m => `<option value="${m.name}">${m.name.toUpperCase()}</option>`).join('');
+                    }
+                };
+            }
+        };
+    },
+
+    getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+    },
+
+    handleLogout() {
+        localStorage.removeItem('axp_vendor_token');
+        document.cookie = "xp_vendor_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        window.location.href = 'index.html';
+    },
+
+    showConfirm(title, onConfirm) {
+        const tier = this.state.vendorData?.tier || 'normal';
+        const overlay = document.createElement('div');
+        overlay.className = 'quick-action-overlay active';
+        overlay.style.zIndex = '10000';
+        overlay.innerHTML = `
+            <div class="glass-panel tier-${tier}" style="width: 90%; max-width: 350px; padding: 2.5rem; text-align: center;">
+                <div style="font-size: 1.5rem; margin-bottom: 1rem;">⚠️</div>
+                <h3 style="margin: 0 0 1.5rem 0; font-size: 1rem; font-weight: 900; letter-spacing: 0.05em;">${title}</h3>
+                <div style="display: flex; gap: 1rem;">
+                    <button class="btn-secondary" style="flex: 1;" onclick="this.closest('.quick-action-overlay').remove()">CANCEL</button>
+                    <button class="btn-primary" style="flex: 1; background: #ff4444; box-shadow: 0 10px 20px rgba(255,68,68,0.3); color: white;" id="confirmBtn">CONFIRM</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+        document.getElementById('confirmBtn').onclick = () => {
+            overlay.remove();
+            onConfirm();
+        };
+    },
+
+    showResultCard(code, brand, model, tier) {
+        const overlay = document.createElement('div');
+        overlay.className = 'quick-action-overlay active';
+        overlay.style.zIndex = '10000';
+        overlay.innerHTML = `
+            <div class="glass-panel tier-${tier}" style="width: 90%; max-width: 400px; padding: 2.5rem; text-align: center;">
+                <div class="section-header"><h2 class="section-title">VAULT_KEY_READY</h2></div>
+                <div style="background: rgba(0,255,204,0.05); border: 1px dashed var(--accent-primary); padding: 1.5rem; border-radius: 16px; margin: 1.5rem 0;">
+                    <div style="font-size: 0.6rem; color: var(--text-muted); margin-bottom: 0.5rem;">LOOKUP_KEY</div>
+                    <div style="font-family: var(--font-mono); font-size: 1.5rem; font-weight: 900; color: white; letter-spacing: 0.1em;">${code}</div>
+                </div>
+                <div style="font-size: 0.7rem; color: var(--text-muted); margin-bottom: 2rem;">DEVICE: ${brand} ${model}</div>
+                <button class="btn-primary" onclick="VendorLogic.copyToClipboard('${code}')">COPY_TO_CLIPBOARD</button>
+                <button class="btn-secondary" style="margin-top: 1rem; width: 100%;" onclick="this.closest('.quick-action-overlay').remove()">DISMISS</button>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+    },
+
+    showEventCard(id, type, title, payload) {
+        const tier = this.state.vendorData?.tier || 'normal';
+        const overlay = document.createElement('div');
+        overlay.className = 'quick-action-overlay active';
+        overlay.style.zIndex = '10000';
+        overlay.innerHTML = `
+            <div class="glass-panel tier-${tier}" style="width: 90%; max-width: 400px; padding: 2.5rem; text-align: center;">
+                <div class="section-header"><h2 class="section-title">EVENT_INITIALIZED</h2></div>
+                <div style="font-size: 3rem; margin: 1.5rem 0;">${type === 'scrim' ? '🏆' : '🎁'}</div>
+                <h3 style="margin: 0; color: white; font-weight: 900;">${title}</h3>
+                <p style="font-size: 0.7rem; color: var(--text-muted); margin-top: 0.5rem;">ID: ${id}</p>
+                <button class="btn-primary" style="margin-top: 2rem;" onclick="VendorLogic.copyToClipboard('https://axp-tool.vercel.app/${type}/${id}')">COPY_INVITE_LINK</button>
+                <button class="btn-secondary" style="margin-top: 1rem; width: 100%;" onclick="this.closest('.quick-action-overlay').remove()">DISMISS</button>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+    },
+
+    copyToClipboard(text) {
+        navigator.clipboard.writeText(text);
+        window.notify('COPIED_TO_CLIPBOARD', 'success');
+    },
+
+    async autoGenerate() {
+        const brand = document.getElementById('genBrand').value;
+        const model = document.getElementById('genModel').value;
+        const tier = this.state.vendorData?.tier || 'normal';
+
+        if (!brand || !model) return window.notify('SELECT_DEVICE_FIRST', 'warning');
+
+        try {
+            const res = await fetch('/api/vault/vendor/generate/auto', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ brand, model })
+            });
+            const data = await res.json();
+            if (data.code) {
+                this.showResultCard(data.code, brand, model, tier);
+                window.notify('ACCESS_KEY_GENERATED', 'success');
+            } else {
+                window.notify(data.error || 'GENERATION_FAILED', 'error');
+            }
+        } catch (err) {
+            window.notify('GENERATION_FAILED', 'error');
+        }
     },
 
     async loadMyEvents() {
@@ -333,42 +523,44 @@ const VendorLogic = {
                     <textarea id="eventDesc" class="cyber-input" style="height: 80px; resize: none;" placeholder="${isScrim ? 'Prize Pool amount...' : 'Giveaway items...'}"></textarea>
                 </div>
 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
-                    <div class="form-group" style="margin-bottom:0;">
+                <div class="form-row">
+                    <div class="form-group">
                         <label class="form-label">EVENT TYPE</label>
                         <select id="eventMode" class="pro-select">
                             ${isScrim ? `
-                                <option value="battle_royale">BATTLE_ROYALE</option>
-                                <option value="prize_pool">PRIZE_POOL</option>
+                                <option value="BATTLE_ROYALE">BATTLE_ROYALE</option>
+                                <option value="CLASH_SQUAD">CLASH_SQUAD</option>
+                                <option value="CUSTOM_MOD">CUSTOM_MOD</option>
                             ` : `
-                                <option value="gifting">GIFTING (NEW_GIFT)</option>
-                                <option value="redeem_code">REDEEM_CODE</option>
-                                <option value="cash_prize">CASH_PRIZE</option>
-                                <option value="custom">CUSTOM</option>
+                                <option value="GIFTING">GIFTING</option>
+                                <option value="REDEEM_CODE">REDEEM_CODE</option>
+                                <option value="ACCOUNT_TOPUP">ACCOUNT_TOPUP</option>
                             `}
                         </select>
                     </div>
-                    <div class="form-group" style="margin-bottom:0;">
+                    <div class="form-group">
                         <label class="form-label">END_DATE</label>
                         <input type="datetime-local" id="eventEnd" class="cyber-input">
                     </div>
                 </div>
 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
-                    <div class="form-group" style="margin-bottom:0;">
+                <div class="form-row">
+                    <div class="form-group">
                         <label class="form-label">${isScrim ? 'TOTAL_SLOTS' : 'MAX_WINNERS'}</label>
-                        <input type="number" id="eventLimit" class="cyber-input" value="${isScrim ? '48' : '1'}">
+                        <input type="number" id="eventCapacity" class="cyber-input" value="${isScrim ? '48' : '1'}">
                     </div>
-                    <div class="form-group" style="margin-bottom:0;">
+                    <div class="form-group">
                         <label class="form-label">${isScrim ? 'MAP' : 'REQUIREMENT'}</label>
-                        <select id="eventSub" class="pro-select">
+                        <select id="eventExtra" class="pro-select">
                             ${isScrim ? `
-                                <option value="bermuda">BERMUDA</option>
-                                <option value="purgatory">PURGATORY</option>
-                                <option value="kalahari">KALAHARI</option>
+                                <option value="BERMUDA">BERMUDA</option>
+                                <option value="PURGATORY">PURGATORY</option>
+                                <option value="KALAHARI">KALAHARI</option>
+                                <option value="NEXETERRA">NEXETERRA</option>
                             ` : `
-                                <option value="none">NONE</option>
-                                <option value="subscriber">SUBSCRIBER</option>
+                                <option value="NONE">NONE</option>
+                                <option value="FOLLOW_SOCIAL">FOLLOW_SOCIAL</option>
+                                <option value="MIN_LEVEL_50">MIN_LEVEL_50</option>
                             `}
                         </select>
                     </div>
@@ -376,31 +568,32 @@ const VendorLogic = {
 
                 <div class="form-group">
                     <label class="form-label">${isScrim ? 'COMM_LINK' : 'TASK_URL'}</label>
-                    <input type="text" id="eventLink" class="cyber-input" placeholder="https://...">
+                    <input type="url" id="eventLink" class="cyber-input" placeholder="https:// ...">
                 </div>
 
-                <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                <div style="display: flex; gap: 1rem; margin-top: 2rem;">
                     <button class="btn-secondary" style="flex: 1;" onclick="this.closest('.quick-action-overlay').remove()">CANCEL</button>
-                    <button class="btn-primary" style="flex: 2; background: ${accent};" onclick="VendorLogic.submitEvent('${type}')">INITIALIZE</button>
+                    <button class="btn-primary" style="flex: 2; background: ${accent}; box-shadow: 0 10px 30px ${accent}44;" onclick="VendorLogic.finalizeEvent('${type}')">INITIALIZE</button>
                 </div>
             </div>
         `;
         document.body.appendChild(overlay);
         
-        // Default end date (24h from now)
+        // Set default date to +24h
         const tomorrow = new Date();
-        tomorrow.setHours(tomorrow.getHours() + 24);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        tomorrow.setMinutes(tomorrow.getMinutes() - tomorrow.getTimezoneOffset());
         document.getElementById('eventEnd').value = tomorrow.toISOString().slice(0, 16);
     },
 
-    async submitEvent(type) {
+    async finalizeEvent(type) {
         const isScrim = type === 'scrim';
         const endpoint = isScrim ? '/api/vault/vendor/tournaments' : '/api/vault/vendor/giveaways';
         
         const payload = isScrim ? {
             type: document.getElementById('eventMode').value,
-            map_name: document.getElementById('eventSub').value,
-            total_slots: parseInt(document.getElementById('eventLimit').value),
+            map_name: document.getElementById('eventExtra').value,
+            total_slots: parseInt(document.getElementById('eventCapacity').value),
             prize_pool: document.getElementById('eventDesc').value,
             start_at: new Date().toISOString(),
             end_at: new Date(document.getElementById('eventEnd').value).toISOString(),
@@ -410,7 +603,9 @@ const VendorLogic = {
             title: document.getElementById('eventTitle').value,
             prize_description: document.getElementById('eventDesc').value,
             end_at: new Date(document.getElementById('eventEnd').value).toISOString(),
-            max_winners: parseInt(document.getElementById('eventLimit').value)
+            max_winners: parseInt(document.getElementById('eventCapacity').value),
+            task_url: document.getElementById('eventLink').value,
+            requirement: document.getElementById('eventExtra').value
         };
 
         if (isScrim && !payload.prize_pool) return window.notify('PRIZE_POOL_REQUIRED', 'warning');
@@ -424,18 +619,13 @@ const VendorLogic = {
             });
             const data = await res.json();
             if (data.success || data.id) {
-                const overlay = document.querySelector('.quick-action-overlay.active');
-                if (overlay) overlay.remove();
+                const activeOverlay = document.querySelector('.quick-action-overlay.active');
+                if (activeOverlay) activeOverlay.remove();
                 
-                // Show a success card with the ID or a general message
                 const displayId = data.id || 'SUCCESS';
                 this.showEventCard(displayId, type, payload.title || payload.prize_pool, payload);
                 window.notify('EVENT_PROVISIONED', 'success');
-                
-                // Refresh data if needed
-                if (window.location.pathname.includes('vendor_dashboard')) {
-                    setTimeout(() => window.location.reload(), 2000);
-                }
+                this.loadMyEvents();
             } else {
                 window.notify(data.error || 'CREATION_FAILED', 'error');
             }
@@ -664,15 +854,15 @@ VERIFY AT: AXP-SENSITIVITY.COM/WINNERS
         overlay.style.zIndex = '10000';
         
         overlay.innerHTML = `
-            <div class="glass-panel tier-${tier}" style="width: 95%; max-width: 500px; padding: 2.5rem;">
+            <div class="glass-panel tier-${tier}" style="width: 95%; max-width: 500px; padding: 2.5rem; max-height: 90vh; overflow-y: auto;">
                 <div class="section-header"><h2 class="section-title">PRO_MANUAL_SUITE</h2></div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                <div class="form-row">
                     <div class="form-group"><label class="form-label">X-AXIS</label><input type="number" id="manualX" class="cyber-input" value="85"></div>
                     <div class="form-group"><label class="form-label">Y-AXIS</label><input type="number" id="manualY" class="cyber-input" value="120"></div>
                 </div>
                 <div class="form-group">
                     <label class="form-label">CURVE</label>
-                    <select id="manualCurve" class="cyber-input"><option value="linear">LINEAR</option><option value="dynamic" selected>DYNAMIC</option></select>
+                    <select id="manualCurve" class="pro-select"><option value="linear">LINEAR</option><option value="dynamic" selected>DYNAMIC</option></select>
                 </div>
                 <div style="display: flex; gap: 1rem; margin-top: 2rem;">
                     <button class="btn-secondary" style="flex: 1;" onclick="this.closest('.quick-action-overlay').remove()">CANCEL</button>
@@ -697,7 +887,8 @@ VERIFY AT: AXP-SENSITIVITY.COM/WINNERS
             });
             const data = await res.json();
             if (data.code) {
-                document.querySelector('.quick-action-overlay.active').remove();
+                const activeOverlay = document.querySelector('.quick-action-overlay.active');
+                if (activeOverlay) activeOverlay.remove();
                 this.showResultCard(data.code, 'MANUAL', 'OVERRIDE', 'PRO');
                 window.notify('MANUAL_KEY_ENCODED', 'success');
             }
@@ -714,7 +905,7 @@ VERIFY AT: AXP-SENSITIVITY.COM/WINNERS
         overlay.style.zIndex = '10000';
         
         overlay.innerHTML = `
-            <div class="glass-panel tier-${tier}" style="width: 95%; max-width: 500px; padding: 2.5rem;">
+            <div class="glass-panel tier-${tier}" style="width: 95%; max-width: 500px; padding: 2.5rem; max-height: 90vh; overflow-y: auto;">
                 <div class="section-header"><h2 class="section-title">PRO_BRANDING</h2></div>
                 <div class="form-group"><label class="form-label">DISPLAY_NAME</label><input type="text" id="brandName" class="cyber-input" value="${this.state.vendorData?.display_name || ''}"></div>
                 <div class="form-group"><label class="form-label">LOGO_URL</label><input type="text" id="brandLogo" class="cyber-input" value="${config.logo_url || ''}"></div>
@@ -743,7 +934,8 @@ VERIFY AT: AXP-SENSITIVITY.COM/WINNERS
                 body: JSON.stringify(payload)
             });
             if (res.ok) {
-                document.querySelector('.quick-action-overlay.active').remove();
+                const activeOverlay = document.querySelector('.quick-action-overlay.active');
+                if (activeOverlay) activeOverlay.remove();
                 await this.fetchVendorProfile();
                 window.notify('BRANDING_UPDATED', 'success');
             }
@@ -759,7 +951,7 @@ VERIFY AT: AXP-SENSITIVITY.COM/WINNERS
         overlay.style.zIndex = '10000';
         
         overlay.innerHTML = `
-            <div class="glass-panel tier-${tier}" style="width: 95%; max-width: 600px; padding: 2.5rem;">
+            <div class="glass-panel tier-${tier}" style="width: 95%; max-width: 600px; padding: 2.5rem; max-height: 90vh; overflow-y: auto;">
                 <div class="section-header"><h2 class="section-title">VAULT_ACCESS</h2></div>
                 <div id="keysList" style="max-height: 400px; overflow-y: auto; background: rgba(255,255,255,0.03); border-radius: 16px;">
                     <div style="padding: 2rem; text-align: center; color: var(--text-muted);">FETCHING_KEYS...</div>
@@ -781,12 +973,12 @@ VERIFY AT: AXP-SENSITIVITY.COM/WINNERS
                 return;
             }
             list.innerHTML = data.keys.map(k => `
-                <div style="padding: 1rem; border-bottom: 1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                        <div style="color: white; font-weight: 800; font-family: var(--font-mono);">${k.lookup_key}</div>
+                <div style="padding: 1rem; border-bottom: 1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center; gap: 1rem;">
+                    <div style="flex: 1; min-width: 0;">
+                        <div style="color: white; font-weight: 800; font-family: var(--font-mono); font-size: 0.9rem; word-break: break-all;">${k.lookup_key}</div>
                         <div style="font-size: 0.6rem; color: var(--text-muted);">HITS: ${k.current_usage} / ${k.usage_limit || '∞'}</div>
                     </div>
-                    <button style="background: rgba(255,68,68,0.1); color: #ff4444; border: 1px solid rgba(255,68,68,0.2); padding: 6px 12px; border-radius: 8px; font-size: 0.6rem; cursor: pointer;" onclick="VendorLogic.revokeKey('${k.lookup_key}')">REVOKE</button>
+                    <button style="background: rgba(255,68,68,0.1); color: #ff4444; border: 1px solid rgba(255,68,68,0.2); padding: 8px 14px; border-radius: 12px; font-size: 0.65rem; font-weight: 800; cursor: pointer; transition: 0.3s;" onmouseover="this.style.background='rgba(255,68,68,0.2)'" onmouseout="this.style.background='rgba(255,68,68,0.1)'" onclick="VendorLogic.revokeKey('${k.lookup_key}')">REVOKE</button>
                 </div>
             `).join('');
         } catch (err) {}
@@ -811,7 +1003,7 @@ VERIFY AT: AXP-SENSITIVITY.COM/WINNERS
         overlay.style.zIndex = '10000';
         
         overlay.innerHTML = `
-            <div class="glass-panel tier-${tier}" style="width: 95%; max-width: 500px; padding: 2.5rem;">
+            <div class="glass-panel tier-${tier}" style="width: 95%; max-width: 500px; padding: 2.5rem; max-height: 90vh; overflow-y: auto;">
                 <div class="section-header">
                     <h2 class="section-title">MASTER_PRESETS</h2>
                     <button class="btn-primary" style="width: auto; padding: 0.5rem 1rem; font-size: 0.7rem;" onclick="VendorLogic.saveCurrentAsPreset()">SAVE_CURRENT</button>
@@ -836,18 +1028,17 @@ VERIFY AT: AXP-SENSITIVITY.COM/WINNERS
                 return;
             }
             list.innerHTML = data.map(p => `
-                <div style="padding: 1rem; border-bottom: 1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                        <div style="color: white; font-weight: 800; font-size: 0.8rem;">${p.preset_name}</div>
-                        <div style="font-size: 0.6rem; color: var(--text-muted);">${new Date(p.created_at).toLocaleDateString()}</div>
+                <div style="padding: 1rem; border-bottom: 1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center; gap: 1rem;">
+                    <div style="flex: 1; min-width: 0;">
+                        <div style="color: white; font-weight: 800; font-family: var(--font-mono); font-size: 0.85rem; word-break: break-all;">${p.name || (p.brand + ' ' + p.model)}</div>
+                        <div style="font-size: 0.6rem; color: var(--text-muted);">${p.brand} ${p.model} · ${p.ram}GB</div>
                     </div>
                     <div style="display: flex; gap: 0.5rem;">
-                        <button class="btn-primary" style="width: auto; padding: 4px 10px; font-size: 0.6rem;" onclick="VendorLogic.loadPresetToForm('${p.id}')">LOAD</button>
-                        <button style="background: rgba(255,68,68,0.1); color: #ff4444; border: 1px solid rgba(255,68,68,0.2); padding: 4px 8px; border-radius: 6px; font-size: 0.6rem; cursor: pointer;" onclick="VendorLogic.deletePreset('${p.id}')">DEL</button>
+                        <button class="btn-primary" style="width: auto; padding: 6px 12px; font-size: 0.65rem;" onclick="VendorLogic.loadPresetById('${p._id}')">LOAD</button>
+                        <button style="background: rgba(255,68,68,0.1); color: #ff4444; border: 1px solid rgba(255,68,68,0.2); padding: 6px; border-radius: 8px; cursor: pointer;" onclick="VendorLogic.deletePreset('${p._id}')">🗑️</button>
                     </div>
                 </div>
             `).join('');
-            this.state.presets = data;
         } catch (err) {}
     },
 
@@ -950,19 +1141,38 @@ VERIFY AT: AXP-SENSITIVITY.COM/WINNERS
     },
 
     updateUI() {
-        const pickBtns = Array.from(document.querySelectorAll('.event-btn')).filter(btn => btn.textContent.includes('PICK WINNER'));
-        pickBtns.forEach(btn => {
-            const card = btn.closest('.event-card') || btn.closest('.glass-panel');
-            const title = card.querySelector('.event-title')?.textContent || 'Giveaway';
-            btn.onclick = () => this.openWinnerPicker('GIVEAWAY_ID', title);
+        // Fix for static elements in HTML that might need handlers
+        document.querySelectorAll('[data-action]').forEach(el => {
+            const action = el.getAttribute('data-action');
+            if (this[action]) el.onclick = () => this[action]();
         });
+    }
+};
 
-        const manageBtns = Array.from(document.querySelectorAll('.event-btn')).filter(btn => btn.textContent.includes('MANAGE'));
-        manageBtns.forEach(btn => {
-            const card = btn.closest('.event-card') || btn.closest('.glass-panel');
-            const title = card.querySelector('.event-title')?.textContent || 'Scrim';
-            btn.onclick = () => this.manageScrim('SCRIM_ID', title);
-        });
+// Global Quick Access for UI toggles
+const VendorUI = {
+    toggleQuickActions(show) {
+        const overlay = document.querySelector('.quick-action-overlay');
+        if (show) {
+            // Show action selector
+            const tier = VendorLogic.state.vendorData?.tier || 'normal';
+            const selector = document.createElement('div');
+            selector.className = 'quick-action-overlay active';
+            selector.style.zIndex = '10000';
+            selector.innerHTML = `
+                <div class="glass-panel tier-${tier}" style="width: 90%; max-width: 400px; padding: 2.5rem;">
+                    <div class="section-header"><h2 class="section-title">QUICK_COMMANDS</h2></div>
+                    <div style="display: grid; gap: 1rem; margin-top: 1rem;">
+                        <button class="btn-primary" onclick="this.closest('.quick-action-overlay').remove(); VendorLogic.createEvent('giveaway')">🎁 NEW_GIVEAWAY</button>
+                        <button class="btn-primary" style="background: var(--accent-secondary);" onclick="this.closest('.quick-action-overlay').remove(); VendorLogic.createEvent('scrim')">🏆 NEW_SCRIM</button>
+                        <button class="btn-secondary" onclick="this.closest('.quick-action-overlay').remove(); VendorLogic.openManualCreator()">⚙️ MANUAL_OVERRIDE</button>
+                        <button class="btn-secondary" style="border-color: rgba(255,68,68,0.3); color: #ff4444 !important;" onclick="VendorLogic.handleLogout()">🚀 TERMINATE_SESSION</button>
+                    </div>
+                    <button class="btn-secondary" style="margin-top: 1.5rem; width: 100%;" onclick="this.closest('.quick-action-overlay').remove()">DISMISS</button>
+                </div>
+            `;
+            document.body.appendChild(selector);
+        }
     }
 };
 
