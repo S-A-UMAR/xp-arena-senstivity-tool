@@ -18,6 +18,8 @@ const RUNTIME_SCHEMA_ALTER_ENABLED = process.env.ALLOW_RUNTIME_SCHEMA_ALTER === 
 const FEEDBACK_ALLOWED_TAGS = ['too_high', 'too_low', 'feels_good', 'device_mismatch', 'scope_unstable'];
 const FEEDBACK_SOURCES = ['quick_like', 'structured_feedback', 'share_card', 'result_page'];
 const FEEDBACK_COOLDOWN_SECONDS = 6 * 60 * 60;
+const DEVICE_CATALOG_CACHE_KEY = 'device_catalog_summary_v1';
+const DEVICE_CATALOG_CACHE_TTL_SECONDS = 15 * 60;
 
 let schemaCapacityCheckedAt = 0;
 let schemaCapacityPromise = null;
@@ -1644,6 +1646,96 @@ router.get('/insights', authenticateVendor, async (req, res) => {
     }
 });
 
+router.get('/funnel', authenticateVendor, async (req, res) => {
+    try {
+        const generated = await db.get(
+            'SELECT COUNT(*) as total FROM sensitivity_keys WHERE vendor_id = ?',
+            [req.vendorId]
+        );
+        const verified = await db.get(`
+            SELECT COUNT(*) as total
+            FROM code_activity ca
+            JOIN sensitivity_keys sk ON ca.lookup_key = sk.lookup_key
+            WHERE sk.vendor_id = ?
+        `, [req.vendorId]);
+        const feedback = await db.get(`
+            SELECT COUNT(*) as total
+            FROM code_activity ca
+            JOIN sensitivity_keys sk ON ca.lookup_key = sk.lookup_key
+            WHERE sk.vendor_id = ?
+              AND ca.feedback_rating IS NOT NULL
+        `, [req.vendorId]);
+        const shared = await db.get(`
+            SELECT COUNT(*) as total
+            FROM share_tokens st
+            JOIN sensitivity_keys sk ON sk.lookup_key = st.lookup_key
+            WHERE sk.vendor_id = ?
+              AND st.revoked_at IS NULL
+        `, [req.vendorId]);
+
+        const generatedCount = Number(generated?.total || 0);
+        const verifiedCount = Number(verified?.total || 0);
+        const feedbackCount = Number(feedback?.total || 0);
+        const sharedCount = Number(shared?.total || 0);
+
+        const pct = (part, total) => (total > 0 ? Math.round((part / total) * 1000) / 10 : 0);
+        return res.json({
+            generated: generatedCount,
+            verified: verifiedCount,
+            feedback: feedbackCount,
+            shared: sharedCount,
+            verify_rate_pct: pct(verifiedCount, generatedCount),
+            feedback_rate_pct: pct(feedbackCount, verifiedCount),
+            share_rate_pct: pct(sharedCount, generatedCount)
+        });
+    } catch (err) {
+        console.error('FUNNEL_ERR:', err);
+        return res.status(500).json({ error: 'FUNNEL_UNAVAILABLE' });
+    }
+});
+
+router.get('/device-catalog/summary', async (_req, res) => {
+    try {
+        const cached = typeof db.getCache === 'function'
+            ? await db.getCache(DEVICE_CATALOG_CACHE_KEY)
+            : null;
+        if (cached) return res.json({ ...cached, cache: 'hit' });
+
+        const rows = await db.all(`
+            SELECT
+                COUNT(*) as total_profiles,
+                COUNT(DISTINCT brand) as total_brands,
+                COUNT(DISTINCT model) as total_models,
+                COUNT(DISTINCT CONCAT(brand, '::', COALESCE(series, ''))) as total_series,
+                ROUND(AVG(ram), 2) as avg_ram
+            FROM sensitivity_keys
+        `);
+        const base = rows?.[0] || {};
+        const topBrands = await db.all(`
+            SELECT brand, COUNT(*) as total
+            FROM sensitivity_keys
+            GROUP BY brand
+            ORDER BY total DESC
+            LIMIT 8
+        `);
+        const payload = {
+            total_profiles: Number(base.total_profiles || 0),
+            total_brands: Number(base.total_brands || 0),
+            total_models: Number(base.total_models || 0),
+            total_series: Number(base.total_series || 0),
+            avg_ram: Number(base.avg_ram || 0),
+            top_brands: topBrands || []
+        };
+        if (typeof db.setCache === 'function') {
+            await db.setCache(DEVICE_CATALOG_CACHE_KEY, payload, DEVICE_CATALOG_CACHE_TTL_SECONDS);
+        }
+        return res.json({ ...payload, cache: 'miss' });
+    } catch (err) {
+        console.error('DEVICE_CATALOG_SUMMARY_ERR:', err);
+        return res.status(500).json({ error: 'DEVICE_CATALOG_UNAVAILABLE' });
+    }
+});
+
 router.post('/generate', authenticateVendor, async (req, res) => {
     try {
         const { brand, series, model, ram, speed, claw, neuralScale } = z.object({
@@ -2115,16 +2207,9 @@ router.post('/feedback', async (req, res) => {
         }).refine((data) => data.code || data.entry_code || data.share_token, 'CODE_REQUIRED').parse(req.body || {});
 
         const entryCode = payload.code || payload.entry_code || null;
-        const allowProvisionalCodeFeedback = Boolean(entryCode)
-            && !payload.share_token
-            && !payload.feedback_tag
-            && /^XP-[A-Z0-9]{3,8}-\d{4,8}$/i.test(entryCode);
-        let found = payload.share_token
+        const found = payload.share_token
             ? await getCodeRecordFromShareToken(payload.share_token)
-            : (allowProvisionalCodeFeedback ? null : await getCodeRecordByRawCode(entryCode));
-        if (!found && allowProvisionalCodeFeedback) {
-            found = { keyData: null, lookupKey: getLookupKey(entryCode) };
-        }
+            : await getCodeRecordByRawCode(entryCode);
         if (!found) return fail(res, 'XP_AUTH_INVALID', 'UNKNOWN_OR_INVALID_CODE', 404);
 
         const { keyData, lookupKey } = found;
