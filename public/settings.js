@@ -333,7 +333,7 @@
     style.textContent = `
         #settings-hub {
             position: fixed;
-            bottom: 100px;
+            bottom: 120px;
             right: 1.5rem;
             z-index: 10000;
             display: flex;

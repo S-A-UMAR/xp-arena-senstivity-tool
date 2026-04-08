@@ -50,33 +50,6 @@
         .header-title { font-size: 1.2rem; font-weight: 800; letter-spacing: -0.02em; }
         .header-logo { color: var(--accent-primary); font-weight: 900; letter-spacing: 0.2em; font-size: 0.8rem; text-decoration: none; }
 
-        .user-nav {
-            position: fixed;
-            bottom: 0; left: 0; right: 0;
-            height: 85px;
-            background: rgba(2, 6, 23, 0.85);
-            backdrop-filter: blur(32px);
-            border-top: 1px solid var(--glass-border);
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            z-index: 1000;
-            padding-bottom: env(safe-area-inset-bottom);
-        }
-
-        .nav-item {
-            color: var(--text-muted);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            text-decoration: none;
-            transition: 0.3s;
-        }
-        .nav-item.active { color: var(--accent-primary); }
-        .nav-item svg { width: 22px; height: 22px; }
-        .nav-label { font-size: 0.65rem; font-weight: 800; letter-spacing: 0.05em; }
-
         .container { max-width: 600px; margin: 0 auto; padding: 0 1.25rem; }
         
         .vault-section {
