@@ -80,26 +80,43 @@ const VendorLogic = {
 
         brandSelect.innerHTML = '<option value="" disabled selected>SELECT_BRAND</option>' + 
             window.devices.map(b => `<option value="${b.brand}">${b.brand.toUpperCase()}</option>`).join('');
+    },
 
-        brandSelect.onchange = (e) => {
-            const brand = window.devices.find(b => b.brand === e.target.value);
-            const seriesSelect = document.getElementById('genSeries');
-            if (brand && seriesSelect) {
-                seriesSelect.disabled = false;
-                seriesSelect.innerHTML = '<option value="" disabled selected>SELECT_SERIES</option>' + 
-                    brand.series.map(s => `<option value="${s.name}">${s.name.toUpperCase()}</option>`).join('');
-                
-                seriesSelect.onchange = (e2) => {
-                    const series = brand.series.find(s => s.name === e2.target.value);
-                    const modelSelect = document.getElementById('genModel');
-                    if (series && modelSelect) {
-                        modelSelect.disabled = false;
-                        modelSelect.innerHTML = '<option value="" disabled selected>SELECT_MODEL</option>' + 
-                            series.models.map(m => `<option value="${m.name}">${m.name.toUpperCase()}</option>`).join('');
-                    }
-                };
+    updateSeries() {
+        const brandVal = document.getElementById('genBrand').value;
+        const brand = window.devices.find(b => b.brand === brandVal);
+        const seriesSelect = document.getElementById('genSeries');
+        const modelSelect = document.getElementById('genModel');
+
+        if (brand && seriesSelect) {
+            seriesSelect.disabled = false;
+            seriesSelect.innerHTML = '<option value="" disabled selected>SELECT_SERIES</option>' + 
+                brand.series.map(s => `<option value="${s.name}">${s.name.toUpperCase()}</option>`).join('');
+            
+            if (modelSelect) {
+                modelSelect.disabled = true;
+                modelSelect.innerHTML = '<option value="" disabled selected>SELECT_MODEL</option>';
             }
-        };
+        }
+    },
+
+    updateModels() {
+        const brandVal = document.getElementById('genBrand').value;
+        const seriesVal = document.getElementById('genSeries').value;
+        const brand = window.devices.find(b => b.brand === brandVal);
+        const series = brand ? brand.series.find(s => s.name === seriesVal) : null;
+        const modelSelect = document.getElementById('genModel');
+
+        if (series && modelSelect) {
+            modelSelect.disabled = false;
+            modelSelect.innerHTML = '<option value="" disabled selected>SELECT_MODEL</option>' + 
+                series.models.map(m => `<option value="${m.name}">${m.name.toUpperCase()}</option>`).join('');
+        }
+    },
+
+    onModelChange() {
+        const modelVal = document.getElementById('genModel').value;
+        window.notify(`CONFIGURING_TARGET: ${modelVal}`, 'info');
     },
 
     getCookie(name) {
@@ -139,43 +156,79 @@ const VendorLogic = {
     showResultCard(code, brand, model, tier) {
         const overlay = document.createElement('div');
         overlay.className = 'quick-action-overlay active';
+        overlay.id = 'resultOverlay';
         overlay.style.zIndex = '10000';
         overlay.innerHTML = `
-            <div class="glass-panel tier-${tier}" style="width: 90%; max-width: 400px; padding: 2.5rem; text-align: center;">
-                <div class="section-header"><h2 class="section-title">VAULT_KEY_READY</h2></div>
-                <div style="background: rgba(0,255,204,0.05); border: 1px dashed var(--accent-primary); padding: 1.5rem; border-radius: 16px; margin: 1.5rem 0;">
-                    <div style="font-size: 0.6rem; color: var(--text-muted); margin-bottom: 0.5rem;">LOOKUP_KEY</div>
-                    <div style="font-family: var(--font-mono); font-size: 1.5rem; font-weight: 900; color: white; letter-spacing: 0.1em;">${code}</div>
+            <div class="glass-panel tier-${tier}" style="width: 95%; max-width: 440px; padding: 2.5rem; text-align: center; background: rgba(10, 15, 25, 0.98); border: 1.5px solid var(--accent-primary);">
+                <div id="captureArea" style="background: linear-gradient(135deg, #020617 0%, #0f172a 100%); border: 1px solid rgba(0, 242, 254, 0.2); border-radius: 24px; padding: 2.5rem; margin-bottom: 2rem; position: relative; overflow: hidden; text-align: left;">
+                    <div style="position: absolute; top:0; left:0; width: 100%; height: 2px; background: var(--accent-primary); opacity: 0.15; animation: scanLineMove 3s linear infinite;"></div>
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem;">
+                        <div>
+                            <div style="font-family: 'JetBrains Mono'; font-size: 0.7rem; color: var(--accent-primary); letter-spacing: 0.2em; font-weight: 800;">AXP_SIGNATURE</div>
+                            <div style="font-size: 0.5rem; color: var(--text-muted); margin-top: 4px;">NEURAL_CALIBRATION_FRAGMENT</div>
+                        </div>
+                        <div style="background: rgba(0, 242, 254, 0.1); color: var(--accent-primary); font-size: 0.5rem; padding: 4px 10px; border-radius: 8px; border: 1px solid rgba(0, 242, 254, 0.2); font-family: var(--font-mono); font-weight: 800;">VERIFIED</div>
+                    </div>
+
+                    <div style="margin-bottom: 2rem;">
+                        <div style="font-size: 0.55rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.5rem; font-weight: 800;">ACCESS_KEY</div>
+                        <div style="font-family: var(--font-mono); font-size: 2.25rem; font-weight: 900; color: white; letter-spacing: 0.1em; text-shadow: 0 0 20px rgba(0, 242, 254, 0.4);">${code}</div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; padding-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.05);">
+                        <div>
+                            <div style="font-size: 0.5rem; color: var(--text-muted);">ARCHITECTURE</div>
+                            <div style="font-size: 0.75rem; font-weight: 800; color: white; margin-top: 2px;">${brand}</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.5rem; color: var(--text-muted);">MODEL_HINT</div>
+                            <div style="font-size: 0.75rem; font-weight: 800; color: white; margin-top: 2px;">${model}</div>
+                        </div>
+                    </div>
                 </div>
-                <div style="font-size: 0.7rem; color: var(--text-muted); margin-bottom: 2rem;">DEVICE: ${brand} ${model}</div>
-                <button class="btn-primary" onclick="VendorLogic.copyToClipboard('${code}')">COPY_TO_CLIPBOARD</button>
-                <button class="btn-secondary" style="margin-top: 1rem; width: 100%;" onclick="this.closest('.quick-action-overlay').remove()">DISMISS</button>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <button class="btn-nexus-primary" style="margin: 0; padding: 1rem;" onclick="VendorLogic.copyToClipboard('${code}')">COPY_KEY</button>
+                    <button class="btn-nexus-primary" style="margin: 0; padding: 1rem; background: rgba(255,255,255,0.05); color: white; border: 1px solid rgba(255,255,255,0.1);" onclick="VendorLogic.captureAndDownloadResult('${code}')">DOWNLOAD</button>
+                </div>
+                <button class="btn-secondary" style="margin-top: 1rem; width: 100%; border-radius: 16px; font-size: 0.75rem;" onclick="this.closest('.quick-action-overlay').remove()">CLOSE_TERMINAL</button>
             </div>
         `;
         document.body.appendChild(overlay);
     },
 
-    showEventCard(id, type, title, payload) {
-        const tier = this.state.vendorData?.tier || 'normal';
-        const overlay = document.createElement('div');
-        overlay.className = 'quick-action-overlay active';
-        overlay.style.zIndex = '10000';
-        overlay.innerHTML = `
-            <div class="glass-panel tier-${tier}" style="width: 90%; max-width: 400px; padding: 2.5rem; text-align: center;">
-                <div class="section-header"><h2 class="section-title">EVENT_INITIALIZED</h2></div>
-                <div style="font-size: 3rem; margin: 1.5rem 0;">${type === 'scrim' ? '🏆' : '🎁'}</div>
-                <h3 style="margin: 0; color: white; font-weight: 900;">${title}</h3>
-                <p style="font-size: 0.7rem; color: var(--text-muted); margin-top: 0.5rem;">ID: ${id}</p>
-                <button class="btn-primary" style="margin-top: 2rem;" onclick="VendorLogic.copyToClipboard('https://axp-tool.vercel.app/${type}/${id}')">COPY_INVITE_LINK</button>
-                <button class="btn-secondary" style="margin-top: 1rem; width: 100%;" onclick="this.closest('.quick-action-overlay').remove()">DISMISS</button>
-            </div>
-        `;
-        document.body.appendChild(overlay);
+    async captureAndDownloadResult(code) {
+        const area = document.getElementById('captureArea');
+        if (!area || !window.html2canvas) return window.notify('SYSTEM_NOT_READY', 'error');
+
+        try {
+            const canvas = await html2canvas(area, {
+                backgroundColor: '#020617',
+                scale: 2,
+                useCORS: true
+            });
+            const link = document.createElement('a');
+            link.download = `AXP_KEY_${code}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+            window.notify('CARD_EXPORTED_SUCCESSFULLY', 'success');
+        } catch (e) {
+            window.notify('EXPORT_FAILED', 'error');
+        }
     },
 
     copyToClipboard(text) {
-        navigator.clipboard.writeText(text);
-        window.notify('COPIED_TO_CLIPBOARD', 'success');
+        navigator.clipboard.writeText(text).then(() => {
+            window.notify('COPIED_TO_CLIPBOARD', 'success');
+        }).catch(() => {
+            const el = document.createElement('textarea');
+            el.value = text;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+            window.notify('COPIED_TO_CLIPBOARD', 'success');
+        });
     },
 
     async autoGenerate() {
@@ -534,15 +587,14 @@ const VendorUI = {
     }
 };
 
-window.openManualCreator = () => VendorLogic.openManualCreator();
-window.openBrandingEditor = () => VendorLogic.openBrandingEditor();
-window.openVaultManager = () => VendorLogic.openVaultManager();
-window.openMasterPresets = () => VendorLogic.openMasterPresets();
 window.updateSeries = () => VendorLogic.updateSeries();
 window.updateModels = () => VendorLogic.updateModels();
 window.onModelChange = () => VendorLogic.onModelChange();
 window.autoGenerate = () => VendorLogic.autoGenerate();
-window.createEvent = (type) => VendorLogic.createEvent(type);
+window.openManualCreator = () => VendorLogic.openManualCreator();
+window.openBrandingEditor = () => VendorLogic.openBrandingEditor();
+window.openVaultManager = () => VendorLogic.openVaultManager();
+window.openMasterPresets = () => VendorLogic.openMasterPresets();
 window.handleLogout = () => VendorLogic.handleLogout();
 
 document.addEventListener('DOMContentLoaded', () => VendorLogic.init());
