@@ -1500,6 +1500,7 @@
 
                         <div class="vendor-actions">
                             <button class="v-btn-mini primary" onclick="showAnalytics('${v.vendor_id}', ${v.total_codes || 0}, ${v.total_usage || 0})">VIEW</button>
+                            <button class="v-btn-mini" onclick="downloadExistingVendorCard('${v.vendor_id}')">CARD</button>
                             <button class="v-btn-mini" onclick="toggleStatus('${v.vendor_id}', '${v.status}')">${isActive ? 'SUSPEND' : 'ACTIVATE'}</button>
                             <button class="v-btn-mini danger" onclick="deleteVendor('${v.vendor_id}')">ERASE</button>
                         </div>
@@ -1587,16 +1588,35 @@
         async function downloadProvisionedCard() {
             const card = document.getElementById('cardToCapture');
             const vendor = document.getElementById('provisionVendor').textContent;
+            await performCardDownload(card, `AXP_ACCESS_${vendor}.png`);
+        }
+
+        async function downloadExistingVendorCard(vendorId) {
+            // Since we don't have the plain passkey (it's hashed), we show the ID and status
+            // In a real scenario, you'd reset the key to download a new card
+            document.getElementById('provisionVendor').textContent = vendorId.toUpperCase();
+            document.getElementById('provisionAccessKey').textContent = "[ENCRYPTED_ID]";
+            document.getElementById('vendorSuccessOverlay').classList.add('active');
+            if (window.notify) window.notify('PREVIEWING_VENDOR_SECURITY_CARD', 'success');
+        }
+
+        async function performCardDownload(el, filename) {
             try {
-                const canvas = await html2canvas(card, {
+                if (!window.html2canvas) {
+                    if (window.notify) window.notify('HTML2CANVAS_MISSING', 'error');
+                    return;
+                }
+                const canvas = await html2canvas(el, {
                     backgroundColor: '#020617',
-                    scale: 2
+                    scale: 2,
+                    useCORS: true
                 });
                 const link = document.createElement('a');
-                link.download = `AXP_ACCESS_${vendor}.png`;
+                link.download = filename;
                 link.href = canvas.toDataURL('image/png');
                 link.click();
             } catch (e) {
+                console.error('CARD_GEN_ERR:', e);
                 if (window.notify) window.notify('DOWNLOAD_FAILED', 'error');
             }
         }

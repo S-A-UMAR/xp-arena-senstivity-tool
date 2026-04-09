@@ -127,7 +127,16 @@
         try {
             const response = await fetch(endpoint);
             const payload = await response.json();
-            if (!response.ok) throw new Error(payload.error || payload.message || 'STATUS_REFRESH_FAILED');
+            if (!response.ok) {
+                // 🛡️ Strict Auth: If API says not found, clearing stale local data and redirecting
+                if (response.status === 404 || response.status === 401) {
+                    localStorage.removeItem('axp_last_entry_code');
+                    localStorage.removeItem('axp_sensitivity_profile_last_result');
+                    window.location.href = 'index.html?error=INVALID_ACCESS_KEY';
+                    return null;
+                }
+                throw new Error(payload.error || payload.message || 'STATUS_REFRESH_FAILED');
+            }
             currentVerifyPayload = payload;
             currentCode = payload.entry_code || code || '';
             currentShareToken = payload.share_token || shareToken || '';
@@ -138,6 +147,12 @@
             return buildHydratedState({ payload, fallbackResults, fallbackBranding });
         } catch (e) {
             console.warn('STATUS_REFRESH_ERR:', e);
+            // Only allow fallback if it's a network error, not an auth error
+            if (e.message.includes('NOT_FOUND') || e.message.includes('INVALID')) {
+                 window.location.href = 'index.html?error=AUTH_FAILED';
+                 return null;
+            }
+            
             currentCode = code || currentCode;
             currentShareToken = shareToken || currentShareToken;
             currentShareUrl = buildResultUrl({ code: currentCode, shareToken: currentShareToken });

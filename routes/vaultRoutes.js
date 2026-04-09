@@ -1909,7 +1909,7 @@ router.post('/admin/vendors', authenticateAdmin, async (req, res) => {
         await ensureKeyStorageCapacity();
 
         const randomDigits = Math.floor(1000 + Math.random() * 9000);
-        const accessKey = `XP-${vendorId}-${randomDigits}`;
+        const accessKey = `AXP-${vendorId}-${randomDigits}`;
         const hashedAccessKey = await bcrypt.hash(accessKey, 10);
         const lookupKey = getLookupKey(accessKey);
 
