@@ -860,94 +860,114 @@
         <!-- Tool Preview Section -->
         <div id="section-tool" class="nav-section hidden">
             <div class="live-feed-header">
-                <span class="stat-label">Neural Engine Master Tool</span>
+                <span class="stat-label">NEURAL ENGINE MASTER TOOL</span>
             </div>
             
-            <div class="vendor-card" style="padding: 1.5rem;">
+            <div class="vendor-card tier-premium" style="padding: 1.5rem; background: linear-gradient(145deg, rgba(0, 242, 254, 0.05), rgba(15, 20, 25, 0.9)); border: 1px solid rgba(0, 242, 254, 0.4); box-shadow: 0 0 20px rgba(0, 242, 254, 0.1);">
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
-                    <select id="toolBrand" class="cyber-input" style="margin-bottom:0;">
-                        <option value="">SELECT BRAND</option>
-                    </select>
-                    <select id="toolSeries" class="cyber-input" style="margin-bottom:0;" disabled>
-                        <option value="">SELECT SERIES</option>
-                    </select>
+                    <div>
+                        <label class="stat-label" style="display:block; margin-bottom:0.4rem; color: #00f2fe;">DEVICE BRAND</label>
+                        <select id="toolBrand" class="cyber-input" style="margin-bottom:0; font-family: var(--font-mono); font-size: 0.8rem;" onchange="adminUpdateSeries()">
+                            <option value="">SELECT BRAND</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="stat-label" style="display:block; margin-bottom:0.4rem; color: #00f2fe;">SERIES</label>
+                        <select id="toolSeries" class="cyber-input" style="margin-bottom:0; font-family: var(--font-mono); font-size: 0.8rem;" disabled onchange="adminUpdateModels()">
+                            <option value="">SELECT SERIES</option>
+                        </select>
+                    </div>
                 </div>
-                <select id="toolModel" class="cyber-input" disabled>
+                
+                <label class="stat-label" style="display:block; margin-bottom:0.4rem; color: #00f2fe;">SPECIFIC MODEL</label>
+                <select id="toolModel" class="cyber-input" style="margin-bottom: 1rem; font-family: var(--font-mono); font-size: 0.8rem;" disabled>
                     <option value="">SELECT MODEL</option>
                 </select>
 
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem;">
                     <div>
-                        <label class="stat-label" style="display:block; margin-bottom:0.4rem;">DEVICE MEMORY</label>
-                        <input type="range" id="toolRam" min="2" max="16" step="2" value="8" oninput="document.getElementById('toolRamVal').textContent = this.value + ' GB'">
-                        <div id="toolRamVal" style="font-size:0.7rem; color:var(--accent-primary); text-align:right;">8 GB</div>
+                        <label class="stat-label" style="display:block; margin-bottom:0.4rem; color: #00f2fe;">DEVICE MEMORY</label>
+                        <select id="toolRam" class="cyber-input" style="margin-bottom:0; font-family: var(--font-mono); font-size: 0.8rem;">
+                            <option value="2">2 GB</option>
+                            <option value="4">4 GB</option>
+                            <option value="6">6 GB</option>
+                            <option value="8" selected>8 GB</option>
+                            <option value="12">12 GB</option>
+                            <option value="16">16 GB</option>
+                        </select>
                     </div>
                     <div>
-                        <label class="stat-label" style="display:block; margin-bottom:0.4rem;">PLAYSTYLE</label>
-                        <select id="toolSpeed" class="cyber-input" style="margin-bottom:0;">
+                        <label class="stat-label" style="display:block; margin-bottom:0.4rem; color: #00f2fe;">PLAYSTYLE</label>
+                        <select id="toolSpeed" class="cyber-input" style="margin-bottom:0; font-family: var(--font-mono); font-size: 0.8rem;">
                             <option value="slow">SLOW</option>
                             <option value="balanced" selected>BALANCED</option>
                             <option value="fast">FAST</option>
                         </select>
                     </div>
                 </div>
-                <div style="margin-top: 0.8rem;">
-                    <label class="stat-label" style="display:block; margin-bottom:0.4rem;">CLAW STYLE</label>
-                    <select id="toolClaw" class="cyber-input" style="margin-bottom:0;">
+                
+                <div style="margin-top: 1rem;">
+                    <label class="stat-label" style="display:block; margin-bottom:0.4rem; color: #00f2fe;">FINGER STYLE</label>
+                    <select id="toolClaw" class="cyber-input" style="margin-bottom:1rem; font-family: var(--font-mono); font-size: 0.8rem;">
                         <option value="2">2-FINGER</option>
                         <option value="3">3-FINGER</option>
                         <option value="4">4-FINGER</option>
                     </select>
                 </div>
-                
+
                 <div style="margin: 1rem 0;">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.5rem;">
-                        <span class="stat-label">Neural Scale</span>
+                        <span class="stat-label" style="color: #00f2fe;">NEURAL SCALE OVERRIDE</span>
                         <span id="toolScaleVal" style="color:var(--accent-primary); font-family:var(--font-mono);">5.0</span>
                     </div>
                     <input type="range" id="toolScale" min="1" max="10" step="0.1" value="5.0" oninput="document.getElementById('toolScaleVal').textContent = this.value">
                 </div>
 
-                <button class="action-btn" onclick="computeAdminTool()">GENERATE_MASTER_CARD</button>
+                <button class="action-btn" style="background: linear-gradient(45deg, #00f2fe, #4facfe); border: none; font-family: var(--font-menu); color: #000; box-shadow: 0 0 15px rgba(0,242,254,0.4);" onclick="computeAdminTool()">GENERATE MASTER CALIBRATION</button>
             </div>
 
             <div id="adminToolResult" class="hidden" style="margin-top: 2rem;">
-                <div class="premium-access-card" id="adminCardCapture">
+                <div class="premium-access-card" id="adminCardCapture" style="border-color: #00f2fe;">
                     <div class="card-header">
-                        <div class="card-logo">AXP MASTER</div>
-                        <div class="card-chip">NEURAL_CALIBRATION_ID</div>
+                        <div class="card-logo" style="color: #00f2fe;">AXP MASTER</div>
+                        <div class="card-chip" style="color: #00f2fe; border-color: #00f2fe; background: rgba(0,242,254,0.1);">NEURAL_ID</div>
                     </div>
-                    <div style="padding: 0 0 1rem; border-bottom: 1px solid rgba(255,255,255,0.06); margin-bottom: 1rem;">
-                        <div class="card-label">ACCESS_CODE</div>
-                        <div class="card-value" id="admAccessCode" style="font-size:1.25rem;">-</div>
+                    
+                    <div style="padding: 0 0 1rem; border-bottom: 1px dashed rgba(0,242,254,0.3); margin-bottom: 1rem; text-align: center;">
+                        <div class="card-label">SECURE_ACCESS_CODE</div>
+                        <div class="card-value" id="admAccessCode" style="font-size:1.8rem; letter-spacing: 0.1em; color: #00f2fe; text-shadow: 0 0 10px rgba(0,242,254,0.5);">AXP-MAST-ER</div>
                     </div>
+                    
                     <div class="card-body">
                         <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
-                            <div>
-                                <div class="card-label">GENERAL</div>
-                                <div class="card-value" id="admGen" style="font-size:1.5rem;">-</div>
+                            <div style="background: rgba(0,0,0,0.4); padding: 1rem; border-radius: 12px;">
+                                <div class="card-label" style="color: #00f2fe;">GENERAL (RANGE)</div>
+                                <div class="card-value" id="admGen" style="font-size:1.4rem; margin-bottom: 0;">-</div>
                             </div>
-                            <div>
-                                <div class="card-label">RED_DOT</div>
-                                <div class="card-value" id="admRed" style="font-size:1.5rem;">-</div>
+                            <div style="background: rgba(0,0,0,0.4); padding: 1rem; border-radius: 12px;">
+                                <div class="card-label" style="color: #ff4444;">RED DOT \ 2X \ 4X</div>
+                                <div class="card-value" style="font-size:0.9rem; margin-bottom: 0;"><span id="admRed">-</span> \ <span id="adm2x">-</span> \ <span id="adm4x">-</span></div>
+                            </div>
+                            <div style="background: rgba(0,0,0,0.4); padding: 1rem; border-radius: 12px;">
+                                <div class="card-label" style="color: #ffd700;">SNIPER \ FREE_LOOK</div>
+                                <div class="card-value" style="font-size:0.9rem; margin-bottom: 0;"><span id="admSniper">-</span> \ <span id="admFreeLook">-</span></div>
+                            </div>
+                            <div style="background: rgba(0,0,0,0.4); padding: 1rem; border-radius: 12px;">
+                                <div class="card-label" style="color: #00ffcc;">DPI \ FIRE_BUTTON</div>
+                                <div class="card-value" style="font-size:0.9rem; margin-bottom: 0;"><span id="admDPI">-</span> \ <span id="admFireBtn">-</span></div>
                             </div>
                         </div>
-                        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem;">
-                            <div><div class="card-label">2X</div><div class="card-value" id="adm2x" style="font-size:1rem;">-</div></div>
-                            <div><div class="card-label">4X</div><div class="card-value" id="adm4x" style="font-size:1rem;">-</div></div>
-                            <div><div class="card-label">DPI</div><div class="card-value" id="admDPI" style="font-size:1rem;">-</div></div>
+                        <div style="text-align: center; margin-top: 1rem;">
+                            <div class="card-label">SUBJECT_HARDWARE</div>
+                            <div class="card-value" id="admHardware" style="font-size:0.8rem; margin-bottom:0; color: #888;">-</div>
                         </div>
-                        <div class="card-label" style="margin-top:1rem;">SCORE</div>
-                        <div class="card-value" id="admScore" style="font-size:1rem; margin-bottom:0;">-</div>
-                        <div class="card-label" style="margin-top:1rem;">SUBJECT_HARDWARE</div>
-                        <div class="card-value" id="admHardware" style="font-size:0.8rem; margin-bottom:0;">-</div>
                     </div>
-                    <div class="card-footer">AXP_CORE_ADMIN_MASTER_UPLINK</div>
+                    <div class="card-footer" style="color: #00f2fe; opacity: 0.5;">AXP_CORE_ADMIN_MASTER_UPLINK</div>
                 </div>
                 
                 <div class="card-actions">
-                    <button class="v-btn" style="background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1);" onclick="copyAdminResults()">COPY_TEXT</button>
-                    <button class="v-btn" style="background: var(--accent-primary); color: #000; border: none;" onclick="downloadAdminCard()">DOWNLOAD_PNG</button>
+                    <button class="v-btn" style="background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); font-family: var(--font-mono);" onclick="copyAdminResults()">COPY_TEXT</button>
+                    <button class="v-btn" style="background: linear-gradient(45deg, #00f2fe, #4facfe); color: #000; border: none; font-weight: 800;" onclick="downloadAdminCard()">DOWNLOAD_PNG</button>
                 </div>
             </div>
         </div>
@@ -1010,11 +1030,7 @@
         <input type="text" id="vName" class="cyber-input" placeholder="Vendor Name (e.g. SKY-NET)">
         <input type="text" id="vBrand" class="cyber-input" placeholder="Organization ID (Optional)">
         <input type="text" id="vOrgName" class="cyber-input" placeholder="Organization Name (Optional)">
-        <select id="vTier" class="cyber-input">
-            <option value="STANDARD">Profile Tier: STANDARD</option>
-            <option value="GOLD">Profile Tier: GOLD</option>
-            <option value="ELITE">Profile Tier: ELITE</option>
-        </select>
+
         <input type="number" id="vDuration" class="cyber-input" placeholder="Access Duration (Days) [e.g. 30]">
         <input type="number" id="vUsageLimit" class="cyber-input" placeholder="Usage Limit (Optional)">
         
@@ -1496,7 +1512,9 @@
             const vid = document.getElementById('vName').value.trim();
             const orgId = document.getElementById('vBrand').value.trim();
             const orgName = document.getElementById('vOrgName').value.trim();
-            const profileTier = document.getElementById('vTier').value;
+            const tierRadios = document.querySelectorAll('input[name="vTier"]');
+            let profileTier = 'normal';
+            for (const radio of tierRadios) { if (radio.checked) profileTier = radio.value; }
             const vDays = parseInt(document.getElementById('vDuration').value, 10);
             const vUsageLimit = parseInt(document.getElementById('vUsageLimit').value, 10);
             
@@ -1520,9 +1538,9 @@
                         youtube: youtube || null,
                         tiktok: tiktok || null,
                         discord: discord || null,
-                        display_name: vid,
-                        profile_tier: profileTier
-                    }
+                        display_name: vid
+                    },
+                    tier: profileTier
                 };
                 if (Number.isFinite(vDays) && vDays > 0) payload.durationDays = vDays;
                 if (Number.isFinite(vUsageLimit) && vUsageLimit >= 0) payload.usageLimit = vUsageLimit;
@@ -1537,7 +1555,7 @@
                 document.getElementById('vName').value = '';
                 document.getElementById('vBrand').value = '';
                 document.getElementById('vOrgName').value = '';
-                document.getElementById('vTier').value = 'STANDARD';
+                document.querySelectorAll('input[name="vTier"]')[0].checked = true;
                 document.getElementById('vDuration').value = '';
                 document.getElementById('vUsageLimit').value = '';
                 document.getElementById('vLogo').value = '';
@@ -1804,9 +1822,12 @@
                 document.getElementById('admRed').textContent = results.redDot || '-';
                 document.getElementById('adm2x').textContent = results.scope2x || '-';
                 document.getElementById('adm4x').textContent = results.scope4x || '-';
+                document.getElementById('admSniper').textContent = results.sniperScope || '-';
+                document.getElementById('admFreeLook').textContent = results.freeLook || '-';
                 document.getElementById('admDPI').textContent = results.dpi || '-';
+                document.getElementById('admFireBtn').textContent = results.fireButtonSize || '-';
+                
                 const score = Math.min(100, Math.max(72, Math.round((scale * 8) + (ram * 2) + (speed === 'fast' ? 6 : speed === 'balanced' ? 4 : 2))));
-                document.getElementById('admScore').textContent = `${score}%`;
                 document.getElementById('admHardware').textContent = `${brand} ${model}`.toUpperCase();
                 document.getElementById('admAccessCode').textContent = payload.accessKey || '-';
                 document.getElementById('adminToolResult').classList.remove('hidden');
@@ -1819,9 +1840,15 @@
         function copyAdminResults() {
             const gen = document.getElementById('admGen').textContent;
             const red = document.getElementById('admRed').textContent;
+            const s2x = document.getElementById('adm2x').textContent;
+            const s4x = document.getElementById('adm4x').textContent;
+            const snp = document.getElementById('admSniper').textContent;
+            const fl = document.getElementById('admFreeLook').textContent;
+            const dpi = document.getElementById('admDPI').textContent;
+            const fbtn = document.getElementById('admFireBtn').textContent;
             const model = document.getElementById('admHardware').textContent;
             const accessCode = document.getElementById('admAccessCode').textContent;
-            const text = `AXP MASTER CALIBRATION\nHardware: ${model}\nAccess Code: ${accessCode}\nGeneral: ${gen}\nRed Dot: ${red}\nGenerated via Admin Uplink`;
+            const text = `AXP MASTER CALIBRATION\nHardware: ${model}\nAccess Code: ${accessCode}\n\nGeneral: ${gen}\nRed Dot: ${red}\n2X Scope: ${s2x}\n4X Scope: ${s4x}\nSniper: ${snp}\nFree Look: ${fl}\nDPI: ${dpi}\nFire Button: ${fbtn}\n\nGenerated via AXP System`;
             navigator.clipboard.writeText(text);
             if (window.notify) window.notify('RESULTS_COPIED', 'success');
         }

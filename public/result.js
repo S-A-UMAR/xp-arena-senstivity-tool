@@ -156,12 +156,7 @@
         window.notify?.(t('accessCodeCopied', successMessage), 'success');
     }
 
-    function paintRange(id1, id2, val) {
-        const [a, b] = parseRange(val);
-        document.getElementById(id1).textContent = a;
-        document.getElementById(id2).textContent = b;
-    }
-
+    // paintRange helper removed in favor of direct assignment
     function applyTrendLine(id, values) {
         const [a, b] = parseRange(values);
         const el = document.getElementById(id);
@@ -193,11 +188,12 @@
         document.getElementById('shareAccessCode').textContent = details.code;
         document.getElementById('shareGeneral').textContent = details.general;
         document.getElementById('shareRedDot').textContent = details.redDot;
-        document.getElementById('shareScope').textContent = details.scope;
-        document.getElementById('shareDpiEff').textContent = `${details.dpi} • ${details.efficiency}%`;
-        document.getElementById('shareTrendGeneral').textContent = details.trendGeneral;
-        document.getElementById('shareTrendRed').textContent = details.trendRed;
-        document.getElementById('shareTrendScope').textContent = details.trendScope;
+        document.getElementById('share2x').textContent = details.scope2x;
+        document.getElementById('share4x').textContent = details.scope4x;
+        document.getElementById('shareSniper').textContent = details.sniper;
+        document.getElementById('shareFreeLook').textContent = details.freeLook;
+        document.getElementById('shareDpi').textContent = details.dpi;
+        document.getElementById('shareFireButton').textContent = details.fireButton;
         document.getElementById('shareAdvice').textContent = `${t('settingsByLabel', 'SETTINGS_BY')} ${details.creator}: ${details.advice}`;
         document.getElementById('shareVerified').textContent = `${t('verifiedLabel', 'VERIFIED')} ${details.efficiency}%`;
     }
@@ -206,13 +202,6 @@
         return code || 'FREE-GEN';
     }
 
-    function buildCardDetails({ branding, hydrated, modelText, displayName, code, results }) {
-        const generalRange = `${document.getElementById('rGen1').textContent} — ${document.getElementById('rGen2').textContent}`;
-        const redDotRange = `${document.getElementById('rRed1').textContent} — ${document.getElementById('rRed2').textContent}`;
-        const scopeRange = `${document.getElementById('r2x1').textContent} — ${document.getElementById('r4x2').textContent}`;
-        
-        const formattedCode = formatAccessCode(displayName, currentCode || code);
-
         return {
             logo: branding.logo_url || branding.logo || 'favicon.png',
             expiry: hydrated.validUntil ? document.getElementById('expiryValue').textContent : 'NEVER',
@@ -220,13 +209,17 @@
             model: modelText,
             creator: displayName,
             code: formattedCode,
-            general: generalRange,
-            redDot: redDotRange,
-            scope: scopeRange,
+            general: results.general || '--',
+            redDot: results.redDot || '--',
+            scope2x: results.scope2x || '--',
+            scope4x: results.scope4x || '--',
+            sniper: results.sniperScope || '--',
+            freeLook: results.freeLook || '--',
             dpi: results.dpi || 'DEFAULT',
-            trendGeneral: document.getElementById('trendGeneral').textContent,
-            trendRed: document.getElementById('trendRed').textContent,
-            trendScope: document.getElementById('trend4x').textContent,
+            fireButton: results.fireButton || '--',
+            trendGeneral: 'OPTIMIZING',
+            trendRed: 'DYNAMIC SCALING',
+            trendScope: 'PRECISION CONTROL',
             advice: hydrated.advice || 'OPTIMIZED FOR COMPETITIVE PLAY'
         };
     }
@@ -339,9 +332,9 @@
 
         const cards = [
             { x: 84, y: 822, title: 'GENERAL_SENS', value: details.general, trend: details.trendGeneral, icon: '↑', accent: '#8ff0cf' },
-            { x: 816, y: 822, title: 'RED_DOT_PRECISION', value: details.redDot, trend: details.trendRed, icon: '↑', accent: '#ff8ca0' },
-            { x: 84, y: 1102, title: '2X / 4X_SCOPE', value: details.scope, trend: details.trendScope, icon: '↘', accent: '#87dfff' },
-            { x: 816, y: 1102, title: 'DPI / EFFICIENCY', value: `${details.dpi} • ${details.efficiency}%`, trend: 'TREND: LIVE_SYNCED', icon: '◎', accent: '#9df0e1' }
+            { x: 816, y: 822, title: 'RED_DOT \\ 2X \\ 4X', value: `${details.redDot}\\${details.scope2x}\\${details.scope4x}`, trend: details.trendRed, icon: '↑', accent: '#ff8ca0' },
+            { x: 84, y: 1102, title: 'SNIPER \\ FREE_LOOK', value: `${details.sniper} \\ ${details.freeLook}`, trend: details.trendScope, icon: '↘', accent: '#87dfff' },
+            { x: 816, y: 1102, title: 'DPI \\ FIRE_BUTTON', value: `${details.dpi} \\ ${details.fireButton}`, trend: 'TREND: LIVE_SYNCED', icon: '◎', accent: '#9df0e1' }
         ];
 
         cards.forEach((card) => {
@@ -349,9 +342,15 @@
             ctx.fillStyle = '#91a7bc';
             ctx.font = '600 24px "JetBrains Mono", monospace';
             ctx.fillText(card.title, card.x + 36, card.y + 56);
+            
+            let fontSize = 74;
+            if (card.value.length > 20) fontSize = 36;
+            else if (card.value.length > 12) fontSize = 50;
+
             ctx.fillStyle = '#ffffff';
-            ctx.font = '700 74px "JetBrains Mono", monospace';
+            ctx.font = `700 ${fontSize}px "JetBrains Mono", monospace`;
             ctx.fillText(card.value, card.x + 36, card.y + 150);
+            
             ctx.fillStyle = '#96a9bc';
             ctx.font = '600 24px "JetBrains Mono", monospace';
             ctx.fillText(card.trend, card.x + 36, card.y + 196);
@@ -497,18 +496,14 @@
         updateAdviceCopy(hydrated.advice);
         updateShareHint();
 
-        paintRange('rGen1', 'rGen2', results.general);
-        paintRange('rRed1', 'rRed2', results.redDot);
-        
-        // 💎 Enhanced Logic: Show 2X Low and 4X High in the merged Scope Card
-        const [r2xLow] = parseRange(results.scope2x);
-        const [_, r4xHigh] = parseRange(results.scope4x);
-        document.getElementById('r2x1').textContent = r2xLow;
-        document.getElementById('r4x2').textContent = r4xHigh;
-        
-        applyTrendLine('trendGeneral', results.general);
-        applyTrendLine('trendRed', results.redDot);
-        applyTrendLine('trend4x', results.scope4x);
+        document.getElementById('idGeneral').textContent = results.general || '--';
+        document.getElementById('idRedDot').textContent = results.redDot || '--';
+        document.getElementById('id2x').textContent = results.scope2x || '--';
+        document.getElementById('id4x').textContent = results.scope4x || '--';
+        document.getElementById('idSniper').textContent = results.sniperScope || '--';
+        document.getElementById('idFreeLook').textContent = results.freeLook || '--';
+        document.getElementById('idDPI').textContent = results.dpi || 'DEFAULT';
+        document.getElementById('idFireButton').textContent = results.fireButton || '--';
         
         document.getElementById('idDPI').textContent = results.dpi || 'DEFAULT';
         setEfficiency(inferEfficiency(results));
@@ -550,12 +545,10 @@
         });
 
         document.getElementById('copyBtn').addEventListener('click', () => {
-            const generalRange = `${document.getElementById('rGen1').textContent} — ${document.getElementById('rGen2').textContent}`;
-            const redDotRange = `${document.getElementById('rRed1').textContent} — ${document.getElementById('rRed2').textContent}`;
             const text = buildShareText({
                 modelText,
-                general: generalRange,
-                redDot: redDotRange,
+                general: results.general || '--',
+                redDot: results.redDot || '--',
                 dpi: results.dpi || 'DEFAULT',
                 efficiency: currentEfficiency,
                 shareUrl: currentShareUrl,

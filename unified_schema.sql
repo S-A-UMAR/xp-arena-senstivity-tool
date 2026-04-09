@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS organizations (
 CREATE TABLE IF NOT EXISTS vendors (
     id INT AUTO_INCREMENT PRIMARY KEY,
     org_id VARCHAR(50) DEFAULT 'XP-CORE-ORG',
+    tier ENUM('normal', 'gold', 'premium') DEFAULT 'normal',
     vendor_id VARCHAR(50) UNIQUE NOT NULL,
     access_key VARCHAR(100) UNIQUE NOT NULL, -- bcrypt hash
     lookup_key VARCHAR(20) UNIQUE DEFAULT NULL,

@@ -4,151 +4,286 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
-    <title>AXP | Global Stats</title>
+    <title>AXP | GLOBAL METRICS</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;800&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
     <style>
         :root {
             --bg-deep: #020617;
-            --accent-primary: #00f0ff;
-            --accent-secondary: #7000ff;
+            --accent-primary: #00f2fe;
+            --accent-primary-glow: rgba(0, 242, 254, 0.4);
             --glass-bg: rgba(255, 255, 255, 0.03);
             --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-card: rgba(15, 20, 25, 0.85);
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
+            --font-heading: 'Outfit', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+            --safe-bottom: env(safe-area-inset-bottom);
         }
 
         body {
-            background: var(--bg-deep);
+            background-color: var(--bg-deep);
             color: var(--text-main);
-            font-family: 'Outfit', sans-serif;
+            font-family: var(--font-heading);
             margin: 0;
-            padding-top: 100px;
-            padding-bottom: 100px;
-            overflow-x: hidden;
-            background-image: 
-                radial-gradient(circle at 10% 20%, rgba(0, 240, 255, 0.05) 0%, transparent 40%),
-                radial-gradient(circle at 90% 80%, rgba(112, 0, 255, 0.05) 0%, transparent 40%);
+            padding-top: 90px;
+            padding-bottom: 120px;
             min-height: 100vh;
+            background-image: 
+                radial-gradient(circle at 10% 10%, rgba(0, 242, 254, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 90% 90%, rgba(0, 242, 254, 0.05) 0%, transparent 40%);
+            overflow-x: hidden;
         }
 
         header {
             position: fixed;
             top: 0; left: 0; right: 0;
-            height: 80px;
+            height: 70px;
             background: rgba(2, 6, 23, 0.85);
-            backdrop-filter: blur(32px);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
             border-bottom: 1px solid var(--glass-border);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 0 1.5rem;
+            padding: 0 1.25rem;
             z-index: 5000;
         }
 
-        .header-title { font-size: 1.2rem; font-weight: 800; letter-spacing: -0.02em; }
-        .header-logo { color: var(--accent-primary); font-weight: 900; letter-spacing: 0.2em; font-size: 0.8rem; text-decoration: none; }
+        .header-logo { color: var(--accent-primary); font-weight: 800; letter-spacing: 0.1em; font-size: 0.85rem; text-decoration: none; font-family: var(--font-mono); }
+        .header-title { font-size: 1rem; font-weight: 800; letter-spacing: -0.01em; color: white; }
 
-        .container { max-width: 600px; margin: 0 auto; padding: 0 1.25rem; }
-        
+        .container {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 0 1.25rem;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+        .page-title {
+            font-size: 2rem;
+            font-weight: 800;
+            color: white;
+            margin: 0 0 0.5rem;
+            letter-spacing: -0.02em;
+        }
+        .page-subtitle {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-family: var(--font-mono);
+        }
+
+        /* Stats Grid */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 1.25rem;
+            gap: 1rem;
             margin-bottom: 2rem;
         }
 
         .stat-card {
-            background: var(--glass-bg);
+            background: var(--glass-card);
             backdrop-filter: blur(24px);
             border: 1px solid var(--glass-border);
-            border-radius: 28px;
-            padding: 2rem;
+            border-radius: 24px;
+            padding: 1.5rem;
             text-align: center;
+            transition: 0.3s;
+        }
+        .stat-card:hover {
+            border-color: rgba(0, 242, 254, 0.3);
+            transform: translateY(-2px);
         }
 
-        .stat-card.large { grid-column: span 2; }
+        .stat-card.large {
+            grid-column: span 2;
+            background: linear-gradient(145deg, rgba(0, 242, 254, 0.05), rgba(15, 20, 25, 0.9));
+        }
 
-        .val { font-size: 2.5rem; font-weight: 900; color: white; display: block; margin-bottom: 0.5rem; }
-        .label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; }
-        .trend { font-size: 0.65rem; color: var(--accent-primary); font-weight: 800; margin-top: 0.5rem; display: block; }
+        .stat-val {
+            font-size: 2.2rem;
+            font-weight: 900;
+            color: white;
+            display: block;
+            margin-bottom: 0.25rem;
+            font-family: var(--font-heading);
+            text-shadow: 0 0 15px rgba(0, 242, 254, 0.2);
+        }
+        .stat-card.large .stat-val { font-size: 3rem; color: var(--accent-primary); text-shadow: 0 0 20px var(--accent-primary-glow); }
 
-        .live-ticker {
+        .stat-label {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-family: var(--font-mono);
+        }
+
+        .stat-trend {
+            display: inline-block;
+            margin-top: 0.75rem;
+            font-size: 0.6rem;
+            color: #00ffcc;
+            background: rgba(0, 255, 204, 0.1);
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-weight: 800;
+        }
+
+        /* Live Activity Log */
+        .live-log-container {
             background: rgba(255,255,255,0.02);
             border: 1px solid var(--glass-border);
-            border-radius: 20px;
+            border-radius: 24px;
             padding: 1.5rem;
-            margin-top: 1rem;
+            overflow: hidden;
+            position: relative;
         }
-        .ticker-title { font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.2em; margin-bottom: 1rem; }
-        .ticker-row { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.5rem; }
-        .ticker-row strong { color: white; }
+        .live-log-container::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent-primary), transparent);
+            animation: scanningTop 3s infinite linear;
+        }
+        @keyframes scanningTop { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+
+        .log-title {
+            font-size: 0.7rem;
+            color: var(--accent-primary);
+            font-family: var(--font-mono);
+            letter-spacing: 0.15em;
+            margin-bottom: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .pulse-dot {
+            width: 6px; height: 6px; border-radius: 50%; background: var(--accent-primary);
+            box-shadow: 0 0 8px var(--accent-primary);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+
+        .log-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px dashed rgba(255,255,255,0.05);
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-family: var(--font-mono);
+        }
+        .log-row:last-child { border-bottom: none; }
+        .log-row strong { color: white; }
+        .log-time { font-size: 0.65rem; color: rgba(0, 242, 254, 0.6); }
+
+        /* Generic App Bottom Nav (Static) */
+        .app-nav {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            height: 75px;
+            background: rgba(5, 7, 10, 0.9);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border-top: 1px solid var(--glass-border);
+            display: flex;
+            justify-content: space-around;
+            padding-bottom: env(safe-area-inset-bottom);
+            z-index: 5000;
+        }
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            color: var(--text-muted);
+            text-decoration: none;
+            flex: 1;
+        }
+        .nav-item.active { color: var(--accent-primary); }
+        .nav-item svg { width: 22px; height: 22px; }
+        .nav-label { font-size: 0.6rem; font-weight: 800; letter-spacing: 0.05em; }
+
+        @media(max-width: 400px) {
+            .stat-card { padding: 1.25rem; }
+            .stat-val { font-size: 1.8rem; }
+            .stat-card.large .stat-val { font-size: 2.5rem; }
+        }
     </style>
 </head>
 <body>
     <header>
-        <a href="index.html" class="header-logo">AXP PRECISION</a>
-        <div class="header-title">PLATFORM STATS</div>
-        <div style="width: 80px;"></div>
+        <a href="index.html" class="header-logo">AXP_CORE</a>
+        <div class="header-title">METRICS</div>
+        <div style="width:70px"></div>
     </header>
 
     <div class="container">
+        <div class="page-header">
+            <h1 class="page-title">Global Platform Metrics</h1>
+            <div class="page-subtitle">Real-time statistics of the AXP Core Engine</div>
+        </div>
+
         <div class="stats-grid">
             <div class="stat-card large">
-                <span class="val">2,412,851</span>
-                <span class="label">Total Calibrations</span>
-                <span class="trend">↑ 12% THIS WEEK</span>
+                <span class="stat-val">3,248,110</span>
+                <span class="stat-label">Total Authenticated Codes</span>
+                <span class="stat-trend">+ 24.5% THIS WEEK</span>
             </div>
             <div class="stat-card">
-                <span class="val">1,842</span>
-                <span class="label">Pro Vendors</span>
+                <span class="stat-val">2,105</span>
+                <span class="stat-label">Pro Vendors</span>
             </div>
             <div class="stat-card">
-                <span class="val">99.98%</span>
-                <span class="label">Uptime</span>
+                <span class="stat-val">99.99%</span>
+                <span class="stat-label">Core Uptime</span>
             </div>
-            <div class="stat-card large">
-                <span class="val">14.2ms</span>
-                <span class="label">Avg Latency</span>
-                <span class="trend">NEURAL_SYNC: ACTIVE</span>
+            <div class="stat-card large" style="background: linear-gradient(145deg, rgba(0, 255, 204, 0.05), rgba(15, 20, 25, 0.9));">
+                <span class="stat-val" style="color: #00ffcc; text-shadow: 0 0 20px rgba(0,255,204,0.3);">12.4 ms</span>
+                <span class="stat-label">Average API Latency</span>
+                <span class="stat-trend" style="color: #00ffcc; background: rgba(0,255,204,0.1); border: 1px solid rgba(0,255,204,0.2);">NEURAL_SYNC OPTIMIZED</span>
             </div>
         </div>
 
-        <div class="live-ticker">
-            <div class="ticker-title">LIVE_ACTIVITY_UPLINK</div>
+        <div class="live-log-container">
+            <div class="log-title"><div class="pulse-dot"></div> LIVE_ACTIVITY_STREAM</div>
             <div id="activityLog">
-                <div class="ticker-row"><span>User <strong>Anonymous</strong> calibrated</span> <span>2s ago</span></div>
-                <div class="ticker-row"><span>Vendor <strong>EliteSensi</strong> issued code</span> <span>15s ago</span></div>
-                <div class="ticker-row"><span>User <strong>Ghost</strong> joined Arena</span> <span>42s ago</span></div>
-                <div class="ticker-row"><span>System <strong>Neural_Sync</strong> updated</span> <span>1m ago</span></div>
+                <div class="log-row"><span>User <strong>Anonymous</strong> verified code</span> <span class="log-time">JUST NOW</span></div>
+                <div class="log-row"><span>Vendor <strong>AXP_ELITE</strong> issued calibration</span> <span class="log-time">12s AGO</span></div>
+                <div class="log-row"><span>User <strong>Anonymous</strong> exported ID</span> <span class="log-time">45s AGO</span></div>
+                <div class="log-row"><span>System <strong>Neural_Sync</strong> parameter update</span> <span class="log-time">2m AGO</span></div>
+                <div class="log-row"><span>Vendor <strong>GhostPro</strong> joined network</span> <span class="log-time">14m AGO</span></div>
             </div>
         </div>
     </div>
 
-    <nav class="user-nav">
+    <!-- User Nav -->
+    <nav class="app-nav">
         <a href="index.html" class="nav-item">
-            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
             <span class="nav-label">HOME</span>
         </a>
-        <a href="events.html" class="nav-item">
-            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H7v2h10v-2h-4v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 10.63 21 8.55 21 8V7c0-1.1-.9-2-2-2zM7 10.82C5.84 10.4 5 9.3 5 8V7h2v3.82zM19 8c0 1.3-.84 2.4-2 2.82V7h2v1z"/></svg>
-            <span class="nav-label">SCRIMS</span>
+        <a href="stats.html" class="nav-item active">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"></path><path d="M18 17V9"></path><path d="M13 17V5"></path><path d="M8 17v-3"></path></svg>
+            <span class="nav-label">GLOBAL</span>
         </a>
-        <a href="winners.html" class="nav-item">
-            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
-            <span class="nav-label">WINNERS</span>
+        <a href="verify.html" class="nav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+            <span class="nav-label">VERIFY</span>
         </a>
-        <a href="elite.html" class="nav-item">
-            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-            <span class="nav-label">ELITE</span>
+        <a href="generator.html" class="nav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+            <span class="nav-label">DEMO</span>
         </a>
     </nav>
-    <script src="translations.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            if (window.applyLanguage) window.applyLanguage();
-        });
-    </script>
 </body>
 </html>

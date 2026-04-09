@@ -578,7 +578,7 @@ router.post('/vendor/generate', authenticateVendor, async (req, res) => {
             claw: z.string().optional()
         }).parse(req.body);
 
-        const results = Calculator.calculate({ brand, model, ram, playstyle, claw });
+        const results = Calculator.compute({ brand, model, ram, speed: playstyle, claw });
         const { accessKey } = await createVendorCode(req.vendorId, results);
 
         return res.json({ success: true, code: accessKey });
@@ -1887,13 +1887,14 @@ router.post('/admin/vendors', authenticateAdmin, async (req, res) => {
             return value;
         }, z.coerce.number().int().min(minimum).optional());
 
-        const { vendorId: requestedId, orgId: rawOrgId, orgName: rawOrgName, usageLimit, durationDays, brandConfig } = z.object({
+        const { vendorId: requestedId, orgId: rawOrgId, orgName: rawOrgName, usageLimit, durationDays, brandConfig, tier } = z.object({
             vendorId: z.string().min(2).optional(),
             orgId: z.string().optional(),
             orgName: z.string().optional(),
             usageLimit: nullableInt(0),
             durationDays: nullableInt(1),
-            brandConfig: z.record(z.any()).nullable().optional()
+            brandConfig: z.record(z.any()).nullable().optional(),
+            tier: z.enum(['normal', 'gold', 'premium']).optional().default('normal')
         }).parse(req.body || {});
 
         const orgId = ((rawOrgId || 'XP-CORE-ORG').trim().toUpperCase().replace(/[^A-Z0-9-]/g, '')) || 'XP-CORE-ORG';
@@ -1922,11 +1923,11 @@ router.post('/admin/vendors', authenticateAdmin, async (req, res) => {
         const orgName = rawOrgName || rawOrgId || 'AXP GLOBAL';
         await db.run("INSERT IGNORE INTO organizations (org_id, org_name, plan_tier) VALUES (?, ?, 'enterprise')", [orgId, orgName]);
         await db.run(`
-            INSERT INTO vendors (org_id, vendor_id, access_key, lookup_key, usage_limit, active_until, brand_config, status)
-            VALUES (?, ?, ?, ?, ?, ?, ?, 'active')
-        `, [orgId, vendorId, hashedAccessKey, lookupKey, usageLimit ?? null, activeUntil, JSON.stringify(brandConfig || {})]);
-        await logAudit('admin', 'SYSTEM', 'VENDOR_REGISTER', { vendorId, accessKey }, getClientIp(req));
-        return res.json({ success: true, message: 'VENDOR REGISTERED SUCCESSFULLY', vendorId, accessKey });
+            INSERT INTO vendors (org_id, vendor_id, tier, access_key, lookup_key, usage_limit, active_until, brand_config, status)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active')
+        `, [orgId, vendorId, tier, hashedAccessKey, lookupKey, usageLimit ?? null, activeUntil, JSON.stringify(brandConfig || {})]);
+        await logAudit('admin', 'SYSTEM', 'VENDOR_REGISTER', { vendorId, accessKey, tier }, getClientIp(req));
+        return res.json({ success: true, message: 'VENDOR REGISTERED SUCCESSFULLY', vendorId, accessKey, tier });
     } catch (err) {
         console.error('VENDOR_REGISTRATION_CRITICAL_FAILURE:', err);
         if (err instanceof z.ZodError) return res.status(400).json({ error: 'INVALID_INPUT_DATA', details: err.errors });

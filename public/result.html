@@ -14,17 +14,7 @@
     <div class="ambient-glow"></div>
 
     <div class="app-container">
-        <header class="result-intro reveal">
-        <!-- New Events Hub Link -->
-        <div id="arenaHubPromo" class="glass-panel" style="margin-bottom: 1.5rem; border: 1px solid var(--accent-primary); background: rgba(0, 240, 255, 0.03); display: flex; justify-content: space-between; align-items: center; padding: 1.2rem; border-radius: 8px;">
-            <div>
-                <div style="font-size: 0.6rem; color: var(--accent-primary); font-weight: 800; letter-spacing: 0.1em;">AXP_COMMUNITY</div>
-                <div style="font-size: 0.9rem; font-weight: 800; margin-top: 2px;">JOIN_EVENTS_HUB</div>
-            </div>
-            <button class="v-btn-mini primary" id="goToArenaBtn" onclick="window.location.href='events.html'" style="padding: 0.6rem 1.2rem; background: var(--accent-primary); color: #000; border: none; font-weight: 800; cursor: pointer; border-radius: 4px;">ENTER_HUB</button>
-        </div>
 
-        <div class="hero-banner">
             <div class="logo-badge">SCAN_COMPLETE</div>
             <h1 class="title-main" style="font-size: 1.6rem; margin: 0.55rem 0 0;">AUTHORIZATION_SUCCESS</h1>
             <p data-i18n="resultHeroText">Your premium calibration profile is ready. View, share, and export your high-res creator card below.</p>
@@ -94,26 +84,26 @@
                     <article class="stat-card">
                         <div class="signal up" id="signalGen">↑</div>
                         <div class="label">GENERAL_SENS</div>
-                        <div class="value"><span id="rGen1">--</span> — <span id="rGen2">--</span></div>
-                        <div class="trend" id="trendGeneral">TREND: OPTIMIZING</div>
+                        <div class="value" id="idGeneral" style="font-size: 1.2rem;">--</div>
+                        <div class="trend">TREND: OPTIMIZING</div>
                     </article>
                     <article class="stat-card">
                         <div class="signal up" id="signalRed">↑</div>
-                        <div class="label">RED_DOT_PRECISION</div>
-                        <div class="value"><span id="rRed1">--</span> — <span id="rRed2">--</span></div>
-                        <div class="trend" id="trendRed">TREND: STABLE</div>
+                        <div class="label">RED_DOT \ 2X \ 4X</div>
+                        <div class="value" style="font-size: 1rem;"><span id="idRedDot">--</span> \ <span id="id2x">--</span> \ <span id="id4x">--</span></div>
+                        <div class="trend">DYNAMIC SCALING</div>
                     </article>
                     <article class="stat-card">
                         <div class="signal flat" id="signalScope">↘</div>
-                        <div class="label">2X / 4X_SCOPE</div>
-                        <div class="value"><span id="r2x1">--</span> — <span id="r4x2">--</span></div>
-                        <div class="trend" id="trend4x">TREND: FINE-TUNING</div>
+                        <div class="label">SNIPER \ FREE LOOK</div>
+                        <div class="value" style="font-size: 1rem;"><span id="idSniper">--</span> \ <span id="idFreeLook">--</span></div>
+                        <div class="trend">PRECISION CONTROL</div>
                     </article>
                     <article class="stat-card">
                         <div class="signal flat">◎</div>
-                        <div class="label">DPI / EFFICIENCY</div>
-                        <div class="value"><span id="idDPI">--</span> • <span id="profileEfficiencyCard">--%</span></div>
-                        <div class="trend">TREND: LIVE_SYNCED</div>
+                        <div class="label">DPI \ FIRE BUTTON</div>
+                        <div class="value" style="font-size: 1rem;"><span id="idDPI">--</span> \ <span id="idFireButton">--</span></div>
+                        <div class="trend">SCREEN OPTIMIZED</div>
                     </article>
                 </div>
 
@@ -179,10 +169,10 @@
                         <div class="share-code-pill" data-i18n="syncedProfile">SYNCED_PROFILE</div>
                     </div>
                     <div class="share-stats-grid">
-                        <div class="share-stat"><div class="icon" style="color:#7bf2c9;">↑</div><div class="label">GENERAL_SENS</div><div class="value" id="shareGeneral">--</div><div class="trend" id="shareTrendGeneral">TREND: OPTIMIZING</div></div>
-                        <div class="share-stat"><div class="icon" style="color:#ff8d9c;">↑</div><div class="label">RED_DOT_PRECISION</div><div class="value" id="shareRedDot">--</div><div class="trend" id="shareTrendRed">TREND: STABLE</div></div>
-                        <div class="share-stat"><div class="icon" style="color:#8de3ff;">↘</div><div class="label">2X / 4X_SCOPE</div><div class="value" id="shareScope">--</div><div class="trend" id="shareTrendScope">TREND: CONSISTENT</div></div>
-                        <div class="share-stat"><div class="icon" style="color:#9df0e1;">◎</div><div class="label">DPI / EFFICIENCY</div><div class="value" id="shareDpiEff">--</div><div class="trend">TREND: LIVE_SYNCED</div></div>
+                        <div class="share-stat"><div class="icon" style="color:#7bf2c9;">↑</div><div class="label">GENERAL_SENS</div><div class="value" id="shareGeneral">--</div></div>
+                        <div class="share-stat"><div class="icon" style="color:#ff8d9c;">↑</div><div class="label">RED_DOT \ 2X \ 4X</div><div class="value" style="font-size:1.1rem;"><span id="shareRedDot">--</span> \ <span id="share2x">--</span> \ <span id="share4x">--</span></div></div>
+                        <div class="share-stat"><div class="icon" style="color:#8de3ff;">↘</div><div class="label">SNIPER \ FREE_LOOK</div><div class="value" style="font-size:1.1rem;"><span id="shareSniper">--</span> \ <span id="shareFreeLook">--</span></div></div>
+                        <div class="share-stat"><div class="icon" style="color:#9df0e1;">◎</div><div class="label">DPI \ FIRE BUTTON</div><div class="value" style="font-size:1.1rem;"><span id="shareDpi">--</span> \ <span id="shareFireButton">--</span></div></div>
                     </div>
                 </div>
                 <div class="share-footer">
@@ -197,25 +187,6 @@
         </section>
     </div>
 
-    <!-- 📱 User Navigation -->
-    <nav class="user-nav">
-        <a href="index.html" class="nav-item">
-            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
-            <span class="nav-label">HOME</span>
-        </a>
-        <a href="leaderboard.html" class="nav-item">
-            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 9.2h3V19H5V9.2zM10.6 5h2.8v14h-2.8V5zm5.6 8H19v6h-2.8v-6z"/></svg>
-            <span class="nav-label">VENDORS</span>
-        </a>
-        <a href="events.html" class="nav-item">
-            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H7v2h10v-2h-4v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 10.63 21 8.55 21 8V7c0-1.1-.9-2-2-2zM7 10.82C5.84 10.4 5 9.3 5 8V7h2v3.82zM19 8c0 1.3-.84 2.4-2 2.82V7h2v1z"/></svg>
-            <span class="nav-label">EVENTS</span>
-        </a>
-        <a href="stats.html" class="nav-item">
-            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
-            <span class="nav-label">STATS</span>
-        </a>
-    </nav>
 
     <script src="analytics.js"></script>
     <script src="translations.js"></script>
