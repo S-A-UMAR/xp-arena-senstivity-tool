@@ -9,7 +9,6 @@ const rateLimit = require('express-rate-limit');
 
 const app = express();
 
-// --- PUBLIC PULSE & SOCIAL PROOF ---
 // 🚀 PERFORMANCE & SECURITY LAYER
 app.use(compression());
 app.use(helmet({
@@ -30,15 +29,15 @@ app.use(helmet({
 app.set('trust proxy', 1);
 
 app.use(cors({
-    origin: true, 
-    credentials: true 
+    origin: true,
+    credentials: true
 }));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-app.get('/health', (req, res) => res.json({ status: 'ok', tool: 'XP-SENSITIVITY-PRO' }));
+app.get('/health', (req, res) => res.json({ status: 'ok', tool: 'XP-SENSITIVITY-PRO', ts: Date.now() }));
 
 // Static Handlers (local/dev; on Vercel, static is served by the platform)
 app.use(express.static(path.join(__dirname, 'public'), {
@@ -49,27 +48,20 @@ app.use(express.static(path.join(__dirname, 'public'), {
 }));
 
 process.on('unhandledRejection', (error) => {
-    console.error('⚠️ UNHANDLED_PROMISE_REJECTION:', error);
+    console.error('⚠️ UNHANDLED_PROMISE_REJECTION:', error?.message || error);
 });
 
 process.on('uncaughtException', (error) => {
-    console.error('🧨 UNCAUGHT_EXCEPTION:', error);
-    // process.exit(1); // Optional: reboot strategy
+    console.error('🧨 UNCAUGHT_EXCEPTION:', error?.message || error);
 });
 
 const PORT = process.env.PORT || 3001;
 
 // Rate Limiting
-const apiLimiter = rateLimit({
-    windowMs: 60 * 1000,
-    max: 120,
-});
-const adminLimiter = rateLimit({
-    windowMs: 60 * 1000,
-    max: 30,
-});
+const apiLimiter = rateLimit({ windowMs: 60 * 1000, max: 120 });
+const adminLimiter = rateLimit({ windowMs: 60 * 1000, max: 30 });
 const diagnosticLimiter = rateLimit({
-    windowMs: 60 * 60 * 1000, // 1 hour
+    windowMs: 60 * 60 * 1000,
     max: 5,
     message: { error: 'MAX_DIAGNOSTIC_ATTEMPTS_REACHED' }
 });
@@ -78,63 +70,58 @@ app.use('/api', apiLimiter);
 app.use('/api/vault/admin', adminLimiter);
 app.use('/api/vault/diagnostics/submit', diagnosticLimiter);
 
-// Serve Frontend
+// ⚡ SOCKET.IO: Only required in non-serverless environments at runtime
+// For Vercel: io is null, live feed uses polling endpoints
+app.set('io', null);
 
-// Server configuration
-const http = require('http');
-const server = http.createServer(app);
-let io = null;
 if (!process.env.VERCEL) {
-    const { Server } = require('socket.io');
-    io = new Server(server, {
-        cors: { origin: "*" }
-    });
-    io.on('connection', (socket) => {
-        console.log('⚡ SOCKET_CONNECTED:', socket.id);
-    });
-} else {
-    console.log('ℹ️ VERCEL_ENV_DETECTED: live feed will use polling endpoints.');
-}
-app.set('io', io);
+    try {
+        const http = require('http');
+        const { Server } = require('socket.io');
+        const server = http.createServer(app);
+        const io = new Server(server, { cors: { origin: '*' } });
+        io.on('connection', (socket) => {
+            console.log('⚡ SOCKET_CONNECTED:', socket.id);
+        });
+        app.set('io', io);
 
-// Routes
-const vaultRoutes = require('./routes/vaultRoutes');
-app.use('/api/vault', vaultRoutes);
-
-// ⚡ Auto-Migration for Vercel (Optional)
-if (process.env.AUTO_MIGRATE === 'true') {
-    require('./migrate');
-}
-
-// Error Handling
-app.use((err, req, res, next) => {
-    // 🛡️ LOG THE ACTUAL ERROR TO SERVER LOGS (Even in production)
-    console.error('SERVER_ERROR:', err.stack || err.message || err);
-    
-    const statusCode = err.status || 500;
-    const message = process.env.NODE_ENV === 'production' 
-        ? 'INTERNAL_SERVER_ERROR // ENCRYPTION_INTEGRITY_CHECK_FAILED' 
-        : err.message;
-
-    res.status(statusCode).json({ 
-        error: message,
-        status: 'CRITICAL',
-        code: statusCode
-    });
-});
-
-// Export for serverless
-module.exports = app;
-
-// Only listen if running directly
-if (require.main === module) {
-    server.listen(PORT, () => {
-        console.log(`
+        // Only listen when running directly
+        if (require.main === module) {
+            server.listen(PORT, () => {
+                console.log(`
 🚀 XP SENSITIVITY TOOL PRO
 -------------------------
 Mode: REALTIME_CORE
 Port: ${PORT}
 URL:  http://localhost:${PORT}
-        `);
-    });
+                `);
+            });
+        }
+    } catch (err) {
+        console.warn('⚠️ SOCKET_IO_UNAVAILABLE:', err.message);
+    }
+} else {
+    console.log('ℹ️ VERCEL_ENV_DETECTED: live feed will use polling endpoints.');
 }
+
+// Routes
+const vaultRoutes = require('./routes/vaultRoutes');
+app.use('/api/vault', vaultRoutes);
+
+// Auto-Migration (optional, only if flag set)
+if (process.env.AUTO_MIGRATE === 'true') {
+    require('./migrate');
+}
+
+// Global Error Handler
+app.use((err, req, res, _next) => {
+    console.error('SERVER_ERROR:', err.stack || err.message || err);
+    const statusCode = err.status || 500;
+    const message = process.env.NODE_ENV === 'production'
+        ? 'INTERNAL_SERVER_ERROR'
+        : err.message;
+    res.status(statusCode).json({ error: message, status: 'CRITICAL', code: statusCode });
+});
+
+// Export for Vercel serverless
+module.exports = app;
