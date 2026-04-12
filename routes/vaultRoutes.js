@@ -1091,6 +1091,8 @@ router.get('/user/profile', async (req, res) => {
         const fingerprint = getUserFingerprint(req);
         const profile = await db.get('SELECT * FROM user_profiles WHERE user_id = ?', [fingerprint]);
         return res.json(profile || { level: 1, xp_points: 0 });
+    } catch (err) {
+        console.error('FETCH_PROFILE_ERR:', err);
         return res.status(500).json({ error: 'FETCH_PROFILE_FAILED' });
     }
 });
@@ -1874,6 +1876,12 @@ router.post('/admin/revoke-global', authenticateAdmin, async (req, res) => {
         await db.run('DELETE FROM sensitivity_keys WHERE lookup_key = ?', [lookupKey]);
         await logAudit('admin', 'SYSTEM', 'GLOBAL_REVOKE', { lookupKey }, getClientIp(req));
         return res.json({ success: true });
+    } catch (err) {
+        if (err instanceof z.ZodError) return res.status(400).json({ error: 'INVALID_INPUT' });
+        return res.status(500).json({ error: 'REVOKE_GLOBAL_FAILED' });
+    }
+});
+
 router.get('/admin/vendors', authenticateAdmin, async (_req, res) => {
     try {
         const accounts = await db.all(`
