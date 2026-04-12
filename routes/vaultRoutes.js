@@ -10,7 +10,7 @@ const router = express.Router();
 
 
 const REQUIRED_COLUMN_LENGTHS = {
-    vendors: { access_key: 100, lookup_key: 20 },
+    account_registry: { pass_hash: 100, lookup_key: 20 },
     sensitivity_keys: { entry_code: 100, lookup_key: 16 },
     code_activity: { entry_code: 100, lookup_key: 16 }
 };
@@ -42,8 +42,8 @@ async function ensureKeyStorageCapacity(options = {}) {
                 SELECT TABLE_NAME, COLUMN_NAME, CHARACTER_MAXIMUM_LENGTH as max_length
                 FROM information_schema.COLUMNS
                 WHERE TABLE_SCHEMA = DATABASE()
-                  AND TABLE_NAME IN ('vendors', 'sensitivity_keys', 'code_activity')
-                  AND COLUMN_NAME IN ('access_key', 'entry_code', 'lookup_key')
+                  AND TABLE_NAME IN ('account_registry', 'sensitivity_keys', 'code_activity')
+                  AND COLUMN_NAME IN ('pass_hash', 'entry_code', 'lookup_key')
             `);
 
             const currentLengths = rows.reduce((acc, row) => {
@@ -53,11 +53,11 @@ async function ensureKeyStorageCapacity(options = {}) {
             }, {});
 
             const alterStatements = [];
-            if ((currentLengths.vendors?.access_key || 0) > 0 && currentLengths.vendors.access_key < REQUIRED_COLUMN_LENGTHS.vendors.access_key) {
-                alterStatements.push(`ALTER TABLE vendors MODIFY COLUMN access_key VARCHAR(${REQUIRED_COLUMN_LENGTHS.vendors.access_key}) NOT NULL`);
+            if ((currentLengths.account_registry?.pass_hash || 0) > 0 && currentLengths.account_registry.pass_hash < REQUIRED_COLUMN_LENGTHS.account_registry.pass_hash) {
+                alterStatements.push(`ALTER TABLE account_registry MODIFY COLUMN pass_hash VARCHAR(${REQUIRED_COLUMN_LENGTHS.account_registry.pass_hash}) NOT NULL`);
             }
-            if ((currentLengths.vendors?.lookup_key || 0) > 0 && currentLengths.vendors.lookup_key < REQUIRED_COLUMN_LENGTHS.vendors.lookup_key) {
-                alterStatements.push(`ALTER TABLE vendors MODIFY COLUMN lookup_key VARCHAR(${REQUIRED_COLUMN_LENGTHS.vendors.lookup_key}) NULL`);
+            if ((currentLengths.account_registry?.lookup_key || 0) > 0 && currentLengths.account_registry.lookup_key < REQUIRED_COLUMN_LENGTHS.account_registry.lookup_key) {
+                alterStatements.push(`ALTER TABLE account_registry MODIFY COLUMN lookup_key VARCHAR(${REQUIRED_COLUMN_LENGTHS.account_registry.lookup_key}) NULL`);
             }
             if ((currentLengths.sensitivity_keys?.entry_code || 0) > 0 && currentLengths.sensitivity_keys.entry_code < REQUIRED_COLUMN_LENGTHS.sensitivity_keys.entry_code) {
                 alterStatements.push(`ALTER TABLE sensitivity_keys MODIFY COLUMN entry_code VARCHAR(${REQUIRED_COLUMN_LENGTHS.sensitivity_keys.entry_code}) NOT NULL`);
@@ -345,7 +345,7 @@ async function authenticateVendor(req, res, next) {
         }
 
         try {
-            await db.run('UPDATE vendors SET last_login_at = ? WHERE vendor_id = ?', [now, payload.vendor_id]);
+            await db.run('UPDATE account_registry SET last_login_at = ? WHERE account_id = ?', [now, payload.vendor_id]);
         } catch (_err) {}
 
         req.vendorId = payload.vendor_id;
@@ -804,14 +804,14 @@ router.post('/verify', async (req, res) => {
         });
         if (blocked || res.headersSent) return undefined;
 
-        const vendor = await db.get('SELECT * FROM vendors WHERE lookup_key = ?', [lookupKey]);
-        if (vendor && await bcrypt.compare(input, vendor.access_key)) {
+        const vendor = await db.get('SELECT * FROM account_registry WHERE lookup_key = ?', [lookupKey]);
+        if (vendor && await bcrypt.compare(input, vendor.pass_hash)) {
             const now = new Date();
             const activeWindow = !vendor.active_until || new Date(vendor.active_until) > now;
             if (vendor.status !== 'active' || !activeWindow) {
                 return fail(res, 'XP_AUTH_SUSPENDED', 'PROVIDER_ACCESS_DENIED', 403);
             }
-            const token = jwt.sign({ vendor_id: vendor.vendor_id }, await getJwtSecret(), { expiresIn: '7d' });
+            const token = jwt.sign({ vendor_id: vendor.account_id }, await getJwtSecret(), { expiresIn: '7d' });
             res.cookie('xp_vendor_token', token, {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === 'production',
@@ -822,7 +822,7 @@ router.post('/verify', async (req, res) => {
             return res.json({
                 type: 'vendor',
                 redirect: '/vendor_dashboard.html',
-                vendor: { id: vendor.vendor_id, config: normalizeBranding(vendor.brand_config) },
+                vendor: { id: vendor.account_id, config: normalizeBranding(vendor.brand_config) },
                 message: 'VENDOR DASHBOARD UNLOCKED'
             });
         }
@@ -935,15 +935,15 @@ router.post('/admin/logout', (_req, res) => {
 router.post('/vendor/login', async (req, res) => {
     try {
         const { access_key } = z.object({ access_key: z.string().min(6) }).parse(req.body || {});
-        const vendor = await db.get('SELECT vendor_id, access_key, status, active_until FROM vendors WHERE lookup_key = ?', [getLookupKey(access_key)]);
-        if (!vendor || !(await bcrypt.compare(access_key, vendor.access_key))) {
+        const vendor = await db.get('SELECT account_id, pass_hash, status, active_until FROM account_registry WHERE lookup_key = ?', [getLookupKey(access_key)]);
+        if (!vendor || !(await bcrypt.compare(access_key, vendor.pass_hash))) {
             return fail(res, 'XP_AUTH_DENIED', 'INVALID_VENDOR_KEY', 401);
         }
         if (vendor.status !== 'active' || (vendor.active_until && new Date(vendor.active_until) <= new Date())) {
             return fail(res, 'XP_AUTH_SUSPENDED', 'VENDOR_ACCOUNT_LOCKED', 403);
         }
 
-        const token = jwt.sign({ vendor_id: vendor.vendor_id }, await getJwtSecret(), { expiresIn: '7d' });
+        const token = jwt.sign({ vendor_id: vendor.account_id }, await getJwtSecret(), { expiresIn: '7d' });
         res.cookie('xp_vendor_token', token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
@@ -967,8 +967,8 @@ router.post('/vendor/logout', authenticateVendor, async (_req, res) => {
 router.get('/profile', authenticateVendor, async (req, res) => {
     try {
         const vendor = await db.get(`
-            SELECT vendor_id, status, active_until, brand_config, webhook_url, usage_limit, is_verified
-            FROM vendors WHERE vendor_id = ?
+            SELECT account_id, status, active_until, brand_config, webhook_url, usage_limit, is_verified
+            FROM account_registry WHERE account_id = ?
         `, [req.vendorId]);
         if (!vendor) return res.status(404).json({ error: 'VENDOR_NOT_FOUND' });
 
@@ -1898,7 +1898,7 @@ router.post('/vendor/extend-access', authenticateVendor, async (req, res) => {
 router.post('/webhook', authenticateVendor, async (req, res) => {
     try {
         const { url } = z.object({ url: z.string().url().nullable() }).parse(req.body || {});
-        await db.run('UPDATE vendors SET webhook_url = ? WHERE vendor_id = ?', [url, req.vendorId]);
+        await db.run('UPDATE account_registry SET webhook_url = ? WHERE account_id = ?', [url, req.vendorId]);
         return res.json({ success: true });
     } catch (_err) {
         return res.status(500).json({ error: 'WEBHOOK_UPDATE_FAILED' });
@@ -1912,7 +1912,7 @@ router.get('/org/stats', authenticateAdmin, async (_req, res) => {
         events.forEach((event) => {
             if (Object.prototype.hasOwnProperty.call(counts, event.event_type)) counts[event.event_type] = event.count;
         });
-        const vendors = await db.get('SELECT COUNT(*) as count FROM vendors');
+        const vendors = await db.get('SELECT COUNT(*) as count FROM account_registry');
         const codes = await db.get('SELECT COUNT(*) as count FROM sensitivity_keys');
         return res.json({
             vendors: vendors.count,
@@ -1933,10 +1933,10 @@ router.get('/org/stats', authenticateAdmin, async (_req, res) => {
 router.get('/org/creators', authenticateAdmin, async (_req, res) => {
     try {
         const creators = await db.all(`
-            SELECT v.vendor_id as name,
-                   (SELECT COUNT(*) FROM sensitivity_keys WHERE vendor_id = v.vendor_id) as total_keys,
-                   (SELECT COUNT(*) FROM code_activity ca JOIN sensitivity_keys sk ON ca.lookup_key = sk.lookup_key WHERE sk.vendor_id = v.vendor_id) as clicks
-            FROM vendors v
+            SELECT v.account_id as name,
+                   (SELECT COUNT(*) FROM sensitivity_keys WHERE account_id = v.account_id) as total_keys,
+                   (SELECT COUNT(*) FROM code_activity ca JOIN sensitivity_keys sk ON ca.lookup_key = sk.lookup_key WHERE sk.account_id = v.account_id) as clicks
+            FROM account_registry v
             LIMIT 10
         `);
         return res.json(creators);
@@ -1950,7 +1950,7 @@ router.get('/admin/stats', authenticateAdmin, async (_req, res) => {
     try {
         const stats = await db.get(`
             SELECT
-                (SELECT COUNT(*) FROM vendors) as vendors,
+                (SELECT COUNT(*) FROM account_registry) as vendors,
                 (SELECT COUNT(*) FROM sensitivity_keys) as codes,
                 (SELECT COUNT(*) FROM code_activity) as usage_total,
                 (SELECT AVG(feedback_rating) FROM code_activity WHERE feedback_rating IS NOT NULL) as global_accuracy
@@ -1965,9 +1965,9 @@ router.get('/admin/stats', authenticateAdmin, async (_req, res) => {
 router.get('/admin/lookup/:lookupKey', authenticateAdmin, async (req, res) => {
     try {
         const key = await db.get(`
-            SELECT k.*, v.vendor_id, v.status as vendor_status
+            SELECT k.*, v.account_id, v.status as vendor_status
             FROM sensitivity_keys k
-            LEFT JOIN vendors v ON k.vendor_id = v.vendor_id
+            LEFT JOIN account_registry v ON k.account_id = v.account_id
             WHERE k.lookup_key = ?
         `, [req.params.lookupKey]);
         if (!key) return res.status(404).json({ error: 'KEY_NOT_FOUND' });

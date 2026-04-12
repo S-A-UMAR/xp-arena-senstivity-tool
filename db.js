@@ -5,7 +5,7 @@ require('dotenv').config({ path: path.join(__dirname, '.env') });
 const pool = mysql.createPool({
     host: process.env.DB_HOST || 'localhost',
     user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASSWORD || '',
+    password: process.env.DB_PASS || process.env.DB_PASSWORD || '',
     database: process.env.DB_NAME || 'axp_neural_nexus',
     port: process.env.DB_PORT || 3306,
     waitForConnections: true,
