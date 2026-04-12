@@ -108,7 +108,8 @@ if (process.env.AUTO_MIGRATE === 'true') {
 
 // Error Handling
 app.use((err, req, res, next) => {
-    console.error('SERVER_ERROR:', err.stack);
+    // 🛡️ LOG THE ACTUAL ERROR TO SERVER LOGS (Even in production)
+    console.error('SERVER_ERROR:', err.stack || err.message || err);
     
     const statusCode = err.status || 500;
     const message = process.env.NODE_ENV === 'production' 

@@ -6,55 +6,70 @@ const pool = mysql.createPool({
     host: process.env.DB_HOST || 'localhost',
     user: process.env.DB_USER || 'root',
     password: process.env.DB_PASS || process.env.DB_PASSWORD || '',
-    database: process.env.DB_NAME || 'axp_neural_nexus',
+    database: process.env.DB_NAME || 'xp_sensitivity_tool',
     port: process.env.DB_PORT || 3306,
     waitForConnections: true,
     connectionLimit: process.env.DB_CONNECTION_LIMIT ? parseInt(process.env.DB_CONNECTION_LIMIT, 10) : 10,
     queueLimit: 0,
-    connectTimeout: 15000, // ⚡ 15s timeout to prevent serverless hang in cold starts
+    connectTimeout: 5000, 
     enableKeepAlive: true,
     keepAliveInitialDelay: 10000,
     ssl: {
         minVersion: 'TLSv1.2',
-        rejectUnauthorized: false // ⚡ Resilient for TiDB Cloud / Vercel
+        rejectUnauthorized: false
     }
 });
 
-// Diagnostic connection ping (skip during tests to avoid async logs after Jest teardown)
+// Lazy diagnostic helper (not called at top-level to prevent Vercel boot hang)
 async function runConnectionDiagnostic() {
     try {
         const conn = await pool.getConnection();
         console.log('✅ DB_CONNECTION_ESTABLISHED');
         conn.release();
     } catch (err) {
-        const msg = err && err.message ? err.message : 'UNKNOWN_DB_ERROR';
-        console.error('❌ DB_CONNECTION_FAILED:', msg);
+        console.error('❌ DB_CONNECTION_FAILED:', err?.message || 'UNKNOWN');
     }
-}
-
-if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
-    runConnectionDiagnostic();
 }
 
 const databaseHelper = {
     async query(sql, params) {
-        const [results] = await pool.execute(sql, params);
-        return results;
+        try {
+            const [results] = await pool.execute(sql, params);
+            return results;
+        } catch (err) {
+            console.error(`DB_QUERY_ERR: ${err.message}`, { sql });
+            throw err;
+        }
     },
     async get(sql, params) {
-        const [results] = await pool.execute(sql, params);
-        return results[0];
+        try {
+            const [results] = await pool.execute(sql, params);
+            return results ? results[0] : null;
+        } catch (err) {
+            console.error(`DB_GET_ERR: ${err.message}`, { sql });
+            throw err;
+        }
     },
     async all(sql, params) {
-        const [results] = await pool.execute(sql, params);
-        return results;
+        try {
+            const [results] = await pool.execute(sql, params);
+            return results || [];
+        } catch (err) {
+            console.error(`DB_ALL_ERR: ${err.message}`, { sql });
+            throw err;
+        }
     },
     async run(sql, params) {
-        const [results] = await pool.execute(sql, params);
-        return {
-            lastID: results.insertId,
-            changes: results.affectedRows
-        };
+        try {
+            const [results] = await pool.execute(sql, params);
+            return {
+                lastID: results?.insertId || null,
+                changes: results?.affectedRows || 0
+            };
+        } catch (err) {
+            console.error(`DB_RUN_ERR: ${err.message}`, { sql });
+            throw err;
+        }
     },
     async getOrg(orgId) {
         return this.get('SELECT * FROM organizations WHERE org_id = ?', [orgId]);

@@ -10,17 +10,23 @@ const MIGRATION_MARKERS = [
 ];
 
 async function migrate() {
-    const connection = await mysql.createConnection({
-        host: process.env.DB_HOST || 'localhost',
-        user: process.env.DB_USER || 'root',
-        password: process.env.DB_PASSWORD || '',
-        port: process.env.DB_PORT ? parseInt(process.env.DB_PORT, 10) : 3306,
-        ssl: {
-            minVersion: 'TLSv1.2',
-            rejectUnauthorized: false
-        },
-        multipleStatements: true
-    });
+    let connection;
+    try {
+        connection = await mysql.createConnection({
+            host: process.env.DB_HOST || 'localhost',
+            user: process.env.DB_USER || 'root',
+            password: process.env.DB_PASS || process.env.DB_PASSWORD || '',
+            port: process.env.DB_PORT ? parseInt(process.env.DB_PORT, 10) : 3306,
+            ssl: {
+                minVersion: 'TLSv1.2',
+                rejectUnauthorized: false
+            },
+            multipleStatements: true
+        });
+    } catch (err) {
+        console.error('❌ MIGRATION_CONNECTION_FAILED:', err.message);
+        return;
+    }
 
     try {
         console.log('--- AXP DATABASE INITIALIZATION ---');
