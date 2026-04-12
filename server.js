@@ -9,6 +9,7 @@ const rateLimit = require('express-rate-limit');
 
 const app = express();
 
+// --- PUBLIC PULSE & SOCIAL PROOF ---
 // 🚀 PERFORMANCE & SECURITY LAYER
 app.use(compression());
 app.use(helmet({
@@ -67,8 +68,15 @@ const adminLimiter = rateLimit({
     windowMs: 60 * 1000,
     max: 30,
 });
+const diagnosticLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000, // 1 hour
+    max: 5,
+    message: { error: 'MAX_DIAGNOSTIC_ATTEMPTS_REACHED' }
+});
+
 app.use('/api', apiLimiter);
 app.use('/api/vault/admin', adminLimiter);
+app.use('/api/vault/diagnostics/submit', diagnosticLimiter);
 
 // Serve Frontend
 

@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <title>AXP | REACTION LAB</title>
+  <link rel="stylesheet" href="design-system.css">
+  <style>
+    :root {
+      --lab-cyan: #00f2fe;
+      --lab-glow: rgba(0, 242, 254, 0.4);
+    }
+    
+    body.page-lab {
+      background: #020617;
+      overflow: hidden;
+      touch-action: none;
+    }
+
+    /* Target Styles */
+    #gameCanvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 5;
+    }
+
+    .lab-target {
+      position: absolute;
+      width: 60px;
+      height: 60px;
+      background: radial-gradient(circle, var(--lab-cyan), transparent);
+      border: 2px solid var(--lab-cyan);
+      border-radius: 50%;
+      box-shadow: 0 0 20px var(--lab-glow);
+      cursor: crosshair;
+      z-index: 10;
+      animation: targetPop 0.3s var(--ease) both;
+    }
+    @keyframes targetPop {
+      0% { transform: scale(0); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    /* UI Layers */
+    .lab-ui {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 20;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .lab-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+
+    .lab-score-box {
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 0.75rem 1.25rem;
+      border-radius: var(--r-lg);
+      font-family: var(--font-mono);
+    }
+
+    .lab-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(2, 6, 23, 0.95);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      pointer-events: all;
+    }
+
+    /* Diagnostic Card Result */
+    .diagnostic-card {
+      width: 100%;
+      max-width: 400px;
+      background: var(--bg-surface);
+      border: 1px solid var(--bd-subtle);
+      border-radius: var(--r-xl);
+      padding: 2.5rem;
+      text-align: center;
+      animation: scaleIn 0.8s var(--ease) both;
+    }
+
+    .diagnostic-val {
+      font-size: 3rem;
+      font-weight: 900;
+      color: var(--lab-cyan);
+      text-shadow: 0 0 20px var(--lab-glow);
+      line-height: 1;
+      margin: 1.5rem 0;
+    }
+
+    .id-seal {
+      display: inline-block;
+      padding: 0.5rem 1.5rem;
+      background: rgba(0, 242, 254, 0.1);
+      border: 1px solid var(--lab-cyan);
+      border-radius: var(--r-pill);
+      color: var(--lab-cyan);
+      font-family: var(--font-mono);
+      font-weight: 900;
+      font-size: 1.2rem;
+      letter-spacing: 0.1em;
+      margin-top: 2rem;
+    }
+
+    /* Laser Line for effect */
+    .laser-line {
+      position: absolute;
+      top: 50%; left: 0; right: 0;
+      height: 1px;
+      background: var(--lab-cyan);
+      opacity: 0.2;
+      box-shadow: 0 0 10px var(--lab-cyan);
+    }
+  </style>
+</head>
+<body class="page-lab">
+
+  <!-- Fixed Header -->
+  <header class="page-header" style="z-index: 1000;">
+    <a href="index.html" class="ph-back">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M19 12H5"/><polyline points="12 19 5 12 12 5"/></svg>
+      BACK
+    </a>
+    <div class="ph-title">NEURAL_REACTION_LAB</div>
+    <div style="width: 50px;"></div>
+  </header>
+
+  <!-- Game Interface -->
+  <div id="gameZone"></div>
+  
+  <div class="lab-ui">
+    <div class="lab-header">
+      <div class="lab-score-box">
+        <div class="text-ghost text-xs">HITS_REMAINING</div>
+        <div id="hitsLeft" class="text-xl font-black text-white">10</div>
+      </div>
+      <div class="lab-score-box text-right">
+        <div class="text-ghost text-xs">AVG_REACTION</div>
+        <div id="currentAvg" class="text-xl font-black text-white">0ms</div>
+      </div>
+    </div>
+    
+    <div class="flex flex-col items-center">
+      <div class="badge-cyan mb-2">NEURAL_DIAGNOSTIC_ACTIVE</div>
+      <p class="text-ghost text-xs font-mono">TAP_CENTRAL_NODES_TO_CALIBRATE</p>
+    </div>
+  </div>
+
+  <!-- Start Overlay -->
+  <div id="startOverlay" class="lab-overlay">
+    <div class="diagnostic-card">
+      <div class="badge-gold mb-3">AXP_LAB_UPLINK</div>
+      <h1 class="text-hero text-2xl mb-4">BEGIN<br>NEURAL_TEST</h1>
+      <p class="text-sub text-sm mb-8">Measure your human reaction speed to generate a diagnostic profile for your provider.</p>
+      <button class="btn-cta cyan w-full" onclick="startTest()">INITIALIZE_SCAN</button>
+      <p class="text-ghost mt-4" style="font-size: 0.6rem;">REQUIRED FOR EXPERT CALIBRATION</p>
+    </div>
+  </div>
+
+  <!-- Result Overlay -->
+  <div id="resultOverlay" class="lab-overlay hidden">
+    <div class="diagnostic-card" id="cardToCapture">
+      <div class="badge-cyan mb-2">SCAN_COMPLETE</div>
+      <h2 class="section-title">NEURAL_METRICS</h2>
+      
+      <div class="diagnostic-val" id="finalAvg">--ms</div>
+      
+      <div class="flex flex-col gap-1 mb-8">
+        <div class="flex justify-between text-xs font-mono">
+          <span class="text-ghost">PRECISION_STABILITY</span>
+          <span id="finalPrecision" class="text-cyan">--%</span>
+        </div>
+        <div class="skeleton-h sm w-full"><div id="precisionBar" class="stat-bar-fill" style="background:var(--lab-cyan); width:0%;"></div></div>
+      </div>
+
+      <div class="text-sub text-sm px-4">Provide this ID to your Vendor to unlock a human-synced sensitivity profile.</div>
+      
+      <div class="id-seal" id="diagnosticId">LAB-XXXXXX</div>
+      
+      <div class="flex gap-2 mt-8">
+        <button class="btn-ghost auto flex-1" onclick="copyLabId()">COPY_ID</button>
+        <button class="btn-cta cyan flex-1" onclick="downloadLabCard()">SAVE_CARD</button>
+      </div>
+      
+      <button class="btn-ghost auto w-full mt-4 text-xs opacity-40" onclick="location.reload()">RE-RECALIBRATE</button>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="notifications.js"></script>
+  <script>
+    let startTime = 0;
+    let lapStartTime = 0;
+    let latencies = [];
+    let hits = 0;
+    const maxHits = 10;
+    let isRunning = false;
+    let misses = 0;
+
+    function startTest() {
+      document.getElementById('startOverlay').classList.add('hidden');
+      latencies = [];
+      hits = 0;
+      misses = 0;
+      isRunning = true;
+      spawnTarget();
+    }
+
+    function spawnTarget() {
+      if (hits >= maxHits) {
+        finishTest();
+        return;
+      }
+      
+      const zone = document.getElementById('gameZone');
+      zone.innerHTML = '';
+      
+      const target = document.createElement('div');
+      target.className = 'lab-target';
+      
+      // Random position with padding
+      const x = 10 + Math.random() * 80;
+      const y = 20 + Math.random() * 60;
+      
+      target.style.left = x + '%';
+      target.style.top = y + '%';
+      
+      lapStartTime = performance.now();
+      
+      target.onmousedown = (e) => {
+        e.stopPropagation();
+        handleHit();
+      };
+      target.ontouchstart = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        handleHit();
+      };
+      
+      zone.appendChild(target);
+    }
+
+    function handleHit() {
+      if (!isRunning) return;
+      const latency = performance.now() - lapStartTime;
+      latencies.push(latency);
+      hits++;
+      
+      document.getElementById('hitsLeft').textContent = maxHits - hits;
+      
+      const avg = Math.round(latencies.reduce((a, b) => a + b) / latencies.length);
+      document.getElementById('currentAvg').textContent = avg + 'ms';
+      
+      if (window.SFX) window.SFX.play('ping');
+      
+      spawnTarget();
+    }
+
+    // Miss detection
+    document.body.onmousedown = () => {
+      if (isRunning) misses++;
+    };
+
+    async function finishTest() {
+      isRunning = false;
+      document.getElementById('gameZone').innerHTML = '';
+      
+      const avg = Math.round(latencies.reduce((a, b) => a + b) / latencies.length);
+      const precision = Math.max(0, 100 - (misses * 5));
+      
+      document.getElementById('finalAvg').textContent = avg + 'ms';
+      document.getElementById('finalPrecision').textContent = precision + '%';
+      document.getElementById('precisionBar').style.width = precision + '%';
+      
+      try {
+        const res = await fetch('/api/vault/diagnostics/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ avg_reaction_ms: avg, precision_score: precision })
+        });
+        const data = await res.json();
+        if (data.diagnostic_id) {
+          document.getElementById('diagnosticId').textContent = data.diagnostic_id;
+        }
+      } catch (e) {
+        document.getElementById('diagnosticId').textContent = 'LAB-ERROR';
+      }
+      
+      document.getElementById('resultOverlay').classList.remove('hidden');
+    }
+
+    function copyLabId() {
+      const id = document.getElementById('diagnosticId').textContent;
+      navigator.clipboard.writeText(id);
+      if (window.notify) window.notify('DIAGNOSTIC_ID_COPIED', 'success');
+    }
+
+    async function downloadLabCard() {
+      const card = document.getElementById('cardToCapture');
+      const canvas = await html2canvas(card, { backgroundColor: '#020617', scale: 2 });
+      const a = document.createElement('a');
+      a.download = `AXP_LAB_ID_${Date.now()}.png`;
+      a.href = canvas.toDataURL();
+      a.click();
+    }
+  </script>
+</body>
+</html>

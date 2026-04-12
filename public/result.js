@@ -24,6 +24,51 @@
         return code ? `${window.location.origin}/result.html?code=${encodeURIComponent(code)}` : '';
     }
 
+    let isPrecise = localStorage.getItem('axp_precise_mode') === 'true';
+
+    function updateDisplayValues() {
+        if (!currentVerifyPayload) return;
+        const results = currentVerifyPayload.results || currentVerifyPayload.sensitivity || {};
+        const raw = results._raw || {};
+
+        const setVal = (id, key) => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            if (isPrecise && raw[key]) {
+                el.textContent = typeof raw[key] === 'number' ? raw[key].toFixed(1) : raw[key];
+                el.classList.add('text-cyan');
+            } else {
+                el.textContent = results[key] || '--';
+                el.classList.remove('text-cyan');
+            }
+        };
+
+        setVal('idGeneral', 'general');
+        setVal('idRedDot', 'redDot');
+        setVal('id2x', 'scope2x');
+        setVal('id4x', 'scope4x');
+        setVal('idSniper', 'sniperScope');
+        setVal('idFreeLook', 'freeLook');
+        setVal('idDPI', 'dpi');
+        setVal('idFireButton', 'fireButton');
+        
+        // Update share details for image export
+        if (currentShareDetails) {
+            currentShareDetails = { 
+                ...currentShareDetails,
+                general: isPrecise && raw.general ? raw.general.toFixed(1) : results.general,
+                redDot: isPrecise && raw.redDot ? raw.redDot.toFixed(1) : results.redDot,
+                scope2x: isPrecise && raw.scope2x ? raw.scope2x.toFixed(1) : results.scope2x,
+                scope4x: isPrecise && raw.scope4x ? raw.scope4x.toFixed(1) : results.scope4x,
+                sniper: isPrecise && raw.sniperScope ? raw.sniperScope.toFixed(1) : results.sniperScope,
+                freeLook: isPrecise && raw.freeLook ? raw.freeLook.toFixed(1) : results.freeLook,
+                dpi: results.dpi,
+                fireButton: results.fireButton
+            };
+            updateShareCard(currentShareDetails);
+        }
+    }
+
     function storeLastResult(payload, fallbackBranding) {
         localStorage.setItem('axp_last_entry_code', currentCode);
         localStorage.setItem(
@@ -436,7 +481,32 @@
         updateShareHint();
         if (currentShareDetails) updateShareCard(currentShareDetails);
         const chipMode = document.getElementById('chipMode');
-        if (chipMode) chipMode.textContent = t('viewExportMode', 'VIEW / EXPORT');
+        if (chipMode) {
+            /* Quick Overview Chips */
+            const container = document.createElement('div');
+            container.className = 'stat-grid-3 mb-3 anim-up';
+            container.innerHTML = `
+              <div class="stat-tile">
+                <span class="stat-tile-label" data-i18n="verificationLabel">VERIFICATION</span>
+                <span class="stat-tile-val text-xs text-hero" id="chipStatus" style="font-size: 0.7rem;">SECURE LINK</span>
+              </div>
+              <div class="stat-tile">
+                <span class="stat-tile-label" data-i18n="providerLabel">PROVIDER</span>
+                <span class="stat-tile-val text-xs text-hero" id="chipVendor" style="font-size: 0.7rem;">AXP_CORE</span>
+              </div>
+              <div class="stat-tile">
+                <div class="flex flex-col items-center">
+                    <span class="stat-tile-label" style="font-size: 0.5rem; opacity: 0.6;">PRECISE_MODE</span>
+                    <label class="xp-toggle-shell" style="margin-top: 2px;">
+                        <input type="checkbox" id="precisionToggle" hidden>
+                        <span class="xp-toggle-btn"></span>
+                    </label>
+                </div>
+              </div>
+            `;
+            chipMode.parentNode.insertBefore(container, chipMode.nextSibling);
+            chipMode.textContent = t('viewExportMode', 'VIEW / EXPORT');
+        }
     }
 
     document.addEventListener('DOMContentLoaded', async () => {
@@ -518,9 +588,19 @@
         document.getElementById('idSniper').textContent = results.sniperScope || '--';
         document.getElementById('idFreeLook').textContent = results.freeLook || '--';
         document.getElementById('idDPI').textContent = results.dpi || 'DEFAULT';
-        document.getElementById('idFireButton').textContent = results.fireButton || '--';
-        
-        document.getElementById('idDPI').textContent = results.dpi || 'DEFAULT';
+        const toggle = document.getElementById('precisionToggle');
+        if (toggle) {
+            toggle.checked = isPrecise;
+            toggle.onchange = (e) => {
+                isPrecise = e.target.checked;
+                localStorage.setItem('axp_precise_mode', isPrecise);
+                updateDisplayValues();
+                if (window.SFX) window.SFX.play('click');
+                window.notify?.(isPrecise ? 'PRECISE_MODE_ACTIVE' : 'RANGE_MODE_ACTIVE', 'info');
+            };
+        }
+
+        updateDisplayValues();
         setEfficiency(inferEfficiency(results));
         setExpiryState(hydrated.validUntil);
 

@@ -1,289 +1,224 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <link rel="icon" type="image/svg+xml" href="favicon.svg">
-    <title>AXP | GLOBAL METRICS</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;800&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
-    <style>
-        :root {
-            --bg-deep: #020617;
-            --accent-primary: #00f2fe;
-            --accent-primary-glow: rgba(0, 242, 254, 0.4);
-            --glass-bg: rgba(255, 255, 255, 0.03);
-            --glass-border: rgba(255, 255, 255, 0.08);
-            --glass-card: rgba(15, 20, 25, 0.85);
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --font-heading: 'Outfit', sans-serif;
-            --font-mono: 'JetBrains Mono', monospace;
-            --safe-bottom: env(safe-area-inset-bottom);
-        }
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <title>AXP | GLOBAL METRICS</title>
+  <link rel="stylesheet" href="design-system.css">
+  <style>
+    /* Page-specific metrics refinements */
+    .metrics-container {
+      margin-bottom: 2.5rem;
+    }
+    
+    .terminal-output {
+      background: var(--bg-void);
+      border: 1px solid var(--bd-subtle);
+      border-radius: var(--r-lg);
+      padding: 1.5rem;
+      position: relative;
+      overflow: hidden;
+      font-family: var(--font-mono);
+    }
+    .terminal-output::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+      animation: scanningTop 4s infinite linear;
+      z-index: 5;
+    }
+    @keyframes scanningTop { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
 
-        body {
-            background-color: var(--bg-deep);
-            color: var(--text-main);
-            font-family: var(--font-heading);
-            margin: 0;
-            padding-top: 90px;
-            padding-bottom: 120px;
-            min-height: 100vh;
-            background-image: 
-                radial-gradient(circle at 10% 10%, rgba(0, 242, 254, 0.05) 0%, transparent 40%),
-                radial-gradient(circle at 90% 90%, rgba(0, 242, 254, 0.05) 0%, transparent 40%);
-            overflow-x: hidden;
-        }
+    .terminal-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      margin-bottom: 1rem;
+    }
+    .terminal-label {
+      font-size: 0.65rem;
+      font-weight: 800;
+      color: var(--cyan);
+      letter-spacing: 0.15em;
+    }
+    
+    .log-row-alt {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.6rem 0;
+      border-bottom: 1px solid rgba(255,255,255,0.02);
+      font-size: 0.7rem;
+      color: var(--tx-sub);
+    }
+    .log-row-alt:last-child { border-bottom: none; }
+    .log-row-alt .user { color: var(--tx-hero); font-weight: 800; }
+    .log-row-alt .time { font-size: 0.6rem; color: var(--tx-ghost); }
 
-        header {
-            position: fixed;
-            top: 0; left: 0; right: 0;
-            height: 70px;
-            background: rgba(2, 6, 23, 0.85);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
-            border-bottom: 1px solid var(--glass-border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 1.25rem;
-            z-index: 5000;
-        }
-
-        .header-logo { color: var(--accent-primary); font-weight: 800; letter-spacing: 0.1em; font-size: 0.85rem; text-decoration: none; font-family: var(--font-mono); }
-        .header-title { font-size: 1rem; font-weight: 800; letter-spacing: -0.01em; color: white; }
-
-        .container {
-            width: 100%;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 0 1.25rem;
-        }
-
-        .page-header {
-            text-align: center;
-            margin-bottom: 2.5rem;
-        }
-        .page-title {
-            font-size: 2rem;
-            font-weight: 800;
-            color: white;
-            margin: 0 0 0.5rem;
-            letter-spacing: -0.02em;
-        }
-        .page-subtitle {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            font-family: var(--font-mono);
-        }
-
-        /* Stats Grid */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-
-        .stat-card {
-            background: var(--glass-card);
-            backdrop-filter: blur(24px);
-            border: 1px solid var(--glass-border);
-            border-radius: 24px;
-            padding: 1.5rem;
-            text-align: center;
-            transition: 0.3s;
-        }
-        .stat-card:hover {
-            border-color: rgba(0, 242, 254, 0.3);
-            transform: translateY(-2px);
-        }
-
-        .stat-card.large {
-            grid-column: span 2;
-            background: linear-gradient(145deg, rgba(0, 242, 254, 0.05), rgba(15, 20, 25, 0.9));
-        }
-
-        .stat-val {
-            font-size: 2.2rem;
-            font-weight: 900;
-            color: white;
-            display: block;
-            margin-bottom: 0.25rem;
-            font-family: var(--font-heading);
-            text-shadow: 0 0 15px rgba(0, 242, 254, 0.2);
-        }
-        .stat-card.large .stat-val { font-size: 3rem; color: var(--accent-primary); text-shadow: 0 0 20px var(--accent-primary-glow); }
-
-        .stat-label {
-            font-size: 0.65rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            font-family: var(--font-mono);
-        }
-
-        .stat-trend {
-            display: inline-block;
-            margin-top: 0.75rem;
-            font-size: 0.6rem;
-            color: #00ffcc;
-            background: rgba(0, 255, 204, 0.1);
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-weight: 800;
-        }
-
-        /* Live Activity Log */
-        .live-log-container {
-            background: rgba(255,255,255,0.02);
-            border: 1px solid var(--glass-border);
-            border-radius: 24px;
-            padding: 1.5rem;
-            overflow: hidden;
-            position: relative;
-        }
-        .live-log-container::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 2px;
-            background: linear-gradient(90deg, transparent, var(--accent-primary), transparent);
-            animation: scanningTop 3s infinite linear;
-        }
-        @keyframes scanningTop { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
-
-        .log-title {
-            font-size: 0.7rem;
-            color: var(--accent-primary);
-            font-family: var(--font-mono);
-            letter-spacing: 0.15em;
-            margin-bottom: 1.2rem;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .pulse-dot {
-            width: 6px; height: 6px; border-radius: 50%; background: var(--accent-primary);
-            box-shadow: 0 0 8px var(--accent-primary);
-            animation: pulse 2s infinite;
-        }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
-
-        .log-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.75rem 0;
-            border-bottom: 1px dashed rgba(255,255,255,0.05);
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            font-family: var(--font-mono);
-        }
-        .log-row:last-child { border-bottom: none; }
-        .log-row strong { color: white; }
-        .log-time { font-size: 0.65rem; color: rgba(0, 242, 254, 0.6); }
-
-        /* Generic App Bottom Nav (Static) */
-        .app-nav {
-            position: fixed;
-            bottom: 0; left: 0; right: 0;
-            height: 75px;
-            background: rgba(5, 7, 10, 0.9);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
-            border-top: 1px solid var(--glass-border);
-            display: flex;
-            justify-content: space-around;
-            padding-bottom: env(safe-area-inset-bottom);
-            z-index: 5000;
-        }
-        .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 4px;
-            color: var(--text-muted);
-            text-decoration: none;
-            flex: 1;
-        }
-        .nav-item.active { color: var(--accent-primary); }
-        .nav-item svg { width: 22px; height: 22px; }
-        .nav-label { font-size: 0.6rem; font-weight: 800; letter-spacing: 0.05em; }
-
-        @media(max-width: 400px) {
-            .stat-card { padding: 1.25rem; }
-            .stat-val { font-size: 1.8rem; }
-            .stat-card.large .stat-val { font-size: 2.5rem; }
-        }
-    </style>
+    .integrity-card {
+      background: linear-gradient(145deg, rgba(0, 255, 204, 0.05), rgba(8, 13, 24, 0.95));
+      border: 1px solid rgba(0, 255, 204, 0.2);
+    }
+  </style>
 </head>
-<body>
-    <header>
-        <a href="index.html" class="header-logo">AXP_CORE</a>
-        <div class="header-title">METRICS</div>
-        <div style="width:70px"></div>
-    </header>
+<body class="page-stats">
 
-    <div class="container">
-        <div class="page-header">
-            <h1 class="page-title">Global Platform Metrics</h1>
-            <div class="page-subtitle">Real-time statistics of the AXP Core Engine</div>
-        </div>
+  <!-- Fixed Header -->
+  <header class="page-header">
+    <div class="ph-logo">AXP_SYSMON</div>
+    <div class="ph-title">Global Platform Metrics</div>
+    <div style="width:70px"></div>
+  </header>
 
-        <div class="stats-grid">
-            <div class="stat-card large">
-                <span class="stat-val">3,248,110</span>
-                <span class="stat-label">Total Authenticated Codes</span>
-                <span class="stat-trend">+ 24.5% THIS WEEK</span>
-            </div>
-            <div class="stat-card">
-                <span class="stat-val">2,105</span>
-                <span class="stat-label">Pro Vendors</span>
-            </div>
-            <div class="stat-card">
-                <span class="stat-val">99.99%</span>
-                <span class="stat-label">Core Uptime</span>
-            </div>
-            <div class="stat-card large" style="background: linear-gradient(145deg, rgba(0, 255, 204, 0.05), rgba(15, 20, 25, 0.9));">
-                <span class="stat-val" style="color: #00ffcc; text-shadow: 0 0 20px rgba(0,255,204,0.3);">12.4 ms</span>
-                <span class="stat-label">Average API Latency</span>
-                <span class="stat-trend" style="color: #00ffcc; background: rgba(0,255,204,0.1); border: 1px solid rgba(0,255,204,0.2);">NEURAL_SYNC OPTIMIZED</span>
-            </div>
-        </div>
-
-        <div class="live-log-container">
-            <div class="log-title"><div class="pulse-dot"></div> LIVE_ACTIVITY_STREAM</div>
-            <div id="activityLog">
-                <div class="log-row"><span>User <strong>Anonymous</strong> verified code</span> <span class="log-time">JUST NOW</span></div>
-                <div class="log-row"><span>Vendor <strong>AXP_ELITE</strong> issued calibration</span> <span class="log-time">12s AGO</span></div>
-                <div class="log-row"><span>User <strong>Anonymous</strong> exported ID</span> <span class="log-time">45s AGO</span></div>
-                <div class="log-row"><span>System <strong>Neural_Sync</strong> parameter update</span> <span class="log-time">2m AGO</span></div>
-                <div class="log-row"><span>Vendor <strong>GhostPro</strong> joined network</span> <span class="log-time">14m AGO</span></div>
-            </div>
-        </div>
+  <div class="page-wrap anim-stagger-in">
+    
+    <!-- Hero Header -->
+    <div class="text-center mb-3 anim-up">
+      <div class="badge-cyan mb-2">LIVE_TELEMETRY</div>
+      <h1 class="section-title">AXP PLATFORM METRICS</h1>
+      <p class="text-sub text-sm">Real-time throughput and system integrity monitoring.</p>
     </div>
 
-    <!-- User Nav -->
-    <nav class="app-nav">
-        <a href="index.html" class="nav-item">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-            <span class="nav-label">HOME</span>
-        </a>
-        <a href="stats.html" class="nav-item active">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"></path><path d="M18 17V9"></path><path d="M13 17V5"></path><path d="M8 17v-3"></path></svg>
-            <span class="nav-label">GLOBAL</span>
-        </a>
-        <a href="verify.html" class="nav-item">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-            <span class="nav-label">VERIFY</span>
-        </a>
-        <a href="generator.html" class="nav-item">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
-            <span class="nav-label">DEMO</span>
-        </a>
-    </nav>
+    <!-- Metrics Grid -->
+    <div class="metrics-container anim-up">
+      <div class="card glow mb-3" style="padding: 2.5rem 2rem; border-color: var(--cyan-border);">
+        <div class="stat-hero">
+          <div class="section-eyebrow">TOTAL_AUTHENTICATIONS</div>
+          <div class="stat-hero-val" id="statTotalHits">0</div>
+          <div class="flex items-center gap-2 mt-2">
+            <div class="dot-live" style="background: var(--cyan); box-shadow: 0 0 10px var(--cyan);"></div>
+            <div class="text-xs font-bold text-cyan" id="statTotalHitsTrend" style="display:none">ACTIVE_STREAM_SYNCED</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="stat-grid-2 mb-3">
+        <div class="stat-tile">
+          <span class="stat-tile-label">AUTH_NODES</span>
+          <span class="stat-tile-val" id="statVendors">0</span>
+        </div>
+        <div class="stat-tile">
+          <span class="stat-tile-label">KEYS_ISSUED</span>
+          <span class="stat-tile-val" id="statCodes">0</span>
+        </div>
+      </div>
+
+      <div class="card integrity-card anim-up" style="padding: 1.5rem 2rem;">
+        <div class="flex justify-between items-center">
+          <div>
+            <div class="section-eyebrow">SYSTEM_INTEGRITY</div>
+            <div class="stat-hero-val text-success" id="statUptime" style="font-size: 2.2rem; color: var(--success);">99.99%</div>
+          </div>
+          <div class="text-right">
+            <div class="badge-success" style="font-size: 0.5rem;">OPTIMIZED</div>
+            <div class="text-xs text-muted mt-2 font-mono">NEURAL_CORE_STABLE</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Terminal Activity Stream -->
+    <div class="terminal-output anim-up">
+      <div class="terminal-header">
+        <div class="dot-live" style="background: var(--cyan);"></div>
+        <span class="terminal-label">LIVE_ACTIVITY_STREAM</span>
+      </div>
+      <div id="activityLog" class="flex flex-col">
+        <div style="padding: 2rem; text-align: center; opacity: 0.4;">
+          <div class="skeleton-h sm w-full mb-1"></div>
+          <div class="skeleton-h sm w-full" style="width: 70%; margin: 0 auto;"></div>
+          <div class="text-xs mt-2">CONNECTING_NODE...</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Universal Navigation -->
+  <nav class="xp-nav">
+    <a href="index.html" class="xp-nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <span class="xp-nav-label">Home</span>
+    </a>
+    <a href="stats.html" class="xp-nav-item active">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
+      <span class="xp-nav-label">Global</span>
+    </a>
+    <a href="verify.html" class="xp-nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      <span class="xp-nav-label">Verify</span>
+    </a>
+    <a href="generator.html" class="xp-nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+      <span class="xp-nav-label">Demo</span>
+    </a>
+  </nav>
+
+  <script src="notifications.js"></script>
+  <script>
+    function timeAgo(dateStr) {
+      const diff = Math.floor((Date.now() - new Date(dateStr)) / 1000);
+      if (diff < 60) return 'JUST NOW';
+      if (diff < 3600) return `${Math.floor(diff / 60)}m AGO`;
+      if (diff < 86400) return `${Math.floor(diff / 3600)}h AGO`;
+      return `${Math.floor(diff / 86400)}d AGO`;
+    }
+
+    function animateCountUp(el, target, duration = 1500) {
+      const start = 0;
+      const step = (timestamp) => {
+        if (!step.startTime) step.startTime = timestamp;
+        const progress = Math.min((timestamp - step.startTime) / duration, 1);
+        const val = Math.floor(progress * target);
+        el.textContent = val.toLocaleString();
+        if (progress < 1) requestAnimationFrame(step);
+        else el.textContent = target.toLocaleString();
+      };
+      requestAnimationFrame(step);
+    }
+
+    async function loadPublicStats() {
+      try {
+        const res = await fetch('/api/vault/public/stats');
+        if (!res.ok) throw new Error('STATS_OFFLINE');
+        const data = await res.json();
+
+        const hitsEl = document.getElementById('statTotalHits');
+        const vendorsEl = document.getElementById('statVendors');
+        const codesEl = document.getElementById('statCodes');
+        const trendEl = document.getElementById('statTotalHitsTrend');
+
+        animateCountUp(hitsEl, data.total_hits || 0);
+        animateCountUp(vendorsEl, data.active_vendors || 0);
+        animateCountUp(codesEl, data.total_codes || 0);
+
+        if (data.total_hits > 0) {
+          trendEl.style.display = 'block';
+        }
+
+        const logEl = document.getElementById('activityLog');
+        if (data.recent_activity && data.recent_activity.length > 0) {
+          logEl.innerHTML = data.recent_activity.map(row => `
+            <div class="log-row-alt">
+              <span>User <span class="user">${(row.user_ign || 'Anonymous').substring(0, 14)}</span> authed code</span>
+              <span class="time">${timeAgo(row.ts)}</span>
+            </div>
+          `).join('');
+        } else {
+          logEl.innerHTML = '<div style="padding: 2rem; text-align: center; opacity: 0.4; font-size: 0.65rem;">NO_RECENT_ACTIVITY</div>';
+        }
+      } catch (err) {
+        console.error('STATS_ERROR:', err);
+        document.getElementById('statTotalHits').textContent = 'ERR';
+        document.getElementById('activityLog').innerHTML = '<div style="padding: 2rem; text-align: center; opacity: 0.4; font-size: 0.65rem; color: var(--error);">UPLINK_OFFLINE</div>';
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadPublicStats);
+  </script>
 </body>
 </html>

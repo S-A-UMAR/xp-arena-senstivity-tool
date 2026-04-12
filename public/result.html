@@ -1,199 +1,538 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <link rel="icon" type="image/svg+xml" href="favicon.svg">
-    <title>AXP | CALIBRATION_PROFILE</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;800&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="result.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <title>AXP | CALIBRATION_PROFILE</title>
+  <link rel="stylesheet" href="design-system.css">
+  <style>
+    /* Page-specific profile card refinements */
+    .hologram-card {
+      position: relative;
+      background: var(--bg-surface);
+      border: 1px solid var(--violet-border);
+      border-radius: var(--r-xl);
+      padding: 0;
+      overflow: hidden;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.6);
+      font-family: var(--font-mono);
+      animation: scaleIn 0.8s var(--ease) both;
+    }
+
+    /* Holographic shimmer effect */
+    .hologram-card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0) 45%,
+        rgba(255, 255, 255, 0.05) 50%,
+        rgba(255, 255, 255, 0) 55%,
+        rgba(255, 255, 255, 0) 100%
+      );
+      background-size: 250% 250%;
+      animation: holoPulse 5s infinite linear;
+      pointer-events: none;
+    }
+
+    .card-meta-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 1.5rem;
+      background: rgba(168, 85, 247, 0.04);
+      border-bottom: 1px solid var(--bd-subtle);
+      gap: 1rem;
+    }
+
+    .brand-id {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .brand-logo-frame {
+      width: 44px;
+      height: 44px;
+      background: #fff;
+      border-radius: 12px;
+      padding: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 20px rgba(168, 85, 247, 0.2);
+    }
+    .brand-logo-frame img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    .brand-text .primary {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--tx-hero);
+      letter-spacing: 0.05em;
+    }
+    .brand-text .secondary {
+      font-size: 0.6rem;
+      font-weight: 700;
+      color: var(--tx-muted);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .telemetry-node {
+      text-align: right;
+      font-size: 0.55rem;
+      color: var(--tx-muted);
+    }
+    .telemetry-row { margin-bottom: 2px; }
+    .telemetry-row strong { color: var(--tx-sub); margin-left: 4px; }
+    
+    .eff-bar-wrap {
+      width: 110px;
+      height: 4px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 2px;
+      margin: 0.4rem 0 0.2rem auto;
+      overflow: hidden;
+    }
+    .eff-bar-fill {
+      display: block;
+      height: 100%;
+      background: linear-gradient(90deg, var(--violet), var(--cyan));
+      width: 0%;
+      transition: width 1.5s var(--ease);
+    }
+
+    .device-zone {
+      padding: 1.5rem;
+      background: rgba(255,255,255,0.02);
+      border-bottom: 1px solid var(--bd-subtle);
+    }
+    .device-header {
+      font-size: 0.6rem;
+      font-weight: 800;
+      color: var(--tx-muted);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 0.75rem;
+    }
+    .device-identity {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+    }
+    .device-preview-frame {
+      width: 72px;
+      height: 72px;
+      background: #fff;
+      border-radius: 16px;
+      padding: 6px;
+      flex-shrink: 0;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 15px rgba(0,0,0,0.3);
+    }
+    .device-preview-frame img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    .device-info-main .model {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--tx-hero);
+      line-height: 1.1;
+      letter-spacing: -0.01em;
+      margin-bottom: 4px;
+    }
+    .device-info-main .operator {
+      font-size: 0.65rem;
+      font-weight: 600;
+      color: var(--tx-muted);
+      letter-spacing: 0.05em;
+    }
+
+    .code-zone {
+      padding: 1rem 1.5rem;
+      background: rgba(168, 85, 247, 0.06);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--bd-subtle);
+    }
+    .code-display .label {
+      font-size: 0.55rem;
+      font-weight: 800;
+      color: var(--violet);
+      letter-spacing: 0.12em;
+      margin-bottom: 2px;
+    }
+    .code-display .value {
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: var(--tx-hero);
+      letter-spacing: 0.08em;
+    }
+    .code-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .stats-hub {
+      padding: 1.5rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    .stat-module {
+      background: rgba(0,0,0,0.25);
+      border: 1px solid var(--bd-subtle);
+      border-radius: 20px;
+      padding: 1.25rem 1rem;
+      position: relative;
+      transition: border-color 0.2s;
+    }
+    .stat-module:hover { border-color: var(--violet-border); }
+    .stat-module .label {
+      font-size: 0.55rem;
+      font-weight: 800;
+      color: var(--tx-muted);
+      margin-bottom: 0.5rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .stat-module .value {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: var(--tx-hero);
+      line-height: 1;
+    }
+    .stat-module .trend {
+      font-size: 0.5rem;
+      font-weight: 700;
+      color: var(--tx-ghost);
+      margin-top: 6px;
+      text-transform: uppercase;
+    }
+    .stat-module .glyph {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      font-size: 1.1rem;
+      opacity: 0.4;
+      color: var(--violet);
+    }
+
+    .advisor-zone {
+      padding: 1.25rem 1.5rem;
+      background: rgba(0,0,0,0.3);
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .advisor-avatar-frame {
+      width: 48px;
+      height: 48px;
+      background: #fff;
+      border-radius: 12px;
+      overflow: hidden;
+      flex-shrink: 0;
+      box-shadow: 0 0 10px rgba(168,85,247,0.2);
+    }
+    .advisor-avatar-frame img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .advisor-text { flex: 1; min-width: 0; }
+    .advisor-text .label { font-size: 0.55rem; font-weight: 800; color: var(--tx-muted); }
+    .advisor-text .quote { 
+      font-size: 0.75rem; 
+      font-weight: 800; 
+      color: var(--tx-body); 
+      line-height: 1.3;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .action-strip {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+      margin: 2rem 0;
+    }
+
+    .share-card-export-shell {
+      position: fixed;
+      left: -9999px;
+      top: -9999px;
+      width: 800px;
+    }
+
+    @media (max-width: 420px) {
+      .stats-hub { grid-template-columns: 1fr; }
+      .device-info-main .model { font-size: 1.2rem; }
+    }
+  </style>
 </head>
-<body class="result-shell">
-    <div class="ambient-glow"></div>
+<body class="page-result">
 
-    <div class="app-container">
+  <!-- Fixed Header -->
+  <header class="page-header">
+    <a href="index.html" class="ph-back">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M19 12H5"/><polyline points="12 19 5 12 12 5"/></svg>
+      BACK
+    </a>
+    <div class="ph-title">Neural Calibration</div>
+    <div style="width:50px"></div>
+  </header>
 
-            <div class="logo-badge">SCAN_COMPLETE</div>
-            <h1 class="title-main" style="font-size: 1.6rem; margin: 0.55rem 0 0;">AUTHORIZATION_SUCCESS</h1>
-            <p data-i18n="resultHeroText">Your premium calibration profile is ready. View, share, and export your high-res creator card below.</p>
-        </div>
-        <div class="result-overview">
-            <div class="overview-chip">
-                <span class="label" data-i18n="verificationLabel">Verification</span>
-                <span class="value" id="chipStatus">SECURE LINK</span>
-            </div>
-            <div class="overview-chip">
-                <span class="label" data-i18n="providerLabel">Provider</span>
-                <span class="value" id="chipVendor">AAXP_CORE</span>
-            </div>
-            <div class="overview-chip">
-                <span class="label" data-i18n="modeLabel">Mode</span>
-                <span class="value" id="chipMode" data-i18n="viewExportMode">VIEW / EXPORT</span>
-            </div>
-        </div>
-    </header>
-
-    <main class="reveal" style="animation-delay: 0.18s;">
-        <div class="card-stage">
-            <!-- 💎 Premium Card UI (Clean & Good) -->
-            <section id="captureArea" class="intel-card">
-                <div class="intel-topbar">
-                    <div class="brand-mark">
-                        <img id="creatorLogo" src="favicon.png" alt="Creator logo">
-                        <div class="brand-lockup">
-                            <div class="primary">AXP_HUB</div>
-                            <div class="secondary" data-i18n="premiumShareCard">PREMIUM SHARE CARD</div>
-                        </div>
-                    </div>
-                    <div class="telemetry-panel">
-                        <div class="row"><span>CURRENT UTC:</span><strong id="currentUtcLabel">--</strong></div>
-                        <div class="row"><span>EXPIRY:</span><strong id="expiryValue">NEVER</strong></div>
-                        <div class="telemetry-bar"><span id="efficiencyBar"></span></div>
-                        <div class="row"><span>PROFILE_EFFICIENCY:</span><strong id="profileEfficiency">--%</strong></div>
-                    </div>
-                </div>
-
-                <div class="device-access">
-                    <div class="device-access-header" data-i18n="deviceAccess">DEVICE AND ACCESS</div>
-                    <div class="device-profile-row">
-                        <div class="device-thumb">
-                            <img id="devicePreview" src="favicon.png" alt="Device preview">
-                        </div>
-                        <div class="device-meta">
-                            <div class="subtle">DEVICE_PROFILE</div>
-                            <div class="headline" id="idModel">UNKNOWN_HARDWARE</div>
-                            <div class="subtle">UNIT_ID: <span id="creatorName">AAXP_CORE</span></div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="code-rail">
-                    <div class="code-content">
-                        <div class="subtle">ACCESS_CODE</div>
-                        <div class="value" id="codeRailText">AXP-0000-0000</div>
-                    </div>
-                    <div class="synced-pill">SYNCED_PROFILE</div>
-                    <button class="code-copy-btn" id="copyCodeBtn" type="button" aria-label="Copy access code">
-                        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="11" height="11" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-                    </button>
-                </div>
-
-                <div class="stats-grid">
-                    <article class="stat-card">
-                        <div class="signal up" id="signalGen">↑</div>
-                        <div class="label">GENERAL_SENS</div>
-                        <div class="value" id="idGeneral" style="font-size: 1.2rem;">--</div>
-                        <div class="trend">TREND: OPTIMIZING</div>
-                    </article>
-                    <article class="stat-card">
-                        <div class="signal up" id="signalRed">↑</div>
-                        <div class="label">RED_DOT \ 2X \ 4X</div>
-                        <div class="value" style="font-size: 1rem;"><span id="idRedDot">--</span> \ <span id="id2x">--</span> \ <span id="id4x">--</span></div>
-                        <div class="trend">DYNAMIC SCALING</div>
-                    </article>
-                    <article class="stat-card">
-                        <div class="signal flat" id="signalScope">↘</div>
-                        <div class="label">SNIPER \ FREE LOOK</div>
-                        <div class="value" style="font-size: 1rem;"><span id="idSniper">--</span> \ <span id="idFreeLook">--</span></div>
-                        <div class="trend">PRECISION CONTROL</div>
-                    </article>
-                    <article class="stat-card">
-                        <div class="signal flat">◎</div>
-                        <div class="label">DPI \ FIRE BUTTON</div>
-                        <div class="value" style="font-size: 1rem;"><span id="idDPI">--</span> \ <span id="idFireButton">--</span></div>
-                        <div class="trend">SCREEN OPTIMIZED</div>
-                    </article>
-                </div>
-
-                <div class="notes-panel">
-                    <div class="notes-header">
-                        <div class="notes-avatar">
-                            <img id="notesAvatar" src="favicon.png" alt="Creator avatar">
-                        </div>
-                        <div>
-                            <div class="notes-eyebrow">SETTINGS_BY</div>
-                            <div class="notes-byline" id="creatorAdvice">NO_EXTRA_ADVICE_PROVIDED</div>
-                        </div>
-                        <div class="verified-pill">VERIFIED <span id="verifiedEfficiency">--%</span></div>
-                    </div>
-                </div>
-            </section>
-        </div>
-
-        <div class="action-grid reveal" style="animation-delay: 0.5s; margin-top: 2rem;">
-            <button id="downloadBtn" class="action-btn download-tone" type="button" data-i18n="downloadBtn">DOWNLOAD_ID</button>
-            <button id="copyBtn" class="action-btn secondary-tone" type="button" data-i18n="copyBtn">COPY / SHARE</button>
-        </div>
-
-        <div class="motion-note reveal" style="animation-delay: 0.55s; margin-top: 1rem; text-align: center; font-size: 0.65rem; color: var(--text-dim);">
-            This card is view-only for end users. Sensitivity generation stays locked to vendor workspaces.
-        </div>
-
-    </main>
-
-
-    <div class="share-card-export-shell" aria-hidden="true" style="display: none;">
-        <section id="shareCaptureArea" class="share-card-export">
-            <div class="share-export-grid">
-                <div class="share-topline">
-                    <div class="share-brand">
-                        <img id="shareLogo" src="favicon.png" alt="Brand logo">
-                        <div>
-                            <div class="name">AXP_HUB</div>
-                            <div class="sub" data-i18n="premiumShareCard">PREMIUM SHARE CARD</div>
-                        </div>
-                    </div>
-                    <div class="share-telemetry">
-                        <div id="shareUtc">CURRENT UTC: --</div>
-                        <div id="shareExpiry">EXPIRY: NEVER</div>
-                        <div class="share-bar"><span id="shareEfficiencyBar"></span></div>
-                        <div id="shareEfficiencyLabel">PROFILE_EFFICIENCY: --%</div>
-                    </div>
-                </div>
-                <div class="share-device-row">
-                    <div class="share-device-preview"><img id="shareDevicePreview" src="favicon.png" alt="Device preview"></div>
-                    <div class="share-device-meta">
-                        <div class="eyebrow">DEVICE_PROFILE</div>
-                        <div class="headline" id="shareDeviceModel">UNKNOWN_HARDWARE</div>
-                        <div class="unit" id="shareCreatorName">UNIT_ID: AAXP_CORE</div>
-                    </div>
-                </div>
-                <div style="display:grid; gap:18px;">
-                    <div class="share-code-strip">
-                        <div class="share-code-main">
-                            <div class="share-code-label">ACCESS_CODE</div>
-                            <div class="value" id="shareAccessCode">AXP-0000-0000</div>
-                        </div>
-                        <div class="share-code-pill" data-i18n="syncedProfile">SYNCED_PROFILE</div>
-                    </div>
-                    <div class="share-stats-grid">
-                        <div class="share-stat"><div class="icon" style="color:#7bf2c9;">↑</div><div class="label">GENERAL_SENS</div><div class="value" id="shareGeneral">--</div></div>
-                        <div class="share-stat"><div class="icon" style="color:#ff8d9c;">↑</div><div class="label">RED_DOT \ 2X \ 4X</div><div class="value" style="font-size:1.1rem;"><span id="shareRedDot">--</span> \ <span id="share2x">--</span> \ <span id="share4x">--</span></div></div>
-                        <div class="share-stat"><div class="icon" style="color:#8de3ff;">↘</div><div class="label">SNIPER \ FREE_LOOK</div><div class="value" style="font-size:1.1rem;"><span id="shareSniper">--</span> \ <span id="shareFreeLook">--</span></div></div>
-                        <div class="share-stat"><div class="icon" style="color:#9df0e1;">◎</div><div class="label">DPI \ FIRE BUTTON</div><div class="value" style="font-size:1.1rem;"><span id="shareDpi">--</span> \ <span id="shareFireButton">--</span></div></div>
-                    </div>
-                </div>
-                <div class="share-footer">
-                    <img id="shareFooterLogo" src="favicon.png" alt="Creator logo">
-                    <div class="share-footer-copy">
-                        <div class="eyebrow">SETTINGS_BY</div>
-                        <div class="main" id="shareAdvice">NO_EXTRA_ADVICE_PROVIDED</div>
-                    </div>
-                    <div class="share-verified-pill" id="shareVerified">VERIFIED 94%</div>
-                </div>
-            </div>
-        </section>
+  <div class="page-wrap anim-stagger-in">
+    
+    <!-- Top Identity Area -->
+    <div class="text-center mb-3 anim-up">
+      <div class="badge-violet mb-2">SCAN_COMPLETE</div>
+      <h1 class="section-title" id="pageTitle" style="font-size: 1.6rem;">AUTHORIZATION_SUCCESS</h1>
+      <p class="text-sub text-sm mt-1" data-i18n="resultHeroText">Calibration profile verified. Your high-res creator identity is now active.</p>
     </div>
 
+    <!-- Quick Overview Chips -->
+    <div class="stat-grid-3 mb-3 anim-up">
+      <div class="stat-tile">
+        <span class="stat-tile-label" data-i18n="verificationLabel">VERIFICATION</span>
+        <span class="stat-tile-val text-xs text-hero" id="chipStatus" style="font-size: 0.7rem;">SECURE LINK</span>
+      </div>
+      <div class="stat-tile">
+        <span class="stat-tile-label" data-i18n="providerLabel">PROVIDER</span>
+        <span class="stat-tile-val text-xs text-hero" id="chipVendor" style="font-size: 0.7rem;">AXP_CORE</span>
+      </div>
+      <div class="stat-tile">
+        <span class="stat-tile-label" data-i18n="modeLabel">CORE_MODE</span>
+        <span class="stat-tile-val text-xs text-hero" id="chipMode" style="font-size: 0.7rem;" data-i18n="viewExportMode">VIEW / EXPORT</span>
+      </div>
+    </div>
 
-    <script src="analytics.js"></script>
-    <script src="translations.js"></script>
-    <script src="notifications.js"></script>
-    <script src="result-utils.js"></script>
-    <script src="settings.js"></script>
-    <script src="update-overlay.js"></script>
-    <script src="result.js"></script>
+    <!-- MAIN HOLOGRAPHIC CARD -->
+    <main class="anim-up">
+      <section id="captureArea" class="hologram-card">
+        
+        <!-- Top Bar -->
+        <div class="card-meta-top">
+          <div class="brand-id">
+            <div class="brand-logo-frame">
+              <img id="creatorLogo" src="favicon.png" alt="Creator logo">
+            </div>
+            <div class="brand-text">
+              <div class="primary">AXP_HUB</div>
+              <div class="secondary" data-i18n="premiumShareCard">PREMIUM PROFILE CARD</div>
+            </div>
+          </div>
+          <div class="telemetry-node">
+            <div class="telemetry-row">UTC: <strong id="currentUtcLabel">--:--</strong></div>
+            <div class="telemetry-row">EXP: <strong id="expiryValue">NEVER</strong></div>
+            <div class="eff-bar-wrap"><span id="efficiencyBar" class="eff-bar-fill"></span></div>
+            <div class="telemetry-row">EFFICIENCY: <strong id="profileEfficiency">--%</strong></div>
+          </div>
+        </div>
+
+        <!-- Device Info -->
+        <div class="device-zone">
+          <div class="device-header" data-i18n="deviceAccess">Hardware Identification</div>
+          <div class="device-identity">
+            <div class="device-preview-frame">
+              <img id="devicePreview" src="favicon.png" alt="Device preview">
+            </div>
+            <div class="device-info-main">
+              <div class="section-eyebrow">UNIT_MODEL</div>
+              <div class="model" id="idModel">UNKNOWN_HARDWARE</div>
+              <div class="operator">OPERATOR: <span id="creatorName">AXP_CORE</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Access Code Strip -->
+        <div class="code-zone">
+          <div class="code-display">
+            <div class="label">ACCESS_TOKEN</div>
+            <div class="value" id="codeRailText">AXP-0000-0000</div>
+          </div>
+          <div class="code-actions">
+            <div class="badge-success text-xs">SYNCED</div>
+            <button class="btn-ghost auto btn-xs" id="copyCodeBtn" style="padding: 6px; border-radius: 8px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="9" y="9" width="11" height="11" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-hub">
+          <div class="stat-module">
+            <div class="glyph" id="signalGen">↑</div>
+            <div class="label">General_Sens</div>
+            <div class="value" id="idGeneral">--</div>
+            <div class="trend">OPTIMIZED_FLOW</div>
+          </div>
+          <div class="stat-module">
+            <div class="glyph" id="signalRed">↑</div>
+            <div class="label">Red_Dot / 2x / 4x</div>
+            <div class="value" style="font-size: 1.1rem; line-height: 1.5;"><span id="idRedDot">--</span> / <span id="id2x">--</span> / <span id="id4x">--</span></div>
+            <div class="trend">DYNAMIC_SCALING</div>
+          </div>
+          <div class="stat-module">
+            <div class="glyph" id="signalScope">↘</div>
+            <div class="label">Sniper / Free_Look</div>
+            <div class="value" style="font-size: 1.1rem; line-height: 1.5;"><span id="idSniper">--</span> / <span id="idFreeLook">--</span></div>
+            <div class="trend">PRECISION_STABLE</div>
+          </div>
+          <div class="stat-module">
+            <div class="glyph">◎</div>
+            <div class="label">DPI / Fire_Btn</div>
+            <div class="value" style="font-size: 1.1rem; line-height: 1.5;"><span id="idDPI">--</span> / <span id="idFireButton">--</span></div>
+            <div class="trend">INPUT_POLYGON</div>
+          </div>
+        </div>
+
+        <!-- Advisor Section -->
+        <div class="advisor-zone">
+          <div class="advisor-avatar-frame">
+            <img id="notesAvatar" src="favicon.png" alt="Creator avatar">
+          </div>
+          <div class="advisor-text">
+            <div class="label">OPERATOR_ADVICE</div>
+            <div class="quote" id="creatorAdvice">NO_EXTRA_ADVICE_PROVIDED</div>
+          </div>
+          <div class="badge-violet" style="font-size: 0.5rem;">VERIFIED <span id="verifiedEfficiency">--%</span></div>
+        </div>
+
+      </section>
+
+      <!-- Bottom Actions -->
+      <div class="action-strip">
+        <button id="downloadBtn" class="btn-cta" data-i18n="downloadBtn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          DOWNLOAD_ID
+        </button>
+        <button id="copyBtn" class="btn-ghost" data-i18n="copyBtn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+          SHARE_LINK
+        </button>
+      </div>
+
+      <div class="text-center text-xs text-muted mb-4 opacity-0 anim-in" style="animation-delay: 1s;">
+        Profiles are verified by the AXP Neural Registry. Calibration values are locked to the issuing vendor.
+      </div>
+    </main>
+
+  </div>
+
+  <!-- Universal Navigation -->
+  <nav class="xp-nav">
+    <a href="index.html" class="xp-nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <span class="xp-nav-label">Home</span>
+    </a>
+    <a href="stats.html" class="xp-nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
+      <span class="xp-nav-label">Global</span>
+    </a>
+    <a href="verify.html" class="xp-nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      <span class="xp-nav-label">Verify</span>
+    </a>
+    <a href="generator.html" class="xp-nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+      <span class="xp-nav-label">Demo</span>
+    </a>
+  </nav>
+
+  <!-- HIDDEN EXPORT AREA (FOR HTML2CANVAS) -->
+  <div class="share-card-export-shell" aria-hidden="true" style="display: none;">
+    <section id="shareCaptureArea" style="width: 800px; background: #080d18; padding: 40px; font-family: 'JetBrains Mono'; border: 2px solid #a855f7; border-radius: 40px;">
+      <div style="display:flex; justify-content:space-between; margin-bottom: 40px;">
+        <div style="display:flex; align-items:center; gap:20px;">
+          <div style="width:80px; height:80px; background:#fff; border-radius:20px; padding:8px; display:flex; align-items:center; justify-content:center;">
+            <img id="shareLogo" src="favicon.png" style="width:100%; height:100%; object-fit:contain;">
+          </div>
+          <div>
+            <div style="font-size: 2.2rem; font-weight: 800; color:#fff; letter-spacing:0.1em;">AXP_HUB</div>
+            <div style="font-size: 1rem; color:#94a3b8; letter-spacing:0.15em;" data-i18n="premiumShareCard">PREMIUM PROFILE CARD</div>
+          </div>
+        </div>
+        <div style="text-align:right; font-size: 0.9rem; color:#94a3b8;">
+          <div id="shareUtc">UTC: --:--</div>
+          <div id="shareExpiry">EXP: NEVER</div>
+          <div style="width:200px; height:8px; background:rgba(255,255,255,0.1); border-radius:4px; margin: 15px 0 10px auto; overflow:hidden;">
+            <span id="shareEfficiencyBar" style="display:block; height:100%; background:linear-gradient(90deg, #a855f7, #00e5ff);"></span>
+          </div>
+          <div id="shareEfficiencyLabel">EFFICIENCY: --%</div>
+        </div>
+      </div>
+      <div style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:30px; padding:30px; margin-bottom:30px; display:flex; align-items:center; gap:30px;">
+        <div style="width:120px; height:120px; background:#fff; border-radius:24px; padding:10px; display:flex; align-items:center; justify-content:center;">
+          <img id="shareDevicePreview" src="favicon.png" style="width:100%; height:100%; object-fit:contain;">
+        </div>
+        <div>
+          <div style="font-size:0.9rem; color:#94a3b8; letter-spacing:0.2em; margin-bottom:8px;">UNIT_MODEL</div>
+          <div id="shareDeviceModel" style="font-size:2.8rem; font-weight:800; color:#fff; line-height:1.1;">UNKNOWN_HARDWARE</div>
+          <div id="shareCreatorName" style="font-size:1.1rem; color:#a855f7; font-weight:800; margin-top:10px;">OPERATOR: AXP_CORE</div>
+        </div>
+      </div>
+      <div style="background:#a855f7; border-radius:20px; padding:20px 30px; margin-bottom:30px; display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <div style="font-size:0.8rem; font-weight:800; color:rgba(0,0,0,0.6); margin-bottom:4px;">ACCESS_TOKEN</div>
+          <div id="shareAccessCode" style="font-size:2rem; font-weight:800; color:#000; letter-spacing:0.1em;">AXP-0000-0000</div>
+        </div>
+        <div style="background:rgba(0,0,0,0.2); color:#000; padding:8px 20px; border-radius:50px; font-size:0.9rem; font-weight:900;" data-i18n="syncedProfile">SYNCED_PROFILE</div>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:30px;">
+        <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:25px; padding:25px; position:relative;">
+          <div style="font-size:1rem; color:#94a3b8; margin-bottom:10px;">GENERAL_SENS</div>
+          <div id="shareGeneral" style="font-size:3rem; font-weight:800; color:#fff;">--</div>
+          <div style="position:absolute; top:25px; right:25px; font-size:2rem; color:#a855f7;">↑</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:25px; padding:25px; position:relative;">
+          <div style="font-size:1rem; color:#94a3b8; margin-bottom:10px;">RED_DOT \ 2X \ 4X</div>
+          <div style="font-size:2rem; font-weight:800; color:#fff;"><span id="shareRedDot">--</span> \ <span id="share2x">--</span> \ <span id="share4x">--</span></div>
+          <div style="position:absolute; top:25px; right:25px; font-size:2rem; color:#a855f7;">↑</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:25px; padding:25px; position:relative;">
+          <div style="font-size:1rem; color:#94a3b8; margin-bottom:10px;">SNIPER \ FREE_LOOK</div>
+          <div style="font-size:2rem; font-weight:800; color:#fff;"><span id="shareSniper">--</span> \ <span id="shareFreeLook">--</span></div>
+          <div style="position:absolute; top:25px; right:25px; font-size:2rem; color:#a855f7;">↘</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:25px; padding:25px; position:relative;">
+          <div style="font-size:1rem; color:#94a3b8; margin-bottom:10px;">DPI \ FIRE BUTTON</div>
+          <div style="font-size:2rem; font-weight:800; color:#fff;"><span id="shareDpi">--</span> \ <span id="shareFireButton">--</span></div>
+          <div style="position:absolute; top:25px; right:25px; font-size:2rem; color:#a855f7;">◎</div>
+        </div>
+      </div>
+      <div style="background:rgba(255,255,255,0.03); border-radius:25px; padding:25px; display:flex; align-items:center; gap:20px;">
+        <img id="shareFooterLogo" src="favicon.png" style="width:70px; height:70px; border-radius:15px; background:#fff;">
+        <div style="flex:1;">
+          <div style="font-size:0.8rem; color:#94a3b8; margin-bottom:4px;">OPERATOR_ADVICE</div>
+          <div id="shareAdvice" style="font-size:1.2rem; font-weight:800; color:#fff;">NO_EXTRA_ADVICE_PROVIDED</div>
+        </div>
+        <div id="shareVerified" style="background:rgba(168,85,247,0.15); color:#a855f7; border:1px solid #a855f7; border-radius:50px; padding:10px 25px; font-size:1rem; font-weight:900;">VERIFIED 94%</div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="analytics.js"></script>
+  <script src="translations.js"></script>
+  <script src="notifications.js"></script>
+  <script src="result-utils.js"></script>
+  <script src="settings.js"></script>
+  <script src="update-overlay.js"></script>
+  <script src="result.js"></script>
 </body>
 </html>

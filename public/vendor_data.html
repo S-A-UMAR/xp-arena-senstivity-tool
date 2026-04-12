@@ -1,97 +1,344 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <link rel="icon" type="image/svg+xml" href="favicon.svg">
-    <title>AXP | DATA INSIGHTS</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;800&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="vendor_shared.css">
-    <link rel="stylesheet" href="vendor_nav.css">
-    <style>
-        .chart-container {
-            margin-top: 1.5rem;
-            display: flex;
-            align-items: flex-end;
-            justify-content: space-between;
-            height: 120px;
-            gap: 8px;
-        }
-        .bar {
-            flex: 1;
-            background: linear-gradient(to top, var(--accent-primary), var(--accent-secondary));
-            border-top-left-radius: 8px;
-            border-top-right-radius: 8px;
-            min-height: 4px;
-            transition: height 1s cubic-bezier(0.16, 1, 0.3, 1);
-            position: relative;
-        }
-        .bar:hover::after {
-            content: attr(data-val);
-            position: absolute;
-            top: -20px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 0.5rem;
-            color: var(--accent-primary);
-        }
-        .log-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1rem;
-            border-bottom: 1px solid var(--glass-border);
-            font-size: 0.75rem;
-        }
-        .log-item:last-child { border: none; }
-        .log-user { font-weight: 800; color: white; }
-        .log-time { color: var(--text-muted); font-size: 0.6rem; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="glass-panel">
-            <div class="section-header">
-                <h2 class="section-title">DAILY UNLOCKS</h2>
-                <span class="section-link">LAST 7 DAYS</span>
-            </div>
-            <div class="chart-container" id="barChart">
-                <div class="bar" style="height: 40%;" data-val="120"></div>
-                <div class="bar" style="height: 60%;" data-val="180"></div>
-                <div class="bar" style="height: 30%;" data-val="90"></div>
-                <div class="bar" style="height: 80%;" data-val="240"></div>
-                <div class="bar" style="height: 50%;" data-val="150"></div>
-                <div class="bar" style="height: 90%;" data-val="270"></div>
-                <div class="bar" style="height: 70%;" data-val="210"></div>
-            </div>
-        </div>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <title>AXP | DATA INSIGHTS</title>
+  <link rel="stylesheet" href="design-system.css">
+  <style>
+    /* Page-specific data refinements */
+    .data-stats-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    
+    .chart-box {
+      background: var(--bg-surface);
+      border: 1px solid var(--bd-subtle);
+      border-radius: var(--r-lg);
+      padding: 1.75rem 1.5rem;
+      margin-bottom: 2rem;
+    }
 
-        <div class="glass-panel" style="padding: 0; overflow: hidden;">
-            <div style="padding: 1.5rem; border-bottom: 1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center;">
-                <h2 class="section-title">LIVE_TRANSFERS</h2>
-                <button class="btn-primary" style="padding: 0.6rem 1.2rem; width: auto; font-size: 0.7rem;">EXPORT CSV</button>
-            </div>
-            <div id="logsBody">
-                <div class="log-item">
-                    <div>
-                        <div class="log-user">USER_#3849</div>
-                        <div class="log-time">2 MINUTES AGO</div>
-                    </div>
-                    <div style="color: var(--accent-primary); font-weight: 800;">CALIBRATED</div>
-                </div>
-                <div class="log-item">
-                    <div>
-                        <div class="log-user">USER_#2941</div>
-                        <div class="log-time">15 MINUTES AGO</div>
-                    </div>
-                    <div style="color: var(--accent-primary); font-weight: 800;">CALIBRATED</div>
-                </div>
-            </div>
-        </div>
+    .chart-container {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      height: 140px;
+      gap: 10px;
+      padding-top: 2rem;
+    }
+    .bar-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      height: 100%;
+      justify-content: flex-end;
+    }
+    .bar {
+      width: 100%;
+      background: linear-gradient(to top, var(--violet), var(--cyan));
+      border-radius: 4px;
+      min-height: 4px;
+      transition: height 1.2s var(--ease);
+      position: relative;
+      cursor: pointer;
+    }
+    .bar-tooltip {
+      position: absolute;
+      top: -24px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.6rem;
+      font-weight: 800;
+      color: var(--cyan);
+      font-family: var(--font-mono);
+      white-space: nowrap;
+      opacity: 0;
+      transition: 0.3s;
+    }
+    .bar:hover .bar-tooltip { opacity: 1; }
+    .bar-date {
+      font-size: 0.5rem;
+      color: var(--tx-ghost);
+      font-family: var(--font-mono);
+      white-space: nowrap;
+    }
+
+    .segment-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.75rem 0;
+      border-bottom: 1px solid rgba(255,255,255,0.03);
+    }
+    .segment-label {
+      font-size: 0.7rem;
+      font-weight: 800;
+      color: var(--tx-hero);
+      min-width: 80px;
+    }
+    .segment-bar-bg {
+      flex: 1;
+      height: 6px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 3px;
+      margin: 0 1.25rem;
+      overflow: hidden;
+    }
+    .segment-bar-fill {
+      height: 100%;
+      background: var(--violet);
+      box-shadow: 0 0 10px rgba(168, 85, 247, 0.3);
+      border-radius: 3px;
+      transition: width 1.2s var(--ease);
+    }
+    .segment-val {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--cyan);
+      font-weight: 800;
+    }
+
+    .log-stack {
+      background: var(--bg-surface);
+      border: 1px solid var(--bd-subtle);
+      border-radius: var(--r-lg);
+      overflow: hidden;
+    }
+    .log-entry {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid var(--bd-subtle);
+      transition: background 0.2s;
+    }
+    .log-entry:hover { background: rgba(255,255,255,0.01); }
+    .log-entry-info .user { font-size: 0.75rem; font-weight: 800; color: var(--tx-hero); margin-bottom: 2px; }
+    .log-entry-info .meta { font-size: 0.6rem; color: var(--tx-muted); }
+    .log-entry-status { font-size: 0.6rem; font-weight: 900; letter-spacing: 0.05em; color: var(--cyan); }
+  </style>
+</head>
+<body class="page-vendor">
+
+  <!-- Fixed Header -->
+  <header class="page-header">
+    <div class="ph-logo">AXP_DATA</div>
+    <div class="ph-title">Intelligence Uplink</div>
+    <div style="width:70px"></div>
+  </header>
+
+  <div class="page-wrap anim-stagger-in">
+    
+    <!-- Summary Stats -->
+    <div class="data-stats-row anim-up" id="summaryRow">
+      <div class="stat-tile">
+        <span class="stat-tile-label">TOTAL KEYS</span>
+        <span class="stat-tile-val" id="statCodes">0</span>
+      </div>
+      <div class="stat-tile">
+        <span class="stat-tile-label">TOTAL HITS</span>
+        <span class="stat-tile-val" id="statHits">0</span>
+      </div>
+      <div class="stat-tile">
+        <span class="stat-tile-label">AVG RATING</span>
+        <span class="stat-tile-val" id="statRating">0.0</span>
+      </div>
     </div>
 
-    <script src="vendor_layout.js"></script>
-    <script src="vendor_logic.js"></script>
+    <!-- Daily Activity Chart -->
+    <div class="chart-box anim-up">
+      <div class="section-header">
+        <div>
+          <div class="section-eyebrow">Throughput Log</div>
+          <h2 class="section-title">DAILY_AUTHENTICATIONS</h2>
+        </div>
+        <div class="badge-violet" id="chartMeta">7-DAY LOOKBACK</div>
+      </div>
+      <div class="chart-container" id="barChart">
+        <div style="width: 100%; display: flex; flex-direction: column; gap: 8px;">
+          <div class="skeleton-h sm w-full"></div>
+          <div class="skeleton-h sm w-full" style="width: 80%;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Region Heatmap -->
+    <div class="card mb-3 anim-up">
+      <div class="section-header mb-3">
+        <div>
+          <div class="section-eyebrow">Geoproximal Feed</div>
+          <h2 class="section-title">TOP_DENSITY_REGIONS</h2>
+        </div>
+      </div>
+      <div id="regionList" class="flex flex-col">
+        <div class="skeleton-h sm w-full mb-1"></div>
+        <div class="skeleton-h sm w-full"></div>
+      </div>
+    </div>
+
+    <!-- Transfer Log -->
+    <div class="log-stack anim-up">
+      <div style="padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--bd-subtle); display: flex; justify-content: space-between; align-items: center;">
+        <div class="text-hero text-sm font-bold">LIVE_TRANSFER_LOG</div>
+        <button class="btn-ghost auto btn-xs" id="exportBtn" onclick="exportCSV()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          EXPORT CSV
+        </button>
+      </div>
+      <div id="logsBody">
+        <div style="padding: 2.5rem; text-align: center; opacity: 0.3;">
+          <div class="skeleton-h sm w-full mb-1"></div>
+          <div class="skeleton-h sm w-full"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Universal Navigation -->
+  <nav class="xp-nav">
+    <a href="vendor_data.html" class="xp-nav-item active">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
+      <span class="xp-nav-label">Data</span>
+    </a>
+    <a href="vendor_dashboard.html" class="xp-nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      <span class="xp-nav-label">Hub</span>
+    </a>
+    <a href="vendor_stats.html" class="xp-nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+      <span class="xp-nav-label">Stats</span>
+    </a>
+    <a href="vendor_settings.html" class="xp-nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2Z"/><circle cx="12" cy="12" r="3"/></svg>
+      <span class="xp-nav-label">Elite</span>
+    </a>
+  </nav>
+
+  <script src="notifications.js"></script>
+  <script>
+    function timeAgo(dateStr) {
+      const diff = Math.floor((Date.now() - new Date(dateStr)) / 1000);
+      if (diff < 60) return 'JUST NOW';
+      if (diff < 3600) return `${Math.floor(diff/60)}m AGO`;
+      if (diff < 86400) return `${Math.floor(diff/3600)}h AGO`;
+      return `${Math.floor(diff/86400)}d AGO`;
+    }
+
+    async function loadData() {
+      try {
+        // Load insights
+        const insightRes = await fetch('/api/vault/vendor/insights', { credentials: 'include' });
+        if (insightRes.ok) {
+          const ins = await insightRes.json();
+          document.getElementById('statCodes').textContent = ins.total_profiles ?? '0';
+          document.getElementById('statHits').textContent = ins.total_views ?? '0';
+          document.getElementById('statRating').textContent = ins.average_rating > 0 ? ins.average_rating.toFixed(1) : '0.0';
+
+          const regionList = document.getElementById('regionList');
+          if (ins.top_regions && ins.top_regions.length > 0) {
+            const maxCount = Math.max(...ins.top_regions.map(r => r.count));
+            regionList.innerHTML = ins.top_regions.map(r => `
+              <div class="segment-row">
+                <span class="segment-label">${(r.region || 'UNKNOWN').toUpperCase()}</span>
+                <div class="segment-bar-bg">
+                  <div class="segment-bar-fill" style="width: ${maxCount > 0 ? Math.round((r.count/maxCount)*100) : 0}%"></div>
+                </div>
+                <span class="segment-val">${r.count}</span>
+              </div>
+            `).join('');
+          } else {
+            regionList.innerHTML = '<div style="padding:1.5rem; text-align:center; color:var(--tx-muted); font-size:0.7rem;">NO_GEODATA_AVAILABLE</div>';
+          }
+        }
+
+        // Load 7-day chart
+        const statsRes = await fetch('/api/vault/vendor/stats', { credentials: 'include' });
+        if (statsRes.ok) {
+          const stats = await statsRes.json();
+          const chartEl = document.getElementById('barChart');
+
+          if (!stats || stats.length === 0) {
+            chartEl.innerHTML = '<div style="width:100%; text-align:center; padding: 2rem 0; color:var(--tx-muted); font-size:0.7rem;">NO_ACTIVITY_IN_CYCLE</div>';
+          } else {
+            const maxCount = Math.max(...stats.map(d => Number(d.count)), 1);
+            const days = [];
+            for (let i = 6; i >= 0; i--) {
+              const d = new Date();
+              d.setDate(d.getDate() - i);
+              const key = d.toISOString().slice(0, 10);
+              const found = stats.find(s => s.date && s.date.toString().slice(0, 10) === key);
+              days.push({ date: key, count: found ? Number(found.count) : 0 });
+            }
+            chartEl.innerHTML = days.map(day => `
+              <div class="bar-col">
+                <div class="bar" style="height:${Math.max(4, Math.round((day.count / maxCount) * 100))}%">
+                  <div class="bar-tooltip">${day.count}</div>
+                </div>
+                <div class="bar-date">${day.date.slice(8)}/${day.date.slice(5, 7)}</div>
+              </div>
+            `).join('');
+            document.getElementById('chartMeta').textContent = `PEAK: ${maxCount}`;
+          }
+        }
+
+        // Load activity log
+        const actRes = await fetch('/api/vault/vendor/activity', { credentials: 'include' });
+        if (actRes.ok) {
+          const rows = await actRes.json();
+          const logsEl = document.getElementById('logsBody');
+          if (!rows || rows.length === 0) {
+            logsEl.innerHTML = '<div style="padding: 2.5rem; text-align: center; color:var(--tx-muted); font-size:0.7rem;">LOG_STREAMS_EMPTY</div>';
+          } else {
+            logsEl.innerHTML = rows.slice(0, 15).map(r => `
+              <div class="log-entry">
+                <div class="log-entry-info">
+                  <div class="user">${(r.user_ign || 'Anonymous').toUpperCase()}</div>
+                  <div class="meta">${(r.user_region || 'GLOBAL').toUpperCase()} • ${timeAgo(r.used_at)}</div>
+                </div>
+                <div class="log-entry-status">
+                  ${r.feedback_rating ? '★ AUTH_RATED' : 'UPLINK_SYNCED'}
+                </div>
+              </div>
+            `).join('');
+          }
+        }
+      } catch (err) { console.error('DATA_UPLINK_ERR:', err); }
+    }
+
+    async function exportCSV() {
+      const btn = document.getElementById('exportBtn');
+      const originalHtml = btn.innerHTML;
+      btn.innerHTML = 'EXPORTING...';
+      btn.disabled = true;
+      try {
+        const res = await fetch('/api/vault/vendor/export', { credentials: 'include' });
+        if (res.ok) {
+          const blob = await res.blob();
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `AXP_NEXUS_DATA_${Date.now()}.csv`;
+          a.click();
+          URL.revokeObjectURL(url);
+          if (window.notify) window.notify('EXPORT_SUCCESSFUL', 'success');
+        } else { throw new Error(); }
+      } catch (err) {
+        if (window.notify) window.notify('EXPORT_SEQUENCE_FAILED', 'error');
+      } finally {
+        btn.innerHTML = originalHtml;
+        btn.disabled = false;
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadData);
+  </script>
 </body>
 </html>

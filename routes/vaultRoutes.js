@@ -19,6 +19,12 @@ const FEEDBACK_ALLOWED_TAGS = ['too_high', 'too_low', 'feels_good', 'device_mism
 const FEEDBACK_SOURCES = ['quick_like', 'structured_feedback', 'share_card', 'result_page'];
 const FEEDBACK_COOLDOWN_SECONDS = 6 * 60 * 60;
 
+const diagnosticSchema = z.object({
+    avg_reaction_ms: z.number().int().min(50).max(2000),
+    precision_score: z.number().int().min(0).max(100),
+    raw_data: z.record(z.any()).optional()
+});
+
 let schemaCapacityCheckedAt = 0;
 let schemaCapacityPromise = null;
 
@@ -264,9 +270,9 @@ async function logAudit(actorType, actorId, action, details, ip) {
 
 async function dispatchVendorWebhook(vendorId, eventType, data) {
     try {
-        const vendor = await db.get('SELECT webhook_url FROM vendors WHERE vendor_id = ?', [vendorId]);
-        if (!vendor?.webhook_url || typeof fetch !== 'function') return;
-        await fetch(vendor.webhook_url, {
+        const account = await db.get('SELECT webhook_url FROM account_registry WHERE account_id = ?', [vendorId]);
+        if (!account?.webhook_url || typeof fetch !== 'function') return;
+        await fetch(account.webhook_url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -324,14 +330,18 @@ async function authenticateVendor(req, res, next) {
         if (!token) return fail(res, 'XP_AUTH_UNAUTHORIZED', 'VENDOR_SESSION_REQUIRED', 401);
 
         const payload = jwt.verify(token, await getJwtSecret());
-        const vendor = await db.get('SELECT vendor_id, status, active_until FROM vendors WHERE vendor_id = ?', [payload.vendor_id]);
+        const vendor = await db.get('SELECT account_id as vendor_id, status, tier FROM account_registry WHERE account_id = ? AND role = "vendor"', [payload.vendor_id]);
         if (!vendor) return fail(res, 'XP_AUTH_INVALID', 'VENDOR_PROFILE_DELETED', 401);
 
+        if (vendor.status !== 'active') {
+            return fail(res, 'XP_AUTH_SUSPENDED', `VENDOR_ACCOUNT_SUSPENDED`, 403);
+        }
+
+        // Check subscription expiry (Phase 2 Upgrade)
+        const sub = await db.get('SELECT active_until FROM account_subscriptions WHERE account_id = ? ORDER BY active_until DESC LIMIT 1', [payload.vendor_id]);
         const now = new Date();
-        const activeUntilOk = !vendor.active_until || new Date(vendor.active_until) > now;
-        if (vendor.status !== 'active' || !activeUntilOk) {
-            const reason = vendor.status !== 'active' ? 'ACCOUNT_SUSPENDED' : 'ACCOUNT_EXPIRED';
-            return fail(res, 'XP_AUTH_SUSPENDED', `VENDOR_${reason}`, 403);
+        if (sub && new Date(sub.active_until) < now) {
+            return fail(res, 'XP_AUTH_EXPIRED', 'VENDOR_SUBSCRIPTION_EXPIRED', 403);
         }
 
         try {
@@ -360,7 +370,12 @@ async function buildVerificationPayload(keyData, rawCode = null, options = {}) {
 
     const branding = normalizeBranding(keyData.brand_config);
     const vendor = keyData.vendor_id
-        ? await db.get('SELECT usage_limit, active_until, webhook_url FROM vendors WHERE vendor_id = ?', [keyData.vendor_id])
+        ? await db.get(`
+            SELECT a.tier, s.active_until 
+            FROM account_registry a 
+            LEFT JOIN account_subscriptions s ON a.account_id = s.account_id 
+            WHERE a.account_id = ?
+        `, [keyData.vendor_id])
         : null;
     const likesRow = await db.get('SELECT COUNT(*) as likes FROM code_activity WHERE lookup_key = ? AND feedback_rating IS NOT NULL', [keyData.lookup_key]);
 
@@ -404,9 +419,9 @@ async function getCodeRecordByRawCode(rawCode) {
 async function getCodeRecordByLookupKey(lookupKey) {
     if (!lookupKey) return null;
     const keyData = await db.get(`
-        SELECT k.*, v.status as vendor_status, v.brand_config, v.active_until, v.usage_limit as vendor_usage_limit, v.org_id
+        SELECT k.*, v.status as vendor_status, v.brand_config, v.active_until, v.tier as vendor_tier, v.org_id
         FROM sensitivity_keys k
-        LEFT JOIN vendors v ON k.vendor_id = v.vendor_id
+        LEFT JOIN account_registry v ON k.account_id = v.account_id
         WHERE k.lookup_key = ?
     `, [lookupKey]);
     if (!keyData) return null;
@@ -457,23 +472,29 @@ async function createVendorCode(vendorId, results, creatorAdvice = null, preferr
     const hashedCode = await bcrypt.hash(rawCode, 10);
 
     await db.run(`
-        INSERT INTO sensitivity_keys (entry_code, lookup_key, vendor_id, results_json, creator_advice, status)
+        INSERT INTO sensitivity_keys (entry_code, lookup_key, account_id, results_json, creator_advice, status)
         VALUES (?, ?, ?, ?, ?, 'active')
     `, [hashedCode, lookupKey, vendorId, JSON.stringify(results), creatorAdvice]);
+
+    // Ledgering Upgrade (Phase 2)
+    await db.run(`
+        INSERT INTO activity_ledger (org_id, account_id, resource_type, delta, reason)
+        VALUES (?, ?, 'usage', 1, 'CODE_GENERATED')
+    `, ['XP-CORE-ORG', vendorId]);
 
     return { accessKey: rawCode, lookupKey };
 }
 
 async function ensureSystemVendor(vendorId, displayName = vendorId) {
-    const existing = await db.get('SELECT vendor_id FROM vendors WHERE vendor_id = ?', [vendorId]);
-    if (existing?.vendor_id) return vendorId;
+    const existing = await db.get('SELECT account_id FROM account_registry WHERE account_id = ?', [vendorId]);
+    if (existing?.account_id) return vendorId;
 
     const adminSecret = await getAdminSecret();
     const seedSecret = adminSecret || process.env.ADMIN_SECRET || `${vendorId}-SEED`;
     const hashed = await bcrypt.hash(seedSecret, 10);
     await db.run(`
-        INSERT INTO vendors (org_id, vendor_id, access_key, lookup_key, brand_config, status)
-        VALUES (?, ?, ?, ?, ?, 'active')
+        INSERT INTO account_registry (org_id, account_id, pass_hash, lookup_key, brand_config, status, role)
+        VALUES (?, ?, ?, ?, ?, 'active', 'vendor')
     `, [
         'XP-CORE-ORG',
         vendorId,
@@ -502,7 +523,7 @@ const vendorProfileSchema = z.object({
 
 async function updateVendorProfile(vendorId, payload) {
     const parsed = vendorProfileSchema.parse(payload || {});
-    const current = await db.get('SELECT brand_config, webhook_url FROM vendors WHERE vendor_id = ?', [vendorId]);
+    const current = await db.get('SELECT brand_config, webhook_url FROM account_registry WHERE account_id = ?', [vendorId]);
     const currentConfig = normalizeBranding(current?.brand_config || {});
     const incomingConfig = parsed.brand_config ? jsonOrObject(parsed.brand_config, {}) : {};
     const mergedConfig = {
@@ -527,7 +548,7 @@ async function updateVendorProfile(vendorId, payload) {
     };
 
     const webhookUrl = parsed.webhook_url === undefined ? (current?.webhook_url ?? null) : parsed.webhook_url;
-    await db.run('UPDATE vendors SET brand_config = ?, webhook_url = ? WHERE vendor_id = ?', [
+    await db.run('UPDATE account_registry SET brand_config = ?, webhook_url = ? WHERE account_id = ?', [
         JSON.stringify(mergedConfig),
         webhookUrl,
         vendorId
@@ -591,14 +612,14 @@ router.post('/vendor/generate', authenticateVendor, async (req, res) => {
 router.get('/vendor/profile', authenticateVendor, async (req, res) => {
     try {
         const vendor = await db.get(`
-            SELECT vendor_id, display_name, status, tier, is_verified, active_until, brand_config, webhook_url, usage_limit
-            FROM vendors WHERE vendor_id = ?
+            SELECT account_id as vendor_id, display_name, status, tier, is_verified, brand_config, webhook_url
+            FROM account_registry WHERE account_id = ?
         `, [req.vendorId]);
         if (!vendor) return res.status(404).json({ error: 'VENDOR_NOT_FOUND' });
 
         const stats = await db.get(`
             SELECT COUNT(*) as codes, COALESCE(SUM(current_usage), 0) as hits
-            FROM sensitivity_keys WHERE vendor_id = ?
+            FROM sensitivity_keys WHERE account_id = ?
         `, [req.vendorId]);
 
         const config = normalizeBranding(vendor.brand_config);
@@ -671,22 +692,95 @@ router.post('/vendor/event/create', authenticateVendor, async (req, res) => {
     }
 });
 
+// --- PUBLIC PULSE & SOCIAL PROOF ---
+
+router.get('/public/pulse', async (req, res) => {
+    try {
+        const cached = await db.getCache('public_pulse');
+        if (cached) return res.json({ success: true, pulse: cached });
+
+        const activities = await db.all(`
+            SELECT user_ign, user_region, used_at, lookup_key 
+            FROM code_activity 
+            ORDER BY used_at DESC LIMIT 15
+        `);
+
+        const pulse = activities.map(a => {
+            const ign = String(a.user_ign || 'Anonymous');
+            const maskedIgn = ign.length > 2 ? `${ign[0]}${'*'.repeat(ign.length - 2)}${ign[ign.length-1]}` : ign;
+            return {
+                ign: maskedIgn,
+                region: a.user_region || 'GLB',
+                timestamp: a.used_at,
+                type: 'DECRYPTION'
+            };
+        });
+
+        await db.setCache('public_pulse', pulse, 30); // 30s cache
+        return res.json({ success: true, pulse });
+    } catch (err) {
+        console.error('PULSE_ERR:', err);
+        return res.status(500).json({ error: 'PULSE_UNAVAILABLE' });
+    }
+});
+
+// --- DIAGNOSTIC LAB ENDPOINTS ---
+
+router.post('/diagnostics/submit', async (req, res) => {
+    try {
+        const data = diagnosticSchema.parse(req.body);
+        const diagnosticId = `LAB-${crypto.randomBytes(3).toString('hex').toUpperCase()}`;
+        
+        await db.run(`
+            INSERT INTO diagnostic_results (diagnostic_id, avg_reaction_ms, precision_score, raw_data)
+            VALUES (?, ?, ?, ?)
+        `, [diagnosticId, data.avg_reaction_ms, data.precision_score, JSON.stringify(data.raw_data || {})]);
+
+        return res.json({ success: true, diagnostic_id: diagnosticId });
+    } catch (err) {
+        console.error('DIAGNOSTIC_SUBMIT_ERR:', err);
+        return res.status(400).json({ error: 'INVALID_DIAGNOSTIC_DATA' });
+    }
+});
+
+router.get('/diagnostics/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const result = await db.get('SELECT diagnostic_id, avg_reaction_ms, precision_score, created_at FROM diagnostic_results WHERE diagnostic_id = ?', [id]);
+        if (!result) return res.status(404).json({ error: 'DIAGNOSTIC_NOT_FOUND' });
+        
+        return res.json({ success: true, diagnostic: result });
+    } catch (err) {
+        return res.status(500).json({ error: 'DIAGNOSTIC_LOOKUP_FAILED' });
+    }
+});
+
 router.post('/action', async (req, res) => {
     try {
         const { action } = z.object({ action: z.string(), code: z.string().optional() }).parse(req.body);
         return res.json({ ok: 1, action });
     } catch (_err) {
         return res.status(400).json({ error: 'invalid_event' });
-    }
-});
-
 router.post('/verify', async (req, res) => {
     try {
-        const { input, user_ign, user_region } = z.object({
-            input: z.string().min(1),
+        const { input, user_ign, user_region, axp_lab_id, session_id } = z.object({
+            input: z.string().min(3),
             user_ign: z.string().optional(),
-            user_region: z.string().optional()
-        }).parse(req.body || {});
+            user_region: z.string().optional(),
+            axp_lab_id: z.string().optional(),
+            session_id: z.string().optional()
+        }).parse(req.body);
+
+        const lookupKey = getLookupKey(input);
+        const cacheKey = `V_CACHE_${session_id || 'GUEST'}_${lookupKey}`;
+
+        // 🛡️ LOGIC HARDENING: Result Persistence (Refresh protection)
+        if (session_id) {
+            const cached = await db.getCache(cacheKey);
+            if (cached) {
+                return res.json({ ...cached, _from_cache: true });
+            }
+        }
 
         const adminSecret = await getAdminSecret();
         if (adminSecret && input === adminSecret) {
@@ -710,10 +804,7 @@ router.post('/verify', async (req, res) => {
         });
         if (blocked || res.headersSent) return undefined;
 
-        const cached = typeof db.getCache === 'function' ? await db.getCache(`verify_${input}`) : null;
-        if (cached) return res.json(cached);
-
-        const vendor = await db.get('SELECT * FROM vendors WHERE lookup_key = ?', [getLookupKey(input)]);
+        const vendor = await db.get('SELECT * FROM vendors WHERE lookup_key = ?', [lookupKey]);
         if (vendor && await bcrypt.compare(input, vendor.access_key)) {
             const now = new Date();
             const activeWindow = !vendor.active_until || new Date(vendor.active_until) > now;
@@ -746,7 +837,7 @@ router.post('/verify', async (req, res) => {
             return res.status(404).json({ error: 'INVALID ACCESS KEY' });
         }
 
-        const { keyData, lookupKey } = found;
+        const { keyData } = found;
         if (keyData.vendor_status === 'suspended') {
             return res.status(403).json({ error: 'PROVIDER UNAVAILABLE - ACCESS DENIED' });
         }
@@ -767,9 +858,24 @@ router.post('/verify', async (req, res) => {
         );
         await trackEvent('landing_view', keyData.org_id || 'XP-CORE-ORG', keyData.vendor_id, getClientIp(req), 'mobile');
 
-        const responsePayload = await buildVerificationPayload({ ...keyData, current_usage: (keyData.current_usage || 0) + 1 }, input);
-        if (typeof db.setCache === 'function') {
-            await db.setCache(`verify_${input}`, responsePayload, 300);
+        const globalOffset = await getGlobalOffset();
+        
+        // 🧪 NEURAL LAB SYNC (Expert Intelligence)
+        let diagnosticData = null;
+        const labId = axp_lab_id || null;
+        if (labId) {
+            diagnosticData = await db.get('SELECT avg_reaction_ms, precision_score FROM diagnostic_results WHERE diagnostic_id = ?', [labId]);
+        }
+
+        const results = Calculator.compute({
+            ...keyData.results_json,
+            diagnosticData
+        }, globalOffset);
+
+        const responsePayload = await buildVerificationPayload({ ...keyData, results_json: results, current_usage: (keyData.current_usage || 0) + 1 }, input);
+        
+        if (session_id && typeof db.setCache === 'function') {
+            await db.setCache(cacheKey, responsePayload, 300);
         }
 
         await dispatchVendorWebhook(keyData.vendor_id, 'code_used', {
@@ -868,7 +974,7 @@ router.get('/profile', authenticateVendor, async (req, res) => {
 
         const stats = await db.get(`
             SELECT COUNT(*) as codes, COALESCE(SUM(current_usage), 0) as hits
-            FROM sensitivity_keys WHERE vendor_id = ?
+            FROM sensitivity_keys WHERE account_id = ?
         `, [req.vendorId]);
         const likes = await db.get(`
             SELECT COUNT(*) as likes
@@ -1095,8 +1201,45 @@ router.get('/user/profile', async (req, res) => {
         const fingerprint = getUserFingerprint(req);
         const profile = await db.get('SELECT * FROM user_profiles WHERE user_id = ?', [fingerprint]);
         return res.json(profile || { level: 1, xp_points: 0 });
-    } catch (err) {
         return res.status(500).json({ error: 'FETCH_PROFILE_FAILED' });
+    }
+});
+
+router.get('/admin/meta-analysis', authenticateAdmin, async (req, res) => {
+    try {
+        const stats = await db.get(`
+            SELECT 
+                AVG(feedback_rating) as avg_rating,
+                COUNT(*) as total_feedback
+            FROM code_activity 
+            WHERE feedback_rating IS NOT NULL 
+            AND used_at > DATE_SUB(NOW(), INTERVAL 7 DAY)
+        `);
+        
+        const avg = stats?.avg_rating || 5.0;
+        let suggestion = "STABLE";
+        let offset = 1.0;
+
+        if (avg < 3.5) {
+            suggestion = "META_DRIFT_DETECTED: HIGH_FRICTION";
+            offset = 1.05;
+        } else if (avg < 4.2) {
+            suggestion = "SUBTLE_DRIFT: CALIBRATION_RECOMMENDED";
+            offset = 1.02;
+        } else if (avg > 4.8 && stats?.total_feedback > 10) {
+            suggestion = "OPTIMAL_COHERENCE";
+            offset = 1.0;
+        }
+
+        return res.json({
+            avg_rating: avg.toFixed(2),
+            total_feedback: stats?.total_feedback || 0,
+            suggestion,
+            recommended_offset: offset,
+            timestamp: new Date().toISOString()
+        });
+    } catch (err) {
+        return res.status(500).json({ error: 'ANALYSIS_FAILED' });
     }
 });
 
@@ -1841,22 +1984,17 @@ router.post('/admin/revoke-global', authenticateAdmin, async (req, res) => {
         await db.run('DELETE FROM sensitivity_keys WHERE lookup_key = ?', [lookupKey]);
         await logAudit('admin', 'SYSTEM', 'GLOBAL_REVOKE', { lookupKey }, getClientIp(req));
         return res.json({ success: true });
-    } catch (_err) {
-        return res.status(500).json({ error: 'REVOKE_FAILED' });
-    }
-});
-
 router.get('/admin/vendors', authenticateAdmin, async (_req, res) => {
     try {
-        const vendors = await db.all(`
-            SELECT v.*,
-                   TIMESTAMPDIFF(SECOND, NOW(), v.active_until) as seconds_left,
-                   (SELECT COUNT(*) FROM sensitivity_keys WHERE vendor_id = v.vendor_id) as total_codes,
-                   (SELECT COUNT(*) FROM code_activity ca JOIN sensitivity_keys sk ON ca.lookup_key = sk.lookup_key WHERE sk.vendor_id = v.vendor_id) as total_usage
-            FROM vendors v
-            ORDER BY v.created_at DESC
+        const accounts = await db.all(`
+            SELECT a.account_id, a.display_name, a.status, a.tier, a.role, a.created_at,
+                   TIMESTAMPDIFF(SECOND, NOW(), a.active_until) as seconds_left,
+                   (SELECT COUNT(*) FROM sensitivity_keys WHERE account_id = a.account_id) as total_codes,
+                   (SELECT COUNT(*) FROM code_activity ca JOIN sensitivity_keys sk ON ca.lookup_key = sk.lookup_key WHERE sk.account_id = a.account_id) as total_usage
+            FROM account_registry a
+            ORDER BY a.created_at DESC
         `);
-        return res.json(vendors.map((vendor) => ({ ...vendor, brand_config: jsonOrObject(vendor.brand_config, {}) })));
+        return res.json(accounts.map((account) => ({ ...account, brand_config: jsonOrObject(account.brand_config, {}) })));
     } catch (err) {
         console.error('GET /admin/vendors error:', err);
         return res.status(500).json({ error: 'Server error' });
@@ -1869,7 +2007,7 @@ router.get('/admin/vendor/:vendorId/analytics', authenticateAdmin, async (req, r
             SELECT ca.*, sk.results_json
             FROM code_activity ca
             JOIN sensitivity_keys sk ON ca.lookup_key = sk.lookup_key
-            WHERE sk.vendor_id = ?
+            WHERE sk.account_id = ?
             ORDER BY ca.used_at DESC
             LIMIT 50
         `, [req.params.vendorId]);
@@ -1903,7 +2041,7 @@ router.post('/admin/vendors', authenticateAdmin, async (req, res) => {
             : '';
         const vendorId = normalizedRequestedId || `VNDR-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
 
-        const existing = await db.get('SELECT vendor_id FROM vendors WHERE vendor_id = ?', [vendorId]);
+        const existing = await db.get('SELECT account_id FROM account_registry WHERE account_id = ?', [vendorId]);
         if (existing) return res.status(409).json({ error: 'VENDOR_ALREADY_EXISTS' });
 
         await ensureKeyStorageCapacity();
@@ -1923,9 +2061,9 @@ router.post('/admin/vendors', authenticateAdmin, async (req, res) => {
         const orgName = rawOrgName || rawOrgId || 'AXP GLOBAL';
         await db.run("INSERT IGNORE INTO organizations (org_id, org_name, plan_tier) VALUES (?, ?, 'enterprise')", [orgId, orgName]);
         await db.run(`
-            INSERT INTO vendors (org_id, vendor_id, tier, access_key, lookup_key, usage_limit, active_until, brand_config, status)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active')
-        `, [orgId, vendorId, tier, hashedAccessKey, lookupKey, usageLimit ?? null, activeUntil, JSON.stringify(brandConfig || {})]);
+            INSERT INTO account_registry (org_id, account_id, tier, pass_hash, lookup_key, active_until, brand_config, status, role)
+            VALUES (?, ?, ?, ?, ?, ?, ?, 'active', 'vendor')
+        `, [orgId, vendorId, tier, hashedAccessKey, lookupKey, activeUntil, JSON.stringify(brandConfig || {})]);
         await logAudit('admin', 'SYSTEM', 'VENDOR_REGISTER', { vendorId, accessKey, tier }, getClientIp(req));
         return res.json({ success: true, message: 'VENDOR REGISTERED SUCCESSFULLY', vendorId, accessKey, tier });
     } catch (err) {
@@ -1939,7 +2077,7 @@ router.post('/admin/vendors', authenticateAdmin, async (req, res) => {
 router.post('/admin/vendor/status', authenticateAdmin, async (req, res, next) => {
     try {
         const { vendorId, status } = z.object({ vendorId: z.string().min(2), status: z.enum(['active', 'suspended']) }).parse(req.body || {});
-        await db.run('UPDATE vendors SET status = ? WHERE vendor_id = ?', [status, vendorId]);
+        await db.run('UPDATE account_registry SET status = ? WHERE account_id = ?', [status, vendorId]);
         await logAudit('admin', 'SYSTEM', 'VENDOR_STATUS_CHANGE', { vendorId, status }, getClientIp(req));
         return res.json({ success: true, message: `VENDOR ${status.toUpperCase()} SUCCESSFULLY` });
     } catch (err) {
@@ -1959,7 +2097,7 @@ router.post('/admin/vendor/activate_until', authenticateAdmin, async (req, res) 
         let activeUntil = null;
         if (until) activeUntil = new Date(until);
         if (hours) activeUntil = new Date(Date.now() + hours * 60 * 60 * 1000);
-        await db.run('UPDATE vendors SET status = ?, active_until = ? WHERE vendor_id = ?', ['active', activeUntil, vendorId]);
+        await db.run('UPDATE account_registry SET status = ?, active_until = ? WHERE account_id = ?', ['active', activeUntil, vendorId]);
         await logAudit('admin', 'SYSTEM', 'VENDOR_ACTIVATE_TIMED', { vendorId, active_until: activeUntil }, getClientIp(req));
         return res.json({ success: true, active_until: activeUntil?.toISOString() || null });
     } catch (err) {
@@ -1970,8 +2108,8 @@ router.post('/admin/vendor/activate_until', authenticateAdmin, async (req, res) 
 
 router.delete('/admin/vendor/:vendorId', authenticateAdmin, async (req, res) => {
     try {
-        await db.run('DELETE FROM sensitivity_keys WHERE vendor_id = ?', [req.params.vendorId]);
-        await db.run('DELETE FROM vendors WHERE vendor_id = ?', [req.params.vendorId]);
+        await db.run('DELETE FROM sensitivity_keys WHERE account_id = ?', [req.params.vendorId]);
+        await db.run('DELETE FROM account_registry WHERE account_id = ?', [req.params.vendorId]);
         return res.json({ success: true, message: `VENDOR ${req.params.vendorId} DELETED PERMANENTLY` });
     } catch (err) {
         console.error('DELETE /admin/vendor error:', err);
@@ -1981,8 +2119,8 @@ router.delete('/admin/vendor/:vendorId', authenticateAdmin, async (req, res) => 
 
 router.delete('/admin/vendors/:vendorId', authenticateAdmin, async (req, res) => {
     try {
-        await db.run('DELETE FROM sensitivity_keys WHERE vendor_id = ?', [req.params.vendorId]);
-        await db.run('DELETE FROM vendors WHERE vendor_id = ?', [req.params.vendorId]);
+        await db.run('DELETE FROM sensitivity_keys WHERE account_id = ?', [req.params.vendorId]);
+        await db.run('DELETE FROM account_registry WHERE account_id = ?', [req.params.vendorId]);
         return res.json({ success: true, message: `VENDOR ${req.params.vendorId} DELETED PERMANENTLY` });
     } catch (err) {
         console.error('DELETE /admin/vendors error:', err);
@@ -2052,8 +2190,8 @@ router.post('/admin/update-master-key', authenticateAdmin, async (req, res) => {
 router.post('/track', async (req, res) => {
     try {
         const { event_type, vendor_id, session_id, device } = req.body || {};
-        const vendor = vendor_id ? await db.get('SELECT org_id FROM vendors WHERE vendor_id = ?', [vendor_id]) : null;
-        await trackEvent(event_type, vendor?.org_id || 'XP-CORE-ORG', vendor_id || 'XP-PUBLIC', session_id || getClientIp(req), device || 'unknown');
+        const account = vendor_id ? await db.get('SELECT org_id FROM account_registry WHERE account_id = ?', [vendor_id]) : null;
+        await trackEvent(event_type, account?.org_id || 'XP-CORE-ORG', vendor_id || 'XP-PUBLIC', session_id || getClientIp(req), device || 'unknown');
         return res.json({ success: true });
     } catch (_err) {
         return res.status(500).json({ error: 'TRACK_ERR' });
@@ -2081,7 +2219,7 @@ router.get('/admin/security-logs', authenticateAdmin, async (_req, res) => {
 router.get('/admin/live-feed', authenticateAdmin, async (_req, res) => {
     try {
         const rows = await db.all(`
-            SELECT ca.used_at as ts, ca.user_ign, ca.user_region, ca.feedback_rating, ca.feedback_comment, sk.vendor_id
+            SELECT ca.used_at as ts, ca.user_ign, ca.user_region, ca.feedback_rating, ca.feedback_comment, sk.account_id
             FROM code_activity ca
             LEFT JOIN sensitivity_keys sk ON sk.lookup_key = ca.lookup_key
             ORDER BY ca.used_at DESC
@@ -2090,7 +2228,7 @@ router.get('/admin/live-feed', authenticateAdmin, async (_req, res) => {
         return res.json(rows.map((row) => ({
             type: row.feedback_rating ? 'feedback' : 'verify',
             timestamp: row.ts,
-            vendor_id: row.vendor_id || 'XP-CORE',
+            vendor_id: row.account_id || 'XP-CORE',
             user_ign: row.user_ign || 'Anonymous',
             region: row.user_region || 'Unknown',
             rating: row.feedback_rating || null,
@@ -2198,7 +2336,7 @@ router.get('/share-links', authenticateVendor, async (req, res) => {
             SELECT st.share_id, st.lookup_key, st.created_at, st.expires_at, st.last_accessed_at, st.access_count, st.revoked_at
             FROM share_tokens st
             JOIN sensitivity_keys sk ON sk.lookup_key = st.lookup_key
-            WHERE sk.vendor_id = ?
+            WHERE sk.account_id = ?
             ORDER BY st.created_at DESC
             LIMIT 50
         `, [req.vendorId]);
@@ -2215,7 +2353,7 @@ router.delete('/share-links/:shareId', authenticateVendor, async (req, res) => {
             SELECT st.share_id
             FROM share_tokens st
             JOIN sensitivity_keys sk ON sk.lookup_key = st.lookup_key
-            WHERE st.share_id = ? AND sk.vendor_id = ?
+            WHERE st.share_id = ? AND sk.account_id = ?
             LIMIT 1
         `, [req.params.shareId, req.vendorId]);
         if (!owner) return res.status(404).json({ error: 'SHARE_LINK_NOT_FOUND' });
@@ -2234,18 +2372,18 @@ router.get('/leaderboard', async (req, res) => {
         const orderBy = sort === 'hits' ? 'total_hits DESC, total_likes DESC' : 'total_likes DESC, total_hits DESC';
         const rows = await db.all(`
             SELECT
-                v.vendor_id,
-                COALESCE(NULLIF(JSON_UNQUOTE(JSON_EXTRACT(v.brand_config, '$.display_name')), ''), v.vendor_id) as display_name,
+                v.account_id as vendor_id,
+                COALESCE(NULLIF(JSON_UNQUOTE(JSON_EXTRACT(v.brand_config, '$.display_name')), ''), v.account_id) as display_name,
                 COALESCE(SUM(sk.current_usage), 0) as total_hits,
                 COALESCE(SUM(CASE WHEN ca.feedback_rating IS NOT NULL THEN 1 ELSE 0 END), 0) as total_likes,
                 COALESCE(NULLIF(JSON_UNQUOTE(JSON_EXTRACT(v.brand_config, '$.youtube')), ''), NULLIF(JSON_UNQUOTE(JSON_EXTRACT(v.brand_config, '$.socials.yt')), '')) as youtube,
                 COALESCE(NULLIF(JSON_UNQUOTE(JSON_EXTRACT(v.brand_config, '$.tiktok')), ''), NULLIF(JSON_UNQUOTE(JSON_EXTRACT(v.brand_config, '$.socials.tiktok')), ''), NULLIF(JSON_UNQUOTE(JSON_EXTRACT(v.brand_config, '$.socials.tt')), '')) as tiktok,
                 COALESCE(NULLIF(JSON_UNQUOTE(JSON_EXTRACT(v.brand_config, '$.discord')), ''), NULLIF(JSON_UNQUOTE(JSON_EXTRACT(v.brand_config, '$.socials.discord')), ''), NULLIF(JSON_UNQUOTE(JSON_EXTRACT(v.brand_config, '$.socials.dc')), '')) as discord
-            FROM vendors v
-            LEFT JOIN sensitivity_keys sk ON sk.vendor_id = v.vendor_id
+            FROM account_registry v
+            LEFT JOIN sensitivity_keys sk ON sk.account_id = v.account_id
             LEFT JOIN code_activity ca ON ca.lookup_key = sk.lookup_key
-            WHERE v.status = 'active'
-            GROUP BY v.vendor_id, v.brand_config
+            WHERE v.status = 'active' AND v.role = 'vendor'
+            GROUP BY v.account_id, v.brand_config
             ORDER BY ${orderBy}
             LIMIT ${limit}
         `);
@@ -2292,4 +2430,331 @@ router.get('/share/:token/status', async (req, res) => {
     }
 });
 
+// ─────────────────────────────────────────────────────────────────────────────
+// ALIAS ROUTES — bridge frontend calls (with /vendor/ prefix) to backend handlers
+// These fix the URL mismatches discovered during audit.
+// ─────────────────────────────────────────────────────────────────────────────
+
+// 1. Vendor Profile read & write aliases
+router.get('/vendor/profile', authenticateVendor, async (req, res) => {
+    try {
+        const vendor = await db.get(`
+            SELECT account_id, status, active_until, brand_config, webhook_url, usage_limit, is_verified
+            FROM account_registry WHERE account_id = ?
+        `, [req.vendorId]);
+        if (!vendor) return res.status(404).json({ error: 'VENDOR_NOT_FOUND' });
+
+        const stats = await db.get(`
+            SELECT COUNT(*) as codes, COALESCE(SUM(current_usage), 0) as hits
+            FROM sensitivity_keys WHERE account_id = ?
+        `, [req.vendorId]);
+        const likes = await db.get(`
+            SELECT COUNT(*) as likes
+            FROM code_activity ca
+            JOIN sensitivity_keys sk ON ca.lookup_key = sk.lookup_key
+            WHERE sk.account_id = ? AND ca.feedback_rating IS NOT NULL
+        `, [req.vendorId]);
+
+        const config = normalizeBranding(vendor.brand_config);
+        const now = new Date();
+        const secondsLeft = vendor.active_until ? Math.max(0, Math.floor((new Date(vendor.active_until) - now) / 1000)) : null;
+
+        return res.json({
+            vendor_id: vendor.account_id,
+            display_name: config.display_name || vendor.account_id,
+            total_codes: stats?.codes || 0,
+            total_hits: stats?.hits || 0,
+            total_likes: likes?.likes || 0,
+            status: vendor.status,
+            active_until: vendor.active_until,
+            seconds_left: secondsLeft,
+            is_verified: !!vendor.is_verified,
+            webhook_url: vendor.webhook_url || '',
+            usage_limit: vendor.usage_limit ?? null,
+            logo_url: config.logo_url || '',
+            youtube: config.youtube || '',
+            tiktok: config.tiktok || '',
+            discord: config.discord || '',
+            social_link: config.social_link || '',
+            brand_config: config
+        });
+    } catch (err) {
+        console.error('VENDOR_PROFILE_ALIAS_ERR:', err);
+        return res.status(500).json({ error: 'VENDOR_PROFILE_UNAVAILABLE' });
+    }
+});
+
+router.post('/vendor/profile', authenticateVendor, async (req, res) => {
+    try {
+        return res.json(await updateVendorProfile(req.vendorId, req.body));
+    } catch (err) {
+        if (err instanceof z.ZodError) return res.status(400).json({ error: 'Invalid input', details: err.errors });
+        return res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// 2. Vendor branding alias (same as profile update)
+router.post('/vendor/branding', authenticateVendor, async (req, res) => {
+    try {
+        return res.json(await updateVendorProfile(req.vendorId, req.body));
+    } catch (err) {
+        if (err instanceof z.ZodError) return res.status(400).json({ error: 'Invalid input', details: err.errors });
+        return res.status(500).json({ error: 'BRANDING_UPDATE_FAILED' });
+    }
+});
+
+// 3. Auto-generate alias (vendor/generate/auto → /generate handler)
+router.post('/vendor/generate/auto', authenticateVendor, async (req, res) => {
+    try {
+        const { brand, series, model, ram, speed, claw, neuralScale } = z.object({
+            brand: z.string().min(1),
+            series: z.string().optional().nullable(),
+            model: z.string().min(1),
+            ram: z.coerce.number().int().min(1).max(32).optional().default(6),
+            speed: z.string().optional().default('balanced'),
+            claw: z.string().optional().default('3'),
+            neuralScale: z.coerce.number().min(1).max(10).optional()
+        }).parse(req.body || {});
+
+        const results = Calculator.compute({
+            brand,
+            series: series || '',
+            model,
+            ram: ram || 6,
+            speed: speed || 'balanced',
+            claw: claw || '3',
+            neuralScale: neuralScale || 5
+        }, await getGlobalOffset());
+
+        const created = await createVendorCode(req.vendorId, results, null);
+        await trackEvent('code_generated', 'XP-CORE-ORG', req.vendorId, getClientIp(req), `${brand} ${model}`.trim());
+        return res.json({ code: created.accessKey, accessKey: created.accessKey, lookupKey: created.lookupKey, results });
+    } catch (err) {
+        console.error('AUTO_GEN_ALIAS_ERR:', err);
+        if (err instanceof z.ZodError) return fail(res, 'XP_VAL_FAILED', 'INVALID_GENERATION_INPUT', 400, err.errors);
+        return res.status(500).json({ error: err.message || 'VAULT_GENERATION_FAILED' });
+    }
+});
+
+// 4. Manual-generate alias (vendor/generate/manual → /manual-entry handler)
+router.post('/vendor/generate/manual', authenticateVendor, async (req, res) => {
+    try {
+        const data = z.object({
+            general: z.coerce.number().min(0).max(200),
+            redDot: z.coerce.number().min(0).max(200),
+            scope2x: z.coerce.number().min(0).max(200),
+            scope4x: z.coerce.number().min(0).max(200),
+            sniper: z.coerce.number().min(0).max(200),
+            freeLook: z.coerce.number().min(0).max(200),
+            ads: z.coerce.number().min(0).max(200).optional(),
+            dpi: z.union([z.string(), z.number()]).optional(),
+            fireButton: z.union([z.string(), z.number()]).optional(),
+            advice: z.string().max(500).optional(),
+            // also accept x/y fields from vendor_logic.js
+            x: z.coerce.number().min(0).max(200).optional(),
+            y: z.coerce.number().min(0).max(200).optional()
+        }).parse(req.body || {});
+
+        const general = data.general ?? data.x ?? 85;
+        const redDot   = data.redDot  ?? data.y ?? 120;
+
+        const results = {
+            formula_version: Calculator.version,
+            brand: 'MANUAL',
+            model: 'PRESET',
+            general,
+            redDot,
+            scope2x: data.scope2x ?? general,
+            scope4x: data.scope4x ?? general,
+            sniperScope: data.sniper ?? general,
+            freeLook: data.freeLook ?? general,
+            ads: data.ads ?? general,
+            dpi: data.dpi || '600-640',
+            fireButton: data.fireButton || '50-54',
+            isManual: true
+        };
+
+        const created = await createVendorCode(req.vendorId, results, data.advice || null);
+        await trackEvent('code_generated', 'XP-CORE-ORG', req.vendorId, getClientIp(req), 'MANUAL_PRESET');
+        return res.json({ code: created.accessKey, accessKey: created.accessKey, lookupKey: created.lookupKey, results });
+    } catch (err) {
+        if (err instanceof z.ZodError) return res.status(400).json({ error: 'MANUAL_PUBLISH_FAILED', details: err.errors });
+        return res.status(500).json({ error: err.message || 'MANUAL_PUBLISH_FAILED' });
+    }
+});
+
+// 5. Vendor keys aliases
+router.get('/vendor/keys', authenticateVendor, async (req, res) => {
+    try {
+        const keys = await db.all(`
+            SELECT lookup_key, current_usage, usage_limit, status, expires_at, created_at, results_json
+            FROM sensitivity_keys
+            WHERE account_id = ?
+            ORDER BY created_at DESC
+        `, [req.vendorId]);
+        return res.json({ keys: keys.map((row) => ({ ...row, results_json: jsonOrObject(row.results_json, {}) })) });
+    } catch (_err) {
+        return res.status(500).json({ error: 'FAILED_TO_FETCH_KEYS' });
+    }
+});
+
+router.delete('/vendor/keys/:lookupKey', authenticateVendor, async (req, res) => {
+    try {
+        await db.run('DELETE FROM sensitivity_keys WHERE lookup_key = ? AND account_id = ?', [req.params.lookupKey, req.vendorId]);
+        return res.json({ success: true });
+    } catch (_err) {
+        return res.status(500).json({ error: 'REVOKE_FAILED' });
+    }
+});
+
+// 6. Vendor presets aliases
+router.get('/vendor/presets', authenticateVendor, async (req, res) => {
+    try {
+        const presets = await db.all('SELECT id, preset_name, config_json, created_at FROM vendor_presets WHERE account_id = ? ORDER BY created_at DESC', [req.vendorId]);
+        return res.json(presets.map((preset) => ({ ...preset, config_json: jsonOrObject(preset.config_json, {}) })));
+    } catch (_err) {
+        return res.status(500).json({ error: 'FETCH_PRESETS_FAILED' });
+    }
+});
+
+router.post('/vendor/presets', authenticateVendor, async (req, res) => {
+    try {
+        const { name, config } = z.object({ name: z.string().min(1).max(100), config: z.record(z.any()) }).parse(req.body || {});
+        await db.run('INSERT INTO vendor_presets (account_id, preset_name, config_json) VALUES (?, ?, ?)', [req.vendorId, name, JSON.stringify(config)]);
+        return res.json({ success: true });
+    } catch (err) {
+        if (err instanceof z.ZodError) return res.status(400).json({ error: 'SAVE_PRESET_FAILED', details: err.errors });
+        return res.status(500).json({ error: 'SAVE_PRESET_FAILED' });
+    }
+});
+
+router.delete('/vendor/presets/:id', authenticateVendor, async (req, res) => {
+    try {
+        await db.run('DELETE FROM vendor_presets WHERE id = ? AND account_id = ?', [req.params.id, req.vendorId]);
+        return res.json({ success: true });
+    } catch (_err) {
+        return res.status(500).json({ error: 'DELETE_PRESET_FAILED' });
+    }
+});
+
+// 7. Vendor stats, activity, export, insights aliases
+router.get('/vendor/stats', authenticateVendor, async (req, res) => {
+    try {
+        const stats = await db.all(`
+            SELECT DATE(used_at) as date, COUNT(*) as count
+            FROM code_activity ca
+            JOIN sensitivity_keys k ON ca.lookup_key = k.lookup_key
+            WHERE k.account_id = ?
+              AND used_at > DATE_SUB(NOW(), INTERVAL 7 DAY)
+            GROUP BY DATE(used_at)
+            ORDER BY date ASC
+        `, [req.vendorId]);
+        return res.json(stats);
+    } catch (_err) {
+        return res.status(500).json({ error: 'Server error' });
+    }
+});
+
+router.get('/vendor/activity', authenticateVendor, async (req, res) => {
+    try {
+        const rows = await db.all(`
+            SELECT ca.used_at, ca.user_ign, ca.user_region, ca.feedback_rating, sk.lookup_key
+            FROM code_activity ca
+            JOIN sensitivity_keys sk ON ca.lookup_key = sk.lookup_key
+            WHERE sk.account_id = ?
+            ORDER BY ca.used_at DESC
+            LIMIT 50
+        `, [req.vendorId]);
+        return res.json(rows);
+    } catch (_err) {
+        return res.status(500).json({ error: 'ACTIVITY_UNAVAILABLE' });
+    }
+});
+
+router.get('/vendor/export', authenticateVendor, async (req, res) => {
+    try {
+        const logs = await db.all(`
+            SELECT ca.used_at, ca.user_ign, ca.user_region, ca.feedback_rating, ca.feedback_tag, sk.lookup_key
+            FROM code_activity ca
+            JOIN sensitivity_keys sk ON ca.lookup_key = sk.lookup_key
+            WHERE sk.account_id = ?
+            ORDER BY ca.used_at DESC
+        `, [req.vendorId]);
+        let csv = 'TIMESTAMP,IGN,REGION,LOOKUP_KEY,RATING,FEEDBACK_TAG\n';
+        logs.forEach((row) => {
+            csv += `${row.used_at},"${row.user_ign || ''}","${row.user_region || ''}",${row.lookup_key || ''},${row.feedback_rating || ''},"${row.feedback_tag || ''}"\n`;
+        });
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', `attachment; filename=xp_activity_${req.vendorId}.csv`);
+        return res.status(200).send(csv);
+    } catch (_err) {
+        return res.status(500).json({ error: 'EXPORT_FAILED' });
+    }
+});
+
+router.get('/vendor/insights', authenticateVendor, async (req, res) => {
+    try {
+        const overview = await db.get(`
+            SELECT
+                COUNT(DISTINCT sk.lookup_key) as total_profiles,
+                COUNT(ca.id) as total_views,
+                COALESCE(SUM(CASE WHEN ca.feedback_rating IS NOT NULL THEN 1 ELSE 0 END), 0) as total_feedback,
+                ROUND(AVG(ca.feedback_rating), 2) as average_rating
+            FROM sensitivity_keys sk
+            LEFT JOIN code_activity ca ON ca.lookup_key = sk.lookup_key
+            WHERE sk.account_id = ?
+        `, [req.vendorId]);
+        const topRegions = await db.all(`
+            SELECT ca.user_region as region, COUNT(*) as count
+            FROM code_activity ca
+            JOIN sensitivity_keys sk ON ca.lookup_key = sk.lookup_key
+            WHERE sk.account_id = ?
+            GROUP BY ca.user_region
+            ORDER BY count DESC LIMIT 5
+        `, [req.vendorId]);
+        const totalViews = Number(overview?.total_views || 0);
+        const totalFeedback = Number(overview?.total_feedback || 0);
+        return res.json({
+            total_profiles: Number(overview?.total_profiles || 0),
+            total_views: totalViews,
+            total_feedback: totalFeedback,
+            average_rating: Number(overview?.average_rating || 0),
+            feedback_conversion_pct: totalViews > 0 ? Math.round((totalFeedback / totalViews) * 1000) / 10 : 0,
+            top_regions: topRegions
+        });
+    } catch (err) {
+        console.error('VENDOR_INSIGHTS_ALIAS_ERR:', err);
+        return res.status(500).json({ error: 'INSIGHTS_UNAVAILABLE' });
+    }
+});
+
+// 8. Public stats route (unauthenticated — for stats.html)
+router.get('/public/stats', async (_req, res) => {
+    try {
+        const stats = await db.get(`
+            SELECT
+                (SELECT COUNT(*) FROM account_registry WHERE status = 'active') as active_account_registry,
+                (SELECT COUNT(*) FROM sensitivity_keys) as total_codes,
+                (SELECT COALESCE(SUM(current_usage), 0) FROM sensitivity_keys) as total_hits
+        `);
+        const recentActivity = await db.all(`
+            SELECT ca.used_at as ts, ca.user_ign, sk.account_id
+            FROM code_activity ca
+            LEFT JOIN sensitivity_keys sk ON sk.lookup_key = ca.lookup_key
+            ORDER BY ca.used_at DESC
+            LIMIT 10
+        `);
+        return res.json({
+            active_vendors: Number(stats?.active_account_registry || 0),
+            total_codes: Number(stats?.total_codes || 0),
+            total_hits: Number(stats?.total_hits || 0),
+            recent_activity: recentActivity
+        });
+    } catch (err) {
+        console.error('PUBLIC_STATS_ERR:', err);
+        return res.status(500).json({ error: 'STATS_UNAVAILABLE' });
+    }
+});
+
 module.exports = router;
+

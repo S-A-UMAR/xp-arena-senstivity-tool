@@ -44,6 +44,8 @@ const UI = {
         this.attachVaultListeners();
         this.initPWA();
         this.initLanguage();
+        this.initPulse();
+        this.initMetaStatus();
         this.trackFunnel('landing_view');
         this.animateScannerDots();
         document.body.addEventListener('click', () => window.SFX?.init?.(), { once: true });
@@ -157,6 +159,41 @@ const UI = {
         vaultAuthBtn?.addEventListener('click', () => this.verifyVault(vaultInput.value.trim().toUpperCase()));
     },
 
+        });
+    },
+
+    async initPulse() {
+        const stack = document.getElementById('pulseStack');
+        if (!stack) return;
+
+        const fetchPulse = async () => {
+            try {
+                const res = await fetch('/api/vault/public/pulse');
+                const data = await res.json();
+                if (data.pulse && data.pulse.length > 0) {
+                    const html = data.pulse.map(p => `
+                        <div class="pulse-item"><strong>${p.ign}</strong> JUST_CALIBRATED_IN <strong>${p.region}</strong></div>
+                    `).join('') + data.pulse.map(p => `
+                        <div class="pulse-item"><strong>${p.ign}</strong> JUST_CALIBRATED_IN <strong>${p.region}</strong></div>
+                    `).join(''); // Double to loop seamlessly
+                    stack.innerHTML = html;
+                }
+            } catch (_e) {}
+        };
+
+        fetchPulse();
+        setInterval(fetchPulse, 30000);
+    },
+
+    initMetaStatus() {
+        // Find badges and update based on system state
+        const badges = document.querySelectorAll('.badge-meta-sync');
+        badges.forEach(b => {
+            b.textContent = 'SYSTEM_SYNC: ACTIVE';
+            b.classList.add('pulse');
+        });
+    },
+
     initPWA() {
         window.addEventListener('beforeinstallprompt', (event) => {
             event.preventDefault();
@@ -167,7 +204,13 @@ const UI = {
 
         document.getElementById('pwaInstallBtn')?.addEventListener('click', async () => {
             if (!deferredPrompt) {
-                this.notify("INSTALL TIP: USE YOUR BROWSER'S ADD TO HOME SCREEN", 'info');
+                // Check if iOS
+                const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+                if (isIOS) {
+                    this.showIOSInstallModal();
+                } else {
+                    this.notify("INSTALL TIP: USE YOUR BROWSER'S ADD TO HOME SCREEN", 'info');
+                }
                 return;
             }
             deferredPrompt.prompt();
@@ -177,6 +220,37 @@ const UI = {
             }
             deferredPrompt = null;
         });
+    },
+
+    showIOSInstallModal() {
+        const overlay = document.createElement('div');
+        overlay.id = 'pwaIOSModal';
+        overlay.style.cssText = `
+            position: fixed; inset: 0; z-index: 10000; display: flex; align-items: center; justify-content: center;
+            background: rgba(2, 6, 23, 0.95); backdrop-filter: blur(10px); padding: 2rem;
+        `;
+        overlay.innerHTML = `
+            <div class="glass-card" style="text-align: center; max-width: 320px; border-color: var(--cyan-border);">
+                <div class="logo-badge mb-2">APPLE_IOS_INITIATION</div>
+                <h3 class="mb-3" style="font-size: 1rem;">NATIVE_INSTALL_PROTOCOL</h3>
+                <div class="flex flex-col gap-4 text-xs text-left text-ghost">
+                    <div class="flex items-center gap-3">
+                        <div style="background: rgba(255,255,255,0.1); width: 24px; height: 24px; border-radius: 6px; display: flex; align-items: center; justify-content: center;">1</div>
+                        <span>Tap the <strong>Share</strong> button in Safari footer</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div style="background: rgba(255,255,255,0.1); width: 24px; height: 24px; border-radius: 6px; display: flex; align-items: center; justify-content: center;">2</div>
+                        <span>Scroll down and select <strong>"Add to Home Screen"</strong></span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div style="background: rgba(255,255,255,0.1); width: 24px; height: 24px; border-radius: 6px; display: flex; align-items: center; justify-content: center;">3</div>
+                        <span>Launch <strong>AXP Lab</strong> from your dock</span>
+                    </div>
+                </div>
+                <button class="action-btn w-full mt-4" onclick="this.closest('#pwaIOSModal').remove()">ACKNOWLEDGE</button>
+            </div>
+        `;
+        document.body.appendChild(overlay);
     },
 
     animateScannerDots() {
@@ -219,10 +293,19 @@ const UI = {
             input.classList.remove('error');
             this.elements.scannerOverlay?.classList.remove('hidden');
 
+            const sessionId = localStorage.getItem('axp_session_id');
+            const labId = localStorage.getItem('axp_lab_id');
+
             const response = await fetch('/api/vault/verify', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ input: code, user_ign: state.ign, user_region: state.region })
+                body: JSON.stringify({ 
+                    input: code, 
+                    user_ign: state.ign, 
+                    user_region: state.region,
+                    session_id: sessionId,
+                    axp_lab_id: labId
+                })
             });
             const payload = await response.json().catch(() => ({ error: 'SERVER_RESPONSE_MALFORMED' }));
 
@@ -241,6 +324,12 @@ const UI = {
             window.SFX?.play?.('ping');
 
             sessionStorage.setItem('axp_nav_origin', 'verify.html');
+            
+            // Scam-Proof Registry Success UI update
+            if (payload.type === 'code') {
+                this.updateVerificationUIForSuccess(payload);
+            }
+
             await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
             window.location.href = payload.redirect || `/result.html?code=${encodeURIComponent(code)}`;
         } catch (err) {
@@ -289,6 +378,19 @@ const UI = {
                 manualTab.style.color = 'var(--text-muted)';
             }
         }
+    },
+
+    updateVerificationUIForSuccess(data) {
+        const area = document.getElementById('vaultStatus');
+        if (!area) return;
+        
+        area.innerHTML = `
+            <div class="anim-up text-center">
+                <div class="badge-success mb-2">CERTIFIED_NODE</div>
+                <div class="text-xs font-mono text-ghost">ORG_ID: ${data.branding?.org_id || 'XP-CORE-ORG'}</div>
+                <div class="text-xs font-mono text-ghost">REGISTRY_STATUS: VERIFIED</div>
+            </div>
+        `;
     }
 };
 

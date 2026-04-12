@@ -1,6 +1,9 @@
--- Database Initialization
-CREATE DATABASE IF NOT EXISTS xp_sensitivity_tool;
-USE xp_sensitivity_tool;
+-- [UPGRADED] AXP NEURAL NEXUS MODULE: SENSITIVITY CORE
+-- This schema is now a submodule of axp_neural_nexus.
+-- See master_nexus.sql for unified identity, billing, and roaming profiles.
+
+CREATE DATABASE IF NOT EXISTS axp_neural_nexus;
+USE axp_neural_nexus;
 
 -- Organizations Table (Multi-tenant Root)
 CREATE TABLE IF NOT EXISTS organizations (
@@ -95,6 +98,25 @@ INSERT IGNORE INTO organizations (org_id, org_name) VALUES ('XP-CORE-ORG', 'XP A
 
 -- NOTE: XP-ADMIN seed should be provisioned from environment secret by migrate.js
 -- (ADMIN_SECRET / SEED_VENDOR_KEY) to avoid hardcoded credentials in SQL.
+
+-- Transient Cache for small performance optimizations
+CREATE TABLE IF NOT EXISTS transient_cache (
+    cache_key VARCHAR(100) PRIMARY KEY,
+    cache_value LONGTEXT NOT NULL,
+    expires_at DATETIME NOT NULL,
+    INDEX (expires_at)
+);
+
+-- Diagnostic Results: Stores user reaction/precision data linked to a short ID
+CREATE TABLE IF NOT EXISTS diagnostic_results (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    diagnostic_id VARCHAR(16) UNIQUE NOT NULL, -- e.g. LAB-A83BK
+    avg_reaction_ms INT NOT NULL,
+    precision_score INT NOT NULL, -- 0-100
+    raw_data JSON DEFAULT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    INDEX (diagnostic_id)
+);
 
 -- System Settings Table
 CREATE TABLE IF NOT EXISTS system_settings (
