@@ -2,8 +2,6 @@ const VendorLogic = {
     state: {
         vendorData: null,
         stats: null,
-        giveaways: [],
-        tournaments: [],
         presets: [],
         expiryInterval: null,
         diagnosticData: null
@@ -82,16 +80,16 @@ const VendorLogic = {
         if (!feed) return;
 
         const events = [
-            'USER_ENTRY: @{user} joined SCRIM_7',
-            'SYSTEM: Vault key {id} generated',
-            'GIVEAWAY: Winner picked for {item}',
-            'USER_ENTRY: @{user} entered GIVEAWAY_3',
-            'SYSTEM: Brand config updated',
-            'USER_ENTRY: @{user} verified elite key'
+            'CALIBRATION_SYNC: Node {id} established',
+            'SYSTEM: Vault key {id} provisioned',
+            'FABRICATION: New preset {item} saved',
+            'SYSTEM: Brand architecture updated',
+            'UPLINK: Verified premium access key',
+            'DIAGNOSTIC: Calibration complete for model {id}'
         ];
 
         const users = ['Ninja', 'Slayer', 'Ghost', 'Pro_01', 'King', 'Legend', 'Volt'];
-        const items = ['1000 DIAMONDS', 'ELITE PASS', 'SKIN PACK', 'CUSTOM KEY'];
+        const items = ['SPEED_PACK', 'PRECISION_V4', 'BALANCED_SET', 'CYBER_AXP'];
 
         const addActivity = () => {
             const template = events[Math.floor(Math.random() * events.length)];

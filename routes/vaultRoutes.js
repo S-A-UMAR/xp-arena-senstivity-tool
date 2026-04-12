@@ -29,68 +29,8 @@ let schemaCapacityCheckedAt = 0;
 let schemaCapacityPromise = null;
 
 async function ensureKeyStorageCapacity(options = {}) {
-    const { force = false, mutate = RUNTIME_SCHEMA_ALTER_ENABLED } = options;
-    const now = Date.now();
-    if (!force && schemaCapacityPromise) return schemaCapacityPromise;
-    if (!force && schemaCapacityCheckedAt && now - schemaCapacityCheckedAt < 10 * 60 * 1000) return;
-
-    schemaCapacityPromise = (async () => {
-        try {
-            if (typeof db.all !== 'function' || typeof db.run !== 'function') return;
-
-            const rows = await db.all(`
-                SELECT TABLE_NAME, COLUMN_NAME, CHARACTER_MAXIMUM_LENGTH as max_length
-                FROM information_schema.COLUMNS
-                WHERE TABLE_SCHEMA = DATABASE()
-                  AND TABLE_NAME IN ('account_registry', 'sensitivity_keys', 'code_activity')
-                  AND COLUMN_NAME IN ('pass_hash', 'entry_code', 'lookup_key')
-            `);
-
-            const currentLengths = rows.reduce((acc, row) => {
-                acc[row.TABLE_NAME] = acc[row.TABLE_NAME] || {};
-                acc[row.TABLE_NAME][row.COLUMN_NAME] = Number(row.max_length || 0);
-                return acc;
-            }, {});
-
-            const alterStatements = [];
-            if ((currentLengths.account_registry?.pass_hash || 0) > 0 && currentLengths.account_registry.pass_hash < REQUIRED_COLUMN_LENGTHS.account_registry.pass_hash) {
-                alterStatements.push(`ALTER TABLE account_registry MODIFY COLUMN pass_hash VARCHAR(${REQUIRED_COLUMN_LENGTHS.account_registry.pass_hash}) NOT NULL`);
-            }
-            if ((currentLengths.account_registry?.lookup_key || 0) > 0 && currentLengths.account_registry.lookup_key < REQUIRED_COLUMN_LENGTHS.account_registry.lookup_key) {
-                alterStatements.push(`ALTER TABLE account_registry MODIFY COLUMN lookup_key VARCHAR(${REQUIRED_COLUMN_LENGTHS.account_registry.lookup_key}) NULL`);
-            }
-            if ((currentLengths.sensitivity_keys?.entry_code || 0) > 0 && currentLengths.sensitivity_keys.entry_code < REQUIRED_COLUMN_LENGTHS.sensitivity_keys.entry_code) {
-                alterStatements.push(`ALTER TABLE sensitivity_keys MODIFY COLUMN entry_code VARCHAR(${REQUIRED_COLUMN_LENGTHS.sensitivity_keys.entry_code}) NOT NULL`);
-            }
-            if ((currentLengths.sensitivity_keys?.lookup_key || 0) > 0 && currentLengths.sensitivity_keys.lookup_key < REQUIRED_COLUMN_LENGTHS.sensitivity_keys.lookup_key) {
-                alterStatements.push(`ALTER TABLE sensitivity_keys MODIFY COLUMN lookup_key VARCHAR(${REQUIRED_COLUMN_LENGTHS.sensitivity_keys.lookup_key}) NOT NULL`);
-            }
-            if ((currentLengths.code_activity?.entry_code || 0) > 0 && currentLengths.code_activity.entry_code < REQUIRED_COLUMN_LENGTHS.code_activity.entry_code) {
-                alterStatements.push(`ALTER TABLE code_activity MODIFY COLUMN entry_code VARCHAR(${REQUIRED_COLUMN_LENGTHS.code_activity.entry_code}) NOT NULL`);
-            }
-            if ((currentLengths.code_activity?.lookup_key || 0) > 0 && currentLengths.code_activity.lookup_key < REQUIRED_COLUMN_LENGTHS.code_activity.lookup_key) {
-                alterStatements.push(`ALTER TABLE code_activity MODIFY COLUMN lookup_key VARCHAR(${REQUIRED_COLUMN_LENGTHS.code_activity.lookup_key}) NOT NULL`);
-            }
-
-            if (alterStatements.length > 0) {
-                if (mutate) {
-                    for (const sql of alterStatements) {
-                        await db.run(sql);
-                    }
-                    console.log(`SCHEMA_CAPACITY_ALIGNED: ${alterStatements.length} column(s) widened for hashed keys.`);
-                } else {
-                    console.warn(`SCHEMA_CAPACITY_MISMATCH: ${alterStatements.length} column(s) require migration. Runtime ALTER skipped.`);
-                }
-            }
-        } catch (err) {
-            console.warn('SCHEMA_CAPACITY_CHECK_FAILED:', err.message);
-        } finally {
-            schemaCapacityCheckedAt = Date.now();
-            schemaCapacityPromise = null;
-        }
-    })();
-
-    return schemaCapacityPromise;
+    // ⚡ DISABLED: information_schema queries cause 500 errors on restricted serverless environments.
+    return Promise.resolve();
 }
 
 if (process.env.NODE_ENV !== 'test') {
@@ -557,35 +497,7 @@ async function updateVendorProfile(vendorId, payload) {
     return { success: true, brand_config: mergedConfig };
 }
 
-router.get('/vendor/event/participants/:type/:id', authenticateVendor, async (req, res) => {
-    try {
-        const { type, id } = req.params;
-        let query = '';
-        if (type === 'scrim') {
-            query = `SELECT u.ign, u.uid FROM tournament_registrations tr JOIN users u ON tr.user_uid = u.uid WHERE tr.tournament_id = ?`;
-        } else {
-            query = `SELECT u.ign, u.uid FROM giveaway_entries ge JOIN users u ON ge.user_id = u.id WHERE ge.giveaway_id = ?`;
-        }
-        const participants = await db.all(query, [id]);
-        return res.json({ success: true, participants });
-    } catch (err) {
-        return res.status(500).json({ error: 'FETCH_PARTICIPANTS_FAILED' });
-    }
-});
-
-router.post('/vendor/event/remove-participant', authenticateVendor, async (req, res) => {
-    try {
-        const { type, eventId, userId } = req.body;
-        if (type === 'scrim') {
-            await db.run(`DELETE FROM tournament_registrations WHERE tournament_id = ? AND user_uid = ?`, [eventId, userId]);
-        } else {
-            await db.run(`DELETE FROM giveaway_entries WHERE giveaway_id = ? AND user_id = ?`, [eventId, userId]);
-        }
-        return res.json({ success: true });
-    } catch (err) {
-        return res.status(500).json({ error: 'REMOVE_FAILED' });
-    }
-});
+// --- VENDOR CORE ENDPOINTS ---
 
 // --- VENDOR ENDPOINTS ---
 
@@ -665,32 +577,7 @@ router.get('/vendor/stats', authenticateVendor, async (req, res) => {
     }
 });
 
-router.post('/vendor/event/create', authenticateVendor, async (req, res) => {
-    try {
-        const { type, title, limit, desc, mode, link, duration, map } = req.body;
-        
-        if (type === 'scrim') {
-            const result = await db.run(`
-                INSERT INTO tournaments (vendor_id, type, title, map_name, total_slots, prize_pool, start_at, end_at, comm_link)
-                VALUES (?, 'battle_royale', ?, ?, ?, ?, NOW(), DATE_ADD(NOW(), INTERVAL 24 HOUR), ?)
-            `, [req.vendorId, title, map || 'BERMUDA', limit || 48, desc || 'Scrim Event', link]);
-            
-            const eventCode = `SCRIM-${result.lastID}-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
-            return res.json({ success: true, event_code: eventCode, id: result.lastID });
-        } else {
-            const result = await db.run(`
-                INSERT INTO giveaways (vendor_id, title, prize_description, type, max_winners, end_at)
-                VALUES (?, ?, ?, 'cash', ?, DATE_ADD(NOW(), INTERVAL 24 HOUR))
-            `, [req.vendorId, title, desc, limit || 1]);
-            
-            const eventCode = `GIFT-${result.lastID}-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
-            return res.json({ success: true, event_code: eventCode, id: result.lastID });
-        }
-    } catch (err) {
-        console.error('EVENT_CREATE_ERR:', err);
-        return res.status(500).json({ error: 'CREATION_FAILED' });
-    }
-});
+// Legacy event creation purged
 
 // --- PUBLIC PULSE & SOCIAL PROOF ---
 
@@ -761,6 +648,9 @@ router.post('/action', async (req, res) => {
         return res.json({ ok: 1, action });
     } catch (_err) {
         return res.status(400).json({ error: 'invalid_event' });
+    }
+});
+
 router.post('/verify', async (req, res) => {
     try {
         const { input, user_ign, user_region, axp_lab_id, session_id } = z.object({
