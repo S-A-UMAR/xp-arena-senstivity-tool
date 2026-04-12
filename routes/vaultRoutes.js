@@ -511,62 +511,13 @@ router.post('/vendor/generate', authenticateVendor, async (req, res) => {
     }
 });
 
-router.get('/vendor/profile', authenticateVendor, async (req, res) => {
-    try {
-        const vendor = await db.get(`
-            SELECT vendor_id, display_name, status, tier, is_verified, brand_config, webhook_url, active_until
-            FROM vendors WHERE vendor_id = ?
-        `, [req.vendorId]);
-        if (!vendor) return res.status(404).json({ error: 'VENDOR_NOT_FOUND' });
+// Consolidated Vendor Profile Handlers
 
-        const stats = await db.get(`
-            SELECT COUNT(*) as codes, COALESCE(SUM(current_usage), 0) as hits
-            FROM sensitivity_keys WHERE vendor_id = ?
-        `, [req.vendorId]);
 
-        const config = normalizeBranding(vendor.brand_config);
-        return res.json({
-            vendor_id: vendor.vendor_id,
-            display_name: vendor.display_name || config.display_name || vendor.vendor_id,
-            total_codes: stats?.codes || 0,
-            total_hits: stats?.hits || 0,
-            status: vendor.status,
-            tier: vendor.tier || 'normal',
-            is_verified: !!vendor.is_verified,
-            active_until: vendor.active_until,
-            webhook_url: vendor.webhook_url || '',
-            brand_config: config
-        });
-    } catch (err) {
-        console.error('VENDOR_PROFILE_ERR:', err);
-        return res.status(500).json({ error: 'VENDOR_PROFILE_UNAVAILABLE' });
-    }
+// Consolidated Stats Handler
+router.get('/vendor/legacy-stats', authenticateVendor, async (req, res) => {
+    return res.json({ success: true, message: 'Use /vendor/stats for detailed analytics' });
 });
-
-router.get('/vendor/stats', authenticateVendor, async (req, res) => {
-    try {
-        const stats = await db.get(`
-            SELECT COUNT(*) as total_codes, COALESCE(SUM(current_usage), 0) as total_hits
-            FROM sensitivity_keys WHERE vendor_id = ?
-        `, [req.vendorId]);
-        
-        // Mock regional data for now, could be derived from code_activity.user_region
-        const regions = [
-            { name: 'LATAM', val: 85 },
-            { name: 'MENA', val: 62 },
-            { name: 'EUROPE', val: 45 }
-        ];
-
-        return res.json({
-            total_codes: stats?.total_codes || 0,
-            total_hits: stats?.total_hits || 0,
-            regions
-        });
-    } catch (err) {
-        return res.status(500).json({ error: 'STATS_UNAVAILABLE' });
-    }
-});
-
 // Legacy event creation purged
 
 // --- PUBLIC PULSE & SOCIAL PROOF ---
@@ -1876,7 +1827,7 @@ router.get('/admin/vendors', authenticateAdmin, async (_req, res) => {
     try {
         const accounts = await db.all(`
             SELECT a.vendor_id, a.display_name, a.status, a.tier, a.created_at,
-                   TIMESTAMPDIFF(SECOND, NOW(), a.active_until) as seconds_left,
+                   GREATEST(0, TIMESTAMPDIFF(SECOND, NOW(), a.active_until)) as seconds_left,
                    (SELECT COUNT(*) FROM sensitivity_keys WHERE vendor_id = a.vendor_id) as total_codes,
                    (SELECT COUNT(*) FROM code_activity ca JOIN sensitivity_keys sk ON ca.lookup_key = sk.lookup_key WHERE sk.vendor_id = a.vendor_id) as total_usage
             FROM vendors a
@@ -1996,24 +1947,34 @@ router.post('/admin/vendor/activate_until', authenticateAdmin, async (req, res) 
 
 router.delete('/admin/vendor/:vendorId', authenticateAdmin, async (req, res) => {
     try {
-        await db.run('DELETE FROM sensitivity_keys WHERE vendor_id = ?', [req.params.vendorId]);
-        await db.run('DELETE FROM vendors WHERE vendor_id = ?', [req.params.vendorId]);
-        return res.json({ success: true, message: `VENDOR ${req.params.vendorId} DELETED PERMANENTLY` });
+        const { vendorId } = req.params;
+        // 1. Clear linked activity & share tokens first (to avoid orphan records)
+        await db.run('DELETE FROM share_tokens WHERE lookup_key IN (SELECT lookup_key FROM sensitivity_keys WHERE vendor_id = ?)', [vendorId]);
+        await db.run('DELETE FROM code_activity WHERE lookup_key IN (SELECT lookup_key FROM sensitivity_keys WHERE vendor_id = ?)', [vendorId]);
+        
+        // 2. Clear primary linked tables
+        await db.run('DELETE FROM sensitivity_keys WHERE vendor_id = ?', [vendorId]);
+        await db.run('DELETE FROM vendor_presets WHERE vendor_id = ?', [vendorId]);
+        await db.run('DELETE FROM giveaways WHERE vendor_id = ?', [vendorId]);
+        await db.run('DELETE FROM tournaments WHERE vendor_id = ?', [vendorId]);
+        await db.run('DELETE FROM user_events WHERE vendor_id = ?', [vendorId]);
+        
+        // 3. Delete the vendor record
+        await db.run('DELETE FROM vendors WHERE vendor_id = ?', [vendorId]);
+        
+        await logAudit('admin', 'SYSTEM', 'VENDOR_ERASE', { vendorId }, getClientIp(req));
+        return res.json({ success: true, message: `VENDOR ${vendorId} ERASED SUCCESSFULLY` });
     } catch (err) {
         console.error('DELETE /admin/vendor error:', err);
-        return res.status(500).json({ error: 'Server error' });
+        return res.status(500).json({ error: 'ERASE_FAILED', details: err.message });
     }
 });
 
+// Alias route for delete consistent with frontend calls
 router.delete('/admin/vendors/:vendorId', authenticateAdmin, async (req, res) => {
-    try {
-        await db.run('DELETE FROM sensitivity_keys WHERE vendor_id = ?', [req.params.vendorId]);
-        await db.run('DELETE FROM vendors WHERE vendor_id = ?', [req.params.vendorId]);
-        return res.json({ success: true, message: `VENDOR ${req.params.vendorId} DELETED PERMANENTLY` });
-    } catch (err) {
-        console.error('DELETE /admin/vendors error:', err);
-        return res.status(500).json({ error: 'Server error' });
-    }
+    // Forward to primary handler
+    req.url = `/admin/vendor/${req.params.vendorId}`;
+    return router.handle(req, res);
 });
 
 router.get('/admin/settings', authenticateAdmin, async (_req, res) => {
