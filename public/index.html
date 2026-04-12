@@ -461,14 +461,19 @@
   <!-- Main portal area -->
   <main class="portal-shell">
     <div class="vault-card" role="main">
+      <div class="header-logo">AXP_NEXUS</div>
+      <div class="header-status flex items-center gap-2">
+        <span class="dot-live"></span>
+        <span class="text-xs font-bold" data-t="serverStatus">SERVER: ONLINE</span>
+      </div>
 
       <div class="vault-eyebrow">
         <div class="vault-dot"></div>
-        <span class="vault-eyebrow-text">Neural Nexus · Secure Uplink</span>
+        <span class="vault-eyebrow-text" data-t="neuralNexus">Neural Nexus · Secure Uplink</span>
       </div>
 
-      <h1 class="vault-title">Enter the<br><span>Sensitivity Vault</span></h1>
-      <p class="vault-desc">Paste your AXP vendor code, calibration key, or admin passphrase to authenticate.</p>
+      <h1 class="vault-title" data-t="vaultTitle">Enter the<br><span>Sensitivity Vault</span></h1>
+      <p class="vault-desc" data-t="vaultDesc">Paste your AXP vendor code, calibration key, or admin passphrase to authenticate.</p>
 
       <div class="vault-input-wrap">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
@@ -519,6 +524,7 @@
   </footer>
 
   <script src="notifications.js"></script>
+  <script src="theme-manager.js"></script>
   <script>
     // Handle Enter key
     document.getElementById('accessKey').addEventListener('keydown', (e) => {
@@ -560,21 +566,7 @@
       updateStatus('INITIALIZING_DECRYPTION...', 'active');
 
       try {
-        // 1 — Try admin login via backend
-        const adminRes = await fetch('/api/vault/admin/login', {
-          method: 'POST',
-          credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ password: key })
-        });
-        if (adminRes.ok) {
-          updateStatus('ADMIN_UPLINK_GRANTED', 'success');
-          btn.textContent = 'ACCESS GRANTED ✓';
-          setTimeout(() => window.location.href = 'admin.html', 700);
-          return;
-        }
-
-        // 2 — Try vendor login
+        // 1 — Fast branch for Vendors
         if (key.startsWith('AXP-') && key.split('-').length >= 3) {
           updateStatus('VENDOR_HANDSHAKE_PULSE...', 'active');
           const vRes = await fetch('/api/vault/vendor/login', {
@@ -595,6 +587,21 @@
             btn.disabled = false; btn.textContent = 'AUTHENTICATE ACCESS';
             return;
           }
+        }
+
+        // 2 — Branch for Admin
+        updateStatus('INITIALIZING_ADMIN_DECRYPT...', 'active');
+        const adminRes = await fetch('/api/vault/admin/login', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: key })
+        });
+        if (adminRes.ok) {
+          updateStatus('ADMIN_UPLINK_GRANTED', 'success');
+          btn.textContent = 'ACCESS GRANTED ✓';
+          setTimeout(() => window.location.href = 'admin.html', 700);
+          return;
         }
 
         // 3 — Try calibration code lookup

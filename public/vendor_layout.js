@@ -18,9 +18,8 @@ const VendorUI = {
     },
 
     renderPublicVendorFAB() {
-        const fab = document.createElement('div');
-        fab.innerHTML = `<button class="fab-btn" style="position:fixed; bottom:100px; right:20px; z-index:5000; width:60px; height:60px; font-size:24px; border:4px solid var(--bg-deep);" onclick="VendorUI.toggleQuickActions(true)">+</button>`;
-        document.body.appendChild(fab);
+        // Disabled in favor of global ThemeManager settings FAB
+        // console.log('LEGACY_FAB_SUPPRESSED');
     },
 
     getCookie(name) {

@@ -15,10 +15,10 @@
   --bg-hover:   #192440;
 
   /* Tri-Chrome Brand Palette */
-  --cyan:         #00e5ff;
-  --cyan-dim:     rgba(0, 229, 255, 0.15);
-  --cyan-glow:    rgba(0, 229, 255, 0.3);
-  --cyan-border:  rgba(0, 229, 255, 0.25);
+  --cyan:         #00f2fe;
+  --cyan-dim:     rgba(0, 242, 254, 0.15);
+  --cyan-glow:    rgba(0, 242, 254, 0.3);
+  --cyan-border:  rgba(0, 242, 254, 0.25);
 
   --violet:       #a855f7;
   --violet-dim:   rgba(168, 85, 247, 0.15);
@@ -29,6 +29,12 @@
   --gold-dim:     rgba(245, 158, 11, 0.15);
   --gold-glow:    rgba(245, 158, 11, 0.3);
   --gold-border:  rgba(245, 158, 11, 0.25);
+
+  /* Global Accent System — Centralized Control */
+  --accent-primary:        var(--cyan);
+  --accent-primary-dim:    var(--cyan-dim);
+  --accent-primary-glow:   var(--cyan-glow);
+  --accent-primary-border: var(--cyan-border);
 
   /* Semantic Colors */
   --success:      #22c55e;
