@@ -544,25 +544,23 @@
         currentDisplayName = displayName;
         const modelText = `${results.brand || state.brand || 'GENERIC'} ${results.model || state.model || 'DEVICE'}`.toUpperCase();
 
-        window.SaaSAnalytics?.track('result_view');
         try {
-            fetch('/api/vault/track', {
+            NexusAuth.fetch('/api/vault/track', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     event_type: 'result_view',
                     vendor_id: hydrated.vendorId || branding.id || 'XP-PUBLIC',
                     session_id: localStorage.getItem('axp_session_id'),
                     device: /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ? 'mobile' : 'desktop'
                 })
-            });
+            }).catch(() => {});
         } catch (_e) {}
 
         if (hydrated.vendorId) {
             const arenaBtn = document.getElementById('goToArenaBtn');
             if (arenaBtn) {
                 arenaBtn.onclick = () => {
-                    window.location.href = `/arena.html?vendor=${hydrated.vendorId}`;
+                    window.location.href = 'stats.html';
                 };
             }
         }

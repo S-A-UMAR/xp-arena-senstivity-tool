@@ -7,93 +7,12 @@
     <title>AXP | PRIVACY</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="design-system.css">
     <style>
-        :root {
-            --bg-deep: #020617;
-            --accent-primary: #00f2fe;
-            --glass-bg: rgba(255, 255, 255, 0.03);
-            --glass-border: rgba(255, 255, 255, 0.08);
-            --glass-card: rgba(15, 20, 25, 0.85);
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-        }
-
         body {
-            background-color: var(--bg-deep);
-            color: var(--text-main);
-            font-family: 'Outfit', sans-serif;
-            margin: 0;
-            padding-top: 90px;
-            padding-bottom: 120px;
-            min-height: 100vh;
-            background-image: radial-gradient(circle at 10% 10%, rgba(0, 242, 254, 0.05) 0%, transparent 40%);
+            padding-top: 70px;
+            padding-bottom: 90px;
         }
-
-        header {
-            position: fixed;
-            top: 0; left: 0; right: 0;
-            height: 70px;
-            background: rgba(2, 6, 23, 0.85);
-            backdrop-filter: blur(24px);
-            border-bottom: 1px solid var(--glass-border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 1.25rem;
-            z-index: 5000;
-        }
-        .header-logo { color: var(--accent-primary); font-weight: 800; letter-spacing: 0.1em; font-size: 0.85rem; text-decoration: none; font-family: 'JetBrains Mono'; }
-        .header-title { font-size: 1rem; font-weight: 800; color: white; }
-
-        .container { max-width: 800px; margin: 0 auto; padding: 0 1.25rem; }
-
-        .doc-card {
-            background: var(--glass-card);
-            border: 1px solid var(--glass-border);
-            border-radius: 20px;
-            padding: 2rem;
-            backdrop-filter: blur(20px);
-            line-height: 1.6;
-        }
-        
-        .doc-card h1 { font-size: 1.8rem; font-weight: 900; margin: 0 0 1.5rem; letter-spacing: -0.02em; color: var(--accent-primary); text-transform: uppercase; border-bottom: 1px dashed rgba(0,242,254,0.3); padding-bottom: 1rem; }
-        .doc-card h2 { font-size: 1.1rem; font-weight: 700; margin: 2rem 0 1rem; color: white; display:flex; align-items:center; gap:8px;}
-        .doc-card h2::before { content: "■"; color: var(--accent-primary); font-size: 0.6em; }
-        .doc-card p { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1rem; }
-        
-        .btn-vendor {
-            background: rgba(0, 242, 254, 0.1);
-            color: var(--accent-primary);
-            border: 1px solid rgba(0, 242, 254, 0.3);
-            padding: 0.8rem 1.5rem;
-            border-radius: 999px;
-            font-size: 0.75rem;
-            font-weight: 800;
-            cursor: pointer;
-            text-transform: uppercase;
-            text-decoration: none;
-            display: block;
-            text-align: center;
-            transition: 0.3s;
-            margin-top: 2rem;
-        }
-        .btn-vendor:hover { background: rgba(0, 242, 254, 0.2); }
-
-        .app-nav {
-            position: fixed;
-            bottom: 0; left: 0; right: 0;
-            height: 75px;
-            background: rgba(5, 7, 10, 0.9);
-            backdrop-filter: blur(24px);
-            border-top: 1px solid var(--glass-border);
-            display: flex;
-            justify-content: space-around;
-            z-index: 5000;
-        }
-        .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: var(--text-muted); text-decoration: none; flex: 1; }
-        .nav-item svg { width: 22px; height: 22px; }
-        .nav-label { font-size: 0.6rem; font-weight: 800; letter-spacing: 0.05em; }
     </style>
 </head>
 <body>
@@ -103,42 +22,55 @@
         <div style="width:70px"></div>
     </header>
 
-    <div class="container">
-        <div class="doc-card">
-            <h1>Privacy & Security Policy</h1>
-            <p><strong>Last Updated: Neural Cycle V4</strong></p>
-            <p>AXP Global takes your privacy seriously. We operate a highly anonymized engine designed to secure your identity while delivering precision tuning.</p>
+    <div class="page-wrap anim-stagger-in">
+        <div class="card anim-up">
+            <h1 class="section-title mb-1">Privacy & Security Policy</h1>
+            <p class="text-sub mb-3"><strong>Last Updated: Neural Cycle V4</strong></p>
             
-            <h2>1. Minimal Telemetry</h2>
-            <p>Our SaaS does not track your PII (Personally Identifiable Information). We only collect anonymized device hardware signatures (Brand, Model, RAM) explicitly provided by you to calculate the optimal neural matrix.</p>
+            <div class="flex flex-col gap-4">
+                <div class="p-4 bg-overlay border border-subtle rounded-xl">
+                    <h2 class="text-white font-bold mb-2 flex items-center gap-2">
+                        <span class="text-cyan">■</span> 1. Minimal Telemetry
+                    </h2>
+                    <p class="text-sm text-ghost">Our SaaS does not track your PII (Personally Identifiable Information). We only collect anonymized device hardware signatures (Brand, Model, RAM) explicitly provided by you to calculate the optimal neural matrix.</p>
+                </div>
 
-            <h2>2. Vendor Encryption</h2>
-            <p>Vendors and organizations are protected securely via encrypted tokens. Usage bounds and access controls are isolated per tenant to prevent unauthorized scraping or access code modification.</p>
-            
-            <h2>3. Local Device Usage</h2>
-            <p>We leverage local storage to save your visual preferences and UI states strictly to prevent repetitive server syncing, keeping the engine at extreme performance.</p>
+                <div class="p-4 bg-overlay border border-subtle rounded-xl">
+                    <h2 class="text-white font-bold mb-2 flex items-center gap-2">
+                        <span class="text-cyan">■</span> 2. Vendor Encryption
+                    </h2>
+                    <p class="text-sm text-ghost">Vendors and organizations are protected securely via encrypted tokens. Usage bounds and access controls are isolated per tenant to prevent unauthorized scraping or access code modification.</p>
+                </div>
+                
+                <div class="p-4 bg-overlay border border-subtle rounded-xl">
+                    <h2 class="text-white font-bold mb-2 flex items-center gap-2">
+                        <span class="text-cyan">■</span> 3. Local Device Usage
+                    </h2>
+                    <p class="text-sm text-ghost">We leverage local storage to save your visual preferences and UI states strictly to prevent repetitive server syncing, keeping the engine at extreme performance.</p>
+                </div>
+            </div>
 
-            <a href="index.html" class="btn-vendor">← RETURN TO MAIN TERMINAL</a>
+            <a href="index.html" class="btn-cta cyan w-full mt-4">← RETURN TO MAIN TERMINAL</a>
         </div>
     </div>
 
-    <!-- User Nav -->
-    <nav class="app-nav">
-        <a href="index.html" class="nav-item">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-            <span class="nav-label">HOME</span>
+    <!-- Universal Navigation -->
+    <nav class="xp-nav">
+        <a href="index.html" class="xp-nav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            <span class="xp-nav-label">Home</span>
         </a>
-        <a href="stats.html" class="nav-item">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"></path><path d="M18 17V9"></path><path d="M13 17V5"></path><path d="M8 17v-3"></path></svg>
-            <span class="nav-label">GLOBAL</span>
+        <a href="stats.html" class="xp-nav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
+            <span class="xp-nav-label">Global</span>
         </a>
-        <a href="verify.html" class="nav-item">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-            <span class="nav-label">VERIFY</span>
+        <a href="verify.html" class="xp-nav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <span class="xp-nav-label">Verify</span>
         </a>
-        <a href="generator.html" class="nav-item">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
-            <span class="nav-label">DEMO</span>
+        <a href="generator.html" class="xp-nav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+            <span class="xp-nav-label">Demo</span>
         </a>
     </nav>
     <script src="translations.js"></script>

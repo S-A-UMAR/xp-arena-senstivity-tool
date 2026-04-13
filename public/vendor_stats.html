@@ -148,13 +148,14 @@
     </a>
   </nav>
 
+  <script src="nexus-auth.js"></script>
   <script src="translations.js"></script>
   <script src="notifications.js"></script>
   <script src="theme-manager.js"></script>
   <script>
     async function loadStats() {
       try {
-        const res = await fetch('/api/vault/vendor/insights', { credentials: 'include' });
+        const res = await NexusAuth.fetch('/api/vault/vendor/insights');
         if (!res.ok) throw new Error('UPLINK_DENIED');
         const data = await res.json();
 

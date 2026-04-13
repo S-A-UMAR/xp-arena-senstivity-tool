@@ -1,4 +1,4 @@
-const devices = [
+window.devices = [
     {
         brand: "Apple",
         series: [
@@ -1289,7 +1289,109 @@ const devices = [
             }
         ]
     }
-];
+
+/**
+ * Device Registry Utility
+ * Consolidates population logic for all device selects across the platform.
+ */
+class DeviceRegistry {
+    constructor() {
+        this.registry = window.devices || [];
+        this.initAttempts = 0;
+    }
+
+    /**
+     * Wait for registry to load if not available.
+     */
+    async ensureReady() {
+        if (this.registry.length > 0) return true;
+        if (window.devices && window.devices.length > 0) {
+            this.registry = window.devices;
+            return true;
+        }
+        
+        if (this.initAttempts > 50) return false; // Fail after 10s
+        
+        this.initAttempts++;
+        await new Promise(r => setTimeout(r, 200));
+        return this.ensureReady();
+    }
+
+    /**
+     * Initialize a brand select element.
+     */
+    async initSelection(brandSelectId, seriesSelectId, modelSelectId) {
+        const ready = await this.ensureReady();
+        if (!ready) return;
+
+        const brandSelect = document.getElementById(brandSelectId);
+        if (!brandSelect) return;
+
+        // Populate Brands
+        brandSelect.innerHTML = '<option value="" disabled selected>SELECT_BRAND</option>' + 
+            this.registry.map(b => `<option value="${b.brand}">${b.brand.toUpperCase()}</option>`).join('');
+
+        // Attach listeners if IDs provided
+        if (seriesSelectId) {
+            brandSelect.onchange = () => this.populateSeries(brandSelectId, seriesSelectId, modelSelectId);
+        }
+        if (modelSelectId) {
+            const seriesSelect = document.getElementById(seriesSelectId);
+            if (seriesSelect) {
+                seriesSelect.onchange = () => this.populateModels(brandSelectId, seriesSelectId, modelSelectId);
+            }
+        }
+    }
+
+    populateSeries(brandSelectId, seriesSelectId, modelSelectId) {
+        const brand = document.getElementById(brandSelectId).value;
+        const seriesSelect = document.getElementById(seriesSelectId);
+        if (!seriesSelect) return;
+
+        const data = this.registry.find(b => b.brand === brand);
+        seriesSelect.innerHTML = '<option value="" disabled selected>SELECT_SERIES</option>';
+        
+        if (data && data.series) {
+            data.series.forEach((s, i) => {
+                seriesSelect.innerHTML += `<option value="${i}">${s.name.toUpperCase()}</option>`;
+            });
+            seriesSelect.disabled = false;
+        } else {
+            seriesSelect.disabled = true;
+        }
+
+        if (modelSelectId) {
+            const modelSelect = document.getElementById(modelSelectId);
+            if (modelSelect) {
+                modelSelect.innerHTML = '<option value="" disabled selected>SELECT_MODEL</option>';
+                modelSelect.disabled = true;
+            }
+        }
+    }
+
+    populateModels(brandSelectId, seriesSelectId, modelSelectId) {
+        const brand = document.getElementById(brandSelectId).value;
+        const sIdx = document.getElementById(seriesSelectId).value;
+        const modelSelect = document.getElementById(modelSelectId);
+        if (!modelSelect) return;
+
+        const brandData = this.registry.find(b => b.brand === brand);
+        const seriesData = brandData && brandData.series ? brandData.series[sIdx] : null;
+
+        modelSelect.innerHTML = '<option value="" disabled selected>SELECT_MODEL</option>';
+        
+        if (seriesData && seriesData.models) {
+            seriesData.models.forEach(m => {
+                modelSelect.innerHTML += `<option value="${m.name}">${m.name.toUpperCase()}</option>`;
+            });
+            modelSelect.disabled = false;
+        } else {
+            modelSelect.disabled = true;
+        }
+    }
+}
+
+window.DeviceRegistry = new DeviceRegistry();
 
 // Export for use in other scripts
 if (typeof module !== 'undefined' && module.exports) {

@@ -8,11 +8,14 @@ const VendorLogic = {
     },
 
     async init() {
-        this.populateDevices();
+        // Initialize Device Registry
+        if (window.DeviceRegistry) {
+            window.DeviceRegistry.initSelection('genBrand', 'genSeries', 'genModel');
+        }
         
         // Only enforce vendor auth on dashboard pages
         const isDashboard = window.location.pathname.includes('vendor_');
-        if (isDashboard || localStorage.getItem('axp_vendor_token')) {
+        if (isDashboard || NexusAuth.isAuthenticated()) {
             try {
                 await this.fetchVendorProfile();
                 this.initActivityFeed();
@@ -35,9 +38,7 @@ const VendorLogic = {
     },
 
     async fetchVendorProfile() {
-        const res = await fetch('/api/vault/vendor/profile', {
-            credentials: 'include'
-        });
+        const res = await NexusAuth.fetch('/api/vault/vendor/profile');
         if (!res.ok) throw new Error(`PROFILE_FETCH_FAILED: ${res.status}`);
         const data = await res.json();
         this.state.vendorData = data;
@@ -125,50 +126,7 @@ const VendorLogic = {
         }, 3000);
     },
 
-    populateDevices() {
-        const brandSelect = document.getElementById('genBrand');
-        if (!brandSelect || !window.devices) return;
 
-        brandSelect.innerHTML = '<option value="" disabled selected>SELECT_BRAND</option>' + 
-            window.devices.map(b => `<option value="${b.brand}">${b.brand.toUpperCase()}</option>`).join('');
-    },
-
-    updateSeries() {
-        const brandVal = document.getElementById('genBrand').value;
-        const brand = window.devices.find(b => b.brand === brandVal);
-        const seriesSelect = document.getElementById('genSeries');
-        const modelSelect = document.getElementById('genModel');
-
-        if (brand && seriesSelect) {
-            seriesSelect.disabled = false;
-            seriesSelect.innerHTML = '<option value="" disabled selected>SELECT_SERIES</option>' + 
-                brand.series.map(s => `<option value="${s.name}">${s.name.toUpperCase()}</option>`).join('');
-            
-            if (modelSelect) {
-                modelSelect.disabled = true;
-                modelSelect.innerHTML = '<option value="" disabled selected>SELECT_MODEL</option>';
-            }
-        }
-    },
-
-    updateModels() {
-        const brandVal = document.getElementById('genBrand').value;
-        const seriesVal = document.getElementById('genSeries').value;
-        const brand = window.devices.find(b => b.brand === brandVal);
-        const series = brand ? brand.series.find(s => s.name === seriesVal) : null;
-        const modelSelect = document.getElementById('genModel');
-
-        if (series && modelSelect) {
-            modelSelect.disabled = false;
-            modelSelect.innerHTML = '<option value="" disabled selected>SELECT_MODEL</option>' + 
-                series.models.map(m => `<option value="${m.name}">${m.name.toUpperCase()}</option>`).join('');
-        }
-    },
-
-    onModelChange() {
-        const modelVal = document.getElementById('genModel').value;
-        window.notify(`CONFIGURING_TARGET: ${modelVal}`, 'info');
-    },
 
     getCookie(name) {
         const value = `; ${document.cookie}`;
@@ -177,9 +135,7 @@ const VendorLogic = {
     },
 
     handleLogout() {
-        localStorage.removeItem('axp_vendor_token');
-        document.cookie = "xp_vendor_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-        window.location.href = 'index.html';
+        NexusAuth.logout();
     },
 
 
@@ -323,7 +279,7 @@ const VendorLogic = {
         if (!id) return;
         try {
             status.textContent = 'BUFFERING...';
-            const res = await fetch(`/api/vault/diagnostics/${id}`);
+            const res = await NexusAuth.fetch(`/api/vault/diagnostics/${id}`);
             const data = await res.json();
             if (data.diagnostic) {
                 this.state.diagnosticData = data.diagnostic;
@@ -354,10 +310,8 @@ const VendorLogic = {
         if (btn) { btn.textContent = 'PROVISIONING...'; btn.disabled = true; }
 
         try {
-            const res = await fetch('/api/vault/vendor/generate/auto', {
+            const res = await NexusAuth.fetch('/api/vault/vendor/generate/auto', {
                 method: 'POST',
-                credentials: 'include',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
                     brand, series, model, 
                     speed: playstyle, claw, 
@@ -417,10 +371,8 @@ const VendorLogic = {
             freeLook: parseInt(document.getElementById('manualY')?.value || '120')
         };
         try {
-            const res = await fetch('/api/vault/vendor/generate/manual', {
+            const res = await NexusAuth.fetch('/api/vault/vendor/generate/manual', {
                 method: 'POST',
-                credentials: 'include',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
             const data = await res.json();
@@ -469,10 +421,8 @@ const VendorLogic = {
             }
         };
         try {
-            const res = await fetch('/api/vault/vendor/branding', {
+            const res = await NexusAuth.fetch('/api/vault/vendor/branding', {
                 method: 'POST',
-                credentials: 'include',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
             if (res.ok) {
@@ -510,7 +460,7 @@ const VendorLogic = {
 
     async loadKeys() {
         try {
-            const res = await fetch('/api/vault/vendor/keys', { credentials: 'include' });
+            const res = await NexusAuth.fetch('/api/vault/vendor/keys');
             const data = await res.json();
             const list = document.getElementById('keysList');
             if (!list) return;
@@ -533,7 +483,7 @@ const VendorLogic = {
     async revokeKey(key) {
         this.showConfirm('REVOKE_ACCESS_KEY?', async () => {
             try {
-                await fetch(`/api/vault/vendor/keys/${key}`, { method: 'DELETE', credentials: 'include' });
+                await NexusAuth.fetch(`/api/vault/vendor/keys/${key}`, { method: 'DELETE' });
                 this.loadKeys();
                 window.notify('KEY_REVOKED', 'success');
             } catch (err) {
@@ -566,7 +516,7 @@ const VendorLogic = {
 
     async loadPresets() {
         try {
-            const res = await fetch('/api/vault/vendor/presets', { credentials: 'include' });
+            const res = await NexusAuth.fetch('/api/vault/vendor/presets');
             const data = await res.json();
             this.state.presets = data || [];
             const list = document.getElementById('presetsList');
@@ -606,10 +556,8 @@ const VendorLogic = {
         };
 
         try {
-            const res = await fetch('/api/vault/vendor/presets', {
+            const res = await NexusAuth.fetch('/api/vault/vendor/presets', {
                 method: 'POST',
-                credentials: 'include',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name, config })
             });
             if (res.ok) {
@@ -658,7 +606,7 @@ const VendorLogic = {
     async deletePreset(id) {
         this.showConfirm('DELETE_PRESET_CONFIRM?', async () => {
             try {
-                await fetch(`/api/vault/vendor/presets/${id}`, { method: 'DELETE', credentials: 'include' });
+                await NexusAuth.fetch(`/api/vault/vendor/presets/${id}`, { method: 'DELETE' });
                 this.loadPresets();
                 window.notify('PRESET_DELETED', 'success');
             } catch (err) {
@@ -690,10 +638,7 @@ const VendorLogic = {
     },
 
     handleLogout() {
-        localStorage.removeItem('axp_vendor_token');
-        fetch('/api/vault/vendor/logout', { method: 'POST', credentials: 'include' }).finally(() => {
-            window.location.href = 'index.html';
-        });
+        NexusAuth.logout();
     },
 
     updateUI() {

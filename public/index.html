@@ -523,6 +523,7 @@
     <a href="stats.html">Platform Stats</a>
   </footer>
 
+  <script src="nexus-auth.js"></script>
   <script src="notifications.js"></script>
   <script src="theme-manager.js"></script>
   <script>
@@ -569,15 +570,13 @@
         // 1 — Fast branch for Vendors
         if (key.startsWith('AXP-') && key.split('-').length >= 3) {
           updateStatus('VENDOR_HANDSHAKE_PULSE...', 'active');
-          const vRes = await fetch('/api/vault/vendor/login', {
+          const vRes = await NexusAuth.fetch('/api/vault/vendor/login', {
             method: 'POST',
-            credentials: 'include',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ access_key: key })
           });
           if (vRes.ok) {
             const vData = await vRes.json();
-            if (vData.token) localStorage.setItem('axp_vendor_token', vData.token);
+            if (vData.token) NexusAuth.setToken(vData.token);
             updateStatus('VENDOR_UPLINK_SUCCESS', 'success');
             btn.textContent = 'REDIRECTING...';
             setTimeout(() => window.location.href = vData.redirect || 'vendor_dashboard.html', 700);
@@ -591,13 +590,13 @@
 
         // 2 — Branch for Admin
         updateStatus('INITIALIZING_ADMIN_DECRYPT...', 'active');
-        const adminRes = await fetch('/api/vault/admin/login', {
+        const adminRes = await NexusAuth.fetch('/api/vault/admin/login', {
           method: 'POST',
-          credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ password: key })
         });
         if (adminRes.ok) {
+          const aData = await adminRes.json();
+          if (aData.token) NexusAuth.setToken(aData.token);
           updateStatus('ADMIN_UPLINK_GRANTED', 'success');
           btn.textContent = 'ACCESS GRANTED ✓';
           setTimeout(() => window.location.href = 'admin.html', 700);
@@ -606,7 +605,7 @@
 
         // 3 — Try calibration code lookup
         updateStatus('SCANNING_CALIBRATION_REGISTRY...', 'active');
-        const codeRes = await fetch(`/api/vault/code/${encodeURIComponent(key)}/status`, { credentials: 'include' });
+        const codeRes = await NexusAuth.fetch(`/api/vault/code/${encodeURIComponent(key)}/status`);
         if (codeRes.ok) {
           updateStatus('CALIBRATION_FOUND · LOADING_PROFILE', 'success');
           btn.textContent = 'OPENING PROFILE...';

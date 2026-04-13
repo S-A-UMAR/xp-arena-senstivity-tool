@@ -12,12 +12,11 @@ jest.mock('../db', () => {
       return null;
     }),
     all: jest.fn(async (sql) => {
-      if (sql.includes('FROM user_events')) {
+      if (sql.includes('FROM audit_logs')) {
         return [
-          { event_type: 'landing_view', count: 20 },
-          { event_type: 'calibration_start', count: 12 },
-          { event_type: 'code_generated', count: 9 },
-          { event_type: 'result_view', count: 7 }
+          { event_type: 'TRACK_CODE_GENERATED', count: 9 },
+          { event_type: 'TRACK_VERIFY_SUCCESS', count: 12 },
+          { event_type: 'TRACK_RESULT_VIEW', count: 7 }
         ];
       }
       if (sql.includes('FROM vendors v') && sql.includes('LIMIT 10')) {

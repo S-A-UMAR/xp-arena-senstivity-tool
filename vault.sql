@@ -46,17 +46,6 @@ CREATE TABLE IF NOT EXISTS sensitivity_keys (
     FOREIGN KEY (vendor_id) REFERENCES vendors(vendor_id) ON DELETE SET NULL
 );
 
--- User Events Table (Analytics Upgrade)
-CREATE TABLE IF NOT EXISTS user_events (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    event_type VARCHAR(50) NOT NULL,
-    org_id VARCHAR(50),
-    vendor_id VARCHAR(50),
-    user_session_id VARCHAR(100),
-    device_tier VARCHAR(50),
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-
 -- Audit Logs Table
 CREATE TABLE IF NOT EXISTS audit_logs (
     id INT AUTO_INCREMENT PRIMARY KEY,

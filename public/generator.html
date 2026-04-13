@@ -162,14 +162,14 @@
       
       <div class="form-group">
         <label class="form-label">Brand_Architecture</label>
-        <select id="genBrand" class="xp-select" onchange="updateSeries()">
+        <select id="genBrand" class="xp-select">
           <option value="" disabled selected>SELECT_BRAND</option>
         </select>
       </div>
 
       <div class="form-group">
         <label class="form-label">Series_Logic</label>
-        <select id="genSeries" class="xp-select" disabled onchange="updateModels()">
+        <select id="genSeries" class="xp-select" disabled>
           <option value="" disabled selected>SELECT_SERIES</option>
         </select>
       </div>
@@ -263,53 +263,8 @@
   <script src="theme-manager.js"></script>
   <script>
     // Minimal version of VendorLogic for the demo page
-    function populateBrands() {
-      const brandSelect = document.getElementById('genBrand');
-      if (!brandSelect) return;
-      brandSelect.innerHTML = '<option value="" disabled selected>SELECT_BRAND</option>';
-      if (typeof devices !== 'undefined') {
-        devices.forEach(d => {
-          brandSelect.innerHTML += `<option value="${d.brand}">${d.brand.toUpperCase()}</option>`;
-        });
-      }
-    }
+    // Device selection logic now handled by DeviceRegistry in devices.js
 
-    function updateSeries() {
-      const brandSelect = document.getElementById('genBrand');
-      const seriesSelect = document.getElementById('genSeries');
-      const modelSelect = document.getElementById('genModel');
-      
-      const brandName = brandSelect.value;
-      if (typeof devices === 'undefined') return;
-      
-      const brandData = devices.find(d => d.brand === brandName);
-      seriesSelect.innerHTML = '<option value="" disabled selected>SELECT_SERIES</option>';
-      if (brandData) {
-        brandData.series.forEach((s, idx) => {
-          seriesSelect.innerHTML += `<option value="${idx}">${s.name.toUpperCase()}</option>`;
-        });
-        seriesSelect.disabled = false;
-        modelSelect.disabled = true;
-      }
-    }
-
-    function updateModels() {
-      const brandSelect = document.getElementById('genBrand');
-      const seriesSelect = document.getElementById('genSeries');
-      const modelSelect = document.getElementById('genModel');
-
-      if (typeof devices === 'undefined') return;
-      const brandData = devices.find(d => d.brand === brandSelect.value);
-      const seriesIdx = seriesSelect.value;
-      const seriesData = brandData.series[seriesIdx];
-      modelSelect.innerHTML = '<option value="" disabled selected>SELECT_MODEL</option>';
-      if (seriesData) {
-        seriesData.models.forEach(m => {
-          modelSelect.innerHTML += `<option value="${m.name}">${m.name.toUpperCase()}</option>`;
-        });
-        modelSelect.disabled = false;
-      }
-    }
 
     function runDemoSimulation() {
       const modelSelect = document.getElementById('genModel');
@@ -341,7 +296,11 @@
       btn.disabled = false;
     }
 
-    document.addEventListener('DOMContentLoaded', populateBrands);
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.DeviceRegistry) {
+        window.DeviceRegistry.initSelection('genBrand', 'genSeries', 'genModel');
+      }
+    });
   </script>
 </body>
 </html>

@@ -131,17 +131,7 @@ CREATE TABLE IF NOT EXISTS user_profiles (
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS user_events (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    event_type VARCHAR(50) NOT NULL,
-    org_id VARCHAR(50),
-    account_id VARCHAR(50),
-    user_session_id VARCHAR(100),
-    device_tier VARCHAR(50),
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    INDEX (org_id, created_at),
-    INDEX (account_id)
-);
+
 
 CREATE TABLE IF NOT EXISTS activity_ledger (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -197,8 +187,8 @@ SET FOREIGN_KEY_CHECKS = 1;
 INSERT IGNORE INTO organizations (org_id, org_name) VALUES ('XP-CORE-ORG', 'XP ARENA GLOBAL');
 
 INSERT IGNORE INTO billing_tiers (tier_id, name, price_monthly, features) VALUES 
-('free', 'Initiate', 0.00, '{"max_codes": 5, "giveaways": false}'),
-('pro', 'Pro Node', 29.99, '{"max_codes": 1000, "giveaways": true}'),
-('nexus', 'Elite Nexus', 99.99, '{"max_codes": 99999, "giveaways": true, "whitelabel": true}');
+('free', 'Initiate', 0.00, '{"max_codes": 5}'),
+('pro', 'Pro Node', 29.99, '{"max_codes": 1000}'),
+('nexus', 'Elite Nexus', 99.99, '{"max_codes": 99999, "whitelabel": true}');
 
 INSERT IGNORE INTO system_settings (setting_key, setting_value) VALUES ('global_sensitivity_offset', '1.0');

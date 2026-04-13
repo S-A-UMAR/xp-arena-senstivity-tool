@@ -210,24 +210,17 @@
     </a>
   </nav>
 
+  <script src="nexus-auth.js"></script>
   <script src="translations.js"></script>
   <script src="notifications.js"></script>
   <script src="theme-manager.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', async () => {
+      if (!NexusAuth.isAuthenticated()) { window.location.href = 'index.html'; return; }
+      
       try {
-        const token = localStorage.getItem('axp_vendor_token');
-        if (!token) { window.location.href = 'index.html'; return; }
-
-        const res = await fetch('/api/vault/vendor/profile', {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        
-        if (res.status === 401) {
-          localStorage.removeItem('axp_vendor_token');
-          window.location.href = 'index.html';
-          return;
-        }
+        const res = await NexusAuth.fetch('/api/vault/vendor/profile');
+        if (!res.ok) throw new Error('PROFILE_FETCH_FAILED');
 
         const data = await res.json();
         
@@ -258,18 +251,11 @@
       btn.style.opacity = '0.7';
 
       try {
-        const token = localStorage.getItem('axp_vendor_token');
-        if(!token) return;
-
         const name = document.getElementById('brandNameInput').value;
         const logo = document.getElementById('brandLogoInput').value;
 
-        const res = await fetch('/api/vault/vendor/branding', {
+        const res = await NexusAuth.fetch('/api/vault/vendor/branding', {
           method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
           body: JSON.stringify({ display_name: name, logo_url: logo })
         });
 
@@ -290,9 +276,7 @@
     }
 
     function logoutVendor() {
-      localStorage.removeItem('axp_vendor_token');
-      document.cookie = 'xp_vendor_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-      window.location.href = 'index.html';
+      NexusAuth.logout();
     }
   </script>
 </body>

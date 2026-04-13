@@ -52,20 +52,6 @@ CREATE TABLE IF NOT EXISTS sensitivity_keys (
     FOREIGN KEY (vendor_id) REFERENCES vendors(vendor_id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- 4. User Events Table (Conversion Tracking & Analytics)
-CREATE TABLE IF NOT EXISTS user_events (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    event_type VARCHAR(50) NOT NULL,
-    org_id VARCHAR(50),
-    vendor_id VARCHAR(50),
-    user_session_id VARCHAR(100),
-    device_tier VARCHAR(50),
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    INDEX (org_id),
-    INDEX (vendor_id),
-    INDEX (event_type)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
 -- 5. Audit Logs Table (Admin Security Tracking)
 CREATE TABLE IF NOT EXISTS audit_logs (
     id INT AUTO_INCREMENT PRIMARY KEY,

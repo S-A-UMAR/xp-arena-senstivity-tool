@@ -52,61 +52,22 @@ const UI = {
     },
 
     populateDevices() {
-        const brandSelect = document.getElementById('brandSelect');
-        const seriesSelect = document.getElementById('seriesSelect');
-        const modelSelect = document.getElementById('modelSelect');
-        const ramSelect = document.getElementById('ramSelect');
-
-        if (!brandSelect) return;
-
-        const deviceList = window.devices || (typeof devices !== 'undefined' ? devices : []);
-        if (deviceList.length === 0) {
-            setTimeout(() => this.populateDevices(), 200);
-            return;
+        if (window.DeviceRegistry) {
+            window.DeviceRegistry.initSelection('brandSelect', 'seriesSelect', 'modelSelect');
+            
+            // Re-attach the RAM auto-select listener since it's page-specific
+            const modelSelect = document.getElementById('modelSelect');
+            const ramSelect = document.getElementById('ramSelect');
+            if (modelSelect && ramSelect) {
+                const originalOnChange = modelSelect.onchange;
+                modelSelect.onchange = (e) => {
+                    if (originalOnChange) originalOnChange(e);
+                    const selectedOption = modelSelect.options[modelSelect.selectedIndex];
+                    const ram = selectedOption?.getAttribute('data-ram');
+                    if (ram) ramSelect.value = ram;
+                };
+            }
         }
-
-        window.devices = deviceList;
-
-        // 1. Populate Brands
-        brandSelect.innerHTML = '<option value="">SELECT BRAND</option>' + 
-            deviceList.map(d => `<option value="${d.brand}">${d.brand.toUpperCase()}</option>`).join('');
-
-        // 2. Brand Change -> Populate Series
-        brandSelect.onchange = () => {
-            const brand = deviceList.find(d => d.brand === brandSelect.value);
-            if (brand) {
-                seriesSelect.disabled = false;
-                seriesSelect.innerHTML = '<option value="">SELECT SERIES</option>' +
-                    brand.series.map(s => `<option value="${s.name}">${s.name.toUpperCase()}</option>`).join('');
-                modelSelect.disabled = true;
-                modelSelect.innerHTML = '<option value="">SELECT MODEL</option>';
-            } else {
-                seriesSelect.disabled = true;
-                modelSelect.disabled = true;
-            }
-        };
-
-        // 3. Series Change -> Populate Models
-        seriesSelect.onchange = () => {
-            const brand = deviceList.find(d => d.brand === brandSelect.value);
-            const series = brand?.series.find(s => s.name === seriesSelect.value);
-            if (series) {
-                modelSelect.disabled = false;
-                modelSelect.innerHTML = '<option value="">SELECT MODEL</option>' +
-                    series.models.map(m => `<option value="${m.name}" data-ram="${m.ram}">${m.name.toUpperCase()}</option>`).join('');
-            } else {
-                modelSelect.disabled = true;
-            }
-        };
-
-        // 4. Model Change -> Auto-select RAM
-        modelSelect.onchange = () => {
-            const selectedOption = modelSelect.options[modelSelect.selectedIndex];
-            const ram = selectedOption.getAttribute('data-ram');
-            if (ram && ramSelect) {
-                ramSelect.value = ram;
-            }
-        };
     },
 
     initLanguage() {
@@ -168,7 +129,7 @@ const UI = {
 
         const fetchPulse = async () => {
             try {
-                const res = await fetch('/api/vault/public/pulse');
+                const res = await NexusAuth.fetch('/api/vault/public/pulse');
                 const data = await res.json();
                 if (data.pulse && data.pulse.length > 0) {
                     const html = data.pulse.map(p => `
@@ -268,16 +229,15 @@ const UI = {
                 : `xp-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
             const sessionId = localStorage.getItem('axp_session_id') || generatedId;
             localStorage.setItem('axp_session_id', sessionId);
-            await fetch('/api/vault/track', {
+            await NexusAuth.fetch('/api/vault/track', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     event_type: type,
                     vendor_id: 'AXP-PUBLIC',
                     session_id: sessionId,
                     device: /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ? 'mobile' : 'desktop'
                 })
-            });
+            }).catch(() => {});
         } catch (_err) {}
     },
 
@@ -296,9 +256,8 @@ const UI = {
             const sessionId = localStorage.getItem('axp_session_id');
             const labId = localStorage.getItem('axp_lab_id');
 
-            const response = await fetch('/api/vault/verify', {
+            const response = await NexusAuth.fetch('/api/vault/verify', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
                     input: code, 
                     user_ign: state.ign, 

@@ -37,7 +37,7 @@ async function harmonize() {
         console.log('Ensuring indices...');
         await db.run('ALTER TABLE sensitivity_keys ADD INDEX IF NOT EXISTS idx_vendor_id (vendor_id)').catch(() => {});
         await db.run('ALTER TABLE vendor_presets ADD INDEX IF NOT EXISTS idx_vendor_id (vendor_id)').catch(() => {});
-        await db.run('ALTER TABLE user_events ADD INDEX IF NOT EXISTS idx_vendor_id (vendor_id)').catch(() => {});
+        await db.run('ALTER TABLE code_activity ADD INDEX IF NOT EXISTS idx_lookup_key (lookup_key)').catch(() => {});
 
         console.log('✅ Harmonization Complete!');
         process.exit(0);

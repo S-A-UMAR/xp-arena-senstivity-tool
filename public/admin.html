@@ -565,6 +565,7 @@
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="nexus-auth.js"></script>
   <script src="devices.js"></script>
   <script src="translations.js"></script>
   <script src="notifications.js"></script>
@@ -586,21 +587,12 @@
     async function api(path, method = 'GET', body = null) {
       const options = {
         method,
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include'
+        body: body ? JSON.stringify(body) : null
       };
-      if (body) options.body = JSON.stringify(body);
-      const res = await fetch(path, options);
+      const res = await NexusAuth.fetch(path, options);
       if (res.status === 401) return logoutAdmin();
       
-      let data = null;
-      try {
-        const text = await res.text();
-        try { data = JSON.parse(text); } catch (e) {
-          if (!res.ok) throw new Error(text.slice(0, 100) || 'SERVER_ERROR');
-          return { success: true, raw: text };
-        }
-      } catch (e) { if (!res.ok) throw new Error(e.message || 'API_ERR'); }
+      const data = await res.json();
       if (!res.ok) throw new Error(data?.error || data?.message || 'API_ERR');
       return data;
     }
@@ -614,7 +606,9 @@
       document.getElementById('mainPanel').classList.remove('hidden');
       startLongPolling();
       loadDashboard();
-      initTool();
+      if (window.DeviceRegistry) {
+        window.DeviceRegistry.initSelection('toolBrand', 'toolSeries', 'toolModel');
+      }
     }
 
     let gateBusy = false;
@@ -649,6 +643,7 @@
         }
 
         if (res.ok && (payload.type === 'admin' || payload.token)) {
+          if (payload.token) NexusAuth.setToken(payload.token);
           status.textContent = 'ACCESS_GRANTED';
           unlockAdminPanel();
           return;
@@ -658,10 +653,8 @@
     }
 
     async function logoutAdmin() {
-      try { await fetch('/api/vault/admin/logout', { method: 'POST', credentials: 'include' }); } catch (_e) {}
-      document.getElementById('mainPanel').classList.add('hidden');
-      document.getElementById('privateGate').classList.remove('hidden');
-      document.getElementById('adminPass').value = '';
+      try { await NexusAuth.fetch('/api/vault/admin/logout', { method: 'POST' }); } catch (_e) {}
+      NexusAuth.logout();
     }
 
     function switchTab(tabId, el) {
@@ -669,7 +662,11 @@
       document.getElementById(`section-${tabId}`).classList.remove('hidden');
       document.querySelectorAll('.admin-nav-item').forEach(n => n.classList.remove('active'));
       if (el) el.classList.add('active');
-      if (tabId === 'tool') initTool();
+      if (tabId === 'tool') {
+        if (window.DeviceRegistry) {
+          window.DeviceRegistry.initSelection('toolBrand', 'toolSeries', 'toolModel');
+        }
+      }
       if (tabId === 'analytics') { loadSecurityLogs(); }
     }
 
@@ -924,32 +921,21 @@
       } catch (e) { if (window.notify) window.notify('KEY_SYNC_ERR', 'error'); }
     }
 
-    // Master Tool Logic
+    // Device selection logic now handled by DeviceRegistry in devices.js
     function adminUpdateSeries() {
-      const b = document.getElementById('toolBrand').value;
-      const data = devices.find(d => d.brand === b);
-      const s = document.getElementById('toolSeries');
-      s.innerHTML = '<option value="">SELECT_SERIES</option>';
-      if (data) {
-        data.series.forEach((ser, i) => s.innerHTML += `<option value="${i}">${ser.name.toUpperCase()}</option>`);
-        s.disabled = false;
+      if (window.DeviceRegistry) {
+        window.DeviceRegistry.populateSeries('toolBrand', 'toolSeries', 'toolModel');
       }
     }
     function adminUpdateModels() {
-       const b = document.getElementById('toolBrand').value;
-       const sIdx = document.getElementById('toolSeries').value;
-       const data = devices.find(d => d.brand === b).series[sIdx];
-       const m = document.getElementById('toolModel');
-       m.innerHTML = '<option value="">SELECT_MODEL</option>';
-       if (data) {
-         data.models.forEach(mdl => m.innerHTML += `<option value="${mdl.name}">${mdl.name.toUpperCase()}</option>`);
-         m.disabled = false;
-       }
+      if (window.DeviceRegistry) {
+        window.DeviceRegistry.populateModels('toolBrand', 'toolSeries', 'toolModel');
+      }
     }
     function initTool() {
-      const b = document.getElementById('toolBrand');
-      b.innerHTML = '<option value="">SELECT_BRAND</option>';
-      devices.forEach(d => b.innerHTML += `<option value="${d.brand}">${d.brand.toUpperCase()}</option>`);
+      if (window.DeviceRegistry) {
+        window.DeviceRegistry.initSelection('toolBrand', 'toolSeries', 'toolModel');
+      }
     }
 
     function computeAdminTool() {
@@ -1017,9 +1003,13 @@
 
     document.addEventListener('DOMContentLoaded', () => {
       // Check for current session
-      api('/api/vault/admin/stats').then(() => { unlockAdminPanel(); }).catch(() => {
-         document.getElementById('privateGate').classList.remove('hidden');
-      });
+      if (NexusAuth.isAuthenticated()) {
+        api('/api/vault/admin/stats').then(() => { unlockAdminPanel(); }).catch(() => {
+          document.getElementById('privateGate').classList.remove('hidden');
+        });
+      } else {
+        document.getElementById('privateGate').classList.remove('hidden');
+      }
     });
   </script>
 </body>

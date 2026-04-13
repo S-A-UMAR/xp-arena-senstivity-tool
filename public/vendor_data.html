@@ -222,6 +222,7 @@
     </a>
   </nav>
 
+  <script src="nexus-auth.js"></script>
   <script src="translations.js"></script>
   <script src="notifications.js"></script>
   <script src="theme-manager.js"></script>
@@ -237,7 +238,7 @@
     async function loadData() {
       try {
         // Load insights
-        const insightRes = await fetch('/api/vault/vendor/insights', { credentials: 'include' });
+        const insightRes = await NexusAuth.fetch('/api/vault/vendor/insights');
         if (insightRes.ok) {
           const ins = await insightRes.json();
           document.getElementById('statCodes').textContent = ins.total_profiles ?? '0';
@@ -262,7 +263,7 @@
         }
 
         // Load 7-day chart
-        const statsRes = await fetch('/api/vault/vendor/stats', { credentials: 'include' });
+        const statsRes = await NexusAuth.fetch('/api/vault/vendor/stats');
         if (statsRes.ok) {
           const stats = await statsRes.json();
           const chartEl = document.getElementById('barChart');
@@ -292,7 +293,7 @@
         }
 
         // Load activity log
-        const actRes = await fetch('/api/vault/vendor/activity', { credentials: 'include' });
+        const actRes = await NexusAuth.fetch('/api/vault/vendor/activity');
         if (actRes.ok) {
           const rows = await actRes.json();
           const logsEl = document.getElementById('logsBody');
@@ -321,7 +322,7 @@
       btn.innerHTML = 'EXPORTING...';
       btn.disabled = true;
       try {
-        const res = await fetch('/api/vault/vendor/export', { credentials: 'include' });
+        const res = await NexusAuth.fetch('/api/vault/vendor/export');
         if (res.ok) {
           const blob = await res.blob();
           const url = URL.createObjectURL(blob);

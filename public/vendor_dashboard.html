@@ -133,7 +133,7 @@
   <header class="page-header">
     <div class="ph-logo">AXP_NEXUS</div>
     <div class="ph-title">System Dashboard</div>
-    <div class="ph-action" onclick="window.location.href='index.html'">
+    <div class="ph-action" onclick="NexusAuth.logout()">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
       LOGOUT
     </div>
@@ -209,21 +209,21 @@
 
       <div class="form-group">
         <label class="form-label">Brand_Architecture</label>
-        <select id="genBrand" class="xp-select" onchange="updateSeries()">
+        <select id="genBrand" class="xp-select">
           <option value="" disabled selected>SELECT_BRAND</option>
         </select>
       </div>
 
       <div class="form-group">
         <label class="form-label">Series_Logic</label>
-        <select id="genSeries" class="xp-select" disabled onchange="updateModels()">
+        <select id="genSeries" class="xp-select" disabled>
           <option value="" disabled selected>SELECT_SERIES</option>
         </select>
       </div>
 
       <div class="form-group">
         <label class="form-label">Model_Signature</label>
-        <select id="genModel" class="xp-select" disabled onchange="onModelChange()">
+        <select id="genModel" class="xp-select" disabled>
           <option value="" disabled selected>SELECT_MODEL</option>
         </select>
       </div>
@@ -299,6 +299,7 @@
     </a>
   </nav>
 
+  <script src="nexus-auth.js"></script>
   <script src="devices.js"></script>
   <script src="notifications.js"></script>
   <script src="translations.js"></script>

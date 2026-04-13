@@ -188,10 +188,10 @@ async function getGlobalOffset() {
 
 async function trackEvent(type, orgId, vendorId, session, device) {
     try {
-        await db.run(`
-            INSERT INTO user_events (event_type, org_id, vendor_id, user_session_id, device_tier)
-            VALUES (?, ?, ?, ?, ?)
-        `, [type, orgId, vendorId, session, device]);
+        // user_events table is purged. Logging to audit_logs for critical events.
+        if (['code_generated', 'verify_success'].includes(type)) {
+            await logAudit('system', vendorId, `TRACK_${type.toUpperCase()}`, { orgId, session, device }, '0.0.0.0');
+        }
     } catch (err) {
         console.error('EVENT_TRACK_ERR:', err);
     }
@@ -862,170 +862,9 @@ router.post('/profile', authenticateVendor, async (req, res) => {
     }
 });
 
-// --- ELITE GIVEAWAY ROUTES ---
 
-const giveawaySchema = z.object({
-    type: z.enum(['redeem_code', 'cash_prize', 'gifting', 'custom']),
-    title: z.string().min(3).max(100),
-    prize_description: z.string().min(5).max(1000),
-    end_at: z.string().refine(val => !isNaN(Date.parse(val)), { message: "Invalid date" }),
-    max_winners: z.number().int().positive().default(1)
-});
 
-router.get('/giveaways', async (req, res) => {
-    try {
-        const vendorId = req.query.vendor;
-        const vendorIdAuth = req.session?.vendorId || req.vendorId;
 
-        if (!vendorId && !vendorIdAuth) return res.status(400).json({ error: 'VENDOR_ID_REQUIRED' });
-
-        const targetVendor = vendorId || vendorIdAuth;
-        const giveaways = await db.all(`
-            SELECT g.*, (SELECT COUNT(*) FROM giveaway_entries WHERE giveaway_id = g.id) as entry_count
-            FROM giveaways g
-            WHERE g.vendor_id = ? AND g.status = 'active'
-            ORDER BY g.created_at DESC
-        `, [targetVendor]);
-        return res.json(giveaways);
-    } catch (err) {
-        return res.status(500).json({ error: 'FETCH_GIVEAWAYS_FAILED' });
-    }
-});
-
-router.post('/giveaways', authenticateVendor, async (req, res) => {
-    try {
-        const data = giveawaySchema.parse(req.body);
-        const result = await db.run(`
-            INSERT INTO giveaways (vendor_id, type, title, prize_description, end_at, max_winners)
-            VALUES (?, ?, ?, ?, ?, ?)
-        `, [req.vendorId, data.type, data.title, data.prize_description, new Date(data.end_at), data.max_winners]);
-        
-        await logAudit('vendor', req.vendorId, 'CREATE_GIVEAWAY', { giveaway_id: result.lastID }, getClientIp(req));
-        return res.json({ success: true, id: result.lastID });
-    } catch (err) {
-        if (err instanceof z.ZodError) return res.status(400).json({ error: 'VALIDATION_FAILED', details: err.errors });
-        return res.status(500).json({ error: 'CREATE_GIVEAWAY_FAILED' });
-    }
-});
-
-router.put('/giveaways/:id', authenticateVendor, async (req, res) => {
-    try {
-        const data = z.object({
-            type: z.enum(['redeem_code', 'cash_prize', 'gifting', 'custom']).optional(),
-            title: z.string().min(3).max(120).optional(),
-            prize_description: z.string().min(3).max(500).optional(),
-            end_at: z.string().refine((val) => !isNaN(Date.parse(val)), { message: 'Invalid end date' }).optional(),
-            max_winners: z.number().int().positive().optional(),
-            status: z.enum(['active', 'drawn', 'cancelled']).optional()
-        }).parse(req.body || {});
-        if (Object.keys(data).length === 0) return res.status(400).json({ error: 'NO_UPDATE_FIELDS' });
-
-        const current = await db.get('SELECT id FROM giveaways WHERE id = ? AND vendor_id = ?', [req.params.id, req.vendorId]);
-        if (!current) return res.status(404).json({ error: 'GIVEAWAY_NOT_FOUND' });
-
-        const sets = [];
-        const values = [];
-        if (data.type !== undefined) { sets.push('type = ?'); values.push(data.type); }
-        if (data.title !== undefined) { sets.push('title = ?'); values.push(data.title); }
-        if (data.prize_description !== undefined) { sets.push('prize_description = ?'); values.push(data.prize_description); }
-        if (data.end_at !== undefined) { sets.push('end_at = ?'); values.push(new Date(data.end_at)); }
-        if (data.max_winners !== undefined) { sets.push('max_winners = ?'); values.push(data.max_winners); }
-        if (data.status !== undefined) { sets.push('status = ?'); values.push(data.status); }
-        values.push(req.params.id, req.vendorId);
-
-        await db.run(`UPDATE giveaways SET ${sets.join(', ')} WHERE id = ? AND vendor_id = ?`, values);
-        await logAudit('vendor', req.vendorId, 'UPDATE_GIVEAWAY', { giveaway_id: req.params.id }, getClientIp(req));
-        return res.json({ success: true });
-    } catch (err) {
-        if (err instanceof z.ZodError) return res.status(400).json({ error: 'VALIDATION_FAILED', details: err.errors });
-        return res.status(500).json({ error: 'UPDATE_GIVEAWAY_FAILED' });
-    }
-});
-
-// --- ELITE TOURNAMENT ROUTES ---
-
-const tournamentSchema = z.object({
-    type: z.enum(['prize_pool', 'battle_royale']),
-    map_name: z.string().max(50).optional(),
-    total_slots: z.number().int().positive(),
-    prize_pool: z.string().min(1).max(100),
-    start_at: z.string().refine(val => !isNaN(Date.parse(val)), { message: "Invalid start date" }),
-    end_at: z.string().refine(val => !isNaN(Date.parse(val)), { message: "Invalid end date" }),
-    comm_link: z.string().url().max(500).optional()
-});
-
-router.get('/tournaments', async (req, res) => {
-    try {
-        const vendorId = req.query.vendor;
-        const vendorIdAuth = req.session?.vendorId || req.vendorId;
-
-        if (!vendorId && !vendorIdAuth) return res.status(400).json({ error: 'VENDOR_ID_REQUIRED' });
-
-        const targetVendor = vendorId || vendorIdAuth;
-        const tournaments = await db.all(`
-            SELECT * FROM tournaments
-            WHERE vendor_id = ? AND status IN ('open', 'full')
-            ORDER BY start_at ASC
-        `, [targetVendor]);
-        return res.json(tournaments);
-    } catch (err) {
-        return res.status(500).json({ error: 'FETCH_TOURNAMENTS_FAILED' });
-    }
-});
-
-router.post('/tournaments', authenticateVendor, async (req, res) => {
-    try {
-        const data = tournamentSchema.parse(req.body);
-        const result = await db.run(`
-            INSERT INTO tournaments (vendor_id, type, map_name, total_slots, prize_pool, start_at, end_at, comm_link)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        `, [req.vendorId, data.type, data.map_name || 'BERMUDA', data.total_slots, data.prize_pool, new Date(data.start_at), new Date(data.end_at), data.comm_link]);
-        
-        await logAudit('vendor', req.vendorId, 'CREATE_TOURNAMENT', { tournament_id: result.lastID }, getClientIp(req));
-        return res.json({ success: true, id: result.lastID });
-    } catch (err) {
-        if (err instanceof z.ZodError) return res.status(400).json({ error: 'VALIDATION_FAILED', details: err.errors });
-        return res.status(500).json({ error: 'CREATE_TOURNAMENT_FAILED' });
-    }
-});
-
-router.put('/tournaments/:id', authenticateVendor, async (req, res) => {
-    try {
-        const data = z.object({
-            type: z.enum(['prize_pool', 'battle_royale']).optional(),
-            map_name: z.string().max(50).optional(),
-            total_slots: z.number().int().positive().optional(),
-            prize_pool: z.string().min(1).max(100).optional(),
-            start_at: z.string().refine((val) => !isNaN(Date.parse(val)), { message: 'Invalid start date' }).optional(),
-            end_at: z.string().refine((val) => !isNaN(Date.parse(val)), { message: 'Invalid end date' }).optional(),
-            comm_link: z.string().url().max(500).nullable().optional(),
-            status: z.enum(['open', 'full', 'closed', 'cancelled']).optional()
-        }).parse(req.body || {});
-        if (Object.keys(data).length === 0) return res.status(400).json({ error: 'NO_UPDATE_FIELDS' });
-
-        const current = await db.get('SELECT id FROM tournaments WHERE id = ? AND vendor_id = ?', [req.params.id, req.vendorId]);
-        if (!current) return res.status(404).json({ error: 'TOURNAMENT_NOT_FOUND' });
-
-        const sets = [];
-        const values = [];
-        if (data.type !== undefined) { sets.push('type = ?'); values.push(data.type); }
-        if (data.map_name !== undefined) { sets.push('map_name = ?'); values.push(data.map_name); }
-        if (data.total_slots !== undefined) { sets.push('total_slots = ?'); values.push(data.total_slots); }
-        if (data.prize_pool !== undefined) { sets.push('prize_pool = ?'); values.push(data.prize_pool); }
-        if (data.start_at !== undefined) { sets.push('start_at = ?'); values.push(new Date(data.start_at)); }
-        if (data.end_at !== undefined) { sets.push('end_at = ?'); values.push(new Date(data.end_at)); }
-        if (data.comm_link !== undefined) { sets.push('comm_link = ?'); values.push(data.comm_link || null); }
-        if (data.status !== undefined) { sets.push('status = ?'); values.push(data.status); }
-        values.push(req.params.id, req.vendorId);
-
-        await db.run(`UPDATE tournaments SET ${sets.join(', ')} WHERE id = ? AND vendor_id = ?`, values);
-        await logAudit('vendor', req.vendorId, 'UPDATE_TOURNAMENT', { tournament_id: req.params.id }, getClientIp(req));
-        return res.json({ success: true });
-    } catch (err) {
-        if (err instanceof z.ZodError) return res.status(400).json({ error: 'VALIDATION_FAILED', details: err.errors });
-        return res.status(500).json({ error: 'UPDATE_TOURNAMENT_FAILED' });
-    }
-});
 
 router.get('/user/profile', async (req, res) => {
     try {
@@ -1076,34 +915,9 @@ router.get('/admin/meta-analysis', authenticateAdmin, async (req, res) => {
     }
 });
 
-router.get('/winners', async (req, res) => {
-    try {
-        const winners = await db.all(`
-            SELECT ge.input_data, g.title as event_title, g.proof_hash, g.created_at
-            FROM giveaway_entries ge
-            JOIN giveaways g ON ge.giveaway_id = g.id
-            WHERE g.status = 'drawn'
-            ORDER BY g.created_at DESC
-            LIMIT 20
-        `);
-        return res.json(winners);
-    } catch (err) {
-        return res.status(500).json({ error: 'FETCH_WINNERS_FAILED' });
-    }
-});
 
-router.get('/tournaments/:id', async (req, res) => {
-    try {
-        const tournament = await db.get('SELECT * FROM tournaments WHERE id = ?', [req.params.id]);
-        if (!tournament) return res.status(404).json({ error: 'TOURNAMENT_NOT_FOUND' });
-        
-        const participants = await db.all('SELECT user_name, user_uid, created_at FROM tournament_registrations WHERE tournament_id = ? ORDER BY created_at ASC', [req.params.id]);
-        
-        return res.json({ ...tournament, participants });
-    } catch (err) {
-        return res.status(500).json({ error: 'FETCH_TOURNAMENT_DETAIL_FAILED' });
-    }
-});
+
+
 
 // --- ELITE USER INTERACTION ROUTES ---
 
@@ -1114,90 +928,7 @@ function getUserFingerprint(req) {
     return crypto.createHash('sha256').update(`${ip}|${ua}|${accept}`).digest('hex');
 }
 
-router.post('/tournaments/:id/join', async (req, res) => {
-    const tournamentId = req.params.id;
-    const fingerprint = getUserFingerprint(req);
-    
-    try {
-        const { user_name, user_uid, access_code } = z.object({
-            user_name: z.string().min(2).max(50),
-            user_uid: z.string().min(5).max(20).regex(/^[0-9]+$/),
-            access_code: z.string().min(5).max(50)
-        }).parse(req.body);
 
-        // 🔒 Verify Access Code exists and is active
-        const validCode = await db.get('SELECT lookup_key FROM sensitivity_keys WHERE lookup_key = ? AND status = "active"', [access_code]);
-        if (!validCode) return res.status(403).json({ error: 'INVALID_OR_EXPIRED_ACCESS_CODE' });
-
-        // 🔒 RACE CONDITION PROTECTION
-        const result = await db.run(`
-            UPDATE tournaments 
-            SET filled_slots = filled_slots + 1,
-                status = IF(filled_slots + 1 >= total_slots, 'full', 'open')
-            WHERE id = ? AND filled_slots < total_slots AND status = 'open'
-        `, [tournamentId]);
-
-        if (result.changes === 0) {
-            return res.status(403).json({ error: 'ARENA_FULL_OR_CLOSED' });
-        }
-
-        const entryKey = crypto.randomBytes(16).toString('hex');
-        await db.run(`
-            INSERT INTO tournament_registrations (tournament_id, user_name, user_uid, user_id, entry_key, fingerprint_hash, ip_address, access_code)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        `, [tournamentId, user_name, user_uid, fingerprint, entryKey, fingerprint, getClientIp(req), access_code]);
-
-        // 📡 LIVE SLOT PULSE
-        const io = req.app.get('io');
-        if (io) {
-            io.emit('arena_event', {
-                type: 'tournament_join',
-                tournament_id: tournamentId,
-                user_name: user_name,
-                timestamp: new Date().toISOString()
-            });
-        }
-
-        return res.json({ success: true, entry_key: entryKey, message: 'SLOT_SECURED' });
-    } catch (err) {
-        if (err.code === 'ER_DUP_ENTRY') return res.status(400).json({ error: 'ALREADY_REGISTERED_FOR_THIS_SCRIM' });
-        if (err instanceof z.ZodError) return res.status(400).json({ error: 'INVALID_PLAYER_DATA', details: err.errors });
-        return res.status(500).json({ error: 'JOIN_FAILED' });
-    }
-});
-
-router.post('/giveaways/:id/enter', async (req, res) => {
-    const giveawayId = req.params.id;
-    const fingerprint = getUserFingerprint(req);
-
-    try {
-        const { input_data, access_code } = z.object({
-            input_data: z.string().min(2).max(200),
-            access_code: z.string().min(5).max(50)
-        }).parse(req.body);
-
-        // 🔒 Verify Access Code
-        const validCode = await db.get('SELECT lookup_key FROM sensitivity_keys WHERE lookup_key = ? AND status = "active"', [access_code]);
-        if (!validCode) return res.status(403).json({ error: 'INVALID_OR_EXPIRED_ACCESS_CODE' });
-
-        const giveaway = await db.get('SELECT type, status, end_at FROM giveaways WHERE id = ?', [giveawayId]);
-        if (!giveaway || giveaway.status !== 'active' || new Date(giveaway.end_at) < new Date()) {
-            return res.status(403).json({ error: 'GIVEAWAY_EXPIRED_OR_CLOSED' });
-        }
-
-        // 🛡️ FINGERPRINT PROTECTION
-        await db.run(`
-            INSERT INTO giveaway_entries (giveaway_id, user_id, input_data, fingerprint_hash, ip_address, access_code)
-            VALUES (?, ?, ?, ?, ?, ?)
-        `, [giveawayId, fingerprint, input_data, fingerprint, getClientIp(req), access_code]);
-
-        return res.json({ success: true, message: 'ENTRY_REGISTERED' });
-    } catch (err) {
-        if (err.code === 'ER_DUP_ENTRY') return res.status(400).json({ error: 'ALREADY_ENTERED_FROM_THIS_DEVICE' });
-        if (err instanceof z.ZodError) return res.status(400).json({ error: 'INVALID_ENTRY_DATA' });
-        return res.status(500).json({ error: 'ENTRY_FAILED' });
-    }
-});
 
 // --- ELITE INTERACTION ROUTES ---
 
@@ -1236,53 +967,33 @@ router.post('/arena/track', async (req, res) => {
     }
 });
 
-router.post('/winners/:id/card', authenticateVendor, async (req, res) => {
-    try {
-        const { event_type, user_name, access_code, user_id } = z.object({
-            event_type: z.enum(['giveaway', 'tournament']),
-            user_name: z.string(),
-            access_code: z.string(),
-            user_id: z.string()
-        }).parse(req.body);
 
-        const cardHash = crypto.randomBytes(32).toString('hex');
-        await db.run(`
-            INSERT INTO winner_cards (event_type, event_id, user_id, user_name, access_code, card_hash)
-            VALUES (?, ?, ?, ?, ?, ?)
-        `, [event_type, req.params.id, user_id, user_name, access_code, cardHash]);
-
-        return res.json({ success: true, card_hash: cardHash });
-    } catch (err) {
-        return res.status(500).json({ error: 'CARD_GENERATION_FAILED' });
-    }
-});
 
 router.get('/analytics/connected', authenticateVendor, async (req, res) => {
     try {
         const vendorId = req.vendorId;
 
-        // 1. Funnel: Code Gen -> Arena View -> Event Entry
-        const funnel = await db.get(`
+        // 1. Core Profile Stats
+        const profileStats = await db.get(`
             SELECT 
-                (SELECT COUNT(*) FROM user_events WHERE vendor_id = ? AND event_type = 'code_generated') as codes,
-                (SELECT COUNT(*) FROM user_events WHERE vendor_id = ? AND event_type = 'arena_view') as views,
-                (SELECT COUNT(*) FROM tournament_registrations tr JOIN tournaments t ON tr.tournament_id = t.id WHERE t.vendor_id = ?) +
-                (SELECT COUNT(*) FROM giveaway_entries ge JOIN giveaways g ON ge.giveaway_id = g.id WHERE g.vendor_id = ?) as entries
-        `, [vendorId, vendorId, vendorId, vendorId]);
+                (SELECT COUNT(*) FROM sensitivity_keys WHERE vendor_id = ?) as total_codes,
+                (SELECT COALESCE(SUM(current_usage), 0) FROM sensitivity_keys WHERE vendor_id = ?) as total_hits
+        `, [vendorId, vendorId]);
+
+        const funnel = {
+            codes: profileStats.total_codes || 0,
+            views: profileStats.total_hits || 0,
+            entries: 0 // Feature deprecated
+        };
 
         // 2. Top codes by engagement
         const topCodes = await db.all(`
-            SELECT access_code, COUNT(*) as engagement_count
-            FROM (
-                SELECT access_code FROM tournament_registrations tr JOIN tournaments t ON tr.tournament_id = t.id WHERE t.vendor_id = ?
-                UNION ALL
-                SELECT access_code FROM giveaway_entries ge JOIN giveaways g ON ge.giveaway_id = g.id WHERE g.vendor_id = ?
-            ) as engagement
-            WHERE access_code IS NOT NULL
-            GROUP BY access_code
+            SELECT lookup_key as access_code, current_usage as engagement_count
+            FROM sensitivity_keys
+            WHERE vendor_id = ?
             ORDER BY engagement_count DESC
             LIMIT 10
-        `, [vendorId, vendorId]);
+        `, [vendorId]);
 
         // 3. Heatmap (Regions)
         const heatmap = await db.all(`
@@ -1300,60 +1011,9 @@ router.get('/analytics/connected', authenticateVendor, async (req, res) => {
     }
 });
 
-router.delete('/giveaways/:id', authenticateVendor, async (req, res) => {
-    try {
-        const result = await db.run('UPDATE giveaways SET status = "cancelled" WHERE id = ? AND vendor_id = ?', [req.params.id, req.vendorId]);
-        if (result.changes === 0) return res.status(404).json({ error: 'GIVEAWAY_NOT_FOUND' });
-        await logAudit('vendor', req.vendorId, 'ARCHIVE_GIVEAWAY', { giveaway_id: req.params.id }, getClientIp(req));
-        return res.json({ success: true });
-    } catch (err) {
-        return res.status(500).json({ error: 'ARCHIVE_FAILED' });
-    }
-});
 
-router.delete('/tournaments/:id', authenticateVendor, async (req, res) => {
-    try {
-        const result = await db.run('UPDATE tournaments SET status = "cancelled" WHERE id = ? AND vendor_id = ?', [req.params.id, req.vendorId]);
-        if (result.changes === 0) return res.status(404).json({ error: 'TOURNAMENT_NOT_FOUND' });
-        await logAudit('vendor', req.vendorId, 'ARCHIVE_TOURNAMENT', { tournament_id: req.params.id }, getClientIp(req));
-        return res.json({ success: true });
-    } catch (err) {
-        return res.status(500).json({ error: 'ARCHIVE_FAILED' });
-    }
-});
 
-router.post('/giveaways/:id/draw', authenticateVendor, async (req, res) => {
-    const giveawayId = req.params.id;
-    try {
-        const entries = await db.all('SELECT * FROM giveaway_entries WHERE giveaway_id = ?', [giveawayId]);
-        if (!entries || entries.length === 0) return res.status(400).json({ error: 'NO_ENTRIES_FOUND' });
 
-        const giveaway = await db.get('SELECT max_winners FROM giveaways WHERE id = ? AND vendor_id = ?', [giveawayId, req.vendorId]);
-        if (!giveaway) return res.status(404).json({ error: 'GIVEAWAY_NOT_FOUND' });
-
-        // 🎲 CRYPTOGRAPHICALLY SECURE DRAW
-        const winners = [];
-        const pool = [...entries];
-        for (let i = 0; i < Math.min(giveaway.max_winners, entries.length); i++) {
-            const randomIndex = crypto.randomInt(0, pool.length);
-            winners.push(pool.splice(randomIndex, 1)[0]);
-        }
-
-        // 🔗 PROOF OF FAIRNESS HASH
-        const proofString = JSON.stringify(winners.map(w => w.id)) + Date.now().toString();
-        const proofHash = crypto.createHash('sha256').update(proofString).digest('hex');
-
-        await db.run('UPDATE giveaways SET status = "drawn", proof_hash = ? WHERE id = ?', [proofHash, giveawayId]);
-        
-        // Save winners in history
-        await logAudit('vendor', req.vendorId, 'DRAW_WINNERS', { giveaway_id: giveawayId, winners: winners.map(w => w.user_id), proof_hash: proofHash }, getClientIp(req));
-
-        return res.json({ success: true, winners, proof_hash: proofHash });
-    } catch (err) {
-        console.error('DRAW_ERR:', err);
-        return res.status(500).json({ error: 'DRAW_FAILED' });
-    }
-});
 
 router.get('/codes', authenticateVendor, async (req, res) => {
     try {
@@ -1740,10 +1400,12 @@ router.post('/webhook', authenticateVendor, async (req, res) => {
 
 router.get('/org/stats', authenticateAdmin, async (_req, res) => {
     try {
-        const events = await db.all('SELECT event_type, COUNT(*) as count FROM user_events GROUP BY event_type');
+        const events = await db.all(`SELECT action as event_type, COUNT(*) as count FROM audit_logs WHERE action IN ('TRACK_CODE_GENERATED','TRACK_VERIFY_SUCCESS','TRACK_RESULT_VIEW') GROUP BY action`).catch(() => []);
         const counts = { landing_view: 0, calibration_start: 0, code_generated: 0, result_view: 0 };
         events.forEach((event) => {
-            if (Object.prototype.hasOwnProperty.call(counts, event.event_type)) counts[event.event_type] = event.count;
+            if (event.event_type === 'TRACK_CODE_GENERATED') counts.code_generated = event.count;
+            if (event.event_type === 'TRACK_VERIFY_SUCCESS') counts.calibration_start = event.count;
+            if (event.event_type === 'TRACK_RESULT_VIEW') counts.result_view = event.count;
         });
         const vendors = await db.get('SELECT COUNT(*) as count FROM vendors');
         const codes = await db.get('SELECT COUNT(*) as count FROM sensitivity_keys');
@@ -1955,9 +1617,6 @@ router.delete('/admin/vendor/:vendorId', authenticateAdmin, async (req, res) => 
         // 2. Clear primary linked tables
         await db.run('DELETE FROM sensitivity_keys WHERE vendor_id = ?', [vendorId]);
         await db.run('DELETE FROM vendor_presets WHERE vendor_id = ?', [vendorId]);
-        await db.run('DELETE FROM giveaways WHERE vendor_id = ?', [vendorId]);
-        await db.run('DELETE FROM tournaments WHERE vendor_id = ?', [vendorId]);
-        await db.run('DELETE FROM user_events WHERE vendor_id = ?', [vendorId]);
         
         // 3. Delete the vendor record
         await db.run('DELETE FROM vendors WHERE vendor_id = ?', [vendorId]);
