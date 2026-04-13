@@ -1319,23 +1319,38 @@ class DeviceRegistry {
 
     /**
      * Initialize a brand select element.
+     * Synchronous if data is ready; polls if not yet loaded.
      */
-    async initSelection(brandSelectId, seriesSelectId, modelSelectId) {
-        const ready = await this.ensureReady();
-        if (!ready) return;
+    initSelection(brandSelectId, seriesSelectId, modelSelectId) {
+        // If data is already available, populate immediately (synchronous path)
+        if (this.registry.length > 0) {
+            this._doInit(brandSelectId, seriesSelectId, modelSelectId);
+            return;
+        }
+        // If not ready yet, poll until available (async path)
+        const poll = setInterval(() => {
+            if (window.devices && window.devices.length > 0) {
+                this.registry = window.devices;
+                clearInterval(poll);
+                this._doInit(brandSelectId, seriesSelectId, modelSelectId);
+            }
+        }, 100);
+        // Stop polling after 10 seconds
+        setTimeout(() => clearInterval(poll), 10000);
+    }
 
+    _doInit(brandSelectId, seriesSelectId, modelSelectId) {
         const brandSelect = document.getElementById(brandSelectId);
         if (!brandSelect) return;
 
-        // Populate Brands
+        // Populate Brands immediately
         brandSelect.innerHTML = '<option value="" disabled selected>SELECT_BRAND</option>' + 
             this.registry.map(b => `<option value="${b.brand}">${b.brand.toUpperCase()}</option>`).join('');
+        brandSelect.disabled = false;
 
-        // Attach listeners if IDs provided
+        // Attach cascade listeners
+        brandSelect.onchange = () => this.populateSeries(brandSelectId, seriesSelectId, modelSelectId);
         if (seriesSelectId) {
-            brandSelect.onchange = () => this.populateSeries(brandSelectId, seriesSelectId, modelSelectId);
-        }
-        if (modelSelectId) {
             const seriesSelect = document.getElementById(seriesSelectId);
             if (seriesSelect) {
                 seriesSelect.onchange = () => this.populateModels(brandSelectId, seriesSelectId, modelSelectId);
@@ -1382,7 +1397,8 @@ class DeviceRegistry {
         
         if (seriesData && seriesData.models) {
             seriesData.models.forEach(m => {
-                modelSelect.innerHTML += `<option value="${m.name}">${m.name.toUpperCase()}</option>`;
+                // Store data-ram so pages can read it for auto-selection
+                modelSelect.innerHTML += `<option value="${m.name}" data-ram="${m.ram}">${m.name.toUpperCase()}</option>`;
             });
             modelSelect.disabled = false;
         } else {
