@@ -8,10 +8,37 @@ const VendorLogic = {
     },
 
     async init() {
-        // Initialize Device Registry
-        if (window.DeviceRegistry) {
-            window.DeviceRegistry.initSelection('genBrand', 'genSeries', 'genModel');
-        }
+        // Direct device population — reads window.devices immediately (no DeviceRegistry dependency)
+        (function populateDevices() {
+            const brands = window.devices;
+            if (!brands || !brands.length) return;
+            const brandSel  = document.getElementById('genBrand');
+            const seriesSel = document.getElementById('genSeries');
+            const modelSel  = document.getElementById('genModel');
+            if (!brandSel) return;
+            brandSel.innerHTML = '<option value="" disabled selected>SELECT_BRAND</option>' +
+                brands.map(b => `<option value="${b.brand}">${b.brand.toUpperCase()}</option>`).join('');
+            brandSel.disabled = false;
+            brandSel.onchange = function() {
+                const bd = brands.find(b => b.brand === brandSel.value);
+                seriesSel.innerHTML = '<option value="" disabled selected>SELECT_SERIES</option>';
+                if (bd && bd.series) {
+                    bd.series.forEach((s, i) => seriesSel.innerHTML += `<option value="${i}">${s.name.toUpperCase()}</option>`);
+                    seriesSel.disabled = false;
+                } else { seriesSel.disabled = true; }
+                modelSel.innerHTML = '<option value="" disabled selected>SELECT_MODEL</option>';
+                modelSel.disabled = true;
+            };
+            seriesSel.onchange = function() {
+                const bd = brands.find(b => b.brand === brandSel.value);
+                const sd = bd && bd.series ? bd.series[seriesSel.value] : null;
+                modelSel.innerHTML = '<option value="" disabled selected>SELECT_MODEL</option>';
+                if (sd && sd.models) {
+                    sd.models.forEach(m => modelSel.innerHTML += `<option value="${m.name}" data-ram="${m.ram}">${m.name.toUpperCase()}</option>`);
+                    modelSel.disabled = false;
+                } else { modelSel.disabled = true; }
+            };
+        })();
         
         // Only enforce vendor auth on dashboard pages
         const isDashboard = window.location.pathname.includes('vendor_');
