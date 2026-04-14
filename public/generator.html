@@ -257,7 +257,7 @@
   </nav>
 
   <!-- Real Devices Logic -->
-  <script src="devices.js"></script>
+  <script src="devices.js?v=3"></script>
   <script src="translations.js"></script>
   <script src="notifications.js"></script>
   <script src="theme-manager.js"></script>
@@ -296,11 +296,10 @@
       btn.disabled = false;
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
-      if (window.DeviceRegistry) {
-        window.DeviceRegistry.initSelection('genBrand', 'genSeries', 'genModel');
-      }
-    });
+    // Initialize device dropdowns — DOM is fully ready here (scripts are at bottom of body)
+    if (window.DeviceRegistry) {
+      window.DeviceRegistry.initSelection('genBrand', 'genSeries', 'genModel');
+    }
   </script>
 </body>
 </html>
