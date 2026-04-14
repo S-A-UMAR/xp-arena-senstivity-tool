@@ -78,9 +78,12 @@
             ['label[for="brandSelect"], .form-label[data-i18n="brandLabel"]', 'hardwareSignature'],
             ['label[data-i18n="title"]', 'neuralSensitivityLabel'],
             ['label[data-i18n="clawLabel"]', 'gripArchitecture'],
-            ['#brandSelect option[value=""]', 'selectBrand'],
-            ['#seriesSelect option[value=""]', 'selectSeries'],
-            ['#modelSelect option[value=""]', 'selectModel'],
+            ['#genBrand option[value=""]', 'selectBrand'],
+            ['#genSeries option[value=""]', 'selectSeries'],
+            ['#genModel option[value=""]', 'selectModel'],
+            ['#toolBrand option[value=""]', 'selectBrand'],
+            ['#toolSeries option[value=""]', 'selectSeries'],
+            ['#toolModel option[value=""]', 'selectModel'],
             ['#manualMastering .form-label', 'manualExistingBase'],
             ['#manualSens', 'manualPlaceholder', 'placeholder'],
             ['#standardMastering button', 'manualModeOn'],
@@ -106,6 +109,11 @@
             ['.hero-banner p', 'resultHeroText'],
             ['.device-access-header', 'deviceAccess'],
             ['#followBtn', 'followCreator']
+        ],
+        'admin.html': [
+            ['#toolBrand option[value=""]', 'selectBrand'],
+            ['#toolSeries option[value=""]', 'selectSeries'],
+            ['#toolModel option[value=""]', 'selectModel']
         ]
     };
 
@@ -142,6 +150,10 @@
         document.querySelectorAll(autoTranslateSelectors).forEach((el) => {
             if (el.dataset.i18n || el.dataset.i18nAuto) return;
             if (el.children.length > 0) return;
+            
+            // SECURITY_FIX: Do not auto-translate dynamic device names
+            if (el.tagName === 'OPTION' && el.value !== "" && el.closest?.('#genBrand, #genSeries, #genModel, #toolBrand, #toolSeries, #toolModel')) return;
+
             const current = normalizeText(el.textContent);
             const matchedKey = reverseMap[current];
             if (matchedKey) el.dataset.i18nAuto = matchedKey;

@@ -1289,6 +1289,7 @@ window.devices = [
             }
         ]
     }
+];
 
 /**
  * Device Registry Utility
@@ -1297,7 +1298,6 @@ window.devices = [
 class DeviceRegistry {
     constructor() {
         this.registry = window.devices || [];
-        this.initAttempts = 0;
     }
 
     /**

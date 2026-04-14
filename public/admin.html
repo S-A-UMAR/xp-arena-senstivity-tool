@@ -968,48 +968,23 @@
       }
     }
 
-    // ── Tool Tab — Device Population ──────────────────────────────
     function initToolDevices() {
-      const brands = window.devices;
-      if (!brands?.length) return;
-      const brandSel  = document.getElementById('toolBrand');
-      const seriesSel = document.getElementById('toolSeries');
-      const modelSel  = document.getElementById('toolModel');
-      const ramSel    = document.getElementById('toolRam');
-      if (!brandSel) return;
-
-      brandSel.innerHTML = '<option value="" disabled selected>SELECT_BRAND</option>' +
-        brands.map(b => `<option value="${b.brand}">${b.brand.toUpperCase()}</option>`).join('');
-      brandSel.disabled = false;
-
-      brandSel.onchange = function() {
-        const bd = brands.find(b => b.brand === brandSel.value);
-        seriesSel.innerHTML = '<option value="" disabled selected>SELECT_SERIES</option>';
-        if (bd?.series) {
-          bd.series.forEach((s, i) => seriesSel.innerHTML += `<option value="${i}">${s.name.toUpperCase()}</option>`);
-          seriesSel.disabled = false;
-        } else { seriesSel.disabled = true; }
-        modelSel.innerHTML = '<option value="" disabled selected>SELECT_MODEL</option>';
-        modelSel.disabled = true;
-      };
-
-      seriesSel.onchange = function() {
-        const bd = brands.find(b => b.brand === brandSel.value);
-        const sd = bd?.series ? bd.series[seriesSel.value] : null;
-        modelSel.innerHTML = '<option value="" disabled selected>SELECT_MODEL</option>';
-        if (sd?.models) {
-          sd.models.forEach(m => {
-            modelSel.innerHTML += `<option value="${m.name}" data-ram="${m.ram}">${m.name.toUpperCase()}</option>`;
-          });
-          modelSel.disabled = false;
-        } else { modelSel.disabled = true; }
-      };
-
-      modelSel.onchange = function() {
-        const opt = modelSel.options[modelSel.selectedIndex];
-        const ram = opt?.getAttribute('data-ram');
-        if (ram && ramSel) ramSel.value = ram;
-      };
+      if (!window.DeviceRegistry) {
+        setTimeout(initToolDevices, 300);
+        return;
+      }
+      window.DeviceRegistry.initSelection('toolBrand', 'toolSeries', 'toolModel');
+      
+      // Add Admin-specific RAM sync listener
+      const modelSel = document.getElementById('toolModel');
+      const ramSel   = document.getElementById('toolRam');
+      if (modelSel && ramSel) {
+        modelSel.addEventListener('change', () => {
+          const opt = modelSel.options[modelSel.selectedIndex];
+          const ram = opt?.getAttribute('data-ram');
+          if (ram) ramSel.value = ram;
+        });
+      }
     }
 
     // ── Tool Computation ──────────────────────────────────────────
