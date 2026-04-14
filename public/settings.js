@@ -336,7 +336,7 @@
     style.textContent = `
         #settings-hub {
             position: fixed;
-            bottom: 120px;
+            bottom: var(--hub-bottom, 90px);
             right: 1.5rem;
             z-index: 10000;
             display: flex;

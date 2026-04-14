@@ -874,7 +874,7 @@
     async function toggleStatus(vid, currentStatus) {
       const newStatus = currentStatus === 'active' ? 'suspended' : 'active';
       try {
-        await api('/api/vault/admin/vendors/status', 'POST', { vendorId: vid, status: newStatus });
+        await api('/api/vault/admin/vendor/status', 'POST', { vendorId: vid, status: newStatus });
         if (window.notify) window.notify(`${vid} → ${newStatus.toUpperCase()}`, 'success');
         loadDashboard();
       } catch(e) { if (window.notify) window.notify('STATUS_ERR: ' + e.message, 'error'); }
@@ -884,7 +884,7 @@
       const confirmed = confirm(`⚠ ERASE NODE "${vid}" FROM REGISTRY?\n\nThis action cannot be undone.`);
       if (!confirmed) return;
       try {
-        await api('/api/vault/admin/vendors', 'DELETE', { vendorId: vid });
+        await api(`/api/vault/admin/vendors/${encodeURIComponent(vid)}`, 'DELETE');
         if (window.notify) window.notify(`${vid} ERASED`, 'success');
         loadDashboard();
       } catch(e) { if (window.notify) window.notify('ERASE_ERR: ' + e.message, 'error'); }
@@ -922,7 +922,7 @@
       const body = document.getElementById('activityBody');
       body.innerHTML = '<div class="text-center py-4 opacity-40 text-xs font-mono">FETCHING_REGISTRY_LOGS...</div>';
       try {
-        const logs = await api(`/api/vault/admin/vendor/activity?vendorId=${encodeURIComponent(vid)}`);
+        const logs = await api(`/api/vault/admin/vendor/${encodeURIComponent(vid)}/analytics`);
         if (!logs?.length) { body.innerHTML = '<div class="text-center py-4 opacity-20 text-xs font-mono">EMPTY_BUFFER</div>'; return; }
         body.innerHTML = logs.map(l => `
           <div class="flex justify-between text-xs py-2" style="border-bottom:1px solid rgba(255,255,255,0.04);">
@@ -954,7 +954,7 @@
       resDiv.classList.remove('hidden');
       resDiv.innerHTML = '<div class="py-2 text-center opacity-50 text-xs font-mono">SCANNING...</div>';
       try {
-        const data = await api(`/api/vault/admin/lookup-key?key=${encodeURIComponent(key)}`);
+        const data = await api(`/api/vault/admin/lookup/${encodeURIComponent(key)}`);
         resDiv.innerHTML = `
           <div style="padding: 0.75rem; font-family: var(--font-mono);">
             <div style="color: var(--gold); font-weight: 900; margin-bottom: 6px;">KEY_FOUND: ${esc(data.lookup_key || key)}</div>
