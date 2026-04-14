@@ -205,9 +205,12 @@
 
 
     function applyTheme(themeKey) {
-        const theme = themes[themeKey] || themes.cyan;
+        if (!themes[themeKey]) themeKey = 'cyan';
+        const theme = themes[themeKey];
         document.documentElement.style.setProperty('--accent-primary', theme.primary);
         document.documentElement.style.setProperty('--accent-primary-glow', theme.glow);
+        document.documentElement.style.setProperty('--cyan', theme.primary);
+        document.documentElement.style.setProperty('--cyan-glow', theme.glow);
         localStorage.setItem(STORAGE_KEYS.theme, themeKey);
         syncActiveItems('.theme-dot', 'theme', themeKey);
     }

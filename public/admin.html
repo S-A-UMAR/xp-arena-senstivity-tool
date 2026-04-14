@@ -7,261 +7,236 @@
   <title>AXP | MASTER COMMAND</title>
   <link rel="stylesheet" href="design-system.css">
   <style>
-    /* Admin Gold Identity Overrides */
-    :root {
-      --gold-border: rgba(245, 158, 11, 0.2);
-    }
-    .badge-meta-sync {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 0.55rem;
-      font-weight: 900;
-      color: var(--gold);
-      background: rgba(245, 158, 11, 0.1);
-      border: 1px solid rgba(245, 158, 11, 0.2);
-      padding: 4px 10px;
-      border-radius: var(--r-pill);
-      letter-spacing: 0.05em;
-    }
-    .badge-meta-sync.active::before {
-      content: '';
-      width: 4px; height: 4px;
-      background: var(--gold);
-      border-radius: 50%;
-      box-shadow: 0 0 8px var(--gold);
-    }
+    :root { --gold-border: rgba(245,158,11,0.22); --gold-glow: rgba(245,158,11,0.3); }
 
     body.page-admin {
       background-color: #020617;
-      background-image: 
-        radial-gradient(circle at top right, rgba(245, 158, 11, 0.05), transparent 400px),
-        radial-gradient(circle at bottom left, rgba(245, 158, 11, 0.03), transparent 400px);
+      background-image:
+        radial-gradient(ellipse at 80% 0%, rgba(245,158,11,0.08), transparent 60%),
+        radial-gradient(ellipse at 20% 100%, rgba(245,158,11,0.05), transparent 50%);
     }
 
+    /* ── Gate ──────────────────────────────────── */
     .vault-gate {
-      position: fixed;
-      inset: 0;
+      position: fixed; inset: 0;
       background: #020617;
       z-index: 9999;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 2rem;
+      display: flex; align-items: center; justify-content: center; padding: 2rem;
     }
-
-    .vault-card {
-      width: 100%;
-      max-width: 400px;
-      text-align: center;
-      animation: scaleIn 0.8s var(--ease) both;
-    }
-
+    .vault-card { width: 100%; max-width: 400px; text-align: center; animation: scaleIn 0.8s var(--ease) both; }
     .vault-input {
-      background: var(--bg-surface);
-      border: 1px solid var(--gold-border);
-      color: var(--gold);
-      font-family: var(--font-mono);
-      font-size: 1.5rem;
-      text-align: center;
-      letter-spacing: 0.5em;
-      padding: 1.5rem;
-      border-radius: var(--r-lg);
-      width: 100%;
-      outline: none;
-      margin-bottom: 1.5rem;
+      background: rgba(245,158,11,0.06); border: 1px solid var(--gold-border);
+      color: var(--gold); font-family: var(--font-mono); font-size: 1.4rem;
+      text-align: center; letter-spacing: 0.5em; padding: 1.4rem;
+      border-radius: var(--r-lg); width: 100%; outline: none; margin-bottom: 1.2rem;
       transition: all 0.3s var(--ease);
     }
-    .vault-input:focus {
-      border-color: var(--gold);
-      box-shadow: 0 0 20px var(--gold-glow);
-    }
+    .vault-input:focus { border-color: var(--gold); box-shadow: 0 0 24px var(--gold-glow); }
 
-    /* System Stats Tiles (Gold) */
-    .stat-tile.gold {
-      border-color: var(--gold-border);
+    /* ── Navigation ─────────────────────────────── */
+    .admin-nav {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      height: 72px; background: rgba(2,6,23,0.95); backdrop-filter: blur(20px);
+      border-top: 1px solid rgba(245,158,11,0.12);
+      display: flex; justify-content: space-around; align-items: center;
+      padding-bottom: env(safe-area-inset-bottom); z-index: 900;
     }
-    .stat-tile.gold .stat-tile-val {
-      color: var(--gold);
-      text-shadow: 0 0 10px var(--gold-glow);
+    .anav-item {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 4px; color: var(--tx-muted); flex: 1; cursor: pointer; transition: color 0.2s; padding: 0.5rem;
     }
+    .anav-item.active { color: var(--gold); }
+    .anav-item svg { width: 22px; height: 22px; }
+    .anav-item span { font-size: 0.58rem; font-weight: 800; letter-spacing: 0.08em; }
 
-    /* Vendor Registry Row */
+    .fab-slot {
+      position: relative; top: -20px; width: 60px; height: 60px;
+      background: var(--gold); border: 3px solid #020617; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      color: #000; font-size: 1.6rem; box-shadow: 0 0 28px var(--gold-glow);
+      cursor: pointer; transition: transform 0.25s var(--ease), box-shadow 0.25s;
+    }
+    .fab-slot:active { transform: scale(0.92); }
+
+    /* ── Cards & Tiles ──────────────────────────── */
+    .stat-tile.gold { border-color: var(--gold-border); }
+    .stat-tile.gold .stat-tile-val { color: var(--gold); text-shadow: 0 0 12px var(--gold-glow); }
+
     .registry-node {
-      background: var(--bg-surface);
-      border: 1px solid var(--bd-subtle);
-      border-radius: var(--r-lg);
-      padding: 1.25rem;
-      margin-bottom: 1rem;
-      transition: all 0.3s var(--ease);
+      background: var(--bg-surface); border: 1px solid var(--bd-subtle);
+      border-radius: var(--r-lg); padding: 1.25rem; margin-bottom: 0.85rem;
+      transition: all 0.25s var(--ease);
     }
-    .registry-node:hover {
-      border-color: var(--gold-border);
-      background: rgba(245, 158, 11, 0.02);
-    }
-
-    .node-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 1rem;
-    }
-    .node-title {
-      font-size: 0.9rem;
-      font-weight: 800;
-      color: var(--tx-hero);
-    }
+    .registry-node:hover { border-color: var(--gold-border); background: rgba(245,158,11,0.02); }
+    .node-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.9rem; }
+    .node-title { font-size: 0.88rem; font-weight: 800; color: var(--tx-hero); }
     .node-status {
-      font-size: 0.55rem;
-      font-weight: 900;
-      padding: 3px 8px;
-      border-radius: var(--r-pill);
-      letter-spacing: 0.05em;
+      font-size: 0.52rem; font-weight: 900; padding: 3px 9px;
+      border-radius: var(--r-pill); letter-spacing: 0.06em;
     }
-    .status-active { background: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2); }
-    .status-suspended { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); }
+    .status-active { background: rgba(16,185,129,0.1); color: #10b981; border: 1px solid rgba(16,185,129,0.2); }
+    .status-suspended { background: rgba(239,68,68,0.1); color: #ef4444; border: 1px solid rgba(239,68,68,0.2); }
 
-    .node-actions {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 0.5rem;
-      margin-top: 1rem;
+    .node-meta { display: flex; gap: 1.5rem; margin-bottom: 0.9rem; }
+    .node-meta-item { display: flex; flex-direction: column; gap: 2px; }
+    .node-meta-label { font-size: 0.55rem; color: var(--tx-muted); font-weight: 700; letter-spacing: 0.08em; }
+    .node-meta-val { font-size: 0.85rem; font-weight: 800; color: var(--tx-hero); }
+
+    .node-actions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.4rem; }
+    .node-btn {
+      background: rgba(255,255,255,0.03); border: 1px solid var(--bd-subtle);
+      border-radius: var(--r-md); padding: 0.5rem 0.3rem; font-size: 0.58rem;
+      font-weight: 800; letter-spacing: 0.04em; color: var(--tx-hero); cursor: pointer;
+      font-family: var(--font-mono); transition: all 0.2s;
     }
+    .node-btn:hover { background: rgba(255,255,255,0.07); }
+    .node-btn.danger { color: var(--error); border-color: rgba(239,68,68,0.2); }
+    .node-btn.danger:hover { background: rgba(239,68,68,0.08); }
 
-    /* Floating Action Panel */
-    .fab-gold {
-      background: var(--gold);
-      color: #000;
-      box-shadow: 0 0 20px var(--gold-glow);
+    /* ── Tier Selector ──────────────────────────── */
+    .tier-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
+    .tier-btn {
+      border-radius: var(--r-md); padding: 0.7rem 0.5rem; text-align: center;
+      font-size: 0.68rem; font-weight: 900; letter-spacing: 0.08em; cursor: pointer;
+      border: 1px solid var(--bd-subtle); color: var(--tx-muted);
+      background: rgba(255,255,255,0.02); transition: all 0.2s; font-family: var(--font-mono);
     }
+    .tier-btn[data-active="true"] { color: #000; }
+    .tier-btn[data-tier="normal"][data-active="true"] { background: #00e5ff; border-color: #00e5ff; box-shadow: 0 0 14px rgba(0,229,255,0.3); }
+    .tier-btn[data-tier="premium"][data-active="true"] { background: #a855f7; border-color: #a855f7; box-shadow: 0 0 14px rgba(168,85,247,0.3); }
+    .tier-btn[data-tier="gold"][data-active="true"] { background: var(--gold); border-color: var(--gold); box-shadow: 0 0 14px var(--gold-glow); }
+    .tier-btn[data-tier="normal"] { border-color: rgba(0,229,255,0.2); color: #00e5ff; }
+    .tier-btn[data-tier="premium"] { border-color: rgba(168,85,247,0.2); color: #a855f7; }
+    .tier-btn[data-tier="gold"] { border-color: var(--gold-border); color: var(--gold); }
 
-    /* Modal / Sheet Refinements */
-    .admin-sheet {
-      position: fixed;
-      bottom: -100%;
-      left: 0;
-      right: 0;
-      background: var(--bg-surface);
-      border-radius: var(--r-xl) var(--r-xl) 0 0;
-      padding: 2.5rem 2rem;
-      z-index: 1000;
-      transition: all 0.5s var(--ease);
-      border-top: 1px solid var(--gold-border);
-    }
-    .admin-sheet.active { bottom: 0; }
-
+    /* ── Action Sheet ───────────────────────────── */
     .sheet-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.8);
-      backdrop-filter: blur(8px);
-      z-index: 999;
-      opacity: 0;
-      visibility: hidden;
-      transition: 0.3s;
+      position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px);
+      z-index: 999; opacity: 0; visibility: hidden; transition: 0.3s;
     }
     .sheet-overlay.active { opacity: 1; visibility: visible; }
 
-    /* Admin Navigation */
-    .admin-nav {
-      position: fixed;
-      bottom: 0; left: 0; right: 0;
-      height: 80px;
-      background: rgba(2, 6, 23, 0.9);
-      backdrop-filter: blur(20px);
-      border-top: 1px solid var(--bd-subtle);
-      display: flex;
-      justify-content: space-around;
-      padding-bottom: env(safe-area-inset-bottom);
-      z-index: 900;
+    .admin-sheet {
+      position: fixed; bottom: -110%; left: 0; right: 0;
+      background: #0a1128; border-radius: 24px 24px 0 0; padding: 2rem 1.5rem 3rem;
+      z-index: 1000; transition: all 0.45s cubic-bezier(0.22,1,0.36,1);
+      border-top: 1px solid var(--gold-border); max-height: 92vh; overflow-y: auto;
     }
-    .admin-nav-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 4px;
-      color: var(--tx-muted);
-      flex: 1;
-      cursor: pointer;
-    }
-    .admin-nav-item.active { color: var(--gold); }
-    .admin-nav-item svg { width: 22px; height: 22px; }
-    .admin-nav-item span { font-size: 0.6rem; font-weight: 800; }
+    .admin-sheet.active { bottom: 0; }
+    .sheet-handle { width: 40px; height: 4px; background: rgba(255,255,255,0.12); border-radius: 2px; margin: 0 auto 1.5rem; }
 
-    .fab-slot {
-      position: relative;
-      top: -30px;
-      width: 64px;
-      height: 64px;
-      background: var(--gold);
-      border: 4px solid #020617;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #000;
-      font-size: 1.8rem;
-      box-shadow: 0 0 25px var(--gold-glow);
-      cursor: pointer;
-      transition: transform 0.3s var(--ease);
+    /* ── Modals ─────────────────────────────────── */
+    .admin-modal {
+      position: fixed; inset: 0; z-index: 9000;
+      background: rgba(0,0,0,0.85); backdrop-filter: blur(10px);
+      display: flex; align-items: center; justify-content: center; padding: 1.5rem;
+      opacity: 0; visibility: hidden; transition: 0.3s;
     }
-    .fab-slot:active { transform: scale(0.9); }
+    .admin-modal.active { opacity: 1; visibility: visible; }
+    .modal-card {
+      width: 100%; max-width: 440px; background: #0a1128;
+      border: 1px solid var(--bd-subtle); border-radius: var(--r-xl);
+      padding: 1.75rem; max-height: 88vh; overflow-y: auto;
+      animation: scaleIn 0.35s var(--ease) both;
+    }
 
-    /* Funnel styles */
-    .funnel-step-box {
-      background: rgba(255,255,255,0.02);
-      border: 1px solid var(--bd-subtle);
-      border-radius: var(--r-md);
-      padding: 1.25rem;
-      margin-bottom: 0.75rem;
-      text-align: center;
+    /* ── Success Overlay ────────────────────────── */
+    .success-overlay {
+      position: fixed; inset: 0; z-index: 9500;
+      background: rgba(0,0,0,0.92); backdrop-filter: blur(12px);
+      display: flex; align-items: center; justify-content: center; padding: 1.5rem;
+      opacity: 0; visibility: hidden; transition: 0.3s;
+    }
+    .success-overlay.active { opacity: 1; visibility: visible; }
+
+    /* ── Funnel ─────────────────────────────────── */
+    .funnel-step {
+      background: rgba(255,255,255,0.02); border: 1px solid var(--bd-subtle);
+      border-radius: var(--r-md); padding: 1rem; margin-bottom: 0.6rem; text-align: center;
       position: relative;
     }
-    .funnel-step-box::after {
-      content: '▼';
-      position: absolute;
-      bottom: -15px;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 0.7rem;
-      color: var(--gold);
-      opacity: 0.4;
+    .funnel-step:not(:last-child)::after {
+      content: '▼'; position: absolute; bottom: -14px; left: 50%; transform: translateX(-50%);
+      font-size: 0.65rem; color: var(--gold); opacity: 0.4;
     }
-    .funnel-step-box:last-child::after { display: none; }
+    .funnel-step-label { font-size: 0.58rem; color: var(--tx-muted); font-weight: 800; letter-spacing: 0.08em; }
+    .funnel-step-val { font-size: 1.6rem; font-weight: 900; color: var(--tx-hero); margin: 0.25rem 0; }
+    .funnel-step-pct { font-size: 0.58rem; color: var(--gold); font-weight: 700; }
+
+    /* ── Log Feed ───────────────────────────────── */
+    .log-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 0.6rem 0; border-bottom: 1px solid rgba(255,255,255,0.04);
+      font-family: var(--font-mono); font-size: 0.6rem;
+    }
+    .log-row:last-child { border-bottom: none; }
+    .log-type { font-weight: 900; color: var(--gold); }
+    .log-meta { color: var(--tx-muted); text-align: right; line-height: 1.3; }
+
+    /* ── Bar ────────────────────────────────────── */
+    .bar-wrap { height: 4px; background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: 2px; transition: width 1s var(--ease); }
+
+    /* ── Gold Provision Card ────────────────────── */
+    .provision-card {
+      background: linear-gradient(135deg, #0d0a00 0%, #1a1200 50%, #0d0a00 100%);
+      border: 1px solid var(--gold-border); border-radius: var(--r-xl);
+      padding: 2rem; text-align: center; position: relative; overflow: hidden;
+    }
+    .provision-card::before {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(ellipse at 50% 0%, rgba(245,158,11,0.12), transparent 70%);
+      pointer-events: none;
+    }
+    .pckey {
+      font-family: var(--font-mono); font-size: 0.75rem; font-weight: 900;
+      color: var(--gold); text-shadow: 0 0 12px var(--gold-glow);
+      background: rgba(245,158,11,0.08); border: 1px dashed rgba(245,158,11,0.3);
+      border-radius: var(--r-md); padding: 0.75rem 1rem; letter-spacing: 0.1em;
+      word-break: break-all;
+    }
+
+    /* ── Holographic ID Card for existing vendor ── */
+    .holo-card {
+      background: linear-gradient(135deg, #050d1a 0%, #0a1428 100%);
+      border: 1px solid var(--cyan-border); border-radius: var(--r-xl);
+      padding: 1.5rem; position: relative; overflow: hidden;
+    }
   </style>
 </head>
 <body class="page-admin">
 
-  <!-- Security Vault Gate -->
+  <!-- ══════════════════ VAULT GATE ══════════════════ -->
   <div id="privateGate" class="vault-gate">
     <div class="vault-card">
-      <div class="badge-gold mb-2">SYSTEM_OVERRIDE_V5</div>
-      <h1 class="stat-hero-val mb-3" style="font-size: 2.2rem; color: #fff;">MASTER<br>ACCESS</h1>
-      <input type="password" id="adminPass" class="vault-input" placeholder="••••" maxlength="32">
-      <p id="gateStatus" class="text-xs text-muted mb-4 font-mono h-4">IDLE_UPLINK_STATUS</p>
+      <div class="badge-gold mb-2">SYSTEM_OVERRIDE_V6</div>
+      <h1 style="font-size: 2rem; font-weight: 900; color: #fff; margin-bottom: 1.5rem; letter-spacing: -0.02em;">MASTER<br>ACCESS</h1>
+      <input type="password" id="adminPass" class="vault-input" placeholder="••••••" maxlength="32"
+        onkeydown="if(event.key==='Enter') checkPass()">
+      <p id="gateStatus" class="text-xs text-muted mb-4 font-mono" style="min-height: 1rem;">IDLE_UPLINK_STATUS</p>
       <button id="adminUnlockBtn" class="btn-cta gold w-full" onclick="checkPass()">UPLINK_CORE_ENGINE</button>
     </div>
   </div>
 
-  <!-- Main Panel -->
+  <!-- ══════════════════ MAIN PANEL ══════════════════ -->
   <div id="mainPanel" class="hidden">
-    
-    <!-- Fixed Header -->
+
     <header class="page-header">
       <div class="ph-logo" style="color: var(--gold);">AXP_MASTER</div>
       <div class="ph-title">Command Center</div>
       <button class="btn-ghost auto" style="font-size: 0.6rem; color: var(--error);" onclick="logoutAdmin()">DISCONNECT</button>
     </header>
 
-    <div class="page-wrap anim-stagger-in" style="padding-bottom: 120px;">
-      
-      <!-- Dashboard Section -->
+    <div class="page-wrap anim-stagger-in" style="padding-bottom: 110px;">
+
+      <!-- ── CORE TAB ──────────────────────────────── -->
       <div id="section-home" class="nav-section">
-        <div class="stat-hero card mb-3" style="padding: 2rem; border-color: var(--gold-border);">
-          <div class="section-eyebrow">GLOBAL_HITS_STREAM</div>
-          <div class="stat-hero-val" id="totalUsage" style="color: var(--gold); text-shadow: 0 0 15px var(--gold-glow);">0</div>
-          <div class="text-xs font-bold text-muted mt-2">TOTAL_DECRYPTIONS_LOGGED</div>
+
+        <!-- Hero Stats -->
+        <div class="card glow mb-3" style="padding: 2rem; border-color: var(--gold-border); background: rgba(245,158,11,0.03);">
+          <div class="section-eyebrow">TOTAL_DECRYPTIONS_LOGGED</div>
+          <div id="totalUsage" style="font-size: 3.5rem; font-weight: 900; color: var(--gold); text-shadow: 0 0 20px var(--gold-glow); line-height: 1; margin: 0.5rem 0;">0</div>
+          <div class="text-xs text-muted font-mono">GLOBAL_HITS_STREAM</div>
         </div>
 
         <div class="stat-grid-2 mb-3">
@@ -270,21 +245,24 @@
             <span class="stat-tile-val" id="totalVendors">0</span>
           </div>
           <div class="stat-tile gold">
-            <span class="stat-tile-label">CORE_STATUS</span>
-            <span class="stat-tile-val" id="serverStatus" style="font-size: 0.8rem;">ONLINE</span>
+            <span class="stat-tile-label">TOTAL_KEYS</span>
+            <span class="stat-tile-val" id="totalCodes">0</span>
           </div>
         </div>
 
-        <!-- Global Offset Control -->
+        <!-- Global Offset -->
         <div class="card mb-3">
-          <div class="flex justify-between items-center mb-1">
-            <div class="section-eyebrow">GLOBAL_SENS_OFFSET</div>
-            <div id="offsetVal" class="text-xs font-black text-gold font-mono">1.0x</div>
+          <div class="flex justify-between items-center mb-2">
+            <div>
+              <div class="section-eyebrow">GLOBAL_SENS_OFFSET</div>
+              <div class="text-xs text-muted font-mono">Calibration multiplier across all keys</div>
+            </div>
+            <div id="offsetVal" class="font-mono font-black" style="color: var(--gold); font-size: 1.2rem;">1.0x</div>
           </div>
-          <input type="range" id="globalOffset" class="w-full" min="0.8" max="1.2" step="0.05" value="1.0" oninput="updateOffsetDisplay(this.value)" style="accent-color: var(--gold);">
-          <div class="flex justify-between text-ghost font-mono mt-1" style="font-size: 0.55rem;">
-            <span>0.8x (PRECISION)</span>
-            <span>1.2x (MAX_SPEED)</span>
+          <input type="range" id="globalOffset" class="w-full" min="0.8" max="1.2" step="0.05" value="1.0"
+            oninput="updateOffsetDisplay(this.value)" style="accent-color: var(--gold); margin-bottom: 0.5rem;">
+          <div class="flex justify-between" style="font-size: 0.55rem; color: var(--tx-muted); font-family: var(--font-mono);">
+            <span>0.8x PRECISION</span><span>1.2x MAX_SPEED</span>
           </div>
         </div>
 
@@ -292,89 +270,71 @@
         <div class="card mb-3">
           <div class="section-header mb-3">
             <h2 class="section-title">SYSTEM_DIAGNOSTICS</h2>
+            <div id="lastSyncLabel" class="text-xs font-mono pulse" style="color: var(--gold);">SYNCING...</div>
           </div>
           <div class="flex flex-col gap-3">
             <div>
               <div class="flex justify-between text-xs font-mono mb-1">
-                <span>NEURAL_LOAD</span>
-                <span id="loadVal">24%</span>
+                <span>NEURAL_LOAD</span><span id="loadVal" style="color: var(--gold);">—</span>
               </div>
-              <div class="skeleton-h sm w-full" style="background: rgba(255,255,255,0.05);"><div class="stat-bar-fill" style="width: 24%; background: var(--gold);"></div></div>
+              <div class="bar-wrap"><div id="loadBar" class="bar-fill" style="width: 0%; background: var(--gold);"></div></div>
             </div>
             <div>
               <div class="flex justify-between text-xs font-mono mb-1">
-                <span>DB_COHERENCE</span>
-                <span>99.9%</span>
+                <span>DB_COHERENCE</span><span style="color: var(--cyan);">99.9%</span>
               </div>
-              <div class="skeleton-h sm w-full" style="background: rgba(255,255,255,0.05);"><div class="stat-bar-fill" style="width: 99%; background: var(--cyan);"></div></div>
+              <div class="bar-wrap"><div id="coherenceBar" class="bar-fill" style="width: 99%; background: var(--cyan);"></div></div>
             </div>
-          </div>
-        </div>
-
-        <!-- Meta Intelligence (Phase 6) -->
-        <div class="card glow mb-4" style="border-color: var(--gold-border); background: rgba(245, 158, 11, 0.05);">
-          <div class="section-header mb-2">
             <div>
-              <div class="section-eyebrow">Neural Intelligence</div>
-              <h2 class="section-title">META_SHIFT_PREDICT</h2>
+              <div class="flex justify-between text-xs font-mono mb-1">
+                <span>VENDOR_UPTIME</span><span style="color: #10b981;">100%</span>
+              </div>
+              <div class="bar-wrap"><div class="bar-fill" style="width: 100%; background: #10b981;"></div></div>
             </div>
-            <div id="metaStatusIcon">📡</div>
-          </div>
-          <div id="metaAnalysisContent">
-            <div class="skeleton-h sm w-full mb-1"></div>
-            <div class="skeleton-h sm w-3/4 mb-2"></div>
-            <div class="text-xs text-muted">CALCULATING_GLOBAL_SENTIMENT...</div>
-          </div>
-          <div id="metaSuggestionBox" class="hidden mt-3 p-3 rounded-lg" style="background: rgba(0,0,0,0.3); border: 1px dashed var(--gold-border);">
-             <div class="flex justify-between items-center mb-1">
-                <div class="text-hero text-xs" id="metaTrendTitle">STABLE</div>
-                <div class="text-gold font-mono" style="font-size: 0.6rem;" id="metaOffsetVal">1.0x</div>
-             </div>
-             <p class="text-sub text-xs" id="metaDescription" style="line-height: 1.2;">Global sensitivity coherence is within optimal range.</p>
           </div>
         </div>
 
-        <!-- Live Stream -->
+        <!-- Live Feed -->
         <div class="card">
           <div class="section-header mb-3">
             <h2 class="section-title">LIVE_ACTIVITY</h2>
-            <div id="lastSyncLabel" class="text-xs text-gold font-mono pulse">SYNCING...</div>
+            <button class="btn-ghost auto" style="font-size: 0.6rem;" onclick="loadLiveFeed()">REFRESH</button>
           </div>
-          <div id="liveFeed" class="scroll-stack" style="max-height: 200px; font-family: var(--font-mono); font-size: 0.65rem;">
-            <div class="text-center py-4 opacity-40">WAITING_FOR_UPLINK...</div>
+          <div id="liveFeed" style="max-height: 220px; overflow-y: auto;">
+            <div class="text-center py-4 opacity-40 text-xs font-mono">WAITING_FOR_UPLINK...</div>
           </div>
         </div>
       </div>
 
-      <!-- Vendor Registry Section -->
+      <!-- ── VENDORS TAB ─────────────────────────── -->
       <div id="section-vendors" class="nav-section hidden">
         <div class="section-header mb-3">
           <h2 class="section-title">NEURAL_REGISTRY</h2>
-          <div class="badge-gold" id="vendorCountChip">0_NODES</div>
+          <div class="badge-gold" id="vendorCountChip">0 NODES</div>
         </div>
-        <div class="flex gap-2 mb-4">
-          <input id="vendorSearch" class="xp-input-box text-sm" placeholder="Lookup Node ID..." oninput="applyVendorFilter()">
+        <div class="mb-3">
+          <input id="vendorSearch" class="xp-input-box" placeholder="Search node ID..."
+            oninput="applyVendorFilter()" style="width: 100%;">
         </div>
         <div id="vendorCardsContainer" class="anim-stagger-in">
-          <!-- Cards injected -->
+          <div class="text-center py-8 opacity-30 text-xs font-mono">BUFFERING_REGISTRY...</div>
         </div>
 
-        <!-- Lookup Tool -->
+        <!-- Key Audit -->
         <div class="card mt-4">
           <div class="section-header mb-2">
             <h2 class="section-title">GLOBAL_KEY_AUDIT</h2>
           </div>
           <div class="flex gap-2 mb-2">
-            <input id="globalKeySearch" class="xp-input-box" placeholder="Decrypt master key..." onkeypress="if(event.key==='Enter') lookupGlobalKey()">
+            <input id="globalKeySearch" class="xp-input-box flex-1" placeholder="Enter key to audit..."
+              onkeydown="if(event.key==='Enter') lookupGlobalKey()">
             <button class="btn-ghost auto" onclick="lookupGlobalKey()">FIND</button>
           </div>
-          <div id="globalKeyResult" class="hidden card mt-2" style="background: rgba(0,0,0,0.3); font-size: 0.65rem; border-color: var(--bd-subtle);">
-            <!-- Result -->
-          </div>
+          <div id="globalKeyResult" class="hidden card mt-2" style="background: rgba(0,0,0,0.3); font-size: 0.65rem;"></div>
         </div>
       </div>
 
-      <!-- Master Tool Section -->
+      <!-- ── TOOL TAB ────────────────────────────── -->
       <div id="section-tool" class="nav-section hidden">
         <div class="text-center mb-4">
           <div class="badge-gold mb-1">MASTER_CALIBRATION</div>
@@ -385,416 +345,421 @@
           <div class="form-grid-2 mb-3">
             <div class="form-group">
               <label class="form-label">Brand</label>
-              <select id="toolBrand" class="xp-select" onchange="adminUpdateSeries()"></select>
+              <select id="toolBrand" class="xp-select"></select>
             </div>
             <div class="form-group">
               <label class="form-label">Series</label>
-              <select id="toolSeries" class="xp-select" disabled onchange="adminUpdateModels()"></select>
+              <select id="toolSeries" class="xp-select" disabled></select>
             </div>
           </div>
-          <div class="form-group">
+          <div class="form-group mb-3">
             <label class="form-label">Model Signature</label>
             <select id="toolModel" class="xp-select" disabled></select>
           </div>
           <div class="form-grid-2 mb-3">
             <div class="form-group">
-              <label class="form-label">Hardware Memory</label>
+              <label class="form-label">Hardware RAM</label>
               <select id="toolRam" class="xp-select">
-                <option value="2">2 GB</option><option value="4">4 GB</option><option value="6">6 GB</option>
-                <option value="8" selected>8 GB</option><option value="12">12 GB</option><option value="16">16 GB</option>
+                <option value="2">2 GB</option><option value="4">4 GB</option>
+                <option value="6">6 GB</option><option value="8" selected>8 GB</option>
+                <option value="12">12 GB</option><option value="16">16 GB</option>
               </select>
             </div>
             <div class="form-group">
-              <label class="form-label">Engine_Speed</label>
+              <label class="form-label">Speed Profile</label>
               <select id="toolSpeed" class="xp-select">
-                <option value="slow">PRECISION</option><option value="balanced" selected>BALANCED</option><option value="fast">MAX_SPEED</option>
+                <option value="slow">PRECISION</option>
+                <option value="balanced" selected>BALANCED</option>
+                <option value="fast">MAX_SPEED</option>
               </select>
             </div>
+          </div>
+          <div class="form-group mb-3">
+            <label class="form-label">Neural Scale: <span id="scaleLabel">5</span></label>
+            <input type="range" id="toolScale" min="1" max="10" value="5" class="w-full"
+              oninput="document.getElementById('scaleLabel').textContent=this.value"
+              style="accent-color: var(--cyan);">
           </div>
           <button class="btn-cta cyan w-full" onclick="computeAdminTool()">GENERATE_MASTER_KEY</button>
         </div>
 
         <div id="adminToolResult" class="hidden">
-           <div id="adminCardCapture">
-             <!-- Result injected -->
-           </div>
-           <div class="flex gap-2 mt-3">
-             <button class="btn-ghost auto flex-1" onclick="copyAdminResults()">COPY_TEXT</button>
-             <button class="btn-cta cyan flex-1" onclick="downloadAdminCard()">DOWNLOAD_ID</button>
-           </div>
+          <div id="adminCardCapture"></div>
+          <div class="flex gap-2 mt-3">
+            <button class="btn-ghost auto flex-1" onclick="copyAdminResults()">COPY_TEXT</button>
+            <button class="btn-cta cyan flex-1" onclick="downloadAdminCard()">DOWNLOAD_ID</button>
+          </div>
         </div>
       </div>
 
-      <!-- Analytics Section -->
+      <!-- ── SECURITY TAB ────────────────────────── -->
       <div id="section-analytics" class="nav-section hidden">
-        <div class="card mb-4" style="border-color: var(--error);">
-          <div class="section-header mb-2">
-            <h2 class="section-title" style="color: var(--error);">SECURITY_GATE_OVERRIDE</h2>
-          </div>
-          <div class="flex gap-2">
-            <input type="password" id="newMasterKey" class="xp-input-box" placeholder="NEW_MASTER_PHRASE">
-            <button class="btn-ghost auto" style="color: var(--error);" onclick="updateMasterKey()">UPDATE</button>
-          </div>
-          <p class="text-ghost mt-2" style="font-size: 0.55rem;">WARNING: CRITICAL SYSTEM OVERRIDE. SESSION TERMINATION REQUIRED AFTER SYNC.</p>
-        </div>
 
+        <!-- Conversion Funnel -->
         <div class="card mb-4">
           <div class="section-header mb-3">
             <h2 class="section-title">CONVERSION_FUNNEL</h2>
           </div>
           <div id="funnelSteps">
-            <!-- Funnel injected -->
+            <div class="text-center py-4 opacity-30 text-xs font-mono">LOADING_ANALYTICS...</div>
           </div>
         </div>
 
+        <!-- Security Gate Override -->
+        <div class="card mb-4" style="border-color: rgba(239,68,68,0.2);">
+          <div class="section-header mb-3">
+            <h2 class="section-title" style="color: var(--error);">SECURITY_GATE_OVERRIDE</h2>
+          </div>
+          <div class="flex gap-2 mb-2">
+            <input type="password" id="newMasterKey" class="xp-input-box flex-1" placeholder="NEW MASTER PHRASE">
+            <button class="btn-ghost auto" style="color: var(--error);" onclick="updateMasterKey()">UPDATE</button>
+          </div>
+          <p class="text-muted" style="font-size: 0.55rem; font-family: var(--font-mono);">
+            ⚠ CRITICAL OVERRIDE — SESSION TERMINATION REQUIRED AFTER SYNC.
+          </p>
+        </div>
+
+        <!-- Security Logs -->
         <div class="card">
           <div class="section-header mb-3">
             <h2 class="section-title">SECURITY_EVENT_LOG</h2>
+            <button class="btn-ghost auto" style="font-size: 0.6rem;" onclick="loadSecurityLogs()">REFRESH</button>
           </div>
-          <div id="securityLogs" class="scroll-stack" style="max-height: 250px; font-family: var(--font-mono); font-size: 0.6rem;">
-            <!-- Logs injected -->
+          <div id="securityLogs" style="max-height: 280px; overflow-y: auto; font-family: var(--font-mono); font-size: 0.6rem;">
+            <div class="text-center py-4 opacity-30">LOADING_LOGS...</div>
           </div>
         </div>
       </div>
 
-    </div>
+    </div><!-- /page-wrap -->
 
-    <!-- Admin Bottom Nav -->
+    <!-- ═══ ADMIN NAV ═══ -->
     <nav class="admin-nav">
-      <div class="admin-nav-item active" onclick="switchTab('home', this)">
+      <div class="anav-item active" id="nav-home" onclick="switchTab('home', this)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
         <span>CORE</span>
       </div>
-      <div class="admin-nav-item" onclick="switchTab('vendors', this)">
+      <div class="anav-item" id="nav-vendors" onclick="switchTab('vendors', this)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         <span>NODES</span>
       </div>
       <div class="fab-slot" onclick="toggleActionSheet(true)">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       </div>
-      <div class="admin-nav-item" onclick="switchTab('tool', this)">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+      <div class="anav-item" id="nav-tool" onclick="switchTab('tool', this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
         <span>TOOL</span>
       </div>
-      <div class="admin-nav-item" onclick="switchTab('analytics', this)">
+      <div class="anav-item" id="nav-analytics" onclick="switchTab('analytics', this)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
         <span>SAFE</span>
       </div>
     </nav>
-  </div>
+  </div><!-- /mainPanel -->
 
-  <!-- Register Vendor Action Sheet -->
+  <!-- ══════════════════ PROVISION SHEET ══════════════════ -->
   <div class="sheet-overlay" id="sheetOverlay" onclick="toggleActionSheet(false)"></div>
   <div class="admin-sheet" id="vendorSheet">
+    <div class="sheet-handle"></div>
     <div class="flex justify-between items-center mb-4">
-      <h2 class="text-hero text-lg font-black" style="color: var(--gold);">PROVISION_NODE</h2>
-      <button class="btn-ghost auto" onclick="toggleActionSheet(false)">CLOSE</button>
+      <h2 style="color: var(--gold); font-size: 1.1rem; font-weight: 900; letter-spacing: -0.01em;">PROVISION_NODE</h2>
+      <button class="btn-ghost auto" onclick="toggleActionSheet(false)" style="font-size: 0.7rem;">✕ CLOSE</button>
     </div>
-    
-    <div class="form-group">
+
+    <div class="form-group mb-3">
       <label class="form-label">Node Identifier</label>
-      <input type="text" id="vName" class="xp-input-box" placeholder="NODE_ALIAS">
+      <input type="text" id="vName" class="xp-input-box" placeholder="e.g. CREATOR_NAME" style="width:100%; text-transform: uppercase;">
     </div>
     <div class="form-grid-2 mb-3">
       <div class="form-group">
         <label class="form-label">Duration (Days)</label>
-        <input type="number" id="vDuration" class="xp-input-box" placeholder="30">
+        <input type="number" id="vDuration" class="xp-input-box" placeholder="30" min="1">
       </div>
       <div class="form-group">
-        <label class="form-label">Usage Limit</label>
-        <input type="number" id="vUsageLimit" class="xp-input-box" placeholder="∞">
+        <label class="form-label">Usage Limit (∞ = blank)</label>
+        <input type="number" id="vUsageLimit" class="xp-input-box" placeholder="Unlimited">
       </div>
     </div>
 
     <div class="form-group mb-4">
-      <label class="form-label">Node Tier Selection</label>
-      <div class="flex gap-2">
-        <label class="flex-1">
-          <input type="radio" name="vTier" value="normal" checked class="hidden">
-          <div class="btn-ghost auto w-full text-xs font-bold py-3" style="border-radius: 12px; border: 1px solid var(--bd-subtle);">NORMAL</div>
-        </label>
-        <label class="flex-1">
-          <input type="radio" name="vTier" value="premium" class="hidden">
-          <div class="btn-ghost auto w-full text-xs font-bold py-3" style="border-radius: 12px; border: 1px solid var(--violet-border);">PREMIUM</div>
-        </label>
-        <label class="flex-1">
-          <input type="radio" name="vTier" value="gold" class="hidden">
-          <div class="btn-ghost auto w-full text-xs font-bold py-3" style="border-radius: 12px; border: 1px solid var(--gold-border);">GOLD</div>
-        </label>
+      <label class="form-label">Node Tier</label>
+      <div class="tier-grid">
+        <div class="tier-btn" data-tier="normal" data-active="true" onclick="selectTier('normal')">⚡ NORMAL</div>
+        <div class="tier-btn" data-tier="premium" data-active="false" onclick="selectTier('premium')">💎 PREMIUM</div>
+        <div class="tier-btn" data-tier="gold" data-active="false" onclick="selectTier('gold')">👑 GOLD</div>
       </div>
+    </div>
+
+    <div class="form-group mb-4">
+      <label class="form-label">Logo / Brand Asset URL (optional)</label>
+      <input type="text" id="vLogo" class="xp-input-box" placeholder="https://..." style="width:100%;">
     </div>
 
     <button class="btn-cta gold w-full" onclick="addVendor()">INITIALIZE_NODE_PROVISION</button>
-    
-    <!-- Branding Toggle (Optional) -->
-    <div class="mt-4 pt-4 border-t border-bd-subtle">
-       <div class="text-ghost text-xs font-mono">EXTENDED_CONFIG: OPTIONAL</div>
-       <input type="text" id="vLogo" class="xp-input-box mt-2 text-xs" placeholder="Logo Asset URL">
+  </div>
+
+  <!-- ══════════════════ SUCCESS OVERLAY ══════════════════ -->
+  <div id="vendorSuccessOverlay" class="success-overlay">
+    <div style="width: 100%; max-width: 400px;">
+      <div id="cardToCapture" class="provision-card mb-3">
+        <!-- injected -->
+      </div>
+      <div class="flex gap-2 mb-2">
+        <button class="btn-ghost auto flex-1" onclick="copyProvisionedKey()">📋 COPY KEY</button>
+        <button class="btn-cta gold flex-1" onclick="downloadProvisionedCard()">💾 SAVE ID</button>
+      </div>
+      <button class="btn-ghost auto w-full" style="font-size: 0.6rem; opacity: 0.5;" onclick="closeSuccessOverlay()">EXIT_TERMINAL</button>
     </div>
   </div>
 
-  <!-- Provision Success Overlay -->
-  <div id="vendorSuccessOverlay" class="sheet-overlay flex items-center justify-center p-6">
-    <div class="card bg-void anim-up w-full max-w-sm overflow-hidden" style="border-color: var(--gold-border);">
-      <div id="cardToCapture">
-          <!-- The provisioned card UI will be injected here during JS execution -->
-      </div>
-      <div class="flex gap-2 p-6 pt-0">
-          <button class="btn-ghost auto flex-1" onclick="copyProvisionedKey()">COPY_KEY</button>
-          <button class="btn-cta gold flex-1" onclick="downloadProvisionedCard()">SAVE_ID</button>
-      </div>
-      <button class="btn-ghost auto w-full py-4 opacity-40 border-t border-bd-subtle" style="font-size: 0.6rem;" onclick="closeSuccessOverlay()">EXIT_TERMINAL</button>
-    </div>
-  </div>
-
-  <!-- Detail Modal -->
-  <div id="analyticsModal" class="vault-gate hidden">
-    <div class="card w-full max-w-md bg-void p-6" style="border-color: var(--bd-subtle);">
+  <!-- ══════════════════ VENDOR LOGS MODAL ══════════════════ -->
+  <div id="analyticsModal" class="admin-modal">
+    <div class="modal-card">
       <div class="flex justify-between items-center mb-4">
-        <h2 id="modalTitle" class="text-hero text-md font-black">NODE_LOGS</h2>
-        <button class="btn-ghost auto" onclick="closeModal()">CLOSE</button>
+        <h2 id="modalTitle" class="text-hero font-black" style="font-size: 1rem;">NODE_LOGS</h2>
+        <button class="btn-ghost auto" onclick="closeModal()">✕</button>
       </div>
-      <div class="scroll-stack" style="max-height: 400px;">
-        <div class="stat-grid-2 mb-4">
-          <div class="stat-tile"><span class="stat-tile-label">GENS</span><span class="stat-tile-val" id="vCodes">0</span></div>
-          <div class="stat-tile"><span class="stat-tile-label">HITS</span><span class="stat-tile-val" id="vUsage">0</span></div>
-        </div>
-        <div id="activityBody" class="flex flex-col gap-2"></div>
+      <div class="stat-grid-2 mb-4">
+        <div class="stat-tile"><span class="stat-tile-label">KEYS_GEN</span><span class="stat-tile-val" id="vCodes">0</span></div>
+        <div class="stat-tile"><span class="stat-tile-label">TOTAL_HITS</span><span class="stat-tile-val" id="vUsage">0</span></div>
       </div>
+      <div id="activityBody" class="flex flex-col gap-2"></div>
     </div>
   </div>
 
+  <!-- ══════════════════ SCRIPTS ══════════════════ -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="nexus-auth.js"></script>
-  <script src="devices.js"></script>
+  <script src="devices.js?v=3"></script>
   <script src="translations.js"></script>
   <script src="notifications.js"></script>
   <script src="theme-manager.js"></script>
+  <script src="settings.js"></script>
   <script>
-    // ⚡ Master Interface Logic
+    // ═══════════════════════════════════════════════════════════════
+    //  ADMIN MASTER LOGIC — AXP Neural Nexus v6
+    // ═══════════════════════════════════════════════════════════════
     let dashboardPoller = null;
     let allVendorsCache = [];
+    let selectedTier = 'normal';
 
-    function startLongPolling() {
-      if (dashboardPoller) return;
-      dashboardPoller = setInterval(() => {
-        if (!document.getElementById('mainPanel').classList.contains('hidden')) {
-          loadDashboard().catch(() => {});
-        }
-      }, 10000);
-    }
-
+    // ── API Helper ─────────────────────────────────────────────────
     async function api(path, method = 'GET', body = null) {
-      const options = {
+      const res = await NexusAuth.fetch(path, {
         method,
         body: body ? JSON.stringify(body) : null
-      };
-      const res = await NexusAuth.fetch(path, options);
-      if (res.status === 401) return logoutAdmin();
-      
-      const data = await res.json();
-      if (!res.ok) throw new Error(data?.error || data?.message || 'API_ERR');
+      });
+      if (res.status === 401) { logoutAdmin(); return null; }
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data?.error || data?.message || `API_ERR_${res.status}`);
       return data;
     }
 
-    function escapeHtml(unsafe) {
-      return String(unsafe || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\"/g, '&quot;').replace(/'/g, '&#039;');
+    function esc(s) {
+      return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
 
-    function unlockAdminPanel() {
-      document.getElementById('privateGate').classList.add('hidden');
-      document.getElementById('mainPanel').classList.remove('hidden');
-      startLongPolling();
-      loadDashboard();
-      if (window.DeviceRegistry) {
-        window.DeviceRegistry.initSelection('toolBrand', 'toolSeries', 'toolModel');
-      }
-    }
-
+    // ── Auth ───────────────────────────────────────────────────────
     let gateBusy = false;
     async function checkPass() {
       if (gateBusy) return;
       const pass = document.getElementById('adminPass').value.trim();
       const status = document.getElementById('gateStatus');
+      const btn = document.getElementById('adminUnlockBtn');
       if (!pass) { status.textContent = 'KEY_REQUIRED'; return; }
 
       try {
         gateBusy = true;
-        status.textContent = 'ESTABLISHING_UPLINK...';
+        btn.textContent = 'ESTABLISHING_UPLINK...';
+        btn.disabled = true;
+        status.textContent = 'CONNECTING...';
 
-        let res = await fetch('/api/vault/admin/login', {
+        const res = await fetch('/api/vault/admin/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ password: pass }),
           credentials: 'include'
         });
-
         let payload = {};
-        try { payload = await res.json(); } catch (_e) {}
-        if (!res.ok) {
-           const fallback = await fetch('/api/vault/verify', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ input: pass }),
-            credentials: 'include'
-          });
-          try { payload = await fallback.json(); } catch (_e) { payload = {}; }
-          res = fallback;
-        }
+        try { payload = await res.json(); } catch(_) {}
 
         if (res.ok && (payload.type === 'admin' || payload.token)) {
           if (payload.token) NexusAuth.setToken(payload.token);
-          status.textContent = 'ACCESS_GRANTED';
-          unlockAdminPanel();
-          return;
+          status.textContent = 'ACCESS_GRANTED ✓';
+          setTimeout(unlockAdminPanel, 500);
+        } else {
+          status.textContent = payload.error || 'ACCESS_DENIED';
+          btn.textContent = 'UPLINK_CORE_ENGINE';
+          btn.disabled = false;
         }
-        status.textContent = payload.error || 'ACCESS_DENIED_PROTECTION_ENGAGED';
-      } catch (e) { status.textContent = 'NODE_TIMEOUT'; } finally { gateBusy = false; }
+      } catch (e) {
+        status.textContent = 'NODE_TIMEOUT — ' + e.message;
+        btn.textContent = 'UPLINK_CORE_ENGINE';
+        btn.disabled = false;
+      } finally { gateBusy = false; }
     }
 
     async function logoutAdmin() {
-      try { await NexusAuth.fetch('/api/vault/admin/logout', { method: 'POST' }); } catch (_e) {}
+      try { await NexusAuth.fetch('/api/vault/admin/logout', { method: 'POST' }); } catch(_) {}
       NexusAuth.logout();
     }
 
+    function unlockAdminPanel() {
+      document.getElementById('privateGate').classList.add('hidden');
+      document.getElementById('mainPanel').classList.remove('hidden');
+      initToolDevices();
+      loadDashboard();
+      if (dashboardPoller) return;
+      dashboardPoller = setInterval(() => loadDashboard().catch(()=>{}), 15000);
+    }
+
+    // ── Tab Navigation ─────────────────────────────────────────────
     function switchTab(tabId, el) {
       document.querySelectorAll('.nav-section').forEach(s => s.classList.add('hidden'));
-      document.getElementById(`section-${tabId}`).classList.remove('hidden');
-      document.querySelectorAll('.admin-nav-item').forEach(n => n.classList.remove('active'));
+      document.getElementById(`section-${tabId}`)?.classList.remove('hidden');
+      document.querySelectorAll('.anav-item').forEach(n => n.classList.remove('active'));
       if (el) el.classList.add('active');
-      if (tabId === 'tool') {
-        if (window.DeviceRegistry) {
-          window.DeviceRegistry.initSelection('toolBrand', 'toolSeries', 'toolModel');
-        }
-      }
-      if (tabId === 'analytics') { loadSecurityLogs(); }
+      if (tabId === 'analytics') { loadSecurityLogs(); loadOrgStats(); }
+      if (tabId === 'vendors') { renderVendorCards(allVendorsCache); }
     }
 
     function toggleActionSheet(show) {
       document.getElementById('sheetOverlay').classList.toggle('active', show);
       document.getElementById('vendorSheet').classList.toggle('active', show);
+      if (show) {
+        document.getElementById('vName').value = '';
+        document.getElementById('vDuration').value = '';
+        document.getElementById('vUsageLimit').value = '';
+        document.getElementById('vLogo').value = '';
+        selectTier('normal');
+      }
     }
 
+    // ── Tier Selection ─────────────────────────────────────────────
+    function selectTier(tier) {
+      selectedTier = tier;
+      document.querySelectorAll('.tier-btn').forEach(b => {
+        b.dataset.active = (b.dataset.tier === tier) ? 'true' : 'false';
+      });
+    }
+
+    // ── Offset ────────────────────────────────────────────────────
     let offsetTimer;
     function updateOffsetDisplay(val) {
-      document.getElementById('offsetVal').textContent = val + 'x';
+      document.getElementById('offsetVal').textContent = parseFloat(val).toFixed(2) + 'x';
       clearTimeout(offsetTimer);
       offsetTimer = setTimeout(async () => {
         try {
           await api('/api/vault/admin/settings', 'POST', { key: 'global_sensitivity_offset', value: val });
-          if (window.notify) window.notify('GLOBAL_SENS_SYNC_SUCCESS', 'success');
-        } catch (e) { if (window.notify) window.notify('SYNC_FAILURE', 'error'); }
+          if (window.notify) window.notify('SENS_OFFSET_SYNCED', 'success');
+        } catch (e) { if (window.notify) window.notify('SYNC_FAILED: ' + e.message, 'error'); }
       }, 800);
     }
 
+    // ── Dashboard Load ─────────────────────────────────────────────
     async function loadDashboard() {
       try {
-        const stats = await api('/api/vault/admin/stats');
-        document.getElementById('totalVendors').textContent = stats.vendors || 0;
-        document.getElementById('totalUsage').textContent = stats.usage_total || 0;
+        const [stats, vendors, settings] = await Promise.all([
+          api('/api/vault/admin/stats').catch(() => ({})),
+          api('/api/vault/admin/vendors').catch(() => []),
+          api('/api/vault/admin/settings').catch(() => [])
+        ]);
 
-        const settings = await api('/api/vault/admin/settings');
-        if (settings && Array.isArray(settings)) {
+        if (stats) {
+          document.getElementById('totalVendors').textContent = stats.vendors ?? 0;
+          document.getElementById('totalUsage').textContent = stats.usage_total ?? 0;
+          document.getElementById('totalCodes').textContent = stats.codes ?? 0;
+          const load = Math.min(100, Math.round((stats.usage_total || 0) / 10));
+          document.getElementById('loadVal').textContent = load + '%';
+          document.getElementById('loadBar').style.width = load + '%';
+        }
+
+        if (Array.isArray(settings)) {
           const offset = settings.find(s => s.setting_key === 'global_sensitivity_offset');
           if (offset) {
             document.getElementById('globalOffset').value = offset.setting_value;
-            document.getElementById('offsetVal').textContent = offset.setting_value + 'x';
+            document.getElementById('offsetVal').textContent = parseFloat(offset.setting_value).toFixed(2) + 'x';
           }
         }
 
-        const vendors = await api('/api/vault/admin/vendors');
-        allVendorsCache = vendors || [];
+        allVendorsCache = Array.isArray(vendors) ? vendors : [];
         renderVendorCards(allVendorsCache);
-
-        const orgStats = await api('/api/vault/org/stats');
-        const funnel = document.getElementById('funnelSteps');
-        if (orgStats && orgStats.funnel) {
-          const maxVal = orgStats.funnel[0].val || 1;
-          funnel.innerHTML = orgStats.funnel.map(step => `
-            <div class="funnel-step-box">
-              <div class="text-xs text-ghost font-bold mb-1">${step.label}</div>
-              <div class="text-lg font-black text-white">${step.val}</div>
-              <div class="text-xs text-gold opacity-60 mt-1">${Math.round((step.val/maxVal)*100)}% RETENTION</div>
-            </div>
-          `).join('');
-        }
+        document.getElementById('vendorCountChip').textContent = allVendorsCache.length + ' NODES';
+        document.getElementById('lastSyncLabel').textContent = 'SYNCED_' + new Date().toLocaleTimeString().split(' ')[0];
 
         loadLiveFeed();
-        loadMetaAnalysis();
-        document.getElementById('lastSyncLabel').textContent = `SYNCED_${new Date().toLocaleTimeString().split(' ')[0]}`;
       } catch (e) { console.error('DASH_ERR:', e); }
     }
 
-    async function loadMetaAnalysis() {
+    // ── Org Analytics ─────────────────────────────────────────────
+    async function loadOrgStats() {
       try {
-        const data = await api('/api/vault/admin/meta-analysis');
-        const content = document.getElementById('metaAnalysisContent');
-        const box = document.getElementById('metaSuggestionBox');
-        if (!data) return;
-
-        content.innerHTML = `
-          <div class="flex justify-between items-center mb-1">
-             <div class="text-xs text-ghost font-mono">AVG_FEEDBACK</div>
-             <div class="text-xs font-bold ${data.avg_rating < 4.0 ? 'text-error' : 'text-gold'}">${data.avg_rating} / 5.0</div>
-          </div>
-          <div class="flex justify-between items-center">
-             <div class="text-xs text-ghost font-mono">TOTAL_REPORTS</div>
-             <div class="text-xs font-bold text-white">${data.total_feedback}</div>
-          </div>
-        `;
-
-        box.classList.remove('hidden');
-        document.getElementById('metaTrendTitle').textContent = data.suggestion;
-        document.getElementById('metaTrendTitle').className = `text-hero text-xs ${data.recommended_offset > 1.0 ? 'text-error' : 'text-cyan'}`;
-        document.getElementById('metaOffsetVal').textContent = data.recommended_offset + 'x';
-        document.getElementById('metaStatusIcon').textContent = data.recommended_offset > 1.0 ? '⚠️' : '✅';
-        
-        const desc = document.getElementById('metaDescription');
-        if (data.recommended_offset > 1.0) {
-           desc.textContent = "High friction detected in current game version. Calibrating to counter physics changes.";
-        } else {
-           desc.textContent = "Global sensitivity coherence is within optimal range for current meta.";
+        const orgStats = await api('/api/vault/org/stats');
+        const funnel = document.getElementById('funnelSteps');
+        if (!orgStats?.funnel?.length) {
+          funnel.innerHTML = '<div class="text-center py-4 opacity-30 text-xs font-mono">NO_ANALYTICS_DATA</div>';
+          return;
         }
-      } catch (_e) {}
+        const maxVal = orgStats.funnel[0].val || 1;
+        funnel.innerHTML = orgStats.funnel.map(step => `
+          <div class="funnel-step">
+            <div class="funnel-step-label">${esc(step.label)}</div>
+            <div class="funnel-step-val">${step.val}</div>
+            <div class="funnel-step-pct">${Math.round((step.val / maxVal) * 100)}% RETENTION</div>
+          </div>
+        `).join('');
+      } catch (e) { console.warn('ORG_STATS_ERR:', e); }
     }
 
+    // ── Live Feed ─────────────────────────────────────────────────
     async function loadLiveFeed() {
       const feed = document.getElementById('liveFeed');
       try {
         const events = await api('/api/vault/admin/live-feed');
-        if (!events || events.length === 0) {
-          feed.innerHTML = '<div class="text-center py-4 opacity-40">WAITING_FOR_UPLINK...</div>';
+        if (!events?.length) {
+          feed.innerHTML = '<div class="text-center py-4 opacity-30 text-xs font-mono">NO_RECENT_ACTIVITY</div>';
           return;
         }
         feed.innerHTML = events.map(ev => `
-          <div class="flex justify-between py-2 border-b border-bd-subtle">
-            <span class="text-gold opacity-80">${ev.type === 'feedback' ? '[FBK]' : '[HIT]'} ${ev.user_ign || 'ANON'}</span>
-            <span class="text-white">${ev.type === 'feedback' ? (ev.feedback || 'RATED') : (ev.region || 'UNK')}</span>
+          <div class="log-row">
+            <div>
+              <div class="log-type">${ev.type === 'feedback' ? '[FBK]' : '[HIT]'}</div>
+              <div style="color: var(--tx-hero); font-size: 0.65rem;">${esc(ev.user_ign || 'ANON')}</div>
+            </div>
+            <div class="log-meta">
+              <div>${esc(ev.region || ev.user_region || 'GLB')}</div>
+              <div style="opacity: 0.5;">${ev.type === 'feedback' ? '★ ' + (ev.feedback || 'RATED') : ''}</div>
+            </div>
           </div>
         `).join('');
-      } catch (_e) {}
+      } catch(_) { feed.innerHTML = '<div class="text-center py-4 opacity-20 text-xs font-mono">FEED_UNAVAILABLE</div>'; }
     }
 
+    // ── Security Logs ─────────────────────────────────────────────
     async function loadSecurityLogs() {
       const box = document.getElementById('securityLogs');
       try {
         const logs = await api('/api/vault/admin/security-logs');
-        if (!logs || logs.length === 0) {
-           box.innerHTML = '<div class="text-center py-4 opacity-10">NO_SECURITY_EVENTS</div>';
-           return;
+        if (!logs?.length) {
+          box.innerHTML = '<div class="text-center py-4 opacity-20 text-xs font-mono">NO_SECURITY_EVENTS</div>';
+          return;
         }
         box.innerHTML = logs.map(l => `
-          <div class="flex flex-col py-2 border-b border-bd-subtle">
-            <div class="flex justify-between text-gold mb-1">
-              <span>${l.event_type}</span>
-              <span>${new Date(l.created_at).toLocaleTimeString()}</span>
+          <div class="log-row">
+            <div>
+              <div class="log-type">${esc(l.event_type)}</div>
+              <div style="color: var(--tx-muted); font-size: 0.55rem;">${esc(l.ip_address)}</div>
             </div>
-            <div class="text-ghost text-xs">${l.ip_address} • ${escapeHtml(JSON.stringify(l.details))}</div>
+            <div class="log-meta">
+              <div>${new Date(l.created_at).toLocaleTimeString()}</div>
+              <div style="opacity:0.5;">${new Date(l.created_at).toLocaleDateString()}</div>
+            </div>
           </div>
         `).join('');
-      } catch (_e) {}
+      } catch(_) { box.innerHTML = '<div class="text-center py-4 text-error text-xs font-mono">LOG_READ_ERR</div>'; }
     }
 
+    // ── Vendor Cards ──────────────────────────────────────────────
     function applyVendorFilter() {
       const term = document.getElementById('vendorSearch').value.toLowerCase().trim();
       const filtered = !term ? allVendorsCache : allVendorsCache.filter(v => v.vendor_id.toLowerCase().includes(term));
@@ -803,208 +768,320 @@
 
     function renderVendorCards(vendors) {
       const container = document.getElementById('vendorCardsContainer');
-      document.getElementById('vendorCountChip').textContent = `${vendors.length}_NODES`;
+      document.getElementById('vendorCountChip').textContent = vendors.length + ' NODES';
       if (!vendors.length) {
-        container.innerHTML = '<div class="text-center py-8 opacity-20">NO_VENDORS_BUFFERED</div>';
+        container.innerHTML = '<div class="text-center py-8 opacity-20 text-xs font-mono">NO_VENDORS_BUFFERED</div>';
         return;
       }
-      container.innerHTML = vendors.map(v => `
-        <div class="registry-node anim-up">
-          <div class="node-header">
-            <div>
-              <div class="text-ghost text-xs font-mono mb-1">${v.org_id || 'AXP_LEGACY'}</div>
-              <div class="node-title">${v.vendor_id.toUpperCase()}</div>
+      const tierColor = { gold: '#f59e0b', premium: '#a855f7', normal: '#00e5ff' };
+      container.innerHTML = vendors.map(v => {
+        const tier = v.tier || 'normal';
+        const daysLeft = v.seconds_left != null ? Math.max(0, Math.floor(v.seconds_left / 86400)) : null;
+        const color = tierColor[tier] || '#00e5ff';
+        return `
+          <div class="registry-node anim-up">
+            <div class="node-header">
+              <div>
+                <div style="font-size:0.5rem; color:${color}; font-weight:900; letter-spacing:0.1em; margin-bottom:3px;">${tier.toUpperCase()}_NODE · ${esc(v.org_id || 'AXP_CORE')}</div>
+                <div class="node-title">${esc(v.vendor_id.toUpperCase())}</div>
+              </div>
+              <div class="node-status ${v.status === 'active' ? 'status-active' : 'status-suspended'}">${v.status.toUpperCase()}</div>
             </div>
-            <div class="node-status ${v.status === 'active' ? 'status-active' : 'status-suspended'}">
-              ${v.status.toUpperCase()}
+            <div class="node-meta">
+              <div class="node-meta-item">
+                <div class="node-meta-label">KEYS</div>
+                <div class="node-meta-val" style="color: var(--cyan);">${v.total_codes || 0}</div>
+              </div>
+              <div class="node-meta-item">
+                <div class="node-meta-label">HITS</div>
+                <div class="node-meta-val">${v.total_usage || 0}</div>
+              </div>
+              <div class="node-meta-item">
+                <div class="node-meta-label">EXPIRES</div>
+                <div class="node-meta-val" style="color: ${daysLeft != null && daysLeft < 7 ? 'var(--error)' : 'var(--gold)'};">${daysLeft != null ? daysLeft + 'D' : '∞'}</div>
+              </div>
             </div>
-          </div>
-          <div class="flex gap-4">
-             <div><div class="text-ghost text-xs">KEYS</div><div class="font-bold">${v.total_codes || 0}</div></div>
-             <div><div class="text-ghost text-xs">REMAINING</div><div class="font-bold text-gold">${v.seconds_left ? Math.floor(v.seconds_left / 86400) + 'D' : '∞'}</div></div>
-          </div>
-          <div class="node-actions">
-            <button class="btn-ghost auto py-2 text-xs" onclick="showAnalytics('${v.vendor_id}', ${v.total_codes}, ${v.total_usage})">LOGS</button>
-            <button class="btn-ghost auto py-2 text-xs" onclick="toggleStatus('${v.vendor_id}', '${v.status}')">${v.status === 'active' ? 'SUSPEND' : 'ACTIVATE'}</button>
-            <button class="btn-ghost auto py-2 text-xs" onclick="downloadExistingVendorCard('${v.vendor_id}')">ID_CARD</button>
-            <button class="btn-ghost auto py-2 text-xs" style="color:var(--error);" onclick="deleteVendor('${v.vendor_id}')">ERASE</button>
-          </div>
-        </div>
-      `).join('');
-    }
-
-    async function addVendor() {
-      const vid = document.getElementById('vName').value.trim();
-      const vDays = parseInt(document.getElementById('vDuration').value);
-      const tier = document.querySelector('input[name="vTier"]:checked').value;
-      if (!vid) { if (window.notify) window.notify('ID_REQUIRED', 'error'); return; }
-
-      try {
-        const res = await api('/api/vault/admin/vendors', 'POST', { 
-           vendorId: vid, durationDays: vDays || 30, tier,
-           brandConfig: { display_name: vid, logo_url: document.getElementById('vLogo').value.trim() }
-        });
-        
-        // Render success card inject
-        const successContent = `
-          <div class="p-8 pb-4 text-center">
-            <div class="badge-gold mb-3">${tier.toUpperCase()}_NODE_PROVISIONED</div>
-            <div class="text-hero text-lg mb-4">${vid.toUpperCase()}</div>
-            <div class="card p-4" style="background: rgba(0,0,0,0.5); border-style: dashed;">
-              <div class="text-xs text-ghost mb-1">SECURE_ACCESS_KEY</div>
-              <div class="text-md font-black text-gold font-mono" id="provisionAccessKey">${res.accessKey}</div>
+            <div class="node-actions">
+              <button class="node-btn" onclick="showAnalytics('${esc(v.vendor_id)}',${v.total_codes||0},${v.total_usage||0})">LOGS</button>
+              <button class="node-btn" onclick="toggleStatus('${esc(v.vendor_id)}','${v.status}')">${v.status === 'active' ? 'SUSPEND' : 'RESTORE'}</button>
+              <button class="node-btn" onclick="downloadExistingVendorCard('${esc(v.vendor_id)}','${tier}','${daysLeft!=null?daysLeft:\"∞\"}')">ID CARD</button>
+              <button class="node-btn danger" onclick="deleteVendor('${esc(v.vendor_id)}')">ERASE</button>
             </div>
           </div>
         `;
-        document.getElementById('cardToCapture').innerHTML = successContent;
-        
+      }).join('');
+    }
+
+    // ── Vendor Actions ────────────────────────────────────────────
+    async function addVendor() {
+      const vid = document.getElementById('vName').value.trim().toUpperCase();
+      const vDays = parseInt(document.getElementById('vDuration').value) || 30;
+      const vLimit = document.getElementById('vUsageLimit').value.trim();
+      const logo = document.getElementById('vLogo').value.trim();
+      if (!vid) { if (window.notify) window.notify('NODE_ID_REQUIRED', 'error'); return; }
+
+      const btn = document.querySelector('#vendorSheet .btn-cta');
+      btn.textContent = 'PROVISIONING...'; btn.disabled = true;
+      try {
+        const res = await api('/api/vault/admin/vendors', 'POST', {
+          vendorId: vid,
+          durationDays: vDays,
+          usageLimit: vLimit ? parseInt(vLimit) : null,
+          tier: selectedTier,
+          brandConfig: { display_name: vid, logo_url: logo || null }
+        });
+        if (!res) return;
+        document.getElementById('cardToCapture').innerHTML = `
+          <div style="text-align:center; padding: 0.5rem 0 1rem;">
+            <div class="badge-gold mb-3">${selectedTier.toUpperCase()}_NODE_PROVISIONED</div>
+            <div style="font-size:1.4rem; font-weight:900; color:#fff; margin-bottom:1rem;">${esc(res.vendorId || vid)}</div>
+            <div style="font-size:0.65rem; color:var(--tx-muted); margin-bottom:0.5rem; font-family:var(--font-mono);">SECURE_ACCESS_KEY</div>
+            <div class="pckey" id="provisionAccessKey">${esc(res.accessKey)}</div>
+            ${vDays ? `<div style="font-size:0.6rem; color:var(--tx-muted); margin-top:0.75rem; font-family:var(--font-mono);">DURATION: ${vDays}D · TIER: ${selectedTier.toUpperCase()}</div>` : ''}
+          </div>
+        `;
         toggleActionSheet(false);
         document.getElementById('vendorSuccessOverlay').classList.add('active');
         loadDashboard();
-      } catch (e) { if (window.notify) window.notify(e.message, 'error'); }
+      } catch(e) {
+        if (window.notify) window.notify(e.message, 'error');
+      } finally {
+        btn.textContent = 'INITIALIZE_NODE_PROVISION'; btn.disabled = false;
+      }
     }
 
     function copyProvisionedKey() {
-      const key = document.getElementById('provisionAccessKey').textContent;
-      navigator.clipboard.writeText(key);
-      if (window.notify) window.notify('KEY_COPIED_TO_BUFFER', 'success');
+      const key = document.getElementById('provisionAccessKey')?.textContent;
+      if (key) navigator.clipboard.writeText(key);
+      if (window.notify) window.notify('KEY_COPIED', 'success');
     }
 
     function closeSuccessOverlay() {
       document.getElementById('vendorSuccessOverlay').classList.remove('active');
     }
 
-    async function toggleStatus(vid, status) {
+    async function downloadProvisionedCard() {
+      const el = document.getElementById('cardToCapture');
       try {
-        await api('/api/vault/admin/vendors/status', 'POST', { vendorId: vid, status: status === 'active' ? 'suspended' : 'active' });
+        const canvas = await html2canvas(el, { backgroundColor: '#0d0a00', useCORS: true, scale: 2.5 });
+        const a = document.createElement('a');
+        a.download = `AXP_NODE_${Date.now()}.png`;
+        a.href = canvas.toDataURL();
+        a.click();
+      } catch(e) { if (window.notify) window.notify('DOWNLOAD_ERR: ' + e.message, 'error'); }
+    }
+
+    async function toggleStatus(vid, currentStatus) {
+      const newStatus = currentStatus === 'active' ? 'suspended' : 'active';
+      try {
+        await api('/api/vault/admin/vendors/status', 'POST', { vendorId: vid, status: newStatus });
+        if (window.notify) window.notify(`${vid} → ${newStatus.toUpperCase()}`, 'success');
         loadDashboard();
-      } catch (e) { if (window.notify) window.notify('STATUS_SYNC_ERR', 'error'); }
+      } catch(e) { if (window.notify) window.notify('STATUS_ERR: ' + e.message, 'error'); }
     }
 
     async function deleteVendor(vid) {
-      if (!confirm(`ERASE NODE ${vid} FROM REGISTRY?`)) return;
+      const confirmed = confirm(`⚠ ERASE NODE "${vid}" FROM REGISTRY?\n\nThis action cannot be undone.`);
+      if (!confirmed) return;
       try {
         await api('/api/vault/admin/vendors', 'DELETE', { vendorId: vid });
+        if (window.notify) window.notify(`${vid} ERASED`, 'success');
         loadDashboard();
-      } catch (e) { if (window.notify) window.notify('ERASE_ERR', 'error'); }
+      } catch(e) { if (window.notify) window.notify('ERASE_ERR: ' + e.message, 'error'); }
     }
 
+    async function downloadExistingVendorCard(vid, tier, daysLeft) {
+      const tierColor = { gold: '#f59e0b', premium: '#a855f7', normal: '#00e5ff' };
+      const color = tierColor[tier] || '#00e5ff';
+      const wrapper = document.createElement('div');
+      wrapper.style.cssText = `position:fixed;top:-9999px;left:-9999px;z-index:-1;background:#0a1128;padding:32px;border-radius:24px;border:1px solid ${color}44;width:360px;font-family:monospace;`;
+      wrapper.innerHTML = `
+        <div style="text-align:center;">
+          <div style="font-size:0.6rem;font-weight:900;color:${color};letter-spacing:0.15em;margin-bottom:8px;">AXP_NEURAL_NEXUS</div>
+          <div style="font-size:1.6rem;font-weight:900;color:#fff;margin-bottom:4px;">${vid.toUpperCase()}</div>
+          <div style="font-size:0.7rem;color:${color};font-weight:800;margin-bottom:24px;">${tier.toUpperCase()}_NODE</div>
+          <div style="display:flex;justify-content:center;gap:24px;">
+            <div><div style="font-size:0.5rem;color:#9ca3af;">EXPIRES</div><div style="font-size:1rem;font-weight:900;color:#fff;">${daysLeft}D</div></div>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(wrapper);
+      try {
+        const canvas = await html2canvas(wrapper, { backgroundColor: '#0a1128', useCORS: true, scale: 2.5 });
+        const a = document.createElement('a'); a.download = `AXP_ID_${vid}_${Date.now()}.png`; a.href = canvas.toDataURL(); a.click();
+      } catch(e) { if (window.notify) window.notify('CARD_ERR', 'error'); }
+      document.body.removeChild(wrapper);
+    }
+
+    // ── Vendor Logs Modal ─────────────────────────────────────────
     async function showAnalytics(vid, codes, usage) {
       document.getElementById('modalTitle').textContent = `LOGS_${vid.toUpperCase()}`;
       document.getElementById('vCodes').textContent = codes;
       document.getElementById('vUsage').textContent = usage;
-      document.getElementById('analyticsModal').classList.remove('hidden');
-      
+      document.getElementById('analyticsModal').classList.add('active');
       const body = document.getElementById('activityBody');
-      body.innerHTML = '<div class="text-center py-4 opacity-40">FETCHING_REGISTRY_LOGS...</div>';
+      body.innerHTML = '<div class="text-center py-4 opacity-40 text-xs font-mono">FETCHING_REGISTRY_LOGS...</div>';
       try {
         const logs = await api(`/api/vault/admin/vendor/activity?vendorId=${encodeURIComponent(vid)}`);
-        if (!logs.length) { body.innerHTML = '<div class="text-center py-4 opacity-20">EMPTY_BUFFER</div>'; return; }
+        if (!logs?.length) { body.innerHTML = '<div class="text-center py-4 opacity-20 text-xs font-mono">EMPTY_BUFFER</div>'; return; }
         body.innerHTML = logs.map(l => `
-          <div class="flex justify-between text-xs py-2 border-b border-bd-subtle">
-            <span class="text-white">${l.user_ign || 'ANON'}</span>
-            <span class="text-ghost">${l.user_region || 'GLB'} • ${new Date(l.used_at).toLocaleDateString()}</span>
+          <div class="flex justify-between text-xs py-2" style="border-bottom:1px solid rgba(255,255,255,0.04);">
+            <span style="color:var(--tx-hero); font-family:var(--font-mono);">${esc(l.user_ign || 'ANON')}</span>
+            <span style="color:var(--tx-muted);">${esc(l.user_region || 'GLB')} · ${new Date(l.used_at).toLocaleDateString()}</span>
           </div>
         `).join('');
-      } catch (_e) { body.innerHTML = '<div class="text-center py-4 text-error">LOG_READ_ERR</div>'; }
+      } catch(_) { body.innerHTML = '<div class="text-center py-4 text-error text-xs font-mono">LOG_READ_ERR</div>'; }
     }
 
-    function closeModal() { document.getElementById('analyticsModal').classList.add('hidden'); }
+    function closeModal() { document.getElementById('analyticsModal').classList.remove('active'); }
 
+    // ── Master Key Update ─────────────────────────────────────────
     async function updateMasterKey() {
       const key = document.getElementById('newMasterKey').value.trim();
       if (!key) return;
-      if (!confirm('ERASE CURRENT MASTER SESSION?')) return;
+      if (!confirm('⚠ Update admin master phrase? You will be logged out immediately.')) return;
       try {
         await api('/api/vault/admin/settings', 'POST', { key: 'master_key', value: key });
         logoutAdmin();
-      } catch (e) { if (window.notify) window.notify('KEY_SYNC_ERR', 'error'); }
+      } catch(e) { if (window.notify) window.notify('KEY_SYNC_ERR: ' + e.message, 'error'); }
     }
 
-    // Device selection logic now handled by DeviceRegistry in devices.js
-    function adminUpdateSeries() {
-      if (window.DeviceRegistry) {
-        window.DeviceRegistry.populateSeries('toolBrand', 'toolSeries', 'toolModel');
-      }
-    }
-    function adminUpdateModels() {
-      if (window.DeviceRegistry) {
-        window.DeviceRegistry.populateModels('toolBrand', 'toolSeries', 'toolModel');
-      }
-    }
-    function initTool() {
-      if (window.DeviceRegistry) {
-        window.DeviceRegistry.initSelection('toolBrand', 'toolSeries', 'toolModel');
+    // ── Global Key Lookup ─────────────────────────────────────────
+    async function lookupGlobalKey() {
+      const key = document.getElementById('globalKeySearch').value.trim();
+      if (!key) return;
+      const resDiv = document.getElementById('globalKeyResult');
+      resDiv.classList.remove('hidden');
+      resDiv.innerHTML = '<div class="py-2 text-center opacity-50 text-xs font-mono">SCANNING...</div>';
+      try {
+        const data = await api(`/api/vault/admin/lookup-key?key=${encodeURIComponent(key)}`);
+        resDiv.innerHTML = `
+          <div style="padding: 0.75rem; font-family: var(--font-mono);">
+            <div style="color: var(--gold); font-weight: 900; margin-bottom: 6px;">KEY_FOUND: ${esc(data.lookup_key || key)}</div>
+            <div style="color: var(--tx-hero); font-size: 0.6rem; margin-bottom: 3px;">VENDOR: ${esc(data.vendor_id)}</div>
+            <div style="color: var(--tx-muted); font-size: 0.6rem; margin-bottom: 3px;">CREATED: ${data.created_at ? new Date(data.created_at).toLocaleString() : 'N/A'}</div>
+            <div style="color: var(--tx-muted); font-size: 0.6rem;">STATUS: ${esc((data.status || 'unknown').toUpperCase())}</div>
+          </div>
+        `;
+      } catch(e) {
+        resDiv.innerHTML = '<div class="py-2 text-center text-error text-xs font-mono">KEY_NOT_FOUND_IN_REGISTRY</div>';
       }
     }
 
+    // ── Tool Tab — Device Population ──────────────────────────────
+    function initToolDevices() {
+      const brands = window.devices;
+      if (!brands?.length) return;
+      const brandSel  = document.getElementById('toolBrand');
+      const seriesSel = document.getElementById('toolSeries');
+      const modelSel  = document.getElementById('toolModel');
+      const ramSel    = document.getElementById('toolRam');
+      if (!brandSel) return;
+
+      brandSel.innerHTML = '<option value="" disabled selected>SELECT_BRAND</option>' +
+        brands.map(b => `<option value="${b.brand}">${b.brand.toUpperCase()}</option>`).join('');
+      brandSel.disabled = false;
+
+      brandSel.onchange = function() {
+        const bd = brands.find(b => b.brand === brandSel.value);
+        seriesSel.innerHTML = '<option value="" disabled selected>SELECT_SERIES</option>';
+        if (bd?.series) {
+          bd.series.forEach((s, i) => seriesSel.innerHTML += `<option value="${i}">${s.name.toUpperCase()}</option>`);
+          seriesSel.disabled = false;
+        } else { seriesSel.disabled = true; }
+        modelSel.innerHTML = '<option value="" disabled selected>SELECT_MODEL</option>';
+        modelSel.disabled = true;
+      };
+
+      seriesSel.onchange = function() {
+        const bd = brands.find(b => b.brand === brandSel.value);
+        const sd = bd?.series ? bd.series[seriesSel.value] : null;
+        modelSel.innerHTML = '<option value="" disabled selected>SELECT_MODEL</option>';
+        if (sd?.models) {
+          sd.models.forEach(m => {
+            modelSel.innerHTML += `<option value="${m.name}" data-ram="${m.ram}">${m.name.toUpperCase()}</option>`;
+          });
+          modelSel.disabled = false;
+        } else { modelSel.disabled = true; }
+      };
+
+      modelSel.onchange = function() {
+        const opt = modelSel.options[modelSel.selectedIndex];
+        const ram = opt?.getAttribute('data-ram');
+        if (ram && ramSel) ramSel.value = ram;
+      };
+    }
+
+    // ── Tool Computation ──────────────────────────────────────────
     function computeAdminTool() {
-      const m = document.getElementById('toolModel').value;
-      if (!m) return;
+      const model = document.getElementById('toolModel').value;
+      const brand = document.getElementById('toolBrand').value;
+      const ram   = parseInt(document.getElementById('toolRam').value) || 8;
+      const speed = document.getElementById('toolSpeed').value;
+      const scale = parseFloat(document.getElementById('toolScale').value) || 5;
+      if (!model) { if (window.notify) window.notify('SELECT_A_MODEL_FIRST', 'error'); return; }
+
+      // Sensitivity math
+      const ramFactor = Math.min(1, ram / 12);
+      const speedMap  = { slow: 0.85, balanced: 1.0, fast: 1.15 };
+      const base      = 85 + (ramFactor * 8);
+      const mult      = speedMap[speed] || 1.0;
+      const neural    = (scale / 10);
+
+      const genSens    = Math.round(base * mult * neural * 10) / 10;
+      const redDot     = Math.round(genSens * 0.88 * 10) / 10;
+      const scope2     = Math.round(genSens * 0.72 * 10) / 10;
+      const scope4     = Math.round(genSens * 0.60 * 10) / 10;
+      const freeLook   = Math.round(genSens * 1.15 * 10) / 10;
+
       const res = document.getElementById('adminToolResult');
       res.classList.remove('hidden');
-      const container = document.getElementById('adminCardCapture');
-      const scale = parseFloat(document.getElementById('toolScale').value);
-      
-      container.innerHTML = `
-        <div class="card p-6" style="border-color: var(--cyan); text-align: center;">
+      document.getElementById('adminCardCapture').innerHTML = `
+        <div class="card" style="border-color: var(--cyan); text-align: center; padding: 1.5rem;">
           <div class="badge-cyan mb-2">MASTER_DECRYPTION_SUCCESS</div>
-          <div class="text-hero text-lg mb-1">${m.toUpperCase()}</div>
-          <div class="text-xs text-ghost mb-3">HARDWARE_SIGNATURE_SYNCED</div>
-          <div class="stat-grid-2">
-            <div class="stat-tile"><span class="stat-tile-label">GENERAL</span><span class="stat-tile-val text-cyan">${Math.round(85 * scale/5)}</span></div>
-            <div class="stat-tile"><span class="stat-tile-label">RED_DOT</span><span class="stat-tile-val text-cyan">${Math.round(75 * scale/5)}</span></div>
+          <div style="font-size: 0.7rem; color: var(--tx-muted); font-family: var(--font-mono); margin-bottom: 0.25rem;">${brand.toUpperCase()}</div>
+          <div style="font-size: 1.2rem; font-weight: 900; color: #fff; margin-bottom: 1rem;">${model.toUpperCase()}</div>
+          <div class="stat-grid-2" style="gap: 0.5rem; margin-bottom: 0.5rem;">
+            <div class="stat-tile"><span class="stat-tile-label">GENERAL</span><span class="stat-tile-val" style="color:var(--cyan);">${genSens}</span></div>
+            <div class="stat-tile"><span class="stat-tile-label">RED_DOT</span><span class="stat-tile-val" style="color:var(--cyan);">${redDot}</span></div>
+            <div class="stat-tile"><span class="stat-tile-label">2x_SCOPE</span><span class="stat-tile-val" style="color:var(--cyan);">${scope2}</span></div>
+            <div class="stat-tile"><span class="stat-tile-label">4x_SCOPE</span><span class="stat-tile-val" style="color:var(--cyan);">${scope4}</span></div>
           </div>
-          <div class="text-ghost text-xs mt-3">AXP_CORE_MASTER_RECOVERY</div>
+          <div class="stat-tile" style="margin-bottom: 0.5rem;"><span class="stat-tile-label">FREE_LOOK</span><span class="stat-tile-val" style="color:var(--cyan);">${freeLook}</span></div>
+          <div class="text-muted font-mono" style="font-size: 0.55rem;">RAM: ${ram}GB · SCALE: ${scale}/10 · ${speed.toUpperCase()} · AXP_MASTER</div>
         </div>
       `;
     }
 
     async function downloadAdminCard() {
-       const stage = document.getElementById('adminCardCapture');
-       const canvas = await html2canvas(stage, { 
-          backgroundColor: '#020617', useCORS: true, scale: 2, 
-          onclone: (cloned) => { 
-             cloned.getElementById('adminCardCapture').style.border = '1px solid #00f2fe';
-             cloned.getElementById('adminCardCapture').style.padding = '40px';
-          }
-       });
-       const a = document.createElement('a');
-       a.download = `AXP_MASTER_KEY_${Date.now()}.png`;
-       a.href = canvas.toDataURL();
-       a.click();
+      const el = document.getElementById('adminCardCapture');
+      try {
+        const canvas = await html2canvas(el, {
+          backgroundColor: '#020617', useCORS: true, scale: 2.5,
+          onclone: d => { d.getElementById('adminCardCapture').style.padding = '32px'; }
+        });
+        const a = document.createElement('a'); a.download = `AXP_MASTER_${Date.now()}.png`; a.href = canvas.toDataURL(); a.click();
+      } catch(e) { if (window.notify) window.notify('DOWNLOAD_ERR', 'error'); }
     }
 
     function copyAdminResults() {
-       const m = document.getElementById('toolModel').value;
-       navigator.clipboard.writeText(`AXP MASTER RECOVERY: ${m} SYNCED`);
-       if (window.notify) window.notify('TEXT_COPIED', 'success');
+      const model = document.getElementById('toolModel').value || 'DEVICE';
+      navigator.clipboard.writeText(`AXP MASTER CALIBRATION: ${model} — Generated by AXP Neural Nexus`);
+      if (window.notify) window.notify('COPIED_TO_CLIPBOARD', 'success');
     }
 
-    async function lookupGlobalKey() {
-       const key = document.getElementById('globalKeySearch').value.trim();
-       const resDiv = document.getElementById('globalKeyResult');
-       resDiv.classList.remove('hidden');
-       resDiv.innerHTML = '<div class="py-2 opacity-50 text-center">LOOKING_UP_MASTER_REGISTRY...</div>';
-       try {
-         const data = await api(`/api/vault/admin/lookup-key?key=${encodeURIComponent(key)}`);
-         resDiv.innerHTML = `
-           <div class="p-2">
-             <div class="text-gold font-bold mb-1">KEY_FOUND: ${data.key}</div>
-             <div class="text-white text-xs">VENDOR: ${data.vendor_id}</div>
-             <div class="text-white text-xs">CREATED: ${new Date(data.created_at).toLocaleString()}</div>
-             <div class="text-white text-xs">STATUS: ${data.status.toUpperCase()}</div>
-           </div>
-         `;
-       } catch (e) {
-         resDiv.innerHTML = '<div class="py-2 text-error text-center">KEY_NOT_FOUND_IN_REGISTRY</div>';
-       }
-    }
-
+    // ── Boot ──────────────────────────────────────────────────────
     document.addEventListener('DOMContentLoaded', () => {
-      // Check for current session
+      document.getElementById('adminPass').addEventListener('keydown', e => {
+        if (e.key === 'Enter') checkPass();
+      });
+
+      // Auto-unlock if session is active
       if (NexusAuth.isAuthenticated()) {
-        api('/api/vault/admin/stats').then(() => { unlockAdminPanel(); }).catch(() => {
+        api('/api/vault/admin/stats').then(data => {
+          if (data) unlockAdminPanel();
+          else document.getElementById('privateGate').classList.remove('hidden');
+        }).catch(() => {
           document.getElementById('privateGate').classList.remove('hidden');
         });
       } else {
