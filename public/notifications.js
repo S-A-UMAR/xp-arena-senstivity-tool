@@ -11,6 +11,7 @@ window.notify = function(message, type = 'info', duration = 4000) {
             z-index: 1000000;
             display: flex;
             flex-direction: column;
+            align-items: center;
             gap: 0.75rem;
             pointer-events: none;
             width: min(92vw, 420px);
@@ -32,7 +33,7 @@ window.notify = function(message, type = 'info', duration = 4000) {
     const color = colors[type] || colors.info;
     const isError = type === 'error';
     
-    toast.className = `xp-toast ${type}`;
+    toast.className = `xp-toast xp-toast-floating ${type}`;
     toast.style.cssText = `
         background: rgba(8, 10, 15, 0.85);
         backdrop-filter: blur(20px) saturate(180%);
@@ -48,13 +49,18 @@ window.notify = function(message, type = 'info', duration = 4000) {
         box-shadow: 0 20px 50px rgba(0,0,0,0.6), inset 0 0 20px ${color}11;
         pointer-events: auto;
         animation: toastEntrance 0.6s cubic-bezier(0.2, 1, 0.3, 1) both;
-        position: relative;
+        position: relative !important;
+        left: auto !important;
+        top: auto !important;
+        transform: none !important;
         overflow: hidden;
         display: flex;
         flex-direction: column;
         gap: 8px;
         word-break: break-word;
         overflow-wrap: anywhere;
+        width: 100%;
+        margin: 0 auto;
     `;
 
     // Sparkles / Glitch Effect for Errors
