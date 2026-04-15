@@ -211,10 +211,12 @@
     <div class="vault-card">
       <div class="badge-gold mb-2">SYSTEM_OVERRIDE_V6</div>
       <h1 style="font-size: 2rem; font-weight: 900; color: #fff; margin-bottom: 1.5rem; letter-spacing: -0.02em;">MASTER<br>ACCESS</h1>
-      <input type="password" id="adminPass" class="vault-input" placeholder="••••••" maxlength="32"
+      <p class="text-xs text-muted mb-2" style="letter-spacing:0.08em;">ADMIN_SECRET_ONLY · USER_KEYS_WON'T_WORK_HERE</p>
+      <input type="password" id="adminPass" class="vault-input" placeholder="ENTER_ADMIN_SECRET" maxlength="64"
         onkeydown="if(event.key==='Enter') checkPass()">
       <p id="gateStatus" class="text-xs text-muted mb-4 font-mono" style="min-height: 1rem;">IDLE_UPLINK_STATUS</p>
       <button id="adminUnlockBtn" class="btn-cta gold w-full" onclick="checkPass()">UPLINK_CORE_ENGINE</button>
+      <button class="btn-ghost auto w-full mt-2" style="font-size:0.62rem;" onclick="window.location.href='index.html'">GO_TO_USER_PORTAL</button>
     </div>
   </div>
 
@@ -589,11 +591,14 @@
           setTimeout(unlockAdminPanel, 500);
         } else {
           status.textContent = payload.error || 'ACCESS_DENIED';
+          if ((payload.error || '').includes('Unauthorized')) {
+            status.textContent = 'ACCESS_DENIED · USE_ADMIN_SECRET_ONLY';
+          }
           btn.textContent = 'UPLINK_CORE_ENGINE';
           btn.disabled = false;
         }
       } catch (e) {
-        status.textContent = 'NODE_TIMEOUT — ' + e.message;
+        status.textContent = 'NODE_TIMEOUT — RETRY_OR_USE_USER_PORTAL';
         btn.textContent = 'UPLINK_CORE_ENGINE';
         btn.disabled = false;
       } finally { gateBusy = false; }

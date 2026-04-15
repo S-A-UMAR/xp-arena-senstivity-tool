@@ -528,6 +528,18 @@
   <script src="notifications.js"></script>
   <script src="theme-manager.js"></script>
   <script>
+    async function portalRequest(path, body) {
+      const res = await fetch(path, {
+        method: body ? 'POST' : 'GET',
+        headers: { 'Content-Type': 'application/json' },
+        body: body ? JSON.stringify(body) : undefined,
+        credentials: 'include'
+      });
+      let data = {};
+      try { data = await res.json(); } catch (_e) {}
+      return { res, data };
+    }
+
     // Handle Enter key
     document.getElementById('vaultInput').addEventListener('keydown', (e) => {
       if (e.key === 'Enter') handleVaultEntry();
@@ -571,12 +583,8 @@
         // 1 — Fast branch for Vendors
         if ((key.startsWith('AXP-') || key.startsWith('XP-')) && key.split('-').length >= 3) {
           updateStatus('VENDOR_HANDSHAKE_PULSE...', 'active');
-          const vRes = await NexusAuth.fetch('/api/vault/vendor/login', {
-            method: 'POST',
-            body: JSON.stringify({ access_key: key })
-          });
+          const { res: vRes, data: vData } = await portalRequest('/api/vault/vendor/login', { access_key: key });
           if (vRes.ok) {
-            const vData = await vRes.json();
             if (vData.token) NexusAuth.setToken(vData.token);
             updateStatus('VENDOR_UPLINK_SUCCESS', 'success');
             btn.textContent = 'REDIRECTING...';
@@ -591,12 +599,8 @@
 
         // 2 — Branch for Admin
         updateStatus('INITIALIZING_ADMIN_DECRYPT...', 'active');
-        const adminRes = await NexusAuth.fetch('/api/vault/admin/login', {
-          method: 'POST',
-          body: JSON.stringify({ password: key })
-        });
+        const { res: adminRes, data: aData } = await portalRequest('/api/vault/admin/login', { password: key });
         if (adminRes.ok) {
-          const aData = await adminRes.json();
           if (aData.token) NexusAuth.setToken(aData.token);
           updateStatus('ADMIN_UPLINK_GRANTED', 'success');
           btn.textContent = 'ACCESS GRANTED ✓';
@@ -606,7 +610,7 @@
 
         // 3 — Try calibration code lookup
         updateStatus('SCANNING_CALIBRATION_REGISTRY...', 'active');
-        const codeRes = await NexusAuth.fetch(`/api/vault/code/${encodeURIComponent(key)}/status`);
+        const { res: codeRes } = await portalRequest(`/api/vault/code/${encodeURIComponent(key)}/status`);
         if (codeRes.ok) {
           updateStatus('CALIBRATION_FOUND · LOADING_PROFILE', 'success');
           btn.textContent = 'OPENING PROFILE...';
