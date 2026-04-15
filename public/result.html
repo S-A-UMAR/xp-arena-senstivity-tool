@@ -184,6 +184,24 @@
       align-items: center;
       gap: 10px;
     }
+    .code-copy-btn {
+      min-width: 42px;
+      min-height: 42px;
+      border-radius: 12px;
+      border: 1px solid rgba(168, 85, 247, 0.42);
+      background: linear-gradient(145deg, rgba(168, 85, 247, 0.2), rgba(0, 229, 255, 0.08));
+      color: var(--tx-hero);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 10px 26px rgba(0, 0, 0, 0.35);
+      transition: transform 0.2s var(--ease), box-shadow 0.2s var(--ease), border-color 0.2s;
+    }
+    .code-copy-btn:hover {
+      transform: translateY(-1px);
+      border-color: rgba(0, 229, 255, 0.48);
+      box-shadow: 0 16px 30px rgba(0, 0, 0, 0.42);
+    }
 
     .stats-hub {
       padding: 1rem;
@@ -268,6 +286,20 @@
       grid-template-columns: 1fr 1fr;
       gap: 0.75rem;
       margin: 2rem 0;
+    }
+    .action-strip .btn-cta,
+    .action-strip .btn-ghost {
+      min-height: 50px;
+      border-radius: 14px;
+      font-size: 0.78rem;
+      letter-spacing: 0.08em;
+      font-weight: 900;
+      box-shadow: 0 14px 28px rgba(0,0,0,0.35);
+      border-width: 1px;
+    }
+    .action-strip .btn-ghost {
+      border-color: rgba(168, 85, 247, 0.38);
+      background: linear-gradient(145deg, rgba(17,24,39,0.95), rgba(9,14,28,0.92));
     }
 
     .share-card-export-shell {
@@ -369,7 +401,7 @@
           </div>
           <div class="code-actions">
             <div class="badge-success text-xs">SYNCED</div>
-            <button class="btn-ghost auto btn-xs" id="copyCodeBtn" style="padding: 6px; border-radius: 8px;">
+            <button class="code-copy-btn" id="copyCodeBtn" aria-label="Copy access token">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="9" y="9" width="11" height="11" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
             </button>
           </div>
@@ -445,11 +477,11 @@
       <div class="action-strip">
         <button id="downloadBtn" class="btn-cta" data-i18n="downloadBtn">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          DOWNLOAD_ID
+          DOWNLOAD ID CARD
         </button>
         <button id="copyBtn" class="btn-ghost" data-i18n="copyBtn">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
-          SHARE_LINK
+          COPY / SHARE SETTINGS
         </button>
       </div>
 
