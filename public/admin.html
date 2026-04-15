@@ -608,11 +608,9 @@
         btn.disabled = true;
         status.textContent = 'CONNECTING...';
 
-        const res = await fetch('/api/vault/admin/login', {
+        const res = await NexusAuth.fetch('/api/vault/admin/login', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ password: pass }),
-          credentials: 'include'
+          body: JSON.stringify({ password: pass })
         });
         let payload = {};
         try { payload = await res.json(); } catch(_) {}
