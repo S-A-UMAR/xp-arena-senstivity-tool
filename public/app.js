@@ -120,9 +120,6 @@ const UI = {
         vaultAuthBtn?.addEventListener('click', () => this.verifyVault(vaultInput.value.trim().toUpperCase()));
     },
 
-        });
-    },
-
     async initPulse() {
         const stack = document.getElementById('pulseStack');
         if (!stack) return;

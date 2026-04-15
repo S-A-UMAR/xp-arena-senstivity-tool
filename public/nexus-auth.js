@@ -3,8 +3,6 @@
  * Centralized authentication and API communication for AXP Neural Nexus.
  */
 class NexusAuth {
-    static TOKEN_KEY = 'axp_vendor_token';
-
     /**
      * Get the current authorization token.
      */
@@ -74,4 +72,5 @@ class NexusAuth {
     }
 }
 
+NexusAuth.TOKEN_KEY = 'axp_vendor_token';
 window.NexusAuth = NexusAuth;
