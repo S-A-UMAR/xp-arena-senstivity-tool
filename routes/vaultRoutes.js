@@ -270,7 +270,7 @@ async function authenticateVendor(req, res, next) {
         if (!token) return fail(res, 'XP_AUTH_UNAUTHORIZED', 'VENDOR_SESSION_REQUIRED', 401);
 
         const payload = jwt.verify(token, await getJwtSecret());
-        const vendor = await db.get('SELECT vendor_id, status, tier, active_until FROM vendors WHERE vendor_id = ?', [payload.vendor_id]);
+        const vendor = await db.get('SELECT vendor_id, status, active_until FROM vendors WHERE vendor_id = ?', [payload.vendor_id]);
         if (!vendor) return fail(res, 'XP_AUTH_INVALID', 'VENDOR_PROFILE_DELETED', 401);
 
         if (vendor.status !== 'active') {
@@ -1548,7 +1548,7 @@ router.post('/admin/vendors', authenticateAdmin, async (req, res) => {
         await ensureKeyStorageCapacity();
 
         const randomDigits = Math.floor(1000 + Math.random() * 9000);
-        const accessKey = `AXP-${vendorId}-${randomDigits}`;
+        const accessKey = `XP-${vendorId}-${randomDigits}`;
         const hashedAccessKey = await bcrypt.hash(accessKey, 10);
         const lookupKey = getLookupKey(accessKey);
 
@@ -1762,16 +1762,9 @@ router.post('/feedback', async (req, res) => {
         }).refine((data) => data.code || data.entry_code || data.share_token, 'CODE_REQUIRED').parse(req.body || {});
 
         const entryCode = payload.code || payload.entry_code || null;
-        const allowProvisionalCodeFeedback = Boolean(entryCode)
-            && !payload.share_token
-            && !payload.feedback_tag
-            && /^XP-[A-Z0-9]{3,8}-\d{4,8}$/i.test(entryCode);
         let found = payload.share_token
             ? await getCodeRecordFromShareToken(payload.share_token)
-            : (allowProvisionalCodeFeedback ? null : await getCodeRecordByRawCode(entryCode));
-        if (!found && allowProvisionalCodeFeedback) {
-            found = { keyData: null, lookupKey: getLookupKey(entryCode) };
-        }
+            : await getCodeRecordByRawCode(entryCode);
         if (!found) return fail(res, 'XP_AUTH_INVALID', 'UNKNOWN_OR_INVALID_CODE', 404);
 
         const { keyData, lookupKey } = found;
@@ -2265,4 +2258,3 @@ router.get('/public/stats', async (_req, res) => {
 });
 
 module.exports = router;
-

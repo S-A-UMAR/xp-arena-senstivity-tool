@@ -4,7 +4,8 @@ const VendorLogic = {
         stats: null,
         presets: [],
         expiryInterval: null,
-        diagnosticData: null
+        diagnosticData: null,
+        lastGeneratedCard: null
     },
 
     async init() {
@@ -167,13 +168,14 @@ const VendorLogic = {
 
 
     showResultCard(code, brand, model, tier) {
+        this.state.lastGeneratedCard = { code, brand, model, tier };
         const overlay = document.createElement('div');
         overlay.className = 'quick-action-overlay active';
         overlay.id = 'resultOverlay';
         overlay.style.zIndex = '10000';
         overlay.innerHTML = `
-            <div class="glass-panel tier-${tier}" style="width: 95%; max-width: 440px; padding: 2.5rem; text-align: center; background: rgba(10, 15, 25, 0.98); border: 1.5px solid var(--accent-primary);">
-                <div id="captureArea" class="holo-card" onmousemove="VendorLogic.handleHoloMove(event, this)" style="background: linear-gradient(135deg, #020617 0%, #0f172a 100%); border: 1px solid rgba(0, 242, 254, 0.2); border-radius: 24px; padding: 2.5rem; margin-bottom: 2rem; position: relative; overflow: hidden; text-align: left;">
+            <div class="glass-panel tier-${tier}" style="width: min(95vw, 440px); padding: clamp(1rem, 4vw, 2.5rem); text-align: center; background: rgba(10, 15, 25, 0.98); border: 1.5px solid var(--accent-primary);">
+                <div id="captureArea" class="holo-card" onmousemove="VendorLogic.handleHoloMove(event, this)" style="background: linear-gradient(135deg, #020617 0%, #0f172a 100%); border: 1px solid rgba(0, 242, 254, 0.2); border-radius: 24px; padding: clamp(1rem, 4vw, 2.5rem); margin-bottom: 1.25rem; position: relative; overflow: hidden; text-align: left;">
                     <div style="position: absolute; top:0; left:0; width: 100%; height: 2px; background: var(--accent-primary); opacity: 0.15; animation: scanLineMove 3s linear infinite;"></div>
                     <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem;">
                         <div>
@@ -185,22 +187,22 @@ const VendorLogic = {
 
                     <div style="margin-bottom: 2rem;">
                         <div style="font-size: 0.55rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.5rem; font-weight: 800;">ACCESS_KEY</div>
-                        <div style="font-family: var(--font-mono); font-size: 2.25rem; font-weight: 900; color: white; letter-spacing: 0.1em; text-shadow: 0 0 20px rgba(0, 242, 254, 0.4);">${code}</div>
+                        <div style="font-family: var(--font-mono); font-size: clamp(1.05rem, 5.8vw, 2rem); font-weight: 900; color: white; letter-spacing: 0.08em; text-shadow: 0 0 20px rgba(0, 242, 254, 0.4); line-height: 1.2; white-space: nowrap; overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; padding-bottom: 0.1rem;">${code}</div>
                     </div>
 
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; padding-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.05);">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 1rem; padding-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.05);">
                         <div>
                             <div style="font-size: 0.5rem; color: var(--text-muted);">ARCHITECTURE</div>
-                            <div style="font-size: 0.75rem; font-weight: 800; color: white; margin-top: 2px;">${brand}</div>
+                            <div style="font-size: 0.75rem; font-weight: 800; color: white; margin-top: 2px; word-break: break-word;">${brand}</div>
                         </div>
                         <div>
                             <div style="font-size: 0.5rem; color: var(--text-muted);">MODEL_HUNT</div>
-                            <div style="font-size: 0.75rem; font-weight: 800; color: white; margin-top: 2px;">${model}</div>
+                            <div style="font-size: 0.75rem; font-weight: 800; color: white; margin-top: 2px; word-break: break-word;">${model}</div>
                         </div>
                     </div>
                 </div>
 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem;">
                     <button class="btn-nexus-primary" style="margin: 0; padding: 1rem;" onclick="VendorLogic.copyToClipboard('${code}')">COPY_KEY</button>
                     <button class="btn-nexus-primary" style="margin: 0; padding: 1rem; background: rgba(255,255,255,0.05); color: white; border: 1px solid rgba(255,255,255,0.1);" onclick="VendorLogic.captureAndDownloadResult('${code}')">DOWNLOAD</button>
                 </div>
@@ -268,18 +270,45 @@ const VendorLogic = {
 
     async captureAndDownloadResult(code) {
         const area = document.getElementById('captureArea');
-        if (!area || !window.html2canvas) return window.notify('SYSTEM_NOT_READY', 'error');
+        if (!area) return window.notify('SYSTEM_NOT_READY', 'error');
 
         try {
-            const canvas = await html2canvas(area, {
-                backgroundColor: '#020617',
-                scale: 2,
-                useCORS: true
-            });
-            const link = document.createElement('a');
-            link.download = `AXP_KEY_${code}.png`;
-            link.href = canvas.toDataURL('image/png');
-            link.click();
+            if (window.html2canvas) {
+                const canvas = await html2canvas(area, {
+                    backgroundColor: '#020617',
+                    scale: 2,
+                    useCORS: true
+                });
+                const link = document.createElement('a');
+                link.download = `AXP_KEY_${code}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            } else {
+                const cardMeta = this.state.lastGeneratedCard || {};
+                const canvas = document.createElement('canvas');
+                canvas.width = 1200;
+                canvas.height = 700;
+                const ctx = canvas.getContext('2d');
+                if (!ctx) throw new Error('CANVAS_UNAVAILABLE');
+                ctx.fillStyle = '#020617';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.strokeStyle = '#00f2fe';
+                ctx.lineWidth = 4;
+                ctx.strokeRect(24, 24, canvas.width - 48, canvas.height - 48);
+                ctx.fillStyle = '#00f2fe';
+                ctx.font = '700 38px "JetBrains Mono", monospace';
+                ctx.fillText('AXP_SIGNATURE', 80, 120);
+                ctx.fillStyle = '#e2e8f0';
+                ctx.font = '700 86px "JetBrains Mono", monospace';
+                ctx.fillText(code, 80, 290);
+                ctx.font = '700 34px "JetBrains Mono", monospace';
+                ctx.fillText(`ARCHITECTURE: ${String(cardMeta.brand || '').toUpperCase()}`, 80, 410);
+                ctx.fillText(`MODEL_HUNT: ${String(cardMeta.model || '').toUpperCase()}`, 80, 480);
+                const link = document.createElement('a');
+                link.download = `AXP_KEY_${code}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            }
             window.notify('CARD_EXPORTED_SUCCESSFULLY', 'success');
         } catch (e) {
             window.notify('EXPORT_FAILED', 'error');
