@@ -451,6 +451,7 @@
     <div class="portal-logo">AXP_CORE</div>
     <div class="portal-top-links">
       <a href="stats.html" class="portal-top-link">Global</a>
+      <a href="lab.html" class="portal-top-link">Lab</a>
       <a href="generator.html" class="portal-top-link">Demo</a>
     </div>
   </header>
@@ -501,9 +502,9 @@
 
       <div class="vault-or">OR</div>
 
-      <a href="generator.html" class="vault-demo-link">
+      <a href="lab.html" class="vault-demo-link">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-        Try free demo — no code needed
+        Open AXP Lab — free practice mode
       </a>
     </div>
 
@@ -520,6 +521,7 @@
   <footer class="portal-footer" role="contentinfo">
     <a href="privacy.html">Privacy</a>
     <a href="terms.html">Terms</a>
+    <a href="lab.html">Lab</a>
     <a href="support.html">Support</a>
     <a href="stats.html">Platform Stats</a>
   </footer>
@@ -601,7 +603,10 @@
         updateStatus('INITIALIZING_ADMIN_DECRYPT...', 'active');
         const { res: adminRes, data: aData } = await portalRequest('/api/vault/admin/login', { password: key });
         if (adminRes.ok) {
-          if (aData.token) NexusAuth.setToken(aData.token);
+          if (aData.token) {
+            NexusAuth.setToken(aData.token);
+            localStorage.setItem('axp_admin_token', aData.token);
+          }
           updateStatus('ADMIN_UPLINK_GRANTED', 'success');
           btn.textContent = 'ACCESS GRANTED ✓';
           setTimeout(() => window.location.href = 'admin.html', 700);
