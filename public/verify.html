@@ -17,8 +17,8 @@
     }
 
     .hologram-stage {
-      width: 140px;
-      height: 140px;
+      width: 172px;
+      height: 172px;
       margin: 0 auto 2.5rem;
       position: relative;
       display: flex;
@@ -39,8 +39,11 @@
     }
     .hologram-cube::before {
       content: '🛡';
-      font-size: 2.5rem;
-      filter: drop-shadow(0 0 10px var(--gold-glow));
+      width: 92px;
+      height: 92px;
+      background: url('favicon.svg') center / contain no-repeat;
+      filter: drop-shadow(0 0 16px var(--gold-glow));
+      font-size: 0;
       animation: iconFloat 4s ease-in-out infinite;
     }
 
@@ -71,7 +74,7 @@
       0% { top: -10px; opacity: 0; } 
       10% { opacity: 1; } 
       90% { opacity: 1; } 
-      100% { top: 150px; opacity: 0; } 
+      100% { top: 182px; opacity: 0; } 
     }
 
     .result-panel {

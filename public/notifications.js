@@ -48,7 +48,10 @@ window.notify = function(message, type = 'info', duration = 4000) {
         box-shadow: 0 20px 50px rgba(0,0,0,0.6), inset 0 0 20px ${color}11;
         pointer-events: auto;
         animation: toastEntrance 0.6s cubic-bezier(0.2, 1, 0.3, 1) both;
-        position: relative;
+        position: relative !important;
+        left: auto !important;
+        top: auto !important;
+        transform: none !important;
         overflow: hidden;
         display: flex;
         flex-direction: column;

@@ -348,7 +348,7 @@
     style.textContent = `
         #settings-hub {
             position: fixed;
-            bottom: var(--hub-bottom, 90px);
+            bottom: var(--hub-bottom, 132px);
             right: 1.5rem;
             z-index: 10000;
             display: flex;
@@ -391,12 +391,17 @@
             cursor: pointer;
             box-shadow: 0 0 15px var(--accent-primary-glow);
             transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.35s ease, background 0.35s ease;
+            animation: hubTriggerFloat 5.5s ease-in-out infinite;
         }
         .hub-trigger svg { width: 22px; height: 22px; transition: transform 0.8s cubic-bezier(0.22, 1, 0.36, 1); animation: hubGearSpin 9s linear infinite; }
         .hub-trigger:hover { transform: translateY(-2px) scale(1.06); }
         .hub-trigger.active { transform: translate(-8px, -4px) scale(1.04); }
         .hub-trigger.active svg { transform: rotate(180deg) scale(1.05); animation-play-state: paused; }
         @keyframes hubGearSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes hubTriggerFloat {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-6px) rotate(8deg); }
+        }
         
         .hub-panel {
             width: 260px;

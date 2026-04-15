@@ -1,4 +1,5 @@
 (function () {
+    const AXP_LOGO = 'favicon.svg';
     const Utils = window.ResultUtils || {};
     const clamp = Utils.clamp || ((num, min, max) => Math.max(min, Math.min(max, num)));
     const parseRange = Utils.parseRange || ((value) => {
@@ -265,7 +266,7 @@
     function buildCardDetails({ branding, hydrated, modelText, displayName, code, results }) {
         const formattedCode = formatAccessCode(hydrated.vendorId, code);
         return {
-            logo: branding.logo_url || branding.logo || 'favicon.png',
+            logo: AXP_LOGO,
             expiry: hydrated.validUntil ? document.getElementById('expiryValue').textContent : 'NEVER',
             efficiency: currentEfficiency,
             model: modelText,
@@ -551,9 +552,9 @@
         document.getElementById('creatorAdvice').textContent = hydrated.advice || 'OPTIMIZED FOR COMPETITIVE PLAY';
         document.getElementById('chipVendor').textContent = displayName.toUpperCase();
         document.getElementById('chipStatus').textContent = hydrated.validUntil ? t('activeTimed', 'ACTIVE / TIMED') : t('activeOpen', 'ACTIVE / OPEN');
-        document.getElementById('devicePreview').src = branding.logo_url || branding.logo || 'favicon.png';
-        document.getElementById('notesAvatar').src = branding.logo_url || branding.logo || 'favicon.png';
-        if (branding.logo_url || branding.logo) document.getElementById('creatorLogo').src = branding.logo_url || branding.logo;
+        document.getElementById('devicePreview').src = AXP_LOGO;
+        document.getElementById('notesAvatar').src = AXP_LOGO;
+        document.getElementById('creatorLogo').src = AXP_LOGO;
         currentAdvice = hydrated.advice || '';
         updateAdviceCopy(hydrated.advice);
         updateShareHint();
