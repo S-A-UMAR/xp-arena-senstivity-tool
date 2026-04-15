@@ -576,6 +576,11 @@
     let dashboardPoller = null;
     let allVendorsCache = [];
     let selectedTier = 'normal';
+    const ADMIN_TOKEN_KEY = 'axp_admin_token';
+
+    if (window.NexusAuth) {
+      NexusAuth.TOKEN_KEY = ADMIN_TOKEN_KEY;
+    }
 
     // ── API Helper ─────────────────────────────────────────────────
     async function api(path, method = 'GET', body = null) {
@@ -1082,14 +1087,17 @@
 
     // ── Boot ──────────────────────────────────────────────────────
     document.addEventListener('DOMContentLoaded', () => {
+      if (window.NexusAuth) {
+        NexusAuth.TOKEN_KEY = ADMIN_TOKEN_KEY;
+      }
       document.getElementById('adminPass').addEventListener('keydown', e => {
         if (e.key === 'Enter') checkPass();
       });
 
       // Auto-unlock if session/cookie/token is active
-      const cachedToken = sessionStorage.getItem('axp_token') || localStorage.getItem('axp_token');
+      const cachedToken = sessionStorage.getItem(ADMIN_TOKEN_KEY) || localStorage.getItem(ADMIN_TOKEN_KEY);
       if (cachedToken) NexusAuth.setToken(cachedToken);
-      fetch('/api/vault/admin/stats', { credentials: 'include' })
+      NexusAuth.fetch('/api/vault/admin/stats')
         .then(r => r.ok ? r.json() : null)
         .then(data => {
           if (data) unlockAdminPanel();
