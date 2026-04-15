@@ -602,7 +602,10 @@
         updateStatus('INITIALIZING_ADMIN_DECRYPT...', 'active');
         const { res: adminRes, data: aData } = await portalRequest('/api/vault/admin/login', { password: key });
         if (adminRes.ok) {
-          if (aData.token) NexusAuth.setToken(aData.token);
+          if (aData.token) {
+            NexusAuth.setToken(aData.token);
+            localStorage.setItem('axp_admin_token', aData.token);
+          }
           updateStatus('ADMIN_UPLINK_GRANTED', 'success');
           btn.textContent = 'ACCESS GRANTED ✓';
           setTimeout(() => window.location.href = 'admin.html', 700);

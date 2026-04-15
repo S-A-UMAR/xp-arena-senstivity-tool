@@ -698,19 +698,17 @@
     async function loadDashboard() {
       try {
         const [stats, vendors, settings] = await Promise.all([
-          api('/api/vault/admin/stats').catch(() => ({})),
-          api('/api/vault/admin/vendors').catch(() => []),
-          api('/api/vault/admin/settings').catch(() => [])
+          api('/api/vault/admin/stats'),
+          api('/api/vault/admin/vendors'),
+          api('/api/vault/admin/settings')
         ]);
 
-        if (stats) {
-          document.getElementById('totalVendors').textContent = stats.vendors ?? 0;
-          document.getElementById('totalUsage').textContent = stats.usage_total ?? 0;
-          document.getElementById('totalCodes').textContent = stats.codes ?? 0;
-          const load = Math.min(100, Math.round((stats.usage_total || 0) / 10));
-          document.getElementById('loadVal').textContent = load + '%';
-          document.getElementById('loadBar').style.width = load + '%';
-        }
+        document.getElementById('totalVendors').textContent = stats?.vendors ?? 0;
+        document.getElementById('totalUsage').textContent = stats?.usage_total ?? 0;
+        document.getElementById('totalCodes').textContent = stats?.codes ?? 0;
+        const load = Math.min(100, Math.round((stats?.usage_total || 0) / 10));
+        document.getElementById('loadVal').textContent = load + '%';
+        document.getElementById('loadBar').style.width = load + '%';
 
         if (Array.isArray(settings)) {
           const offset = settings.find(s => s.setting_key === 'global_sensitivity_offset');
@@ -726,7 +724,11 @@
         document.getElementById('lastSyncLabel').textContent = 'SYNCED_' + new Date().toLocaleTimeString().split(' ')[0];
 
         loadLiveFeed();
-      } catch (e) { console.error('DASH_ERR:', e); }
+      } catch (e) {
+        console.error('DASH_ERR:', e);
+        document.getElementById('lastSyncLabel').textContent = 'SYNC_FAILED';
+        if (window.notify) window.notify(`ADMIN_SYNC_ERROR: ${e.message || 'UNKNOWN'}`, 'error');
+      }
     }
 
     // ── Org Analytics ─────────────────────────────────────────────
@@ -1084,10 +1086,17 @@
     }
 
     // ── Boot ──────────────────────────────────────────────────────
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
       // Admin access is granted from index.html gate; admin page opens directly.
       // If session/token is missing, first API call will return 401 and redirect to index.
-      unlockAdminPanel();
+      try {
+        const probe = await NexusAuth.fetch('/api/vault/admin/stats');
+        if (!probe.ok) throw new Error(`ADMIN_BOOT_${probe.status}`);
+        unlockAdminPanel();
+      } catch (err) {
+        if (window.notify) window.notify('ADMIN_SESSION_REQUIRED — login from index portal', 'error');
+        setTimeout(() => { window.location.href = 'index.html?admin=required'; }, 400);
+      }
     });
   </script>
 </body>
