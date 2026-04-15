@@ -1085,6 +1085,9 @@
 
     // ── Boot ──────────────────────────────────────────────────────
     document.addEventListener('DOMContentLoaded', () => {
+      if (window.NexusAuth) {
+        NexusAuth.TOKEN_KEY = ADMIN_TOKEN_KEY;
+      }
       document.getElementById('adminPass').addEventListener('keydown', e => {
         if (e.key === 'Enter') checkPass();
       });
