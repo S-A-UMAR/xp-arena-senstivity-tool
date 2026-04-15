@@ -239,7 +239,7 @@
 <body class="page-admin">
 
   <!-- ══════════════════ VAULT GATE ══════════════════ -->
-  <div id="privateGate" class="vault-gate">
+  <div id="privateGate" class="vault-gate hidden">
     <div class="vault-card">
       <div class="vault-brand-mark"><img src="favicon.svg" alt="AXP"></div>
       <div class="badge-gold mb-2">SYSTEM_OVERRIDE_V6</div>
@@ -254,7 +254,7 @@
   </div>
 
   <!-- ══════════════════ MAIN PANEL ══════════════════ -->
-  <div id="mainPanel" class="hidden">
+  <div id="mainPanel">
 
     <header class="page-header">
       <div class="ph-logo" style="color: var(--gold);">AXP_MASTER</div>
@@ -576,6 +576,9 @@
     let dashboardPoller = null;
     let allVendorsCache = [];
     let selectedTier = 'normal';
+    const ADMIN_TOKEN_KEY = 'axp_admin_token';
+
+    if (window.NexusAuth) NexusAuth.TOKEN_KEY = ADMIN_TOKEN_KEY;
 
     // ── API Helper ─────────────────────────────────────────────────
     async function api(path, method = 'GET', body = null) {
@@ -1082,22 +1085,9 @@
 
     // ── Boot ──────────────────────────────────────────────────────
     document.addEventListener('DOMContentLoaded', () => {
-      document.getElementById('adminPass').addEventListener('keydown', e => {
-        if (e.key === 'Enter') checkPass();
-      });
-
-      // Auto-unlock if session/cookie/token is active
-      const cachedToken = sessionStorage.getItem('axp_token') || localStorage.getItem('axp_token');
-      if (cachedToken) NexusAuth.setToken(cachedToken);
-      fetch('/api/vault/admin/stats', { credentials: 'include' })
-        .then(r => r.ok ? r.json() : null)
-        .then(data => {
-          if (data) unlockAdminPanel();
-          else document.getElementById('privateGate').classList.remove('hidden');
-        })
-        .catch(() => {
-          document.getElementById('privateGate').classList.remove('hidden');
-        });
+      // Admin access is granted from index.html gate; admin page opens directly.
+      // If session/token is missing, first API call will return 401 and redirect to index.
+      unlockAdminPanel();
     });
   </script>
 </body>
