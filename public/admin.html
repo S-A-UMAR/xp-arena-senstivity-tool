@@ -578,9 +578,7 @@
     let selectedTier = 'normal';
     const ADMIN_TOKEN_KEY = 'axp_admin_token';
 
-    if (window.NexusAuth) {
-      NexusAuth.TOKEN_KEY = ADMIN_TOKEN_KEY;
-    }
+    if (window.NexusAuth) NexusAuth.TOKEN_KEY = ADMIN_TOKEN_KEY;
 
     // ── API Helper ─────────────────────────────────────────────────
     async function api(path, method = 'GET', body = null) {
@@ -1094,18 +1092,9 @@
         if (e.key === 'Enter') checkPass();
       });
 
-      // Auto-unlock if session/cookie/token is active
-      const cachedToken = sessionStorage.getItem(ADMIN_TOKEN_KEY) || localStorage.getItem(ADMIN_TOKEN_KEY);
-      if (cachedToken) NexusAuth.setToken(cachedToken);
-      NexusAuth.fetch('/api/vault/admin/stats')
-        .then(r => r.ok ? r.json() : null)
-        .then(data => {
-          if (data) unlockAdminPanel();
-          else document.getElementById('privateGate').classList.remove('hidden');
-        })
-        .catch(() => {
-          document.getElementById('privateGate').classList.remove('hidden');
-        });
+      // Enforce manual gate every time (no silent auto-unlock path).
+      // This keeps admin access behind explicit secret entry even if a cookie/token exists.
+      document.getElementById('privateGate').classList.remove('hidden');
     });
   </script>
 </body>
