@@ -262,6 +262,8 @@
         return code || 'FREE-GEN';
     }
 
+    function buildCardDetails({ branding, hydrated, modelText, displayName, code, results }) {
+        const formattedCode = formatAccessCode(hydrated.vendorId, code);
         return {
             logo: branding.logo_url || branding.logo || 'favicon.png',
             expiry: hydrated.validUntil ? document.getElementById('expiryValue').textContent : 'NEVER',
@@ -482,29 +484,6 @@
         if (currentShareDetails) updateShareCard(currentShareDetails);
         const chipMode = document.getElementById('chipMode');
         if (chipMode) {
-            /* Quick Overview Chips */
-            const container = document.createElement('div');
-            container.className = 'stat-grid-3 mb-3 anim-up';
-            container.innerHTML = `
-              <div class="stat-tile">
-                <span class="stat-tile-label" data-i18n="verificationLabel">VERIFICATION</span>
-                <span class="stat-tile-val text-xs text-hero" id="chipStatus" style="font-size: 0.7rem;">SECURE LINK</span>
-              </div>
-              <div class="stat-tile">
-                <span class="stat-tile-label" data-i18n="providerLabel">PROVIDER</span>
-                <span class="stat-tile-val text-xs text-hero" id="chipVendor" style="font-size: 0.7rem;">AXP_CORE</span>
-              </div>
-              <div class="stat-tile">
-                <div class="flex flex-col items-center">
-                    <span class="stat-tile-label" style="font-size: 0.5rem; opacity: 0.6;">PRECISE_MODE</span>
-                    <label class="xp-toggle-shell" style="margin-top: 2px;">
-                        <input type="checkbox" id="precisionToggle" hidden>
-                        <span class="xp-toggle-btn"></span>
-                    </label>
-                </div>
-              </div>
-            `;
-            chipMode.parentNode.insertBefore(container, chipMode.nextSibling);
             chipMode.textContent = t('viewExportMode', 'VIEW / EXPORT');
         }
     }

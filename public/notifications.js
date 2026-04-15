@@ -5,16 +5,17 @@ window.notify = function(message, type = 'info', duration = 4000) {
         container.id = 'notify-container';
         container.style.cssText = `
             position: fixed;
-            top: 2rem;
+            top: calc(env(safe-area-inset-top, 0px) + 0.85rem);
             left: 50%;
             transform: translateX(-50%);
             z-index: 1000000;
             display: flex;
             flex-direction: column;
-            gap: 1rem;
+            gap: 0.75rem;
             pointer-events: none;
-            width: 90%;
+            width: min(92vw, 420px);
             max-width: 420px;
+            padding: 0 0.4rem;
         `;
         document.body.appendChild(container);
     }
@@ -43,6 +44,7 @@ window.notify = function(message, type = 'info', duration = 4000) {
         font-family: 'JetBrains Mono', monospace;
         font-weight: 800;
         font-size: 0.75rem;
+        line-height: 1.4;
         box-shadow: 0 20px 50px rgba(0,0,0,0.6), inset 0 0 20px ${color}11;
         pointer-events: auto;
         animation: toastEntrance 0.6s cubic-bezier(0.2, 1, 0.3, 1) both;
@@ -51,6 +53,8 @@ window.notify = function(message, type = 'info', duration = 4000) {
         display: flex;
         flex-direction: column;
         gap: 8px;
+        word-break: break-word;
+        overflow-wrap: anywhere;
     `;
 
     // Sparkles / Glitch Effect for Errors
@@ -61,10 +65,10 @@ window.notify = function(message, type = 'info', duration = 4000) {
 
     toast.innerHTML = `
         ${effects}
-        <div style="display:flex; align-items:center; justify-content:space-between;">
-            <div style="display:flex; align-items:center; gap: 12px;">
+        <div style="display:flex; align-items:flex-start; justify-content:space-between; gap: 0.5rem;">
+            <div style="display:flex; align-items:flex-start; gap: 12px; min-width:0;">
                 <div class="status-indicator" style="background: ${color}; box-shadow: 0 0 15px ${color};"></div>
-                <span style="letter-spacing: 0.1em; text-shadow: 0 0 10px ${color}44;">${message.toUpperCase()}</span>
+                <span style="letter-spacing: 0.08em; text-shadow: 0 0 10px ${color}44; min-width:0;">${message.toUpperCase()}</span>
             </div>
             <div class="toast-type-tag">${type.toUpperCase()}</div>
         </div>
@@ -141,6 +145,19 @@ style.textContent = `
     @keyframes glitchMove {
         0% { transform: translateY(-100%); }
         100% { transform: translateY(100%); }
+    }
+    @media (max-width: 520px) {
+        #notify-container {
+            width: min(94vw, 420px) !important;
+            top: calc(env(safe-area-inset-top, 0px) + 0.5rem) !important;
+        }
+        .xp-toast {
+            font-size: 0.68rem !important;
+            padding: 0.9rem !important;
+        }
+        .toast-type-tag {
+            display: none;
+        }
     }
 `;
 document.head.appendChild(style);
