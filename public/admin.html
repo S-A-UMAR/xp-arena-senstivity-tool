@@ -19,11 +19,43 @@
     /* ── Gate ──────────────────────────────────── */
     .vault-gate {
       position: fixed; inset: 0;
-      background: #020617;
+      background:
+        radial-gradient(1200px 520px at 50% -18%, rgba(16,185,129,0.12), transparent 58%),
+        radial-gradient(900px 440px at 85% 110%, rgba(245,158,11,0.12), transparent 65%),
+        #020617;
       z-index: 9999;
       display: flex; align-items: center; justify-content: center; padding: 2rem;
     }
-    .vault-card { width: 100%; max-width: 400px; text-align: center; animation: scaleIn 0.8s var(--ease) both; }
+    .vault-card {
+      width: 100%;
+      max-width: 440px;
+      text-align: center;
+      animation: scaleIn 0.8s var(--ease) both;
+      background: linear-gradient(165deg, rgba(10,18,38,0.95), rgba(4,9,22,0.9));
+      border: 1px solid rgba(16,185,129,0.22);
+      border-radius: 28px;
+      padding: 2rem 1.6rem 1.4rem;
+      box-shadow: 0 34px 70px rgba(0,0,0,0.55), 0 0 32px rgba(16,185,129,0.12);
+      backdrop-filter: blur(14px);
+    }
+    .vault-brand-mark {
+      width: 78px;
+      height: 78px;
+      border-radius: 22px;
+      background: rgba(255,255,255,0.96);
+      margin: 0 auto 1rem;
+      padding: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 26px rgba(16,185,129,0.2);
+      animation: floatPulse 3.6s ease-in-out infinite;
+    }
+    .vault-brand-mark img { width: 100%; height: 100%; object-fit: contain; }
+    @keyframes floatPulse {
+      0%, 100% { transform: translateY(0); box-shadow: 0 0 26px rgba(16,185,129,0.2); }
+      50% { transform: translateY(-6px); box-shadow: 0 0 38px rgba(16,185,129,0.3); }
+    }
     .vault-input {
       background: rgba(245,158,11,0.06); border: 1px solid var(--gold-border);
       color: var(--gold); font-family: var(--font-mono); font-size: 1.4rem;
@@ -209,8 +241,9 @@
   <!-- ══════════════════ VAULT GATE ══════════════════ -->
   <div id="privateGate" class="vault-gate">
     <div class="vault-card">
+      <div class="vault-brand-mark"><img src="favicon.svg" alt="AXP"></div>
       <div class="badge-gold mb-2">SYSTEM_OVERRIDE_V6</div>
-      <h1 style="font-size: 2rem; font-weight: 900; color: #fff; margin-bottom: 1.5rem; letter-spacing: -0.02em;">MASTER<br>ACCESS</h1>
+      <h1 style="font-size: 2rem; font-weight: 900; color: #fff; margin-bottom: 1rem; letter-spacing: -0.02em;">MASTER<br>ACCESS</h1>
       <p class="text-xs text-muted mb-2" style="letter-spacing:0.08em;">ADMIN_SECRET_ONLY · USER_KEYS_WON'T_WORK_HERE</p>
       <input type="password" id="adminPass" class="vault-input" placeholder="ENTER_ADMIN_SECRET" maxlength="64"
         onkeydown="if(event.key==='Enter') checkPass()">
@@ -1056,12 +1089,15 @@
       // Auto-unlock if session/cookie/token is active
       const cachedToken = sessionStorage.getItem('axp_token') || localStorage.getItem('axp_token');
       if (cachedToken) NexusAuth.setToken(cachedToken);
-      api('/api/vault/admin/stats').then(data => {
-        if (data) unlockAdminPanel();
-        else document.getElementById('privateGate').classList.remove('hidden');
-      }).catch(() => {
-        document.getElementById('privateGate').classList.remove('hidden');
-      });
+      fetch('/api/vault/admin/stats', { credentials: 'include' })
+        .then(r => r.ok ? r.json() : null)
+        .then(data => {
+          if (data) unlockAdminPanel();
+          else document.getElementById('privateGate').classList.remove('hidden');
+        })
+        .catch(() => {
+          document.getElementById('privateGate').classList.remove('hidden');
+        });
     });
   </script>
 </body>

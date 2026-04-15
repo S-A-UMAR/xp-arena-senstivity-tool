@@ -11,6 +11,7 @@ window.notify = function(message, type = 'info', duration = 4000) {
             z-index: 1000000;
             display: flex;
             flex-direction: column;
+            align-items: center;
             gap: 0.75rem;
             pointer-events: none;
             width: min(92vw, 420px);
@@ -32,7 +33,7 @@ window.notify = function(message, type = 'info', duration = 4000) {
     const color = colors[type] || colors.info;
     const isError = type === 'error';
     
-    toast.className = `xp-toast ${type}`;
+    toast.className = `xp-toast xp-toast-floating ${type}`;
     toast.style.cssText = `
         background: rgba(8, 10, 15, 0.85);
         backdrop-filter: blur(20px) saturate(180%);
@@ -58,6 +59,8 @@ window.notify = function(message, type = 'info', duration = 4000) {
         gap: 8px;
         word-break: break-word;
         overflow-wrap: anywhere;
+        width: 100%;
+        margin: 0 auto;
     `;
 
     // Sparkles / Glitch Effect for Errors
