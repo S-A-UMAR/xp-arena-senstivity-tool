@@ -535,7 +535,6 @@
   <script src="devices.js?v=3"></script>
   <script src="translations.js"></script>
   <script src="notifications.js"></script>
-  <script src="theme-manager.js"></script>
   <script src="settings.js"></script>
   <script>
     // ═══════════════════════════════════════════════════════════════
@@ -576,11 +575,9 @@
         btn.disabled = true;
         status.textContent = 'CONNECTING...';
 
-        const res = await fetch('/api/vault/admin/login', {
+        const res = await NexusAuth.fetch('/api/vault/admin/login', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ password: pass }),
-          credentials: 'include'
+          body: JSON.stringify({ password: pass })
         });
         let payload = {};
         try { payload = await res.json(); } catch(_) {}
@@ -1056,17 +1053,15 @@
         if (e.key === 'Enter') checkPass();
       });
 
-      // Auto-unlock if session is active
-      if (NexusAuth.isAuthenticated()) {
-        api('/api/vault/admin/stats').then(data => {
-          if (data) unlockAdminPanel();
-          else document.getElementById('privateGate').classList.remove('hidden');
-        }).catch(() => {
-          document.getElementById('privateGate').classList.remove('hidden');
-        });
-      } else {
+      // Auto-unlock if session/cookie/token is active
+      const cachedToken = sessionStorage.getItem('axp_token') || localStorage.getItem('axp_token');
+      if (cachedToken) NexusAuth.setToken(cachedToken);
+      api('/api/vault/admin/stats').then(data => {
+        if (data) unlockAdminPanel();
+        else document.getElementById('privateGate').classList.remove('hidden');
+      }).catch(() => {
         document.getElementById('privateGate').classList.remove('hidden');
-      }
+      });
     });
   </script>
 </body>
