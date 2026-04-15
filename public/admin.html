@@ -684,6 +684,11 @@
       dashboardPoller = setInterval(() => loadDashboard().catch(()=>{}), 15000);
     }
 
+    function showAdminGate() {
+      document.getElementById('mainPanel').classList.add('hidden');
+      document.getElementById('privateGate').classList.remove('hidden');
+    }
+
     // ── Tab Navigation ─────────────────────────────────────────────
     function switchTab(tabId, el) {
       document.querySelectorAll('.nav-section').forEach(s => s.classList.add('hidden'));
@@ -1120,15 +1125,17 @@
 
     // ── Boot ──────────────────────────────────────────────────────
     document.addEventListener('DOMContentLoaded', async () => {
-      // Admin access is granted from index.html gate; admin page opens directly.
-      // If session/token is missing, first API call will return 401 and redirect to index.
+      document.getElementById('adminPass').addEventListener('keydown', e => {
+        if (e.key === 'Enter') checkPass();
+      });
+
       try {
-        const probe = await adminFetch('/api/vault/admin/stats');
+        const probe = await adminFetch('/api/vault/admin/stats', { autoRedirect401: false });
         if (!probe.ok) throw new Error(`ADMIN_BOOT_${probe.status}`);
         unlockAdminPanel();
       } catch (err) {
-        if (window.notify) window.notify('ADMIN_SESSION_REQUIRED — login from index portal', 'error');
-        setTimeout(() => { window.location.href = 'index.html?admin=required'; }, 400);
+        showAdminGate();
+        if (window.notify) window.notify('ADMIN_SESSION_REQUIRED — ENTER_ADMIN_SECRET', 'error');
       }
     });
   </script>
