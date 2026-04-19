@@ -491,6 +491,7 @@
 
     document.addEventListener('DOMContentLoaded', async () => {
         startUtcClock();
+        GamingEffects.showLoadingBar(1500);
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden) {
                 updateUtcClock();
@@ -566,6 +567,15 @@
         document.getElementById('idSniper').textContent = results.sniperScope || '--';
         document.getElementById('idFreeLook').textContent = results.freeLook || '--';
         document.getElementById('idDPI').textContent = results.dpi || 'DEFAULT';
+        
+        // Trigger cascading animation for results
+        setTimeout(() => {
+            document.querySelectorAll('.result-stat').forEach((stat, idx) => {
+                stat.style.animation = `scaleIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) ${idx * 0.1}s both`;
+                GamingEffects.createParticles(stat, 3, 'cyan');
+            });
+            GamingEffects.showSuccess('PROFILE_DECRYPTED_SUCCESSFULLY');
+        }, 300);
         const toggle = document.getElementById('precisionToggle');
         if (toggle) {
             toggle.checked = isPrecise;
@@ -602,10 +612,14 @@
             try {
                 btn.disabled = true;
                 btn.textContent = 'EXPORTING...';
+                GamingEffects.showLoadingBar(800);
                 await exportShareCardImage(currentShareDetails, `xp-id-${code}.png`);
+                GamingEffects.createParticles(btn, 20, 'gold');
+                GamingEffects.showSuccess('ID Card Exported!');
                 window.notify?.('ID_CARD_EXPORTED', 'success');
             } catch (e) {
                 console.error('EXPORT_ERR:', e);
+                GamingEffects.showError('Export Failed');
                 window.notify?.('EXPORT_FAILED', 'error');
             } finally {
                 btn.disabled = false;
@@ -614,10 +628,12 @@
         });
 
         document.getElementById('copyCodeBtn').addEventListener('click', () => {
+            GamingEffects.screenGlitch(100);
             copyPlainText(currentShareDetails.code, 'ACCESS_CODE_COPIED');
         });
 
         document.getElementById('copyBtn').addEventListener('click', () => {
+            GamingEffects.screenGlitch(100);
             const text = buildShareText({
                 modelText,
                 general: results.general || '--',
