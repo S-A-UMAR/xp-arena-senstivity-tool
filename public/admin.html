@@ -260,7 +260,7 @@
   </div>
 
   <!-- ══════════════════ MAIN PANEL ══════════════════ -->
-  <div id="mainPanel">
+  <div id="mainPanel" class="hidden">
 
     <header class="page-header">
       <div class="ph-logo" style="color: var(--gold);">AXP_MASTER</div>
@@ -997,7 +997,7 @@
       document.body.removeChild(wrapper);
     }
 
-    // ── Vendor Logs Modal ─────────────────────────────────────────
+    // ── Vendor Logs Modal ────────────────────────────────���────────
     async function showAnalytics(vid, codes, usage) {
       document.getElementById('modalTitle').textContent = `LOGS_${vid.toUpperCase()}`;
       document.getElementById('vCodes').textContent = codes;
