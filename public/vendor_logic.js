@@ -423,10 +423,11 @@ const VendorLogic = {
             redDot:  parseInt(document.getElementById('manualY')?.value || '120'),
             scope2x: parseInt(document.getElementById('manualX')?.value || '85'),
             scope4x: parseInt(document.getElementById('manualX')?.value || '85'),
-            sniper:  parseInt(document.getElementById('manualX')?.value || '85'),
+            sniper:  parseInt(document.getElementById('manualY')?.value || '85'),
             freeLook: parseInt(document.getElementById('manualY')?.value || '120')
         };
         try {
+            GamingEffects.showLoadingBar(1200);
             const res = await NexusAuth.fetch('/api/vault/vendor/generate/manual', {
                 method: 'POST',
                 body: JSON.stringify(payload)
@@ -437,12 +438,16 @@ const VendorLogic = {
                 const activeOverlay = document.querySelector('.quick-action-overlay.active');
                 if (activeOverlay) activeOverlay.remove();
                 this.showResultCard(code, 'MANUAL', 'OVERRIDE', 'PRO');
+                GamingEffects.createParticles(document.body, 30, 'violet');
                 window.notify('MANUAL_KEY_ENCODED', 'success');
+                GamingEffects.showSuccess('Calibration Generated!');
             } else {
                 window.notify(data.error || 'ENCODING_FAILED', 'error');
+                GamingEffects.showError('Generation Failed');
             }
         } catch (err) {
             window.notify('ENCODING_FAILED', 'error');
+            GamingEffects.showError('Encoding Error');
         }
     },
 

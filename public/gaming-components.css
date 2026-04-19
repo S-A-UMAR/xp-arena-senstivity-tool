@@ -1,0 +1,462 @@
+/* ╔══════════════════════════════════════════════════════════╗
+   ║   AXP NEXUS GAMING — COMPONENTS                          ║
+   ║   Reusable UI components with gaming aesthetics          ║
+   ╚══════════════════════════════════════════════════════════╝ */
+
+/* ─── GAMING BUTTONS ────────────────────────────────────────── */
+
+.btn-gaming {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 28px;
+  border: none;
+  border-radius: var(--r-pill);
+  font-family: var(--font);
+  font-weight: 700;
+  font-size: 0.875rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+}
+
+.btn-gaming::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transform: translateX(-100%);
+  transition: transform 0.4s ease-out;
+}
+
+.btn-gaming:hover::before {
+  transform: translateX(100%);
+}
+
+/* Primary Button - Cyan */
+.btn-gaming-primary {
+  background: var(--cyan);
+  color: var(--bg-void);
+  box-shadow: 0 0 20px rgba(0, 242, 254, 0.3),
+              inset 0 0 15px rgba(255, 255, 255, 0.1);
+}
+
+.btn-gaming-primary:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 0 40px rgba(0, 242, 254, 0.6),
+              0 10px 30px rgba(0, 242, 254, 0.2);
+}
+
+.btn-gaming-primary:active {
+  transform: translateY(-1px);
+}
+
+/* Secondary Button - Violet */
+.btn-gaming-secondary {
+  background: var(--violet);
+  color: #fff;
+  box-shadow: 0 0 20px rgba(168, 85, 247, 0.3),
+              inset 0 0 15px rgba(255, 255, 255, 0.08);
+}
+
+.btn-gaming-secondary:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 0 40px rgba(168, 85, 247, 0.6),
+              0 10px 30px rgba(168, 85, 247, 0.2);
+}
+
+/* Tertiary Button - Gold */
+.btn-gaming-tertiary {
+  background: var(--gold);
+  color: var(--bg-void);
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.3),
+              inset 0 0 15px rgba(255, 255, 255, 0.1);
+}
+
+.btn-gaming-tertiary:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 0 40px rgba(245, 158, 11, 0.6),
+              0 10px 30px rgba(245, 158, 11, 0.2);
+}
+
+/* Outline Button */
+.btn-gaming-outline {
+  background: transparent;
+  color: var(--tx-body);
+  border: 2px solid var(--cyan);
+  box-shadow: inset 0 0 10px rgba(0, 242, 254, 0.1);
+}
+
+.btn-gaming-outline:hover {
+  background: rgba(0, 242, 254, 0.1);
+  box-shadow: 0 0 20px rgba(0, 242, 254, 0.4),
+              inset 0 0 10px rgba(0, 242, 254, 0.15);
+}
+
+/* ─── GAMING CARDS ──────────────────────────────────────────── */
+
+.card-gaming {
+  position: relative;
+  background: var(--bg-raised);
+  border: 1px solid rgba(0, 242, 254, 0.1);
+  border-radius: var(--r-lg);
+  padding: 1.5rem;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3),
+              inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+}
+
+.card-gaming::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(0, 242, 254, 0.1) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s ease-out;
+  pointer-events: none;
+}
+
+.card-gaming:hover {
+  border-color: rgba(0, 242, 254, 0.3);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5),
+              0 0 30px rgba(0, 242, 254, 0.2),
+              inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.card-gaming:hover::before {
+  opacity: 1;
+}
+
+/* ─── GAMING INPUT ──────────────────────────────────────────── */
+
+.input-gaming {
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--bg-surface);
+  border: 1.5px solid rgba(0, 242, 254, 0.15);
+  border-radius: var(--r-md);
+  color: var(--tx-hero);
+  font-family: var(--font);
+  font-size: 0.95rem;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  caret-color: var(--cyan);
+}
+
+.input-gaming::placeholder {
+  color: var(--tx-muted);
+}
+
+.input-gaming:hover {
+  border-color: rgba(0, 242, 254, 0.25);
+  background: var(--bg-overlay);
+}
+
+.input-gaming:focus {
+  outline: none;
+  border-color: var(--cyan);
+  background: rgba(0, 242, 254, 0.04);
+  box-shadow: 0 0 0 3px rgba(0, 242, 254, 0.1),
+              0 0 20px rgba(0, 242, 254, 0.15);
+}
+
+/* ─── GAMING BADGES ────────────────────────────────────────── */
+
+.badge-gaming {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: rgba(0, 242, 254, 0.1);
+  border: 1px solid rgba(0, 242, 254, 0.2);
+  border-radius: var(--r-pill);
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--cyan);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  box-shadow: 0 0 10px rgba(0, 242, 254, 0.1);
+}
+
+.badge-gaming.success {
+  background: rgba(34, 197, 94, 0.1);
+  border-color: rgba(34, 197, 94, 0.2);
+  color: var(--success);
+}
+
+.badge-gaming.error {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.2);
+  color: var(--error);
+}
+
+.badge-gaming.warning {
+  background: rgba(245, 158, 11, 0.1);
+  border-color: rgba(245, 158, 11, 0.2);
+  color: var(--warning);
+}
+
+/* ─── GAMING TABS ───────────────────────────────────────────── */
+
+.tabs-gaming {
+  display: flex;
+  gap: 8px;
+  border-bottom: 1px solid rgba(0, 242, 254, 0.1);
+  margin-bottom: 1.5rem;
+}
+
+.tab-gaming {
+  padding: 12px 18px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--tx-muted);
+  font-weight: 700;
+  font-size: 0.85rem;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all 0.2s ease-out;
+  text-transform: uppercase;
+}
+
+.tab-gaming:hover {
+  color: var(--tx-body);
+}
+
+.tab-gaming.active {
+  color: var(--cyan);
+  border-bottom-color: var(--cyan);
+  box-shadow: 0 4px 0 -2px rgba(0, 242, 254, 0.3);
+}
+
+/* ─── GAMING SLIDERS ────────────────────────────────────────── */
+
+.slider-gaming {
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--bg-overlay) 0%, rgba(0, 242, 254, 0.1) 100%);
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.slider-gaming::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--cyan);
+  cursor: pointer;
+  box-shadow: 0 0 15px rgba(0, 242, 254, 0.5),
+              inset 0 0 5px rgba(255, 255, 255, 0.2);
+  transition: all 0.2s ease-out;
+}
+
+.slider-gaming::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 0 25px rgba(0, 242, 254, 0.8);
+}
+
+.slider-gaming::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--cyan);
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 0 15px rgba(0, 242, 254, 0.5);
+  transition: all 0.2s ease-out;
+}
+
+.slider-gaming::-moz-range-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 0 25px rgba(0, 242, 254, 0.8);
+}
+
+/* ─── GAMING MODALS ────────────────────────────────────────── */
+
+.modal-gaming {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fade-in 0.3s ease-out;
+}
+
+.modal-gaming-content {
+  position: relative;
+  background: var(--bg-raised);
+  border: 1px solid rgba(0, 242, 254, 0.15);
+  border-radius: var(--r-lg);
+  padding: 2rem;
+  max-width: 500px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6),
+              0 0 40px rgba(0, 242, 254, 0.2);
+  animation: slide-in-bottom 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.modal-gaming-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  border: none;
+  color: var(--tx-muted);
+  cursor: pointer;
+  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease-out;
+}
+
+.modal-gaming-close:hover {
+  color: var(--tx-hero);
+  transform: scale(1.2) rotate(90deg);
+}
+
+/* ─── GAMING STATS DISPLAY ──────────────────────────────────── */
+
+.stat-gaming {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 1rem;
+  background: rgba(0, 242, 254, 0.05);
+  border: 1px solid rgba(0, 242, 254, 0.1);
+  border-radius: var(--r-md);
+  text-align: center;
+}
+
+.stat-gaming-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--tx-muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.stat-gaming-value {
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: var(--cyan);
+  font-family: var(--font-mono);
+  text-shadow: 0 0 10px rgba(0, 242, 254, 0.3);
+}
+
+/* ─── GAMING TOGGLES ────────────────────────────────────────── */
+
+.toggle-gaming {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 28px;
+}
+
+.toggle-gaming input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-gaming-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--bg-overlay);
+  transition: all 0.3s ease-out;
+  border-radius: 14px;
+  border: 1px solid rgba(0, 242, 254, 0.1);
+}
+
+.toggle-gaming-slider::before {
+  position: absolute;
+  content: '';
+  height: 22px;
+  width: 22px;
+  left: 3px;
+  bottom: 2px;
+  background-color: var(--tx-muted);
+  transition: all 0.2s ease-out;
+  border-radius: 50%;
+}
+
+.toggle-gaming input:checked + .toggle-gaming-slider {
+  background-color: var(--cyan);
+  box-shadow: 0 0 15px rgba(0, 242, 254, 0.4);
+  border-color: var(--cyan);
+}
+
+.toggle-gaming input:checked + .toggle-gaming-slider::before {
+  transform: translateX(22px);
+  background-color: var(--bg-void);
+}
+
+/* ─── GAMING PROGRESS BAR ───────────────────────────────────── */
+
+.progress-gaming {
+  width: 100%;
+  height: 8px;
+  background: var(--bg-overlay);
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid rgba(0, 242, 254, 0.1);
+}
+
+.progress-gaming-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--cyan), var(--violet));
+  box-shadow: 0 0 15px rgba(0, 242, 254, 0.3);
+  transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  border-radius: 4px;
+}
+
+/* ─── GAMING DIVIDERS ───────────────────────────────────────── */
+
+.divider-gaming {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0, 242, 254, 0.2), transparent);
+  margin: 1rem 0;
+}
+
+/* ─── RESPONSIVE ────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  .btn-gaming {
+    padding: 10px 20px;
+    font-size: 0.8rem;
+  }
+
+  .card-gaming {
+    padding: 1rem;
+  }
+
+  .modal-gaming-content {
+    padding: 1.5rem;
+    width: 95%;
+  }
+}

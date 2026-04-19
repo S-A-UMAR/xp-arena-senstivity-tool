@@ -7,6 +7,8 @@
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <title>AXP | Neural Vault</title>
   <link rel="stylesheet" href="design-system.css">
+  <link rel="stylesheet" href="gaming-animations.css">
+  <link rel="stylesheet" href="gaming-components.css">
   <style>
     body {
       padding-top: 0;
@@ -28,6 +30,7 @@
       justify-content: center;
       padding: 1.5rem 1.25rem;
       gap: 0;
+      animation: fade-in-scale 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
     }
 
     /* ── Logo strip (top) ─── */
@@ -102,6 +105,13 @@
       position: relative;
       overflow: hidden;
       animation: scaleIn 0.8s var(--ease) both;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .vault-card:hover {
+      box-shadow: 0 0 40px rgba(0,242,254,0.2),
+                  0 30px 100px rgba(0,0,0,0.9),
+                  inset 0 1px 0 rgba(255,255,255,0.1);
     }
 
     /* Animated border corners */
@@ -291,7 +301,11 @@
       transform: skewX(-20deg);
       transition: left 0.5s;
     }
-    .vault-enter-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 36px rgba(0,229,255,0.5); }
+    .vault-enter-btn:hover { 
+      transform: translateY(-2px); 
+      box-shadow: 0 12px 36px rgba(0,229,255,0.5), 0 0 30px rgba(0,229,255,0.3);
+      filter: brightness(1.1);
+    }
     .vault-enter-btn:hover::after { left: 200%; }
     .vault-enter-btn:active { transform: scale(0.97); }
     .vault-enter-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
@@ -527,6 +541,7 @@
   </footer>
 
   <script src="nexus-auth.js"></script>
+  <script src="gaming-effects.js"></script>
   <script src="notifications.js"></script>
   <script src="theme-manager.js"></script>
   <script>
@@ -573,6 +588,7 @@
       const btn = document.getElementById('vaultAuthBtn');
       if (!key) {
         document.getElementById('vaultInput').style.borderColor = 'var(--error)';
+        GamingEffects.screenGlitch(150);
         setTimeout(() => document.getElementById('vaultInput').style.borderColor = '', 1500);
         return;
       }
@@ -580,6 +596,11 @@
       btn.disabled = true;
       btn.textContent = 'AUTHENTICATING...';
       updateStatus('INITIALIZING_DECRYPTION...', 'active');
+      
+      // Enhanced effects
+      GamingEffects.showLoadingBar(2000);
+      GamingEffects.screenGlitch(100);
+      GamingEffects.scaleUp(btn, 1.02, 300);
 
       try {
         // 1 — Fast branch for Vendors
@@ -589,6 +610,8 @@
           if (vRes.ok) {
             if (vData.token) NexusAuth.setToken(vData.token);
             updateStatus('VENDOR_UPLINK_SUCCESS', 'success');
+            GamingEffects.createParticles(btn, 25, 'cyan');
+            GamingEffects.showSuccess('Vendor Access Granted!');
             btn.textContent = 'REDIRECTING...';
             setTimeout(() => window.location.href = vData.redirect || 'vendor_dashboard.html', 700);
             return;
@@ -608,6 +631,8 @@
             localStorage.setItem('axp_admin_token', aData.token);
           }
           updateStatus('ADMIN_UPLINK_GRANTED', 'success');
+          GamingEffects.createParticles(btn, 30, 'gold');
+          GamingEffects.showSuccess('Admin Access Granted!');
           btn.textContent = 'ACCESS GRANTED ✓';
           setTimeout(() => window.location.href = 'admin.html', 700);
           return;
@@ -618,10 +643,14 @@
         const { res: codeRes } = await portalRequest(`/api/vault/code/${encodeURIComponent(key)}/status`);
         if (codeRes.ok) {
           updateStatus('CALIBRATION_FOUND · LOADING_PROFILE', 'success');
+          GamingEffects.createParticles(btn, 20, 'violet');
+          GamingEffects.showSuccess('Profile Located!');
           btn.textContent = 'OPENING PROFILE...';
           setTimeout(() => window.location.href = `result.html?code=${key}`, 500);
         } else {
           updateStatus('ACCESS_DENIED · INVALID_OR_EXPIRED_KEY', 'error');
+          GamingEffects.screenGlitch(200);
+          GamingEffects.showError('Invalid or Expired Key');
           document.getElementById('vaultInput').style.borderColor = 'var(--error)';
           setTimeout(() => document.getElementById('vaultInput').style.borderColor = '', 2000);
           btn.disabled = false;

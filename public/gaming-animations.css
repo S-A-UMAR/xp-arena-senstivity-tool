@@ -1,0 +1,585 @@
+/* ╔══════════════════════════════════════════════════════════╗
+   ║   AXP NEXUS GAMING — ANIMATIONS & EFFECTS                ║
+   ║   Enhanced immersive experience with keyframes           ║
+   ╚══════════════════════════════════════════════════════════╝ */
+
+/* ─── KEYFRAME LIBRARY ────────────────────────────────────────── */
+
+/* Pulse & Glow Effects */
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(0, 242, 254, 0.3),
+                inset 0 0 20px rgba(0, 242, 254, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(0, 242, 254, 0.6),
+                inset 0 0 30px rgba(0, 242, 254, 0.2);
+  }
+}
+
+@keyframes pulse-glow-violet {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(168, 85, 247, 0.3),
+                inset 0 0 20px rgba(168, 85, 247, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(168, 85, 247, 0.6),
+                inset 0 0 30px rgba(168, 85, 247, 0.2);
+  }
+}
+
+@keyframes pulse-glow-gold {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(245, 158, 11, 0.3),
+                inset 0 0 20px rgba(245, 158, 11, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(245, 158, 11, 0.6),
+                inset 0 0 30px rgba(245, 158, 11, 0.2);
+  }
+}
+
+/* Scan Line Effect */
+@keyframes scan-line {
+  0%, 100% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* Neon Border Animation */
+@keyframes neon-flicker {
+  0%, 100% {
+    text-shadow: 0 0 10px rgba(0, 242, 254, 0.8),
+                 0 0 20px rgba(0, 242, 254, 0.4),
+                 0 0 30px rgba(168, 85, 247, 0.2);
+  }
+  50% {
+    text-shadow: 0 0 5px rgba(0, 242, 254, 0.4),
+                 0 0 10px rgba(0, 242, 254, 0.2);
+  }
+}
+
+/* Matrix Rain */
+@keyframes matrix-rain {
+  0% {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh);
+    opacity: 0;
+  }
+}
+
+/* Slide In from Top */
+@keyframes slide-in-top {
+  from {
+    transform: translateY(-30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Slide In from Bottom */
+@keyframes slide-in-bottom {
+  from {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Slide In from Left */
+@keyframes slide-in-left {
+  from {
+    transform: translateX(-40px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Slide In from Right */
+@keyframes slide-in-right {
+  from {
+    transform: translateX(40px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Fade In Scale */
+@keyframes fade-in-scale {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Rotate In */
+@keyframes rotate-in {
+  from {
+    transform: rotate(-10deg) scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: rotate(0) scale(1);
+    opacity: 1;
+  }
+}
+
+/* Bounce */
+@keyframes bounce-soft {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+/* Shimmer Effect */
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+/* Decryption Loading */
+@keyframes decryption-load {
+  0% {
+    width: 0%;
+  }
+  100% {
+    width: 100%;
+  }
+}
+
+/* Floating Animation */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+/* Heartbeat */
+@keyframes heartbeat {
+  0%, 100% {
+    transform: scale(1);
+  }
+  14% {
+    transform: scale(1.1);
+  }
+  28% {
+    transform: scale(1);
+  }
+}
+
+/* Particle Burst */
+@keyframes burst {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--tx), var(--ty)) scale(0);
+    opacity: 0;
+  }
+}
+
+/* Neon Border Glow */
+@keyframes neon-border-glow {
+  0%, 100% {
+    border-color: rgba(0, 242, 254, 0.3);
+    box-shadow: 0 0 10px rgba(0, 242, 254, 0.2),
+                inset 0 0 10px rgba(0, 242, 254, 0.05);
+  }
+  50% {
+    border-color: rgba(0, 242, 254, 0.8);
+    box-shadow: 0 0 30px rgba(0, 242, 254, 0.5),
+                inset 0 0 20px rgba(0, 242, 254, 0.1);
+  }
+}
+
+/* ─── ANIMATION UTILITIES ───────────────────────────────────── */
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+.animate-pulse-glow-violet {
+  animation: pulse-glow-violet 2s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+.animate-pulse-glow-gold {
+  animation: pulse-glow-gold 2s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+.animate-scan-line {
+  animation: scan-line 2s ease-in-out infinite;
+}
+
+.animate-neon-flicker {
+  animation: neon-flicker 3s ease-in-out infinite;
+}
+
+.animate-matrix-rain {
+  animation: matrix-rain 8s linear infinite;
+}
+
+.animate-slide-in-top {
+  animation: slide-in-top 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.animate-slide-in-bottom {
+  animation: slide-in-bottom 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.animate-slide-in-left {
+  animation: slide-in-left 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.animate-fade-in-scale {
+  animation: fade-in-scale 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.animate-rotate-in {
+  animation: rotate-in 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.animate-bounce-soft {
+  animation: bounce-soft 2s ease-in-out infinite;
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite;
+  background-size: 1000px 100%;
+}
+
+.animate-decryption {
+  animation: decryption-load 1.5s ease-out forwards;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-heartbeat {
+  animation: heartbeat 1.3s ease-in-out infinite;
+}
+
+.animate-neon-border-glow {
+  animation: neon-border-glow 2s ease-in-out infinite;
+}
+
+/* ─── TRANSITION UTILITIES ──────────────────────────────────── */
+
+.transition-smooth {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.transition-fast {
+  transition: all 0.15s ease-out;
+}
+
+.transition-slow {
+  transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Specific property transitions */
+.transition-colors {
+  transition: color, background-color, border-color 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.transition-transform {
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.transition-opacity {
+  transition: opacity 0.3s ease-out;
+}
+
+.transition-all-fast {
+  transition: all 0.15s ease-in-out;
+}
+
+/* ─── HOVER & INTERACTIVE EFFECTS ──────────────────────────── */
+
+.hover-glow:hover {
+  box-shadow: 0 0 20px rgba(0, 242, 254, 0.4),
+              inset 0 0 15px rgba(0, 242, 254, 0.1);
+}
+
+.hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+}
+
+.hover-scale:hover {
+  transform: scale(1.05);
+}
+
+.hover-scale-sm:hover {
+  transform: scale(1.02);
+}
+
+.hover-brighten:hover {
+  filter: brightness(1.2);
+}
+
+/* ─── LOADING STATES ────────────────────────────────────────── */
+
+.loading-spinner {
+  border: 2px solid rgba(0, 242, 254, 0.15);
+  border-top: 2px solid var(--cyan);
+  border-radius: 50%;
+  animation: rotate 1s linear infinite;
+}
+
+@keyframes rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-dots {
+  display: flex;
+  gap: 4px;
+}
+
+.loading-dots span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--cyan);
+  animation: loading-bounce 1.4s infinite;
+}
+
+.loading-dots span:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.loading-dots span:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
+@keyframes loading-bounce {
+  0%, 80%, 100% {
+    transform: scale(0);
+    opacity: 0.5;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* ─── PARALLAX & DEPTH ──────────────────────────────────────── */
+
+.parallax-slow {
+  animation: parallax-slow 20s ease-in-out infinite;
+}
+
+@keyframes parallax-slow {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(20px);
+  }
+}
+
+.parallax-medium {
+  animation: parallax-medium 15s ease-in-out infinite;
+}
+
+@keyframes parallax-medium {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(10px);
+  }
+}
+
+/* ─── TEXT EFFECTS ──────────────────────────────────────────── */
+
+.text-glow-cyan {
+  text-shadow: 0 0 10px rgba(0, 242, 254, 0.6),
+               0 0 20px rgba(0, 242, 254, 0.3),
+               0 0 30px rgba(0, 242, 254, 0.1);
+}
+
+.text-glow-violet {
+  text-shadow: 0 0 10px rgba(168, 85, 247, 0.6),
+               0 0 20px rgba(168, 85, 247, 0.3),
+               0 0 30px rgba(168, 85, 247, 0.1);
+}
+
+.text-glow-gold {
+  text-shadow: 0 0 10px rgba(245, 158, 11, 0.6),
+               0 0 20px rgba(245, 158, 11, 0.3),
+               0 0 30px rgba(245, 158, 11, 0.1);
+}
+
+/* Glitch Effect */
+.glitch-text {
+  position: relative;
+  color: var(--cyan);
+}
+
+.glitch-text::before,
+.glitch-text::after {
+  content: attr(data-text);
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.glitch-text::before {
+  animation: glitch-1 0.3s infinite;
+  color: var(--cyan);
+  z-index: -1;
+}
+
+.glitch-text::after {
+  animation: glitch-2 0.3s infinite;
+  color: var(--violet);
+  z-index: -2;
+}
+
+@keyframes glitch-1 {
+  0% {
+    clip-path: inset(40% 0 61% 0);
+    transform: translate(-2px, -2px);
+  }
+  20% {
+    clip-path: inset(92% 0 1% 0);
+    transform: translate(2px, 2px);
+  }
+  40% {
+    clip-path: inset(43% 0 1% 0);
+    transform: translate(-2px, 2px);
+  }
+  60% {
+    clip-path: inset(25% 0 58% 0);
+    transform: translate(2px, -2px);
+  }
+  80% {
+    clip-path: inset(54% 0 7% 0);
+    transform: translate(-2px, -2px);
+  }
+  100% {
+    clip-path: inset(58% 0 43% 0);
+    transform: translate(2px, 2px);
+  }
+}
+
+@keyframes glitch-2 {
+  0% {
+    clip-path: inset(27% 0 58% 0);
+    transform: translate(2px, 2px);
+  }
+  20% {
+    clip-path: inset(1% 0 25% 0);
+    transform: translate(-2px, -2px);
+  }
+  40% {
+    clip-path: inset(58% 0 20% 0);
+    transform: translate(2px, -2px);
+  }
+  60% {
+    clip-path: inset(50% 0 30% 0);
+    transform: translate(-2px, 2px);
+  }
+  80% {
+    clip-path: inset(61% 0 2% 0);
+    transform: translate(2px, 2px);
+  }
+  100% {
+    clip-path: inset(1% 0 58% 0);
+    transform: translate(-2px, -2px);
+  }
+}
+
+/* ─── MODAL & OVERLAY ANIMATIONS ───────────────────────────── */
+
+.modal-overlay {
+  animation: fade-in 0.3s ease-out;
+}
+
+.modal-content {
+  animation: slide-in-bottom 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ─── RESPONSIVE ANIMATIONS ────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Mobile Optimizations */
+@media (max-width: 768px) {
+  .animate-matrix-rain {
+    animation: matrix-rain 6s linear infinite;
+  }
+
+  .parallax-slow,
+  .parallax-medium {
+    animation: none;
+  }
+}
