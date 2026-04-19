@@ -1,0 +1,226 @@
+/* ╔══════════════════════════════════════════════════════════╗
+   ║         AXP NEXUS — MOBILE & POLISH OPTIMIZATIONS        ║
+   ║         Performance, Responsiveness, Sound Effects       ║
+   ╚══════════════════════════════════════════════════════════╝ */
+
+/* ─── MOBILE OPTIMIZATIONS ───────────────────────────────────── */
+
+/* Reduce animations on low-performance devices */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+  button, .btn-cta, .node-btn, input, select, textarea {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  .btn-cta, .node-btn, .registry-node button {
+    padding: 0.9rem 1.2rem;
+  }
+  
+  /* Disable hover states on touch devices */
+  button:hover, .btn-cta:hover, .node-btn:hover {
+    transform: none;
+    box-shadow: initial;
+  }
+  
+  /* Larger tap targets */
+  .node-meta-item, .node-actions button {
+    padding: 1rem;
+  }
+}
+
+/* Dark mode native support for OLED phones */
+@media (prefers-color-scheme: dark) {
+  body { background-color: #000000; }
+  html { background-color: #000000; }
+}
+
+/* Landscape mode adjustments */
+@media (max-height: 500px) {
+  .vault-card { padding: 1.5rem 1.5rem; }
+  .title-main { font-size: 1.2rem; margin-bottom: 0.5rem; }
+  .vault-input { padding: 0.8rem; }
+  .vault-enter-btn { padding: 0.8rem; }
+}
+
+/* Tablet & iPad optimizations */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .registry-node { max-width: calc(50% - 0.5rem); }
+  
+  .node-meta {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+  
+  .node-actions {
+    flex-wrap: wrap;
+  }
+}
+
+/* Large screens */
+@media (min-width: 1440px) {
+  .registry-node { max-width: calc(33.333% - 0.67rem); }
+  
+  .page-wrap { max-width: 1400px; margin: 0 auto; }
+}
+
+/* Smaller phones (iPhone SE, 5s) */
+@media (max-width: 380px) {
+  .vault-card { padding: 1.5rem 1rem; max-width: 100%; }
+  .vault-input { font-size: 0.9rem; padding: 0.75rem; }
+  .vault-enter-btn { font-size: 0.8rem; padding: 0.9rem; }
+  .title-main { font-size: 1.1rem; }
+  .status-line { font-size: 0.65rem; }
+  .node-meta-label { font-size: 0.5rem; }
+  .node-btn { padding: 0.6rem; font-size: 0.65rem; }
+}
+
+/* Foldable devices */
+@media (fold-left: 0px) {
+  body { display: flex; }
+  .page-wrap { flex: 1; }
+}
+
+/* ─── PERFORMANCE OPTIMIZATIONS ──────────────────────────────── */
+
+/* GPU acceleration for smooth animations */
+.animate-slide-in-left,
+.animate-pulse-glow,
+.scaleIn,
+.fade-in-scale,
+.anim-up {
+  will-change: transform, opacity;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* Optimize large lists */
+.registry-container {
+  contain: layout style paint;
+}
+
+.registry-node {
+  contain: layout style paint;
+}
+
+/* Reduce reflow on dynamic updates */
+.vault-card, .node-actions {
+  contain: layout style;
+}
+
+/* ─── ACCESSIBILITY & POLISH ─────────────────────────────────── */
+
+/* Focus visible states for keyboard navigation */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: 2px;
+  border-radius: var(--r-md);
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: more) {
+  body {
+    border: 1px solid var(--bd-mid);
+  }
+  
+  button, .btn-cta, .node-btn {
+    border: 1px solid currentColor;
+  }
+}
+
+/* Reduced opacity for low-vision users */
+@media (prefers-contrast: less) {
+  .opacity-20 { opacity: 0.3; }
+}
+
+/* ─── SOUND EFFECTS INTEGRATION ──────────────────────────────── */
+
+/* Audio file references for SFX system */
+:root {
+  --sfx-click: url('/sfx/click.mp3');
+  --sfx-success: url('/sfx/success.mp3');
+  --sfx-error: url('/sfx/error.mp3');
+  --sfx-glitch: url('/sfx/glitch.mp3');
+  --sfx-achieve: url('/sfx/achievement.mp3');
+  --sfx-decrypt: url('/sfx/decryption.mp3');
+}
+
+/* ─── PRINT STYLES ───────────────────────────────────────────── */
+
+@media print {
+  body {
+    background: white;
+    color: black;
+  }
+  
+  .btn-cta, button, .node-btn {
+    display: none;
+  }
+  
+  .vault-card, .registry-node {
+    box-shadow: none;
+    border: 1px solid black;
+  }
+  
+  .animate-pulse-glow, .animate-slide-in-left {
+    animation: none;
+  }
+}
+
+/* ─── NETWORK AWARE OPTIMIZATION ─────────────────────────────── */
+
+/* Reduce motion on slow connections */
+@media (prefers-reduced-data: reduce) {
+  .gaming-animations,
+  .animate-pulse-glow,
+  .particle-system {
+    display: none;
+  }
+  
+  * {
+    animation-duration: 0s !important;
+    transition-duration: 100ms !important;
+  }
+}
+
+/* ─── VIEWPORT META TAG HELPER ──────────────────────────────── */
+
+/* Ensures proper scaling on all devices */
+html {
+  viewport-fit: cover;
+}
+
+body {
+  padding-bottom: max(1rem, var(--safe-b));
+  padding-left: max(1rem, env(safe-area-inset-left));
+  padding-right: max(1rem, env(safe-area-inset-right));
+}
+
+/* Safe area for notched devices */
+@supports (padding: max(0px)) {
+  .vault-card {
+    margin: max(1rem, var(--safe-t)) auto 0;
+  }
+}
+
+/* ─── DARK MODE NATIVE SUPPORT ──────────────────────────────── */
+
+@media (color-gamut: p3) {
+  :root {
+    --cyan: color(display-p3 0 0.95 1);
+    --violet: color(display-p3 0.66 0.33 0.97);
+    --gold: color(display-p3 0.96 0.62 0.07);
+  }
+}

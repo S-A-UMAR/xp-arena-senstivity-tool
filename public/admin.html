@@ -6,6 +6,9 @@
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <title>AXP | MASTER COMMAND</title>
   <link rel="stylesheet" href="design-system.css">
+  <link rel="stylesheet" href="gaming-animations.css">
+  <link rel="stylesheet" href="gaming-components.css">
+  <link rel="stylesheet" href="mobile-polish.css">
   <style>
     :root { --gold-border: rgba(245,158,11,0.22); --gold-glow: rgba(245,158,11,0.3); }
 
@@ -571,6 +574,7 @@
   <!-- ══════════════════ SCRIPTS ══════════════════ -->
   <script src="vendor/html2canvas.min.js"></script>
   <script src="nexus-auth.js"></script>
+  <script src="gaming-effects.js"></script>
   <script src="devices.js?v=3"></script>
   <script src="translations.js"></script>
   <script src="notifications.js"></script>
@@ -863,13 +867,13 @@
         const daysLeft = v.seconds_left != null ? Math.max(0, Math.floor(v.seconds_left / 86400)) : null;
         const color = tierColor[tier] || '#00e5ff';
         return `
-          <div class="registry-node anim-up">
+          <div class="registry-node anim-up animate-slide-in-left">
             <div class="node-header">
               <div>
                 <div style="font-size:0.5rem; color:${color}; font-weight:900; letter-spacing:0.1em; margin-bottom:3px;">${tier.toUpperCase()}_NODE · ${esc(v.org_id || 'AXP_CORE')}</div>
                 <div class="node-title">${esc(v.vendor_id.toUpperCase())}</div>
               </div>
-              <div class="node-status ${v.status === 'active' ? 'status-active' : 'status-suspended'}">${v.status.toUpperCase()}</div>
+              <div class="node-status ${v.status === 'active' ? 'status-active animate-pulse-glow' : 'status-suspended'}">${v.status.toUpperCase()}</div>
             </div>
             <div class="node-meta">
               <div class="node-meta-item">
@@ -886,14 +890,21 @@
               </div>
             </div>
             <div class="node-actions">
-              <button class="node-btn" onclick="showAnalytics('${esc(v.vendor_id)}',${v.total_codes||0},${v.total_usage||0})">LOGS</button>
-              <button class="node-btn" onclick="toggleStatus('${esc(v.vendor_id)}','${v.status}')">${v.status === 'active' ? 'SUSPEND' : 'RESTORE'}</button>
-              <button class="node-btn" onclick="downloadExistingVendorCard('${esc(v.vendor_id)}','${tier}','${daysLeft!=null?daysLeft:\"∞\"}')">ID CARD</button>
-              <button class="node-btn danger" onclick="deleteVendor('${esc(v.vendor_id)}')">ERASE</button>
+              <button class="node-btn" onclick="showAnalytics('${esc(v.vendor_id)}',${v.total_codes||0},${v.total_usage||0}); GamingEffects.screenGlitch(100);">LOGS</button>
+              <button class="node-btn" onclick="toggleStatus('${esc(v.vendor_id)}','${v.status}'); GamingEffects.screenGlitch(150);">${v.status === 'active' ? 'SUSPEND' : 'RESTORE'}</button>
+              <button class="node-btn" onclick="downloadExistingVendorCard('${esc(v.vendor_id)}','${tier}','${daysLeft!=null?daysLeft:\"∞\"}'); GamingEffects.showSuccess('ID Card Downloaded');">ID CARD</button>
+              <button class="node-btn danger" onclick="deleteVendor('${esc(v.vendor_id)}'); GamingEffects.screenGlitch(200);">ERASE</button>
             </div>
           </div>
         `;
       }).join('');
+      
+      // Add animations to newly rendered cards
+      setTimeout(() => {
+        document.querySelectorAll('.registry-node').forEach((node, idx) => {
+          node.style.animationDelay = (idx * 0.1) + 's';
+        });
+      }, 0);
     }
 
     // ── Vendor Actions ────────────────────────────────────────────
@@ -906,6 +917,7 @@
 
       const btn = document.querySelector('#vendorSheet .btn-cta');
       btn.textContent = 'PROVISIONING...'; btn.disabled = true;
+      GamingEffects.showLoadingBar(1500);
       try {
         const res = await api('/api/vault/admin/vendors', 'POST', {
           vendorId: vid,
@@ -926,9 +938,12 @@
         `;
         toggleActionSheet(false);
         document.getElementById('vendorSuccessOverlay').classList.add('active');
+        GamingEffects.createParticles(btn, 25, 'gold');
+        GamingEffects.showSuccess('Vendor Node Provisioned!');
         loadDashboard();
       } catch(e) {
         if (window.notify) window.notify(e.message, 'error');
+        GamingEffects.showError('Provisioning Failed');
       } finally {
         btn.textContent = 'INITIALIZE_NODE_PROVISION'; btn.disabled = false;
       }
@@ -997,7 +1012,7 @@
       document.body.removeChild(wrapper);
     }
 
-    // ── Vendor Logs Modal ────────────────────────────────���────────
+    // ── Vendor Logs Modal ──────────────────────────��─────���────────
     async function showAnalytics(vid, codes, usage) {
       document.getElementById('modalTitle').textContent = `LOGS_${vid.toUpperCase()}`;
       document.getElementById('vCodes').textContent = codes;
@@ -1129,7 +1144,7 @@
       if (window.notify) window.notify('COPIED_TO_CLIPBOARD', 'success');
     }
 
-    // ── Boot ──────────────────────────────────────────────────────
+    // ── Boot ───────────────────────────────��──────────────────────
     document.addEventListener('DOMContentLoaded', async () => {
       // Wrap in try-catch to prevent page freeze on boot
       try {
