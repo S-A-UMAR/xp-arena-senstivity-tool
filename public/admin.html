@@ -72,6 +72,12 @@
       border-top: 1px solid rgba(245,158,11,0.12);
       display: flex; justify-content: space-around; align-items: center;
       padding-bottom: env(safe-area-inset-bottom); z-index: 900;
+      box-shadow: 0 -10px 40px rgba(0,0,0,0.4);
+    }
+    
+    /* Main container padding for mobile navigation */
+    .admin-main-view {
+      padding-bottom: 100px;
     }
     .anav-item {
       display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -563,7 +569,7 @@
   </div>
 
   <!-- ══════════════════ SCRIPTS ══════════════════ -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="vendor/html2canvas.min.js"></script>
   <script src="nexus-auth.js"></script>
   <script src="devices.js?v=3"></script>
   <script src="translations.js"></script>
@@ -1125,17 +1131,22 @@
 
     // ── Boot ──────────────────────────────────────────────────────
     document.addEventListener('DOMContentLoaded', async () => {
-      document.getElementById('adminPass').addEventListener('keydown', e => {
-        if (e.key === 'Enter') checkPass();
-      });
-
+      // Wrap in try-catch to prevent page freeze on boot
       try {
+        const adminPass = document.getElementById('adminPass');
+        if (adminPass) {
+          adminPass.addEventListener('keydown', e => {
+            if (e.key === 'Enter') checkPass();
+          });
+        }
+
         const probe = await adminFetch('/api/vault/admin/stats', { autoRedirect401: false });
         if (!probe.ok) throw new Error(`ADMIN_BOOT_${probe.status}`);
         unlockAdminPanel();
       } catch (err) {
+        console.warn('ADMIN_GATE_ACTIVE:', err.message);
         showAdminGate();
-        if (window.notify) window.notify('ADMIN_SESSION_REQUIRED — ENTER_ADMIN_SECRET', 'error');
+        if (window.notify) window.notify('ADMIN_SESSION_REQUIRED', 'error');
       }
     });
   </script>

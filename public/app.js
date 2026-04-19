@@ -120,7 +120,7 @@ const UI = {
         vaultAuthBtn?.addEventListener('click', () => this.verifyVault(vaultInput.value.trim().toUpperCase()));
     },
 
-    async initPulse() {
+    initPulse: async function() {
         const stack = document.getElementById('pulseStack');
         if (!stack) return;
 
@@ -238,7 +238,7 @@ const UI = {
         } catch (_err) {}
     },
 
-    async verifyVault(code) {
+    verifyVault: async function(code) {
         if (!code || this.verifying) return;
 
         const status = this.elements.vaultStatus;

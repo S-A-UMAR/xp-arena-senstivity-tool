@@ -243,9 +243,7 @@ async function checkSoftBan(req, res, next) {
 
 async function authenticateAdmin(req, res, next) {
     try {
-        const adminSecret = await getAdminSecret();
-        if (!adminSecret) return res.status(503).json({ error: 'ADMIN_SECRET_NOT_CONFIGURED' });
-
+        const secret = await getJwtSecret();
         const whitelist = process.env.ADMIN_IP_WHITELIST;
         if (whitelist && whitelist !== '*') {
             const allowedIps = whitelist.split(',').map((ip) => ip.trim().replace('::ffff:', '')).filter(Boolean);
@@ -256,7 +254,7 @@ async function authenticateAdmin(req, res, next) {
 
         const token = req.cookies.xp_admin_token || parseBearer(req.headers.authorization);
         if (!token) return res.status(401).json({ error: 'Unauthorized' });
-        const payload = jwt.verify(token, adminSecret);
+        const payload = jwt.verify(token, secret);
         if (payload.role !== 'admin') return res.status(401).json({ error: 'Unauthorized' });
         return next();
     } catch (_err) {
@@ -400,7 +398,7 @@ async function getCodeStatusFromShareToken(shareToken) {
 
 async function createVendorCode(vendorId, results, creatorAdvice = null, preferredCode = null) {
     await ensureKeyStorageCapacity();
-    const rawCode = preferredCode || `XP-${vendorId.toUpperCase()}-${Math.floor(100000 + Math.random() * 900000)}`;
+    const rawCode = preferredCode || `AXP-${vendorId.toUpperCase()}-${Math.floor(100000 + Math.random() * 900000)}`;
     const lookupKey = getLookupKey(rawCode);
     const hashedCode = await bcrypt.hash(rawCode, 10);
 
@@ -614,8 +612,9 @@ router.post('/verify', async (req, res) => {
         }
 
         const adminSecret = await getAdminSecret();
-        if (adminSecret && input === adminSecret) {
-            const token = jwt.sign({ role: 'admin' }, adminSecret, { expiresIn: '1d' });
+        if (adminSecret && (input === adminSecret || await bcrypt.compare(input, adminSecret).catch(()=>false))) {
+            const secret = await getJwtSecret();
+            const token = jwt.sign({ role: 'admin' }, secret, { expiresIn: '1d' });
             res.cookie('xp_admin_token', token, {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === 'production',
@@ -623,7 +622,7 @@ router.post('/verify', async (req, res) => {
                 path: '/',
                 maxAge: 24 * 60 * 60 * 1000
             });
-            return res.json({ type: 'admin', redirect: '/admin.html', message: 'MASTER ACCESS GRANTED' });
+            return res.json({ type: 'admin', redirect: '/admin.html', token, message: 'MASTER ACCESS GRANTED' });
         }
 
         let blocked = false;
@@ -743,7 +742,8 @@ router.post('/admin/login', async (req, res, next) => {
         const { password } = z.object({ password: z.string().min(4) }).parse(req.body || {});
         const isMatch = password === adminSecret || await bcrypt.compare(password, adminSecret);
         if (!isMatch) return res.status(401).json({ error: 'Unauthorized' });
-        const token = jwt.sign({ role: 'admin' }, adminSecret, { expiresIn: '1d' });
+        const secret = await getJwtSecret();
+        const token = jwt.sign({ role: 'admin' }, secret, { expiresIn: '1d' });
         res.cookie('xp_admin_token', token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
@@ -1488,14 +1488,21 @@ router.post('/admin/revoke-global', authenticateAdmin, async (req, res) => {
 router.get('/admin/vendors', authenticateAdmin, async (_req, res) => {
     try {
         const accounts = await db.all(`
-            SELECT a.vendor_id, a.display_name, a.status, a.tier, a.created_at,
-                   GREATEST(0, TIMESTAMPDIFF(SECOND, NOW(), a.active_until)) as seconds_left,
+            SELECT a.vendor_id, a.status, a.tier, a.created_at, a.brand_config,
+                   GREATEST(0, COALESCE(TIMESTAMPDIFF(SECOND, NOW(), a.active_until), 0)) as seconds_left,
                    (SELECT COUNT(*) FROM sensitivity_keys WHERE vendor_id = a.vendor_id) as total_codes,
                    (SELECT COUNT(*) FROM code_activity ca JOIN sensitivity_keys sk ON ca.lookup_key = sk.lookup_key WHERE sk.vendor_id = a.vendor_id) as total_usage
             FROM vendors a
             ORDER BY a.created_at DESC
         `);
-        return res.json(accounts.map((account) => ({ ...account, brand_config: jsonOrObject(account.brand_config, {}) })));
+        return res.json(accounts.map((account) => {
+            const config = jsonOrObject(account.brand_config, {});
+            return { 
+                ...account, 
+                display_name: config.display_name || account.vendor_id,
+                brand_config: config 
+            };
+        }));
     } catch (err) {
         console.error('GET /admin/vendors error:', err);
         return res.status(500).json({ error: 'Server error' });
@@ -1548,7 +1555,7 @@ router.post('/admin/vendors', authenticateAdmin, async (req, res) => {
         await ensureKeyStorageCapacity();
 
         const randomDigits = Math.floor(1000 + Math.random() * 9000);
-        const accessKey = `XP-${vendorId}-${randomDigits}`;
+        const accessKey = `AXP-${vendorId}-${randomDigits}`;
         const hashedAccessKey = await bcrypt.hash(accessKey, 10);
         const lookupKey = getLookupKey(accessKey);
 

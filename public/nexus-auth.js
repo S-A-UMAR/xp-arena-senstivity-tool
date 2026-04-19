@@ -7,22 +7,22 @@ class NexusAuth {
      * Get the current authorization token.
      */
     static getToken() {
-        return localStorage.getItem(this.TOKEN_KEY);
+        return localStorage.getItem(NexusAuth.TOKEN_KEY);
     }
 
     /**
      * Save the authorization token and handle session cookie if needed.
      */
     static setToken(token) {
-        if (!token) return this.logout();
-        localStorage.setItem(this.TOKEN_KEY, token);
+        if (!token) return NexusAuth.logout();
+        localStorage.setItem(NexusAuth.TOKEN_KEY, token);
     }
 
     /**
      * Clear session and redirect to login.
      */
     static logout() {
-        localStorage.removeItem(this.TOKEN_KEY);
+        localStorage.removeItem(NexusAuth.TOKEN_KEY);
         // Optional: clear session cookie via server call if needed
         window.location.href = 'index.html?logout=true';
     }
@@ -31,7 +31,7 @@ class NexusAuth {
      * Enhanced fetch with automatic authorization and error handling.
      */
     static async fetch(url, options = {}) {
-        const token = this.getToken();
+        const token = NexusAuth.getToken();
         const headers = {
             'Content-Type': 'application/json',
             ...(options.headers || {})
@@ -68,7 +68,7 @@ class NexusAuth {
      * Check if the user is authenticated.
      */
     static isAuthenticated() {
-        return !!this.getToken();
+        return !!NexusAuth.getToken();
     }
 }
 
