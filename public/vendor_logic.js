@@ -205,11 +205,11 @@ const VendorLogic = {
                     background: linear-gradient(165deg, #0f172a 0%, #020617 100%);
                     border: 2px solid var(--accent-primary);
                     border-radius: 40px;
-                    padding: 3rem 2rem;
-                    margin-bottom: 2rem;
+                    padding: 2rem 1.5rem;
+                    margin-bottom: 1.5rem;
                     position: relative;
                     overflow: hidden;
-                    aspect-ratio: 2 / 3.2;
+                    aspect-ratio: 2 / 2.8;
                     display: flex;
                     flex-direction: column;
                     align-items: center;
@@ -220,7 +220,7 @@ const VendorLogic = {
                     <div style="position: absolute; inset: 0; opacity: 0.05; background-image: radial-gradient(var(--accent-primary) 1px, transparent 1px); background-size: 20px 20px;"></div>
                     <div style="position: absolute; top:0; left:0; width: 100%; height: 4px; background: var(--accent-primary); opacity: 0.3;"></div>
                     
-                    <div style="width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem;">
+                    <div style="width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                         <div style="font-family: var(--font-mono); font-size: 0.6rem; color: var(--accent-primary); letter-spacing: 0.3em; font-weight: 900;">AXP_NEXUS_REGISTRY</div>
                         <div style="background: var(--accent-primary); color: #000; font-size: 0.5rem; padding: 4px 10px; border-radius: 8px; font-weight: 900;">SECURE</div>
                     </div>
@@ -301,11 +301,11 @@ const VendorLogic = {
                     background: linear-gradient(165deg, #0f172a 0%, #020617 100%);
                     border: 2px solid var(--accent-primary);
                     border-radius: 40px;
-                    padding: 3rem 2.5rem;
-                    margin-bottom: 2rem;
+                    padding: 2rem 1.5rem;
+                    margin-bottom: 1.5rem;
                     position: relative;
                     overflow: hidden;
-                    aspect-ratio: 2 / 3.2;
+                    aspect-ratio: 2 / 2.8;
                     display: flex;
                     flex-direction: column;
                     align-items: center;
@@ -316,7 +316,7 @@ const VendorLogic = {
                     <div style="position: absolute; inset: 0; opacity: 0.05; background-image: radial-gradient(var(--accent-primary) 1px, transparent 1px); background-size: 20px 20px;"></div>
                     <div style="position: absolute; top:0; left:0; width: 100%; height: 4px; background: var(--accent-primary); opacity: 0.3;"></div>
                     
-                    <div style="width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem;">
+                    <div style="width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                         <div style="font-family: var(--font-mono); font-size: 0.6rem; color: var(--accent-primary); letter-spacing: 0.3em; font-weight: 900;">MASTER_OPERATOR_ID</div>
                         <div style="background: var(--accent-primary); color: #000; font-size: 0.5rem; padding: 4px 10px; border-radius: 8px; font-weight: 900;">AUTHORIZED</div>
                     </div>

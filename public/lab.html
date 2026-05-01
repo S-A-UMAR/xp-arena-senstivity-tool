@@ -236,29 +236,61 @@
       opacity: 0.8;
     }
 
-    .cert-seal {
-      position: absolute;
-      top: -20px;
-      right: -20px;
-      width: 120px;
-      height: 120px;
-      opacity: 0.05;
-      pointer-events: none;
-      transform: rotate(15deg);
+    .id-seal {
+      background: rgba(0, 242, 254, 0.05);
+      border: 1px dashed rgba(0, 242, 254, 0.3);
+      padding: 1rem 2rem;
+      border-radius: 16px;
+      font-family: var(--font-mono);
+      font-size: 1.25rem;
+      font-weight: 900;
+      letter-spacing: 0.2em;
+      color: var(--lab-cyan);
+      margin: 1.5rem 0;
+      display: inline-block;
+      text-shadow: 0 0 10px rgba(0, 242, 254, 0.5);
+      animation: pulse 2s infinite;
     }
 
-    .id-seal {
-      background: rgba(0,0,0,0.3);
-      border: 1px dashed rgba(255,255,255,0.1);
-      padding: 0.75rem 1.5rem;
-      border-radius: 12px;
+    /* Result Card Premium Upgrades */
+    .diagnostic-card {
+      background: linear-gradient(165deg, rgba(15, 23, 42, 0.95), rgba(2, 6, 23, 0.98));
+      border: 1px solid rgba(0, 242, 254, 0.2);
+      box-shadow: 0 50px 100px rgba(0,0,0,0.9), 0 0 40px rgba(0, 242, 254, 0.1);
+      transform-style: preserve-3d;
+      perspective: 1000px;
+    }
+
+    .diagnostic-val {
+      font-size: 4.5rem;
+      background: linear-gradient(to bottom, #fff, var(--lab-cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 0 15px rgba(0, 242, 254, 0.4));
+    }
+
+    .advisor-box {
+      background: rgba(0, 0, 0, 0.4) !important;
+      border: 1px solid rgba(0, 242, 254, 0.1) !important;
+      position: relative;
+      padding: 1.5rem !important;
+    }
+    .advisor-box::before {
+      content: 'SYSTEM_ANALYSIS';
+      position: absolute;
+      top: -8px; left: 16px;
+      background: #020617;
+      padding: 0 8px;
+      font-size: 0.5rem;
       font-family: var(--font-mono);
-      font-size: 1rem;
-      font-weight: 900;
-      letter-spacing: 0.1em;
       color: var(--lab-cyan);
-      margin: 2rem 0;
-      display: inline-block;
+      letter-spacing: 0.2em;
+    }
+
+    .gauge-ring-outer {
+      fill: none;
+      stroke: rgba(0, 242, 254, 0.03);
+      stroke-width: 2;
     }
 
     /* Laser effect on click */
@@ -455,6 +487,7 @@
       
       <div class="diagnostic-gauge-wrap">
         <svg class="gauge-svg" viewBox="0 0 160 160">
+          <circle class="gauge-ring-outer" cx="80" cy="80" r="76" />
           <circle class="gauge-bg" cx="80" cy="80" r="70" />
           <circle id="gaugeFill" class="gauge-fill" cx="80" cy="80" r="70" />
         </svg>
@@ -464,18 +497,25 @@
         </div>
       </div>
       
-      <div class="flex flex-col gap-2 mb-8 px-4">
-        <div class="flex justify-between text-[0.65rem] font-mono font-bold">
-          <span class="text-ghost uppercase">Precision_Stability</span>
-          <span id="finalPrecision" class="text-cyan">--%</span>
+      <div class="flex flex-col gap-3 mb-10 px-4">
+        <div class="flex justify-between items-end">
+          <div>
+            <div class="text-[0.5rem] font-mono opacity-40 uppercase tracking-tighter">Precision_Stability</div>
+            <div id="finalPrecision" class="text-xl font-black text-cyan">--%</div>
+          </div>
+          <div class="text-right">
+            <div class="text-[0.5rem] font-mono opacity-40 uppercase tracking-tighter">Sync_Rating</div>
+            <div id="finalRating" class="text-[0.6rem] font-black text-white bg-white-10 px-2 py-0.5 rounded">STABLE</div>
+          </div>
         </div>
-        <div class="skeleton-h sm w-full" style="height: 6px;"><div id="precisionBar" class="stat-bar-fill" style="background:var(--lab-cyan); width:0%; box-shadow: 0 0 15px var(--lab-glow);"></div></div>
+        <div class="skeleton-h sm w-full" style="height: 8px; background: rgba(255,255,255,0.03); border-radius: 4px; overflow: hidden;">
+          <div id="precisionBar" class="stat-bar-fill" style="background:linear-gradient(90deg, var(--lab-cyan), var(--lab-violet)); width:0%; box-shadow: 0 0 20px var(--lab-glow); height: 100%;"></div>
+        </div>
       </div>
 
       <!-- Neural Advisor Narrative -->
-      <div id="neuralNarrative" class="mb-8 p-4 rounded-2xl" style="background: rgba(0, 242, 254, 0.03); border: 1px solid rgba(0, 242, 254, 0.1);">
-        <div class="text-[0.6rem] font-black text-cyan tracking-widest uppercase mb-2">NEURAL_ADVISOR_COMMENTARY</div>
-        <p id="advisorQuote" class="text-[0.75rem] text-hero leading-relaxed italic font-medium">ANALYZING_BIOMETRICS...</p>
+      <div id="neuralNarrative" class="mb-8 advisor-box rounded-2xl">
+        <p id="advisorQuote" class="text-[0.7rem] text-hero leading-relaxed italic font-medium opacity-80">ANALYZING_BIOMETRICS...</p>
       </div>
 
       <p class="text-sub text-[0.7rem] px-6 leading-relaxed mb-6">This cryptographic signature confirms your biological response profile in the AXP Neural Registry.</p>
@@ -694,10 +734,30 @@
       
       const avg = Math.round(latencies.reduce((a, b) => a + b) / latencies.length);
       const precision = Math.max(0, 100 - (misses * 8));
+      const ratingEl = document.getElementById('perfRating');
+      const finalRating = document.getElementById('finalRating');
       
       document.getElementById('finalAvg').textContent = avg;
       document.getElementById('finalPrecision').textContent = precision + '%';
-      document.getElementById('precisionBar').style.width = precision + '%';
+      if (finalRating) {
+          finalRating.textContent = ratingEl ? ratingEl.textContent : 'STABLE';
+          finalRating.className = ratingEl ? ratingEl.className : 'rating-badge rating-stable';
+          finalRating.style.fontSize = '0.5rem';
+          finalRating.style.padding = '2px 6px';
+          
+          if (finalRating.textContent === 'UNSTOPPABLE') {
+            GamingEffects.createParticles(finalRating, 30, 'cyan');
+            GamingEffects.screenGlitch(300);
+            if (window.SFX) window.SFX.play('success');
+          } else if (finalRating.textContent === 'PERFECT') {
+            GamingEffects.createParticles(finalRating, 15, 'green');
+            if (window.SFX) window.SFX.play('success');
+          }
+      }
+      
+      setTimeout(() => {
+        document.getElementById('precisionBar').style.width = precision + '%';
+      }, 500);
       
       // Update Circular Gauge
       const gauge = document.getElementById('gaugeFill');
