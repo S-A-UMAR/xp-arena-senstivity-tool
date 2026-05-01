@@ -48,14 +48,16 @@
   <script>
     async function updateMasterKey() {
       const key = document.getElementById('newMasterKey').value.trim();
-      if (!key || key.length < 4) return alert('KEY_TOO_SHORT');
-      if (!confirm('WARNING: THIS_WILL_CHANGE_ACCESS_FOR_ALL_ADMINS. PROCEED?')) return;
+      if (!key || key.length < 4) return adminNotify('KEY_TOO_SHORT', 'error');
+      
+      const confirmed = await adminConfirm('WARNING: THIS_WILL_CHANGE_ACCESS_FOR_ALL_ADMINS. PROCEED?');
+      if (!confirmed) return;
       
       try {
         await api('/api/vault/admin/update-master-key', 'POST', { newKey: key });
-        alert('MASTER_KEY_UPDATED_SUCCESSFULLY. PLEASE_RELOGIN.');
-        logoutAdmin();
-      } catch (e) { alert('UPDATE_FAILED: ' + e.message); }
+        adminNotify('MASTER_KEY_UPDATED_SUCCESSFULLY', 'success');
+        setTimeout(() => logoutAdmin(), 2000);
+      } catch (e) { adminNotify('UPDATE_FAILED: ' + e.message, 'error'); }
     }
 
     async function loadLogs() {
@@ -69,7 +71,13 @@
         const auditDiv = document.getElementById('auditLogs');
 
         if (!secLogs?.length) {
-          secDiv.innerHTML = '<div class="text-center py-4 opacity-20 text-xs font-mono">NO_SECURITY_EVENTS</div>';
+          secDiv.innerHTML = `
+            <div class="text-center py-6 opacity-40">
+              <div style="width: 36px; height: 36px; border: 1px solid var(--error); border-radius: 50%; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; animation: pulse 2s infinite;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--error)" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              </div>
+              <div class="text-xs font-mono" style="letter-spacing: 0.1em;">NO_SECURITY_EVENTS</div>
+            </div>`;
         } else {
           secDiv.innerHTML = secLogs.map(l => `
             <div class="log-row py-2 border-b border-white-5">
@@ -83,7 +91,13 @@
         }
 
         if (!auditLogs?.length) {
-          auditDiv.innerHTML = '<div class="text-center py-4 opacity-20 text-xs font-mono">NO_AUDIT_ENTRIES</div>';
+          auditDiv.innerHTML = `
+            <div class="text-center py-6 opacity-40">
+              <div style="width: 36px; height: 36px; border: 1px dashed var(--cyan); border-radius: 8px; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; animation: pulse 3s infinite;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+              </div>
+              <div class="text-xs font-mono" style="letter-spacing: 0.1em;">NO_AUDIT_ENTRIES</div>
+            </div>`;
         } else {
           auditDiv.innerHTML = auditLogs.map(l => `
             <div class="log-row py-2 border-b border-white-5">
@@ -99,10 +113,10 @@
     }
 
     window.onload = async () => {
+      renderAdminHeader('Security Override');
+      renderAdminNav('security');
       const ok = await checkSession();
       if (ok) {
-        renderAdminHeader('Security Override');
-        renderAdminNav('security');
         loadLogs();
       }
     };

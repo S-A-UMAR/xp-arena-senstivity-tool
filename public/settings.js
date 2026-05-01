@@ -210,7 +210,7 @@
     `;
 
     document.head.appendChild(style);
-    document.body.appendChild(hub);
+    // document.body.appendChild(hub); // Disabled to prevent duplicate settings icon
 
     // Initial State
     const savedTheme = localStorage.getItem(STORAGE_KEYS.theme) || 'cyan';
@@ -220,12 +220,12 @@
     applyAccessibility();
 
     // Event Listeners
-    const trigger = document.getElementById('hub-trigger');
-    const panel = document.getElementById('hub-panel');
-    trigger.addEventListener('click', () => {
-        panel.classList.toggle('hidden');
-        trigger.classList.toggle('active');
-    });
+    // const trigger = document.getElementById('hub-trigger');
+    // const panel = document.getElementById('hub-panel');
+    // trigger?.addEventListener('click', () => {
+    //     panel.classList.toggle('hidden');
+    //     trigger.classList.toggle('active');
+    // });
 
     document.querySelectorAll('.theme-dot').forEach(dot => {
         dot.addEventListener('click', () => applyTheme(dot.dataset.theme));

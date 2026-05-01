@@ -120,3 +120,67 @@ body {
   background: rgba(255,255,255,0.02); border: 1px solid var(--bd-subtle);
   border-radius: var(--r-md); padding: 1rem; margin-bottom: 0.6rem; text-align: center;
 }
+
+/* ── Form Inputs ─────────────────────────────── */
+.input-wrap { display: flex; flex-direction: column; gap: 0.5rem; }
+.input-wrap label {
+  font-size: 0.58rem; font-weight: 800; color: var(--gold);
+  letter-spacing: 0.1em; text-transform: uppercase;
+}
+.input-wrap input,
+.input-wrap select {
+  background: rgba(0,0,0,0.4); border: 1px solid var(--gold-border);
+  border-radius: var(--r-md); padding: 0.65rem 0.9rem;
+  color: #fff; font-family: var(--font-mono); font-size: 0.78rem;
+  outline: none; width: 100%; transition: border-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+.input-wrap input:focus,
+.input-wrap select:focus {
+  border-color: var(--gold); box-shadow: 0 0 12px var(--gold-glow);
+}
+.input-wrap select option { background: #0a1128; }
+
+/* Legacy class aliases for inline styled inputs */
+.border-gold { border: 1px solid var(--gold-border); }
+.bg-dark { background: rgba(0,0,0,0.4); }
+.rounded { border-radius: var(--r-md); }
+.text-white { color: #fff; }
+.p-2 { padding: 0.5rem; }
+.w-full { width: 100%; }
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.flex-1 { flex: 1; }
+.flex-wrap { flex-wrap: wrap; }
+.items-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+.gap-2 { gap: 0.5rem; }
+.gap-4 { gap: 1rem; }
+.mt-1 { margin-top: 0.25rem; }
+.mt-2 { margin-top: 0.5rem; }
+.mt-3 { margin-top: 0.75rem; }
+.mt-4 { margin-top: 1rem; }
+.mb-1 { margin-bottom: 0.25rem; }
+.mb-2 { margin-bottom: 0.5rem; }
+.mb-3 { margin-bottom: 0.75rem; }
+.mb-4 { margin-bottom: 1rem; }
+.pt-3 { padding-top: 0.75rem; }
+.py-4 { padding-top: 1rem; padding-bottom: 1rem; }
+.py-6 { padding-top: 1.5rem; padding-bottom: 1.5rem; }
+.py-8 { padding-top: 2rem; padding-bottom: 2rem; }
+.py-12 { padding-top: 3rem; padding-bottom: 3rem; }
+.border-t { border-top: 1px solid; }
+.border-white-5 { border-color: rgba(255,255,255,0.05); }
+.opacity-20 { opacity: 0.2; }
+.opacity-30 { opacity: 0.3; }
+.opacity-40 { opacity: 0.4; }
+.opacity-50 { opacity: 0.5; }
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+.font-mono { font-family: var(--font-mono); }
+.font-black { font-weight: 900; }
+.font-bold { font-weight: 700; }
+.text-xs { font-size: 0.65rem; }
+.text-sm { font-size: 0.8rem; }
+.text-xl { font-size: 1.25rem; }
+.text-muted { color: var(--tx-muted); }

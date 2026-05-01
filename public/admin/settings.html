@@ -81,13 +81,15 @@
       const status = document.getElementById('mModeStatus');
       const isCurrentlyOn = status.textContent === 'ON';
       const newVal = isCurrentlyOn ? 'false' : 'true';
-      if (!confirm(`CONFIRM: TURN_MAINTENANCE_MODE_${newVal.toUpperCase()}?`)) return;
+      const confirmed = await adminConfirm(`CONFIRM: TURN_MAINTENANCE_MODE_${newVal.toUpperCase()}?`);
+      if (!confirmed) return;
       
       try {
         await api('/api/vault/admin/settings', 'POST', { key: 'maintenance_mode', value: newVal });
         status.textContent = newVal === 'true' ? 'ON' : 'OFF';
         status.style.color = newVal === 'true' ? 'var(--error)' : 'var(--success)';
-      } catch (e) { alert('TOGGLE_FAILED: ' + e.message); }
+        adminNotify('MAINTENANCE_MODE_UPDATED', 'success');
+      } catch (e) { adminNotify('TOGGLE_FAILED: ' + e.message, 'error'); }
     }
 
     async function loadMaintenanceStatus() {
@@ -106,18 +108,19 @@
     }
 
     async function clearCache() {
-      if (!confirm('CONFIRM_CACHE_FLUSH?')) return;
+      const confirmed = await adminConfirm('CONFIRM_CACHE_FLUSH?');
+      if (!confirmed) return;
       try {
         await api('/api/vault/admin/settings', 'POST', { key: 'action', value: 'clear_cache' });
-        alert('CACHE_FLUSH_COMPLETED');
-      } catch (e) { alert('FLUSH_FAILED: ' + e.message); }
+        adminNotify('CACHE_FLUSH_COMPLETED', 'success');
+      } catch (e) { adminNotify('FLUSH_FAILED: ' + e.message, 'error'); }
     }
 
     window.onload = async () => {
+      renderAdminHeader('Global Setup');
+      renderAdminNav('settings');
       const ok = await checkSession();
       if (ok) {
-        renderAdminHeader('Global Setup');
-        renderAdminNav('settings');
         checkSchema();
         loadMaintenanceStatus();
       }

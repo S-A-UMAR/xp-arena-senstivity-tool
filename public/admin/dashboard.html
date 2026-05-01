@@ -114,17 +114,18 @@
         const val = currentSettings[key] === 'true' ? 'false' : 'true';
         try {
             await api('/api/vault/admin/settings', 'POST', { key, value: val });
+            adminNotify('SYSTEM_SETTING_UPDATED', 'success');
             loadSettings();
-        } catch (e) { alert('Update failed'); }
+        } catch (e) { adminNotify('UPDATE_FAILED: ' + e.message, 'error'); }
     }
 
     async function saveTicker() {
         const val = document.getElementById('tickerInput').value;
         try {
             await api('/api/vault/admin/settings', 'POST', { key: 'ticker_message', value: val });
-            alert('Ticker updated');
+            adminNotify('GLOBAL_TICKER_UPDATED', 'success');
             loadSettings();
-        } catch (e) { alert('Update failed'); }
+        } catch (e) { adminNotify('UPDATE_FAILED: ' + e.message, 'error'); }
     }
 
     async function loadDashboard() {
@@ -174,7 +175,13 @@
       try {
         const events = await api('/api/vault/admin/live-feed');
         if (!events?.length) {
-          feed.innerHTML = '<div class="text-center py-4 opacity-30 text-xs font-mono">NO_RECENT_ACTIVITY</div>';
+          feed.innerHTML = `
+            <div class="text-center py-8 opacity-40">
+              <div style="width: 40px; height: 40px; border: 1px solid var(--gold); border-radius: 50%; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; animation: pulse 2s infinite;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+              </div>
+              <div class="text-xs font-mono" style="letter-spacing: 0.1em;">NO_RECENT_ACTIVITY</div>
+            </div>`;
           return;
         }
         feed.innerHTML = events.map(ev => `
@@ -193,10 +200,10 @@
     }
 
     window.onload = async () => {
+      renderAdminHeader('Command Center');
+      renderAdminNav('dashboard');
       const ok = await checkSession();
       if (ok) {
-        renderAdminHeader('Command Center');
-        renderAdminNav('dashboard');
         loadDashboard();
         setInterval(loadDashboard, 15000);
       }

@@ -1695,9 +1695,9 @@ router.post('/admin/vendors', authenticateAdmin, async (req, res) => {
         const orgName = rawOrgName || rawOrgId || 'AXP GLOBAL';
         await db.run("INSERT IGNORE INTO organizations (org_id, org_name, plan_tier) VALUES (?, ?, 'enterprise')", [orgId, orgName]);
         await db.run(`
-            INSERT INTO vendors (org_id, vendor_id, tier, access_key, lookup_key, active_until, brand_config, status)
-            VALUES (?, ?, ?, ?, ?, ?, ?, 'active')
-        `, [orgId, vendorId, tier, hashedAccessKey, lookupKey, activeUntil, JSON.stringify(brandConfig || {})]);
+            INSERT INTO vendors (org_id, vendor_id, tier, access_key, lookup_key, active_until, usage_limit, brand_config, status)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active')
+        `, [orgId, vendorId, tier, hashedAccessKey, lookupKey, activeUntil, usageLimit || null, JSON.stringify(brandConfig || {})]);
         await logAudit('admin', 'SYSTEM', 'VENDOR_REGISTER', { vendorId, accessKey, tier }, getClientIp(req));
         return res.json({ success: true, message: 'VENDOR REGISTERED SUCCESSFULLY', vendorId, accessKey, tier });
     } catch (err) {

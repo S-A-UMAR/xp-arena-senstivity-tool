@@ -67,8 +67,8 @@
           key: 'global_sensitivity_offset',
           value: val
         });
-        alert('SYSTEM_OFFSET_APPLIED_SUCCESSFULLY');
-      } catch (e) { alert('APPLY_FAILED: ' + e.message); }
+        adminNotify('SYSTEM_OFFSET_APPLIED_SUCCESSFULLY', 'success');
+      } catch (e) { adminNotify('APPLY_FAILED: ' + e.message, 'error'); }
     }
 
     async function auditKey() {
@@ -95,10 +95,10 @@
     }
 
     window.onload = async () => {
+      renderAdminHeader('Master Calibration');
+      renderAdminNav('tool');
       const ok = await checkSession();
       if (ok) {
-        renderAdminHeader('Master Calibration');
-        renderAdminNav('tool');
         loadSettings();
       }
     };
