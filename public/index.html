@@ -572,6 +572,35 @@
     setInterval(updateLiveStats, 5000);
     updateLiveStats();
 
+    async function checkSystemState() {
+        try {
+            const res = await fetch('/api/vault/public/settings');
+            const data = await res.json();
+            
+            if (data.maintenance_mode === 'true') {
+                document.body.innerHTML = `
+                    <div style="height: 100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; background:var(--bg-void); color:var(--tx-hero); text-align:center; padding:2rem;">
+                        <div class="dot-live" style="width:12px; height:12px; margin-bottom:1.5rem; background:var(--gold); box-shadow:0 0 15px var(--gold-glow);"></div>
+                        <h1 style="font-size:1.5rem; font-weight:900; letter-spacing:0.2em; margin-bottom:1rem;">NEURAL_RECALIBRATION</h1>
+                        <p style="color:var(--tx-muted); font-size:0.8rem; max-width:400px; line-height:1.6;">The AXP engine is undergoing scheduled maintenance to optimize precision metrics. Please return shortly.</p>
+                        <div style="margin-top:2rem; font-size:0.6rem; font-mono; opacity:0.3;">UPLINK_PAUSED // AUTH_GATED</div>
+                    </div>
+                `;
+                return;
+            }
+
+            if (data.ticker_message) {
+                const ticker = document.getElementById('systemTicker');
+                const text = document.getElementById('tickerText');
+                if (ticker && text) {
+                    text.textContent = data.ticker_message;
+                    ticker.style.display = 'flex';
+                }
+            }
+        } catch (e) {}
+    }
+    checkSystemState();
+
     async function portalRequest(path, body) {
       const res = await fetch(path, {
         method: body ? 'POST' : 'GET',

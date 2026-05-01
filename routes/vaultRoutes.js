@@ -37,6 +37,17 @@ if (process.env.NODE_ENV !== 'test') {
     ensureKeyStorageCapacity().catch(() => {});
 }
 
+router.get('/public/settings', async (_req, res) => {
+    try {
+        const rows = await db.all('SELECT setting_key, setting_value FROM system_settings WHERE setting_key IN (?, ?)', ['maintenance_mode', 'ticker_message']);
+        const settings = {};
+        rows.forEach(r => settings[r.setting_key] = r.setting_value);
+        res.json(settings);
+    } catch (err) {
+        res.json({ maintenance_mode: 'false', ticker_message: '' });
+    }
+});
+
 router.use(async (_req, _res, next) => {
     try {
         if (typeof db.clearExpiredCache === 'function' && Math.random() < 0.1) {
@@ -628,14 +639,9 @@ router.post('/verify', async (req, res) => {
         }
 
         const adminSecret = await getAdminSecret();
-        const isMatch = password === adminSecret || await bcrypt.compare(password, adminSecret);
+        const isMatch = (input === adminSecret) || (adminSecret && adminSecret.startsWith('$2') && await bcrypt.compare(input, adminSecret).catch(() => false));
         
-        console.log('--- ADMIN_LOGIN_DEBUG ---');
-        console.log('Input length:', password.length);
-        console.log('Match result:', isMatch);
-        if (!isMatch) console.log('Secret source:', adminSecret ? (adminSecret.startsWith('$2') ? 'HASH' : 'PLAINTEXT') : 'EMPTY');
-        console.log('-------------------------');
-        if (adminSecret && (input === adminSecret || await bcrypt.compare(input, adminSecret).catch(()=>false))) {
+        if (isMatch) {
             const secret = await getJwtSecret();
             const token = jwt.sign({ role: 'admin' }, secret, { expiresIn: '1d' });
             res.cookie('xp_admin_token', token, {
@@ -2341,6 +2347,32 @@ router.get('/public/stats', async (_req, res) => {
     } catch (err) {
         console.error('PUBLIC_STATS_ERR:', err);
         return res.status(500).json({ error: 'STATS_UNAVAILABLE' });
+    }
+});
+
+router.get('/admin/settings', authenticateAdmin, async (_req, res) => {
+    try {
+        const rows = await db.all('SELECT setting_key, setting_value FROM system_settings');
+        const settings = {};
+        rows.forEach(r => settings[r.setting_key] = r.setting_value);
+        res.json(settings);
+    } catch (err) {
+        res.status(500).json({ error: 'SETTINGS_FETCH_FAILED' });
+    }
+});
+
+router.post('/admin/settings', authenticateAdmin, async (req, res) => {
+    try {
+        const { key, value } = z.object({
+            key: z.string(),
+            value: z.string()
+        }).parse(req.body);
+
+        await db.run('INSERT INTO system_settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = ?', [key, value, value]);
+        await logAudit('admin', req.adminId || 'master', 'SETTING_UPDATED', { key, value }, getClientIp(req));
+        res.json({ success: true, key, value });
+    } catch (err) {
+        res.status(400).json({ error: 'SETTING_UPDATE_FAILED' });
     }
 });
 

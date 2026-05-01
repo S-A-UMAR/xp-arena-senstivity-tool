@@ -60,6 +60,29 @@
       </div>
     </div>
 
+    <!-- System Control -->
+    <div class="card mb-3">
+      <div class="section-header mb-3">
+        <h2 class="section-title">SYSTEM_CONTROL</h2>
+      </div>
+      <div class="flex flex-col gap-4">
+        <div class="flex justify-between items-center">
+          <div>
+            <div class="text-sm font-bold">MAINTENANCE_MODE</div>
+            <div class="text-xs text-muted">Block public access for calibration</div>
+          </div>
+          <button id="maintBtn" class="btn-ghost auto btn-sm" onclick="toggleSetting('maintenance_mode')">OFF</button>
+        </div>
+        <div>
+          <div class="text-xs font-mono mb-2">GLOBAL_TICKER_MESSAGE</div>
+          <div class="flex gap-2">
+            <input type="text" id="tickerInput" class="xp-input-box" style="padding: 0.6rem 1rem; font-size: 0.7rem;" placeholder="Enter system announcement...">
+            <button class="btn-cta auto btn-sm" onclick="saveTicker()">SAVE</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Live Feed -->
     <div class="card">
       <div class="section-header mb-3">
@@ -74,12 +97,44 @@
 
   <script src="core.js"></script>
   <script>
+    let currentSettings = {};
+
+    async function loadSettings() {
+        try {
+            currentSettings = await api('/api/vault/admin/settings');
+            const maint = currentSettings.maintenance_mode === 'true';
+            const btn = document.getElementById('maintBtn');
+            btn.textContent = maint ? 'ON' : 'OFF';
+            btn.style.color = maint ? 'var(--error)' : 'var(--tx-muted)';
+            document.getElementById('tickerInput').value = currentSettings.ticker_message || '';
+        } catch (e) { console.error('SETTINGS_ERR:', e); }
+    }
+
+    async function toggleSetting(key) {
+        const val = currentSettings[key] === 'true' ? 'false' : 'true';
+        try {
+            await api('/api/vault/admin/settings', 'POST', { key, value: val });
+            loadSettings();
+        } catch (e) { alert('Update failed'); }
+    }
+
+    async function saveTicker() {
+        const val = document.getElementById('tickerInput').value;
+        try {
+            await api('/api/vault/admin/settings', 'POST', { key: 'ticker_message', value: val });
+            alert('Ticker updated');
+            loadSettings();
+        } catch (e) { alert('Update failed'); }
+    }
+
     async function loadDashboard() {
-      try {
-        const [stats, analytics] = await Promise.all([
-            api('/api/vault/admin/stats'),
-            api('/api/vault/admin/analytics')
-        ]);
+        try {
+            const [stats, analytics] = await Promise.all([
+                api('/api/vault/admin/stats'),
+                api('/api/vault/admin/analytics'),
+                loadSettings()
+            ]);
+            // ... (rest of stats logic)
 
         document.getElementById('totalVendors').textContent = stats?.vendors ?? 0;
         document.getElementById('totalUsage').textContent = stats?.usage_total ?? 0;

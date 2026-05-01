@@ -14,7 +14,9 @@
         highContrast: 'xp_high_contrast',
         largeText: 'xp_large_text',
         compactMode: 'xp_compact_mode',
-        screenShake: 'xp_screen_shake'
+        ultraFPS: 'xp_ultra_fps',
+        neuralBloom: 'xp_neural_bloom',
+        scanLines: 'xp_scan_lines'
     };
 
     function applyTheme(themeId) {
@@ -40,7 +42,9 @@
             highContrast: localStorage.getItem(STORAGE_KEYS.highContrast) === 'true',
             largeText: localStorage.getItem(STORAGE_KEYS.largeText) === 'true',
             compactMode: localStorage.getItem(STORAGE_KEYS.compactMode) === 'true',
-            screenShake: localStorage.getItem(STORAGE_KEYS.screenShake) !== 'false' // Default to true
+            ultraFPS: localStorage.getItem(STORAGE_KEYS.ultraFPS) === 'true',
+            neuralBloom: localStorage.getItem(STORAGE_KEYS.neuralBloom) === 'true',
+            scanLines: localStorage.getItem(STORAGE_KEYS.scanLines) === 'true'
         };
 
         Object.entries(states).forEach(([key, enabled]) => {
@@ -97,7 +101,15 @@
                     <button class="pref-toggle" id="largeText-toggle" onclick="window.XP_SETTINGS.toggle('largeText')">LARGE_TEXT</button>
                     <button class="pref-toggle" id="compactMode-toggle" onclick="window.XP_SETTINGS.toggle('compactMode')">COMPACT_UI</button>
                     <button class="pref-toggle" id="reduceMotion-toggle" onclick="window.XP_SETTINGS.toggle('reduceMotion')">REDUCE_MOTION</button>
-                    <button class="pref-toggle" id="screenShake-toggle" onclick="window.XP_SETTINGS.toggle('screenShake')">HAPTIC_SHAKE</button>
+                </div>
+            </div>
+
+            <div class="hub-section">
+                <label>GRAPHICS_ENGINEERING</label>
+                <div class="pref-grid">
+                    <button class="pref-toggle" id="ultraFPS-toggle" onclick="window.XP_SETTINGS.toggle('ultraFPS')">ULTRA_FPS_MODE</button>
+                    <button class="pref-toggle" id="neuralBloom-toggle" onclick="window.XP_SETTINGS.toggle('neuralBloom')">NEURAL_BLOOM</button>
+                    <button class="pref-toggle" id="scanLines-toggle" onclick="window.XP_SETTINGS.toggle('scanLines')">SCANNING_LINES</button>
                 </div>
             </div>
 
@@ -184,6 +196,17 @@
         :root[data-largeText="true"] { font-size: 18px; }
         :root[data-compactMode="true"] .card, 
         :root[data-compactMode="true"] .page-wrap { padding: 1rem; }
+
+        :root[data-ultraFPS="true"] { --ease: cubic-bezier(0,1,0,1); }
+        :root[data-neuralBloom="true"] body { filter: saturate(1.2) brightness(1.1); }
+        :root[data-neuralBloom="true"] .card { box-shadow: 0 0 30px var(--accent-primary-glow); }
+        
+        :root[data-scanLines="true"]::after {
+            content: ""; position: fixed; inset: 0; z-index: 9999; pointer-events: none;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), 
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
+            background-size: 100% 3px, 3px 100%; opacity: 0.3;
+        }
     `;
 
     document.head.appendChild(style);
