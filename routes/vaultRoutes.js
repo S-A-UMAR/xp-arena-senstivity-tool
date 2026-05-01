@@ -57,6 +57,26 @@ router.use(async (_req, _res, next) => {
     next();
 });
 
+router.get('/public/pulse', async (_req, res) => {
+    try {
+        const { runConnectionDiagnostic } = require('../db');
+        await runConnectionDiagnostic();
+        const dbStatus = await db.get('SELECT 1 as connected');
+        res.json({ 
+            status: 'HEALTHY', 
+            db: dbStatus ? 'CONNECTED' : 'FAILED',
+            env: process.env.NODE_ENV,
+            ts: new Date().toISOString()
+        });
+    } catch (err) {
+        res.status(500).json({ 
+            status: 'UNHEALTHY', 
+            error: err.message,
+            stack: process.env.NODE_ENV === 'production' ? null : err.stack
+        });
+    }
+});
+
 function getLookupKey(code) {
     return crypto.createHash('sha1').update(String(code)).digest('hex').substring(0, 10);
 }
@@ -627,7 +647,8 @@ router.post('/verify', async (req, res) => {
             session_id: z.string().optional()
         }).parse(req.body);
 
-        const lookupKey = getLookupKey(input);
+        const cleanInput = input.trim().toUpperCase();
+        const lookupKey = getLookupKey(cleanInput);
         const cacheKey = `V_CACHE_${session_id || 'GUEST'}_${lookupKey}`;
 
         // 🛡️ LOGIC HARDENING: Result Persistence (Refresh protection)
@@ -639,7 +660,7 @@ router.post('/verify', async (req, res) => {
         }
 
         const adminSecret = await getAdminSecret();
-        const isMatch = (input === adminSecret) || (adminSecret && adminSecret.startsWith('$2') && await bcrypt.compare(input, adminSecret).catch(() => false));
+        const isMatch = (cleanInput === adminSecret) || (adminSecret && adminSecret.startsWith('$2') && await bcrypt.compare(cleanInput, adminSecret).catch(() => false));
         
         if (isMatch) {
             const secret = await getJwtSecret();
@@ -664,7 +685,7 @@ router.post('/verify', async (req, res) => {
         if (blocked || res.headersSent) return undefined;
 
         const vendor = await db.get('SELECT * FROM vendors WHERE lookup_key = ?', [lookupKey]);
-        if (vendor && await bcrypt.compare(input, vendor.access_key)) {
+        if (vendor && await bcrypt.compare(cleanInput, vendor.access_key)) {
             const now = new Date();
             const activeWindow = !vendor.active_until || new Date(vendor.active_until) > now;
             if (vendor.status !== 'active' || !activeWindow) {
@@ -686,12 +707,12 @@ router.post('/verify', async (req, res) => {
             });
         }
 
-        const found = await getCodeRecordByRawCode(input);
+        const found = await getCodeRecordByRawCode(cleanInput);
         if (!found) {
             await db.run('INSERT INTO security_logs (ip_address, event_type, details) VALUES (?, ?, ?)', [
                 getClientIp(req),
                 'VERIFY_FAIL',
-                JSON.stringify({ input_length: input.length })
+                JSON.stringify({ input_length: cleanInput.length })
             ]);
             return res.status(404).json({ error: 'INVALID ACCESS KEY' });
         }
@@ -713,7 +734,7 @@ router.post('/verify', async (req, res) => {
         await db.run('UPDATE sensitivity_keys SET current_usage = current_usage + 1 WHERE id = ?', [keyData.id]);
         await db.run(
             'INSERT INTO code_activity (entry_code, lookup_key, user_ign, user_region) VALUES (?, ?, ?, ?)',
-            [input, lookupKey, user_ign || 'Anonymous', user_region || 'Unknown']
+            [cleanInput, lookupKey, user_ign || 'Anonymous', user_region || 'Unknown']
         );
         await trackEvent('landing_view', keyData.org_id || 'XP-CORE-ORG', keyData.vendor_id, getClientIp(req), 'mobile');
 
