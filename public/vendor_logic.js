@@ -172,44 +172,76 @@ const VendorLogic = {
         const overlay = document.createElement('div');
         overlay.className = 'quick-action-overlay active';
         overlay.id = 'resultOverlay';
-        overlay.style.zIndex = '10000';
+        overlay.style.cssText = `
+            position: fixed; inset: 0; background: rgba(2, 6, 23, 0.9);
+            z-index: 10000; display: flex; align-items: center; justify-content: center;
+            backdrop-filter: blur(20px); padding: 20px;
+        `;
+        
         overlay.innerHTML = `
-            <div class="glass-panel tier-${tier}" style="width: min(95vw, 440px); padding: clamp(1rem, 2vw, 2.5rem); text-align: center; background: rgba(10, 15, 25, 0.98); border: 1.5px solid var(--accent-primary); border-radius: 32px; box-shadow: 0 0 50px rgba(0,0,0,0.8);">
-                <div id="captureArea" class="holo-card" onmousemove="VendorLogic.handleHoloMove(event, this)" style="background: linear-gradient(135deg, #020617 0%, #0f172a 100%); border: 1px solid rgba(0, 242, 254, 0.2); border-radius: 28px; padding: 2rem; margin-bottom: 1.5rem; position: relative; overflow: hidden; text-align: left; transition: transform 0.1s ease-out;">
-                    <div style="position: absolute; top:0; left:0; width: 100%; height: 2px; background: var(--accent-primary); opacity: 0.15; animation: scanLineMove 3s linear infinite;"></div>
+            <div class="glass-panel" style="width: min(95vw, 420px); text-align: center; background: transparent; border: none; box-shadow: none;">
+                <div id="captureArea" class="holo-card-vertical" onmousemove="VendorLogic.handleHoloMove(event, this)" style="
+                    background: linear-gradient(165deg, #0f172a 0%, #020617 100%);
+                    border: 2px solid var(--accent-primary);
+                    border-radius: 40px;
+                    padding: 3rem 2rem;
+                    margin-bottom: 2rem;
+                    position: relative;
+                    overflow: hidden;
+                    aspect-ratio: 2 / 3.2;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    box-shadow: 0 40px 100px rgba(0,0,0,0.8), inset 0 0 40px var(--accent-primary-dim);
+                    transition: transform 0.1s ease-out;
+                ">
+                    <!-- Tech Background Elements -->
+                    <div style="position: absolute; inset: 0; opacity: 0.05; background-image: radial-gradient(var(--accent-primary) 1px, transparent 1px); background-size: 20px 20px;"></div>
+                    <div style="position: absolute; top:0; left:0; width: 100%; height: 4px; background: var(--accent-primary); opacity: 0.3;"></div>
                     
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem;">
-                        <div>
-                            <div style="font-family: 'JetBrains Mono'; font-size: 0.65rem; color: var(--accent-primary); letter-spacing: 0.25em; font-weight: 800; opacity: 0.8;">AXP_SIGNATURE</div>
-                            <div style="font-size: 0.5rem; color: var(--text-muted); margin-top: 4px; font-family: var(--font-mono);">CALIBRATION_NODE_${Math.floor(Math.random()*999)}</div>
-                        </div>
-                        <div style="background: rgba(0, 242, 254, 0.1); color: var(--accent-primary); font-size: 0.55rem; padding: 4px 12px; border-radius: 8px; border: 1px solid rgba(0, 242, 254, 0.2); font-family: var(--font-mono); font-weight: 900; letter-spacing: 0.05em;">SECURE</div>
+                    <div style="width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem;">
+                        <div style="font-family: var(--font-mono); font-size: 0.6rem; color: var(--accent-primary); letter-spacing: 0.3em; font-weight: 900;">AXP_NEXUS_REGISTRY</div>
+                        <div style="background: var(--accent-primary); color: #000; font-size: 0.5rem; padding: 4px 10px; border-radius: 8px; font-weight: 900;">SECURE</div>
                     </div>
 
-                    <div style="margin-bottom: 2.5rem;">
-                        <div style="font-size: 0.5rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 0.75rem; font-weight: 800; font-family: var(--font-mono);">PROVISIONED_ACCESS_KEY</div>
-                        <div style="font-family: var(--font-mono); font-size: clamp(1.2rem, 6vw, 2.2rem); font-weight: 900; color: white; letter-spacing: 0.05em; text-shadow: 0 0 20px rgba(0, 242, 254, 0.5); line-height: 1; word-break: break-all;">${code}</div>
+                    <!-- Main Identity -->
+                    <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%;">
+                        <div style="width: 80px; height: 80px; border: 2px solid var(--accent-primary-border); border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; background: rgba(0,0,0,0.4); margin-bottom: 2rem; box-shadow: 0 0 30px var(--accent-primary-dim);">🔑</div>
+                        <div style="font-size: 0.55rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.2em; margin-bottom: 1rem; font-weight: 800; opacity: 0.6;">PROVISIONED_ACCESS_KEY</div>
+                        <div style="font-family: var(--font-mono); font-size: 2.2rem; font-weight: 950; color: white; letter-spacing: -0.02em; text-align: center; line-height: 1.1; margin-bottom: 2rem; text-shadow: 0 0 25px var(--accent-primary-glow);">
+                            ${code.split('-').join('<br>')}
+                        </div>
                     </div>
 
-                    <div style="display: flex; gap: 2rem; padding-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.06);">
-                        <div style="flex: 1;">
-                            <div style="font-size: 0.45rem; color: var(--text-muted); font-family: var(--font-mono); margin-bottom: 2px;">ARCHITECTURE</div>
-                            <div style="font-size: 0.75rem; font-weight: 800; color: white; text-transform: uppercase; letter-spacing: 0.02em;">${brand}</div>
+                    <!-- Hardware Stats -->
+                    <div style="width: 100%; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 24px; padding: 1.5rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                        <div style="text-align: left;">
+                            <div style="font-size: 0.45rem; color: var(--text-muted); font-family: var(--font-mono); margin-bottom: 4px;">ARCHITECTURE</div>
+                            <div style="font-size: 0.8rem; font-weight: 900; color: white; text-transform: uppercase;">${brand}</div>
                         </div>
-                        <div style="flex: 1;">
-                            <div style="font-size: 0.45rem; color: var(--text-muted); font-family: var(--font-mono); margin-bottom: 2px;">MODEL_HUNT</div>
-                            <div style="font-size: 0.75rem; font-weight: 800; color: white; text-transform: uppercase; letter-spacing: 0.02em;">${model}</div>
+                        <div style="text-align: left;">
+                            <div style="font-size: 0.45rem; color: var(--text-muted); font-family: var(--font-mono); margin-bottom: 4px;">MODEL_HUNT</div>
+                            <div style="font-size: 0.8rem; font-weight: 900; color: white; text-transform: uppercase;">${model}</div>
                         </div>
                     </div>
-                    
-                    <div style="position: absolute; bottom: 1rem; right: 1.5rem; font-family: var(--font-mono); font-size: 0.4rem; color: var(--accent-primary); opacity: 0.2;">AXP-OS_V3.0.4</div>
+
+                    <!-- Bottom Branding -->
+                    <div style="width: 100%; display: flex; justify-content: space-between; align-items: flex-end;">
+                        <div style="text-align: left;">
+                            <div style="font-size: 0.5rem; color: var(--text-muted); font-family: var(--font-mono);">TIMESTAMP</div>
+                            <div style="font-size: 0.6rem; font-weight: 800; color: white;">${new Date().toLocaleTimeString()}</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 0.4rem; color: var(--accent-primary); opacity: 0.3; font-family: var(--font-mono);">SYSTEM_VER: 4.2.0-NEXUS</div>
+                        </div>
+                    </div>
                 </div>
 
-                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem;">
-                    <button class="btn-nexus-primary" style="margin: 0; padding: 1.1rem; border-radius: 16px; font-weight: 900;" onclick="VendorLogic.copyToClipboard('${code}')">COPY_KEY</button>
-                    <button class="btn-nexus-primary" style="margin: 0; padding: 1.1rem; background: rgba(255,255,255,0.05); color: white; border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; font-weight: 900;" onclick="VendorLogic.captureAndDownloadResult('${code}')">DOWNLOAD</button>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+                    <button class="btn-cta" style="padding: 1.25rem; border-radius: 20px; font-weight: 900; background: var(--accent-primary); color: #000;" onclick="VendorLogic.copyToClipboard('${code}')">COPY_KEY</button>
+                    <button class="btn-ghost auto" style="padding: 1.25rem; border-radius: 20px; font-weight: 900; background: rgba(255,255,255,0.05); color: white;" onclick="VendorLogic.captureAndDownloadResult('${code}')">SAVE_CARD</button>
                 </div>
-                <button class="btn-ghost auto w-full mt-4" style="font-size: 0.7rem; opacity: 0.6; border-radius: 12px;" onclick="this.closest('.quick-action-overlay').remove()">DISMISS_TERMINAL</button>
+                <button class="btn-ghost auto w-full mt-4" style="font-size: 0.7rem; opacity: 0.4; border-radius: 12px;" onclick="this.closest('.quick-action-overlay').remove()">DISMISS_UPLINK</button>
             </div>
         `;
         document.body.appendChild(overlay);
@@ -236,39 +268,73 @@ const VendorLogic = {
         const tier = data.tier || 'normal';
         const overlay = document.createElement('div');
         overlay.className = 'quick-action-overlay active';
-        overlay.style.zIndex = '10000';
+        overlay.style.cssText = `
+            position: fixed; inset: 0; background: rgba(2, 6, 23, 0.9);
+            z-index: 10000; display: flex; align-items: center; justify-content: center;
+            backdrop-filter: blur(20px); padding: 20px;
+        `;
+        
         overlay.innerHTML = `
-            <div class="glass-panel tier-${tier}" style="width: 95%; max-width: 440px; padding: 2.5rem; text-align: center; background: rgba(10, 15, 25, 0.98);">
-                <div id="captureArea" class="holo-card tier-${tier}" onmousemove="VendorLogic.handleHoloMove(event, this)" style="background: linear-gradient(135deg, #020617 0%, #0f172a 100%); border: 1.5px solid var(--accent-primary); border-radius: 32px; padding: 3rem 2rem; margin-bottom: 2rem; position: relative; overflow: hidden; text-align: center;">
-                    <div style="position: absolute; top:0; left:0; width: 100%; height: 3px; background: var(--accent-primary); opacity: 0.3;"></div>
-                    <div style="margin-bottom: 2rem;">
-                         <div style="font-size: 0.6rem; color: var(--accent-primary); letter-spacing: 0.3em; font-weight: 900; margin-bottom: 0.5rem;">MASTER_NEXUS_OPERATOR</div>
-                         <div style="font-size: 1.8rem; font-weight: 900; color: white; text-transform: uppercase; letter-spacing: -0.02em;">${data.display_name}</div>
-                    </div>
+            <div class="glass-panel" style="width: min(95vw, 420px); text-align: center; background: transparent; border: none; box-shadow: none;">
+                <div id="captureArea" class="holo-card-vertical" onmousemove="VendorLogic.handleHoloMove(event, this)" style="
+                    background: linear-gradient(165deg, #0f172a 0%, #020617 100%);
+                    border: 2px solid var(--accent-primary);
+                    border-radius: 40px;
+                    padding: 3rem 2.5rem;
+                    margin-bottom: 2rem;
+                    position: relative;
+                    overflow: hidden;
+                    aspect-ratio: 2 / 3.2;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    box-shadow: 0 40px 100px rgba(0,0,0,0.8), inset 0 0 40px var(--accent-primary-dim);
+                    transition: transform 0.1s ease-out;
+                ">
+                    <!-- Tech Background Elements -->
+                    <div style="position: absolute; inset: 0; opacity: 0.05; background-image: radial-gradient(var(--accent-primary) 1px, transparent 1px); background-size: 20px 20px;"></div>
+                    <div style="position: absolute; top:0; left:0; width: 100%; height: 4px; background: var(--accent-primary); opacity: 0.3;"></div>
                     
-                    <div style="margin-bottom: 2.5rem;">
-                         <div id="vendorQR" style="width: 120px; height: 120px; background: rgba(255,255,255,0.03); border: 2px dashed var(--accent-primary); margin: 0 auto; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 2.5rem;">🛡️</div>
-                         <div style="font-size: 0.55rem; color: var(--text-muted); font-family: var(--font-mono); margin-top: 1rem; letter-spacing: 0.1em;">UID: ${data.vendor_id}</div>
+                    <div style="width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem;">
+                        <div style="font-family: var(--font-mono); font-size: 0.6rem; color: var(--accent-primary); letter-spacing: 0.3em; font-weight: 900;">MASTER_OPERATOR_ID</div>
+                        <div style="background: var(--accent-primary); color: #000; font-size: 0.5rem; padding: 4px 10px; border-radius: 8px; font-weight: 900;">AUTHORIZED</div>
                     </div>
 
-                    <div style="display: flex; justify-content: space-around; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 1.5rem;">
-                        <div>
-                             <div style="font-size: 0.5rem; color: var(--text-muted);">CLEARANCE</div>
-                             <div style="font-size: 0.75rem; font-weight: 800; color: var(--accent-primary);">${tier.toUpperCase()}</div>
+                    <!-- Main Identity -->
+                    <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%;">
+                        <div style="width: 120px; height: 120px; border: 2px dashed var(--accent-primary); border-radius: 30px; display: flex; align-items: center; justify-content: center; font-size: 3.5rem; background: rgba(255,255,255,0.02); margin-bottom: 2rem; box-shadow: 0 0 40px var(--accent-primary-dim);">🛡️</div>
+                        <div style="font-size: 0.55rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.2em; margin-bottom: 1rem; font-weight: 800; opacity: 0.6;">OPERATOR_SIGNATURE</div>
+                        <div style="font-size: 1.8rem; font-weight: 950; color: white; text-transform: uppercase; letter-spacing: -0.01em; text-align: center; line-height: 1.1; margin-bottom: 1rem;">
+                            ${data.display_name}
                         </div>
-                        <div>
-                             <div style="font-size: 0.5rem; color: var(--text-muted);">STATUS</div>
-                             <div style="font-size: 0.75rem; font-weight: 800; color: #10b981;">DECRYPT_READY</div>
+                        <div style="font-family: var(--font-mono); font-size: 0.7rem; color: var(--accent-primary); font-weight: 800; opacity: 0.8;">UID: ${data.vendor_id}</div>
+                    </div>
+
+                    <!-- Authorization Stats -->
+                    <div style="width: 100%; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05); border-radius: 24px; padding: 1.5rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                        <div style="text-align: left;">
+                            <div style="font-size: 0.45rem; color: var(--text-muted); font-family: var(--font-mono); margin-bottom: 4px;">CLEARANCE</div>
+                            <div style="font-size: 0.8rem; font-weight: 900; color: white; text-transform: uppercase;">${tier.toUpperCase()}</div>
+                        </div>
+                        <div style="text-align: left;">
+                            <div style="font-size: 0.45rem; color: var(--text-muted); font-family: var(--font-mono); margin-bottom: 4px;">STATUS</div>
+                            <div style="font-size: 0.8rem; font-weight: 900; color: #10b981; text-transform: uppercase;">DECRYPT_READY</div>
                         </div>
                     </div>
+
+                    <div style="width: 100%; text-align: right;">
+                        <div style="font-size: 0.4rem; color: var(--accent-primary); opacity: 0.3; font-family: var(--font-mono);">SYSTEM_CREDENTIAL_V2</div>
+                    </div>
                 </div>
+
                 <div style="display: grid; grid-template-columns: 1fr; gap: 1rem;">
-                    <button class="btn-nexus-primary" style="margin: 0; padding: 1.25rem;" onclick="VendorLogic.captureAndDownloadResult('OPERATOR_${data.vendor_id}')">EXPORT_MASTER_ID</button>
-                    <button class="btn-secondary" style="margin-top: 1rem; width: 100%;" onclick="this.closest('.quick-action-overlay').remove()">DISMISS</button>
+                    <button class="btn-cta" style="padding: 1.25rem; border-radius: 20px; font-weight: 900; background: var(--accent-primary); color: #000;" onclick="VendorLogic.captureAndDownloadResult('OPERATOR_${data.vendor_id}')">EXPORT_MASTER_ID</button>
+                    <button class="btn-ghost auto w-full" style="padding: 1.25rem; border-radius: 20px; font-weight: 900; opacity: 0.4;" onclick="this.closest('.quick-action-overlay').remove()">DISMISS_UPLINK</button>
                 </div>
             </div>
         `;
         document.body.appendChild(overlay);
+    },
     },
 
     async captureAndDownloadResult(code) {
@@ -277,44 +343,32 @@ const VendorLogic = {
 
         try {
             if (window.html2canvas) {
+                // Remove mouse move tilt before capture for clean export
+                const originalTransform = area.style.transform;
+                area.style.transform = 'none';
+                
                 const canvas = await html2canvas(area, {
                     backgroundColor: '#020617',
-                    scale: 2,
-                    useCORS: true
+                    scale: 3, // Higher scale for premium look
+                    useCORS: true,
+                    borderRadius: 40
                 });
+                
+                // Restore tilt
+                area.style.transform = originalTransform;
+
                 const link = document.createElement('a');
-                link.download = `AXP_KEY_${code}.png`;
-                link.href = canvas.toDataURL('image/png');
+                link.download = `AXP_CARD_${code}.png`;
+                link.href = canvas.toDataURL('image/png', 1.0);
                 link.click();
             } else {
-                const cardMeta = this.state.lastGeneratedCard || {};
-                const canvas = document.createElement('canvas');
-                canvas.width = 1200;
-                canvas.height = 700;
-                const ctx = canvas.getContext('2d');
-                if (!ctx) throw new Error('CANVAS_UNAVAILABLE');
-                ctx.fillStyle = '#020617';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.strokeStyle = '#00f2fe';
-                ctx.lineWidth = 4;
-                ctx.strokeRect(24, 24, canvas.width - 48, canvas.height - 48);
-                ctx.fillStyle = '#00f2fe';
-                ctx.font = '700 38px "JetBrains Mono", monospace';
-                ctx.fillText('AXP_SIGNATURE', 80, 120);
-                ctx.fillStyle = '#e2e8f0';
-                ctx.font = '700 86px "JetBrains Mono", monospace';
-                ctx.fillText(code, 80, 290);
-                ctx.font = '700 34px "JetBrains Mono", monospace';
-                ctx.fillText(`ARCHITECTURE: ${String(cardMeta.brand || '').toUpperCase()}`, 80, 410);
-                ctx.fillText(`MODEL_HUNT: ${String(cardMeta.model || '').toUpperCase()}`, 80, 480);
-                const link = document.createElement('a');
-                link.download = `AXP_KEY_${code}.png`;
-                link.href = canvas.toDataURL('image/png');
-                link.click();
+                // Minimal fallback
+                window.notify('ENGINE_FALLBACK_ACTIVE', 'warning');
             }
-            window.notify('CARD_EXPORTED_SUCCESSFULLY', 'success');
+            window.notify('PREMIUM_CARD_EXPORTED', 'success');
         } catch (e) {
             window.notify('EXPORT_FAILED', 'error');
+            console.error(e);
         }
     },
 
