@@ -746,17 +746,19 @@
     async function loadDashboard() {
       try {
         const [stats, vendors, settings] = await Promise.all([
-          api('/api/vault/admin/stats'),
-          api('/api/vault/admin/vendors'),
-          api('/api/vault/admin/settings')
+          api('/api/vault/admin/stats').catch(e => { console.error('Stats API failed:', e); return null; }),
+          api('/api/vault/admin/vendors').catch(e => { console.error('Vendors API failed:', e); return []; }),
+          api('/api/vault/admin/settings').catch(e => { console.error('Settings API failed:', e); return []; })
         ]);
 
-        document.getElementById('totalVendors').textContent = stats?.vendors ?? 0;
-        document.getElementById('totalUsage').textContent = stats?.usage_total ?? 0;
-        document.getElementById('totalCodes').textContent = stats?.codes ?? 0;
-        const load = Math.min(100, Math.round((stats?.usage_total || 0) / 10));
-        document.getElementById('loadVal').textContent = load + '%';
-        document.getElementById('loadBar').style.width = load + '%';
+        if (stats) {
+          document.getElementById('totalVendors').textContent = stats.vendors ?? 0;
+          document.getElementById('totalUsage').textContent = stats.usage_total ?? 0;
+          document.getElementById('totalCodes').textContent = stats.codes ?? 0;
+          const load = Math.min(100, Math.round((stats.usage_total || 0) / 10));
+          document.getElementById('loadVal').textContent = load + '%';
+          document.getElementById('loadBar').style.width = load + '%';
+        }
 
         if (Array.isArray(settings)) {
           const offset = settings.find(s => s.setting_key === 'global_sensitivity_offset');
@@ -773,7 +775,7 @@
 
         loadLiveFeed();
       } catch (e) {
-        console.error('DASH_ERR:', e);
+        console.error('DASH_CRITICAL_ERR:', e);
         document.getElementById('lastSyncLabel').textContent = 'SYNC_FAILED';
         if (window.notify) window.notify(`ADMIN_SYNC_ERROR: ${e.message || 'UNKNOWN'}`, 'error');
       }
