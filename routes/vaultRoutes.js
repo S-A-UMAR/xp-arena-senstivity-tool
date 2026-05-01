@@ -1666,7 +1666,7 @@ router.post('/admin/vendors', authenticateAdmin, async (req, res) => {
             usageLimit: nullableInt(0),
             durationDays: nullableInt(1),
             brandConfig: z.record(z.any()).nullable().optional(),
-            tier: z.enum(['normal', 'gold', 'premium']).optional().default('normal')
+            tier: z.enum(['normal', 'gold', 'premium', 'pro', 'elite', 'platinum', 'nexus']).optional().default('normal')
         }).parse(req.body || {});
 
         const orgId = ((rawOrgId || 'XP-CORE-ORG').trim().toUpperCase().replace(/[^A-Z0-9-]/g, '')) || 'XP-CORE-ORG';

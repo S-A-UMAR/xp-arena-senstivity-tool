@@ -88,7 +88,7 @@ async function migrate() {
         try {
             // Align schema via ALTERs (TiDB compatible: split column add and index/unique)
             await connection.query(`ALTER TABLE vendors ADD COLUMN IF NOT EXISTS org_id VARCHAR(50) NULL`);
-            await connection.query(`ALTER TABLE vendors ADD COLUMN IF NOT EXISTS tier ENUM('normal', 'gold', 'premium') DEFAULT 'normal'`);
+            await connection.query(`ALTER TABLE vendors MODIFY COLUMN tier ENUM('normal','gold','premium','pro','elite','platinum','nexus') DEFAULT 'normal'`);
             await connection.query(`ALTER TABLE vendors ADD COLUMN IF NOT EXISTS lookup_key VARCHAR(20) NULL`);
             await connection.query(`ALTER TABLE vendors ADD COLUMN IF NOT EXISTS active_until DATETIME NULL`);
             await connection.query(`ALTER TABLE vendors ADD COLUMN IF NOT EXISTS webhook_url VARCHAR(500) NULL`);
