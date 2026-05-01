@@ -180,7 +180,78 @@ input, select, textarea { font-family: inherit; }
 
 /* ─── TIERED IDENTITY THEMES ────────────────────────────────── */
 
-/* Tier: Gold — Wealth, Power, Elite */
+/* ─── TIERED IDENTITY THEMES ────────────────────────────────── */
+
+/* Theme: Cyan (Default) */
+:root[data-theme="cyan"] {
+  --accent-primary: var(--cyan);
+  --accent-primary-dim: var(--cyan-dim);
+  --accent-primary-glow: var(--cyan-glow);
+  --accent-primary-border: var(--cyan-border);
+}
+
+/* Theme: Gold — Elite, Wealth, Power */
+:root[data-theme="gold"] {
+  --accent-primary: var(--gold);
+  --accent-primary-dim: var(--gold-dim);
+  --accent-primary-glow: var(--gold-glow);
+  --accent-primary-border: var(--gold-border);
+  --cyan: var(--gold); /* Override legacy refs */
+}
+:root[data-theme="gold"] body {
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(245, 158, 11, 0.15) 0%, transparent 70%),
+    var(--bg-void);
+}
+
+/* Theme: Purple — Cyber, Mystery, Future */
+:root[data-theme="purple"] {
+  --accent-primary: var(--violet);
+  --accent-primary-dim: var(--violet-dim);
+  --accent-primary-glow: var(--violet-glow);
+  --accent-primary-border: var(--violet-border);
+  --cyan: var(--violet);
+}
+:root[data-theme="purple"] body {
+  background:
+    radial-gradient(ellipse 80% 50% at 30% -10%, rgba(168, 85, 247, 0.15) 0%, transparent 70%),
+    var(--bg-void);
+}
+
+/* Theme: Emerald — Stability, Growth, Flow */
+:root[data-theme="green"] {
+  --accent-primary: #00ff88;
+  --accent-primary-dim: rgba(0, 255, 136, 0.1);
+  --accent-primary-glow: rgba(0, 255, 136, 0.3);
+  --accent-primary-border: rgba(0, 255, 136, 0.2);
+  --cyan: #00ff88;
+}
+:root[data-theme="green"] body {
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(0, 255, 136, 0.12) 0%, transparent 70%),
+    var(--bg-void);
+}
+
+/* Theme: Crimson — Aggression, Speed, Danger */
+:root[data-theme="red"] {
+  --accent-primary: #ff4444;
+  --accent-primary-dim: rgba(255, 68, 68, 0.1);
+  --accent-primary-glow: rgba(255, 68, 68, 0.3);
+  --accent-primary-border: rgba(255, 68, 68, 0.2);
+  --cyan: #ff4444;
+}
+:root[data-theme="red"] body {
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(255, 68, 68, 0.15) 0%, transparent 70%),
+    var(--bg-void);
+}
+
+/* Global Overrides based on Accent */
+:root[data-theme] .dot-live { background: var(--accent-primary); box-shadow: 0 0 10px var(--accent-primary-glow); }
+:root[data-theme] .ph-logo { color: var(--accent-primary); }
+:root[data-theme] .btn-cta:not(.violet):not(.gold) { background: var(--accent-primary); box-shadow: 0 8px 24px var(--accent-primary-glow); }
+
+/* Tier: Gold — Legacy Support */
 body.tier-gold {
   --cyan: var(--gold);
   --cyan-dim: var(--gold-dim);
