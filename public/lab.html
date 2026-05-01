@@ -23,22 +23,34 @@
       font-family: var(--font-main);
     }
 
-    /* Neural Grid Background */
+    /* Cyber Grid Background */
     .neural-grid {
       position: fixed;
       inset: 0;
       background-image: 
         linear-gradient(rgba(0, 242, 254, 0.05) 1px, transparent 1px),
         linear-gradient(90deg, rgba(0, 242, 254, 0.05) 1px, transparent 1px);
-      background-size: 50px 50px;
+      background-size: 60px 60px;
       z-index: 1;
       pointer-events: none;
+    }
+    .neural-grid::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom, rgba(0, 242, 254, 0.05) 1px, transparent 1px);
+      background-size: 100% 4px;
+      animation: scanline 8s linear infinite;
     }
     .neural-grid::after {
       content: '';
       position: absolute;
       inset: 0;
-      background: radial-gradient(circle at 50% 50%, transparent 0%, #020617 80%);
+      background: radial-gradient(circle at 50% 50%, transparent 20%, #020617 90%);
+    }
+    @keyframes scanline {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(100vh); }
     }
 
     /* Target Styles */
@@ -50,25 +62,33 @@
 
     .lab-target {
       position: absolute;
-      width: 64px;
-      height: 64px;
-      background: rgba(0, 242, 254, 0.1);
-      border: 2px solid var(--lab-cyan);
-      border-radius: 50%;
-      box-shadow: 0 0 30px var(--lab-glow), inset 0 0 15px var(--lab-glow);
+      width: 58px;
+      height: 58px;
+      background: radial-gradient(circle, rgba(0, 242, 254, 0.2) 0%, transparent 70%);
+      border: 1.5px solid var(--lab-cyan);
+      border-radius: 12px; /* Square with rounded corners for industrial feel */
+      box-shadow: 0 0 30px var(--lab-glow);
       cursor: crosshair;
       z-index: 10;
       display: flex;
       align-items: center;
       justify-content: center;
-      animation: targetSpawn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+      animation: targetSpawn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
     }
     .lab-target::before {
       content: '';
-      width: 4px; height: 4px;
+      position: absolute;
+      inset: 4px;
+      border: 1px solid rgba(0, 242, 254, 0.3);
+      border-radius: 8px;
+    }
+    .lab-target::after {
+      content: '';
+      width: 6px; height: 6px;
       background: white;
-      border-radius: 50%;
-      box-shadow: 0 0 10px white;
+      border-radius: 1px;
+      box-shadow: 0 0 15px white;
+      transform: rotate(45deg);
     }
     
     @keyframes targetSpawn {
@@ -89,35 +109,44 @@
     }
 
     .lab-stats-top {
-      display: flex;
-      justify-content: space-between;
-      margin-top: 5rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 1rem;
+      margin-top: 1rem;
+      padding: 0.75rem;
+      background: rgba(0,0,0,0.4);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 20px;
+      backdrop-filter: blur(20px);
+      pointer-events: all;
     }
 
     .stat-pill {
-      background: rgba(15, 23, 42, 0.8);
-      backdrop-filter: blur(12px);
-      border: 1px solid rgba(0, 242, 254, 0.2);
-      padding: 0.75rem 1.25rem;
-      border-radius: 16px;
-      font-family: var(--font-mono);
-      min-width: 120px;
-      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      text-align: center;
+      padding: 0.5rem;
+      position: relative;
+    }
+    .stat-pill:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      right: -0.5rem; top: 20%; bottom: 20%;
+      width: 1px; background: rgba(255,255,255,0.1);
     }
 
     .progress-track {
       position: fixed;
-      top: 0; left: 0; right: 0;
-      height: 4px;
-      background: rgba(255,255,255,0.05);
+      top: 0; left: 0; right: 0; bottom: 0;
+      border: 2px solid transparent;
       z-index: 1000;
+      pointer-events: none;
     }
     .progress-fill {
-      height: 100%;
-      width: 0%;
-      background: linear-gradient(90deg, var(--lab-cyan), var(--lab-violet));
-      box-shadow: 0 0 20px var(--lab-glow);
-      transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      position: absolute;
+      top: 0; left: 0;
+      height: 2px; width: 0%;
+      background: var(--lab-cyan);
+      box-shadow: 0 0 20px var(--lab-cyan);
+      transition: width 0.1s linear;
     }
 
     .rating-badge {
@@ -150,18 +179,27 @@
     }
 
     /* Holographic Result Card Upgrade */
+    /* Landscape Diagnostic Console */
     .diagnostic-card {
       width: 100%;
-      max-width: 440px;
-      background: linear-gradient(145deg, rgba(15, 23, 42, 0.9), rgba(2, 6, 23, 0.95));
-      border: 1px solid rgba(0, 242, 254, 0.15);
-      border-radius: 40px;
-      padding: 3rem 2.5rem;
-      text-align: center;
+      max-width: 600px; /* Wider for landscape */
+      background: linear-gradient(165deg, rgba(15, 23, 42, 0.95), rgba(2, 6, 23, 0.98));
+      border: 1px solid rgba(0, 242, 254, 0.2);
+      border-radius: 28px;
+      padding: 2rem;
+      text-align: left; /* Left align for landscape */
       position: relative;
       overflow: hidden;
-      box-shadow: 0 40px 100px rgba(0,0,0,0.8), inset 0 0 40px rgba(0, 242, 254, 0.05);
+      box-shadow: 0 40px 100px rgba(0,0,0,0.9), 0 0 40px rgba(0, 242, 254, 0.1);
       backdrop-filter: blur(25px);
+      display: flex;
+      flex-direction: row; /* Horizontal! */
+      gap: 2rem;
+      align-items: center;
+    }
+
+    @media (max-width: 600px) {
+      .diagnostic-card { flex-direction: column; text-align: center; max-width: 320px; padding: 1.5rem; gap: 1rem; }
     }
     
     .diagnostic-card::after {
@@ -181,12 +219,12 @@
 
     .diagnostic-gauge-wrap {
       position: relative;
-      width: 180px;
-      height: 180px;
-      margin: 1.5rem auto 2.5rem;
+      width: 140px; /* Slightly smaller for landscape */
+      height: 140px;
       display: flex;
       align-items: center;
       justify-content: center;
+      flex-shrink: 0;
     }
     
     .gauge-svg {
@@ -220,11 +258,13 @@
     }
     
     .diagnostic-val {
-      font-size: 3rem;
-      font-weight: 900;
-      color: #fff;
+      font-size: 2.2rem; /* Adjusted for landscape */
+      font-weight: 950;
+      background: linear-gradient(to bottom, #fff, var(--lab-cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 0 15px rgba(0, 242, 254, 0.4));
       line-height: 1;
-      letter-spacing: -0.04em;
     }
     
     .diagnostic-unit {
@@ -270,21 +310,34 @@
     }
 
     .advisor-box {
-      background: rgba(0, 0, 0, 0.4) !important;
-      border: 1px solid rgba(0, 242, 254, 0.1) !important;
+      background: rgba(0, 242, 254, 0.03) !important;
+      border: 1px solid rgba(0, 242, 254, 0.15) !important;
+      border-radius: 16px;
       position: relative;
       padding: 1.5rem !important;
+      box-shadow: inset 0 0 20px rgba(0, 242, 254, 0.05);
+      backdrop-filter: blur(5px);
     }
     .advisor-box::before {
-      content: 'SYSTEM_ANALYSIS';
+      content: 'NEURAL_PROCESSOR_v4';
       position: absolute;
-      top: -8px; left: 16px;
+      top: -6px; left: 12px;
       background: #020617;
-      padding: 0 8px;
-      font-size: 0.5rem;
+      padding: 0 6px;
+      font-size: 0.45rem;
       font-family: var(--font-mono);
       color: var(--lab-cyan);
-      letter-spacing: 0.2em;
+      letter-spacing: 0.15em;
+      font-weight: 900;
+    }
+    .advisor-box::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(rgba(0, 242, 254, 0.1) 0.5px, transparent 0.5px);
+      background-size: 8px 8px;
+      opacity: 0.3;
+      pointer-events: none;
     }
 
     .gauge-ring-outer {
@@ -373,26 +426,38 @@
       margin: 2rem 0;
     }
     .mode-card {
-      background: rgba(255,255,255,0.03);
-      border: 1px solid rgba(255,255,255,0.06);
-      border-radius: 20px;
-      padding: 1rem 0.5rem;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 12px;
+      padding: 0.75rem 0.25rem;
       cursor: pointer;
-      transition: all 0.3s;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 0.5rem;
+      gap: 0.4rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .mode-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 2px;
+      background: var(--lab-cyan);
+      opacity: 0;
+      transition: opacity 0.3s;
     }
     .mode-card.active {
-      background: rgba(0, 242, 254, 0.1);
-      border-color: var(--lab-cyan);
-      box-shadow: 0 0 20px rgba(0, 242, 254, 0.15);
-      transform: translateY(-5px);
+      background: rgba(0, 242, 254, 0.08);
+      border-color: rgba(0, 242, 254, 0.3);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4), inset 0 0 10px rgba(0, 242, 254, 0.1);
+      transform: translateY(-2px);
     }
-    .mode-card-icon { font-size: 1.25rem; }
-    .mode-card-title { font-size: 0.55rem; font-weight: 900; color: #fff; letter-spacing: 0.05em; }
-    .mode-card-tag { font-size: 0.45rem; color: var(--lab-cyan); opacity: 0.6; font-weight: 800; text-transform: uppercase; }
+    .mode-card.active::before { opacity: 1; }
+    .mode-card-icon { font-size: 1.1rem; filter: grayscale(0.5); transition: 0.3s; }
+    .mode-card.active .mode-card-icon { filter: grayscale(0) drop-shadow(0 0 8px var(--lab-cyan)); }
+    .mode-card-title { font-size: 0.45rem; font-weight: 950; color: rgba(255,255,255,0.4); letter-spacing: 0.1em; text-transform: uppercase; }
+    .mode-card.active .mode-card-title { color: #fff; }
 
     @media (max-width: 600px) {
       .mode-grid-5 { grid-template-columns: repeat(3, 1fr); }
@@ -420,14 +485,16 @@
 
     <div class="lab-stats-top">
       <div class="stat-pill">
-        <div class="text-ghost" style="font-size: 0.5rem; letter-spacing: 0.1em;">NEURAL_SYNC_TIMER</div>
-        <div id="labTimer" class="text-xl font-black text-white">30.0s</div>
-        <div id="perfRating" class="rating-badge rating-stable">STABLE</div>
-      </div>
-      <div class="stat-pill text-right">
-        <div class="text-ghost" style="font-size: 0.5rem; letter-spacing: 0.1em;">NEURAL_LATENCY</div>
+        <div class="text-[0.45rem] font-mono opacity-50 uppercase tracking-widest mb-1">LATENCY</div>
         <div id="currentAvg" class="text-xl font-black text-white">0ms</div>
-        <div class="text-[0.5rem] font-mono opacity-40">NODES_HIT: <span id="hitsCount">0</span></div>
+      </div>
+      <div class="stat-pill">
+        <div class="text-[0.45rem] font-mono opacity-50 uppercase tracking-widest mb-1">SYNC_RATING</div>
+        <div id="perfRating" class="rating-badge rating-stable" style="font-size: 0.45rem; margin-top: 0;">STABLE</div>
+      </div>
+      <div class="stat-pill">
+        <div class="text-[0.45rem] font-mono opacity-50 uppercase tracking-widest mb-1">TIMER</div>
+        <div id="labTimer" class="text-xl font-black text-white">30.0s</div>
       </div>
     </div>
     
@@ -440,94 +507,70 @@
   <!-- Start Overlay -->
   <div id="startOverlay" class="lab-overlay">
     <div class="diagnostic-card">
-      <div class="badge-cyan mb-3">SYSTEM_READY</div>
-      <h1 class="text-hero text-2xl mb-2">NEURAL_CALIBRATION</h1>
-      <p class="lab-prompt">Synchronize your biological response time with our sensitivity algorithm for expert-tier results.</p>
-      
-      <div class="mode-grid-5">
-        <div class="mode-card active" onclick="setMode('flick', this)">
-          <div class="mode-card-icon">🎯</div>
-          <div class="mode-card-title">FLICK</div>
-          <div class="mode-card-tag">SPEED</div>
-        </div>
-        <div class="mode-card" onclick="setMode('tracking', this)">
-          <div class="mode-card-icon">👁️</div>
-          <div class="mode-card-title">TRACK</div>
-          <div class="mode-card-tag">STABILITY</div>
-        </div>
-        <div class="mode-card" onclick="setMode('reflex', this)">
-          <div class="mode-card-icon">⚡</div>
-          <div class="mode-card-title">REFLEX</div>
-          <div class="mode-card-tag">LATENCY</div>
-        </div>
-        <div class="mode-card" onclick="setMode('burst', this)">
-          <div class="mode-card-icon">🔥</div>
-          <div class="mode-card-title">BURST</div>
-          <div class="mode-card-tag">ACQUISITION</div>
-        </div>
-        <div class="mode-card" onclick="setMode('drift', this)">
-          <div class="mode-card-icon">🌀</div>
-          <div class="mode-card-title">DRIFT</div>
-          <div class="mode-card-tag">PRECISION</div>
-        </div>
+      <!-- Left side: Icon & Mode -->
+      <div style="flex-shrink: 0; text-align: center; width: 120px;">
+        <div style="font-size: 3rem; margin-bottom: 1rem; filter: drop-shadow(0 0 15px var(--lab-cyan));">🧬</div>
+        <div class="badge-cyan">v4.2.0</div>
       </div>
+      
+      <!-- Right side: Content -->
+      <div style="flex: 1;">
+        <h1 class="text-hero text-xl mb-1">NEURAL_CALIBRATION</h1>
+        <p class="text-ghost text-[0.6rem] mb-4 opacity-60">Synchronize your biometrics for expert-tier results.</p>
+        
+        <div class="mode-grid-5" style="margin: 0 0 1.5rem 0;">
+          <div class="mode-card active" onclick="setMode('flick', this)"><div class="mode-card-icon">🎯</div><div class="mode-card-title">FLICK</div></div>
+          <div class="mode-card" onclick="setMode('tracking', this)"><div class="mode-card-icon">👁️</div><div class="mode-card-title">TRACK</div></div>
+          <div class="mode-card" onclick="setMode('reflex', this)"><div class="mode-card-icon">⚡</div><div class="mode-card-title">REFLEX</div></div>
+          <div class="mode-card" onclick="setMode('burst', this)"><div class="mode-card-icon">🔥</div><div class="mode-card-title">BURST</div></div>
+          <div class="mode-card" onclick="setMode('drift', this)"><div class="mode-card-icon">🌀</div><div class="mode-card-title">DRIFT</div></div>
+        </div>
 
-      <button class="btn-cta cyan w-full" onclick="startTest()">INITIALIZE_SCAN</button>
-      <p class="text-ghost mt-6 font-mono" style="font-size: 0.55rem; opacity: 0.4;">ERROR_MARGIN: < 2.5% | ENCRYPTION: AES-256</p>
+        <button class="btn-cta cyan w-full" style="padding: 0.8rem; border-radius: 12px; font-size: 0.7rem;" onclick="startTest()">INITIALIZE_SCAN</button>
+      </div>
     </div>
   </div>
 
   <!-- Result Overlay -->
   <div id="resultOverlay" class="lab-overlay hidden">
     <div class="diagnostic-card" id="cardToCapture">
-      <svg class="cert-seal" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="4 4"/><path d="M30 50L45 65L70 35" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      
-      <div class="badge-cyan mb-2">NEURAL_SCAN_CERTIFIED</div>
-      <h2 class="section-title" style="font-size: 0.7rem; opacity: 0.6; letter-spacing: 0.2em;">DIAGNOSTIC_METRICS</h2>
-      
-      <div class="diagnostic-gauge-wrap">
-        <svg class="gauge-svg" viewBox="0 0 160 160">
-          <circle class="gauge-ring-outer" cx="80" cy="80" r="76" />
-          <circle class="gauge-bg" cx="80" cy="80" r="70" />
-          <circle id="gaugeFill" class="gauge-fill" cx="80" cy="80" r="70" />
-        </svg>
-        <div class="gauge-content">
-          <div class="diagnostic-val" id="finalAvg">--</div>
-          <div class="diagnostic-unit">MS_LATENCY</div>
+      <!-- Left: Metrics -->
+      <div style="flex-shrink: 0; width: 160px; text-align: center; border-right: 1px solid rgba(255,255,255,0.05); padding-right: 1.5rem;">
+        <div class="diagnostic-gauge-wrap" style="margin: 0 auto 1rem;">
+          <svg class="gauge-svg" viewBox="0 0 160 160">
+            <circle class="gauge-ring-outer" cx="80" cy="80" r="76" />
+            <circle class="gauge-bg" cx="80" cy="80" r="70" />
+            <circle id="gaugeFill" class="gauge-fill" cx="80" cy="80" r="70" />
+          </svg>
+          <div class="gauge-content">
+            <div class="diagnostic-val" id="finalAvg">--</div>
+            <div class="diagnostic-unit" style="font-size: 0.5rem;">MS_LATENCY</div>
+          </div>
         </div>
+        <div id="finalRating" class="rating-badge rating-stable" style="width: 100%; margin-bottom: 0.5rem;">STABLE</div>
+        <div class="text-[0.55rem] font-mono text-cyan" id="finalPrecision">PRECISION: --%</div>
       </div>
       
-      <div class="flex flex-col gap-3 mb-10 px-4">
-        <div class="flex justify-between items-end">
+      <!-- Right: Narrative & Actions -->
+      <div style="flex: 1;">
+        <div class="flex justify-between items-start mb-4">
           <div>
-            <div class="text-[0.5rem] font-mono opacity-40 uppercase tracking-tighter">Precision_Stability</div>
-            <div id="finalPrecision" class="text-xl font-black text-cyan">--%</div>
+            <div class="badge-cyan mb-1">SCAN_CERTIFIED</div>
+            <div class="id-seal" id="diagnosticId" style="margin: 0; padding: 4px 10px; font-size: 0.8rem; border-radius: 8px;">LAB-XXXXXX</div>
           </div>
-          <div class="text-right">
-            <div class="text-[0.5rem] font-mono opacity-40 uppercase tracking-tighter">Sync_Rating</div>
-            <div id="finalRating" class="text-[0.6rem] font-black text-white bg-white-10 px-2 py-0.5 rounded">STABLE</div>
-          </div>
+          <svg style="width: 32px; height: 32px; opacity: 0.2;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M4.93 19.07L19.07 4.93"/></svg>
         </div>
-        <div class="skeleton-h sm w-full" style="height: 8px; background: rgba(255,255,255,0.03); border-radius: 4px; overflow: hidden;">
-          <div id="precisionBar" class="stat-bar-fill" style="background:linear-gradient(90deg, var(--lab-cyan), var(--lab-violet)); width:0%; box-shadow: 0 0 20px var(--lab-glow); height: 100%;"></div>
+        
+        <div id="neuralNarrative" class="advisor-box mb-4" style="padding: 1rem !important; min-height: 80px;">
+          <p id="advisorQuote" class="text-[0.65rem] leading-tight opacity-70">ANALYZING_BIOMETRICS...</p>
         </div>
+        
+        <div class="flex gap-2">
+          <button class="btn-ghost auto flex-1" onclick="copyLabId()" style="padding: 0.5rem; font-size: 0.6rem;">COPY_ID</button>
+          <button class="btn-cta cyan flex-1" onclick="downloadLabCard()" style="padding: 0.5rem; font-size: 0.6rem;">SAVE_CERT</button>
+        </div>
+        <button class="btn-ghost auto w-full mt-2 text-[0.5rem] opacity-20 hover:opacity-100" onclick="location.reload()">RE-RECALIBRATE</button>
       </div>
-
-      <!-- Neural Advisor Narrative -->
-      <div id="neuralNarrative" class="mb-8 advisor-box rounded-2xl">
-        <p id="advisorQuote" class="text-[0.7rem] text-hero leading-relaxed italic font-medium opacity-80">ANALYZING_BIOMETRICS...</p>
-      </div>
-
-      <p class="text-sub text-[0.7rem] px-6 leading-relaxed mb-6">This cryptographic signature confirms your biological response profile in the AXP Neural Registry.</p>
-      
-      <div class="id-seal" id="diagnosticId">LAB-XXXXXX</div>
-      
-      <div class="flex gap-3 mt-4">
-        <button class="btn-ghost auto flex-1" onclick="copyLabId()" style="border-radius: 18px; font-size: 0.7rem;">COPY_ID</button>
-        <button class="btn-cta cyan flex-1" onclick="downloadLabCard()" style="border-radius: 18px; font-size: 0.7rem;">SAVE_CERT</button>
-      </div>
-      
-      <button class="btn-ghost auto w-full mt-6 text-[0.6rem] opacity-30 hover:opacity-100 transition-opacity" onclick="location.reload()">RE-RECALIBRATE_SYSTEM</button>
     </div>
   </div>
 

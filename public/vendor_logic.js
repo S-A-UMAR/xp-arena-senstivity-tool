@@ -200,69 +200,62 @@ const VendorLogic = {
         `;
         
         overlay.innerHTML = `
-            <div class="glass-panel" style="width: min(90vw, 280px); text-align: center; background: transparent; border: none; box-shadow: none;">
+            <div class="glass-panel" style="width: min(90vw, 260px); text-align: center; background: transparent; border: none; box-shadow: none;">
                 <div id="captureArea" class="holo-card-vertical" onmousemove="VendorLogic.handleHoloMove(event, this)" style="
                     background: linear-gradient(165deg, #0f172a 0%, #020617 100%);
-                    border: 2px solid var(--accent-primary);
-                    border-radius: 40px;
-                    padding: 1.25rem;
-                    margin-bottom: 1.25rem;
+                    border: 1px solid var(--accent-primary);
+                    border-radius: 20px;
+                    padding: 1rem;
+                    margin-bottom: 1rem;
                     position: relative;
                     overflow: hidden;
-                    aspect-ratio: 2 / 2.6;
+                    aspect-ratio: 2 / 1.15;
                     display: flex;
                     flex-direction: column;
-                    align-items: center;
-                    box-shadow: 0 30px 60px rgba(0,0,0,0.8), inset 0 0 30px var(--accent-primary-dim);
+                    justify-content: space-between;
+                    box-shadow: 0 20px 40px rgba(0,0,0,0.8), inset 0 0 20px var(--accent-primary-dim);
                     transition: transform 0.1s ease-out;
                 ">
-                    <!-- Tech Background Elements -->
-                    <div style="position: absolute; inset: 0; opacity: 0.05; background-image: radial-gradient(var(--accent-primary) 1px, transparent 1px); background-size: 20px 20px;"></div>
-                    <div style="position: absolute; top:0; left:0; width: 100%; height: 4px; background: var(--accent-primary); opacity: 0.3;"></div>
+                    <!-- Industrial Micro-Elements -->
+                    <div style="position: absolute; inset: 0; opacity: 0.1; background-image: radial-gradient(var(--accent-primary) 0.5px, transparent 0.5px); background-size: 10px 10px;"></div>
+                    <div style="position: absolute; top:0; left:0; width: 4px; height: 100%; background: var(--accent-primary); opacity: 0.4;"></div>
                     
-                    <div style="width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                        <div style="font-family: var(--font-mono); font-size: 0.5rem; color: var(--accent-primary); letter-spacing: 0.2em; font-weight: 900;">AXP_NEXUS</div>
-                        <div style="background: var(--accent-primary); color: #000; font-size: 0.45rem; padding: 2px 6px; border-radius: 4px; font-weight: 900;">SECURE</div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; z-index: 2;">
+                        <div style="font-family: var(--font-mono); font-size: 0.45rem; color: var(--accent-primary); letter-spacing: 0.2em; font-weight: 900;">AXP_CHIP_V5</div>
+                        <div style="font-size: 0.4rem; color: var(--text-muted); font-family: var(--font-mono); opacity: 0.5;">[SECURE_ACCESS]</div>
                     </div>
 
-                    <!-- Main Identity -->
-                    <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%;">
-                        <div style="width: 50px; height: 50px; border: 1px solid var(--accent-primary-border); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; background: rgba(0,0,0,0.4); margin-bottom: 1rem; box-shadow: 0 0 20px var(--accent-primary-dim);">🔑</div>
-                        <div style="font-size: 0.45rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 0.5rem; font-weight: 800; opacity: 0.6;">PROVISIONED_KEY</div>
-                        <div style="font-family: var(--font-mono); font-size: 1.25rem; font-weight: 950; color: white; letter-spacing: 0.05em; text-align: center; line-height: 1.2; margin-bottom: 1.5rem; text-shadow: 0 0 15px var(--accent-primary-glow); word-break: break-all;">
-                            ${code}
+                    <div style="display: flex; align-items: center; gap: 1rem; flex: 1; z-index: 2;">
+                        <div style="width: 44px; height: 44px; border: 1px solid var(--accent-primary-border); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; background: rgba(0,0,0,0.4); box-shadow: 0 0 15px var(--accent-primary-dim);">🔑</div>
+                        <div style="text-align: left;">
+                            <div style="font-size: 0.4rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 2px; font-weight: 800; opacity: 0.6;">CIPHER_TOKEN</div>
+                            <div style="font-family: var(--font-mono); font-size: 1.1rem; font-weight: 950; color: white; letter-spacing: 0.02em; line-height: 1; text-shadow: 0 0 15px var(--accent-primary-glow);">
+                                ${code}
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Hardware Stats -->
-                    <div style="width: 100%; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; padding: 1rem; display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 0.75rem; z-index: 2;">
                         <div style="text-align: left;">
-                            <div style="font-size: 0.4rem; color: var(--text-muted); font-family: var(--font-mono); margin-bottom: 2px;">ARCH</div>
-                            <div style="font-size: 0.6rem; font-weight: 900; color: white; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${brand}</div>
+                            <div style="font-size: 0.35rem; color: var(--text-muted); font-family: var(--font-mono);">ARCH</div>
+                            <div style="font-size: 0.5rem; font-weight: 900; color: white; text-transform: uppercase;">${brand}</div>
                         </div>
                         <div style="text-align: left;">
-                            <div style="font-size: 0.4rem; color: var(--text-muted); font-family: var(--font-mono); margin-bottom: 2px;">MODEL</div>
-                            <div style="font-size: 0.6rem; font-weight: 900; color: white; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${model}</div>
-                        </div>
-                    </div>
-
-                    <!-- Bottom Branding -->
-                    <div style="width: 100%; display: flex; justify-content: space-between; align-items: flex-end;">
-                        <div style="text-align: left;">
-                            <div style="font-size: 0.5rem; color: var(--text-muted); font-family: var(--font-mono);">TIMESTAMP</div>
-                            <div style="font-size: 0.6rem; font-weight: 800; color: white;">${new Date().toLocaleTimeString()}</div>
+                            <div style="font-size: 0.35rem; color: var(--text-muted); font-family: var(--font-mono);">MODEL</div>
+                            <div style="font-size: 0.5rem; font-weight: 900; color: white; text-transform: uppercase;">${model.substring(0, 12)}</div>
                         </div>
                         <div style="text-align: right;">
-                            <div style="font-size: 0.4rem; color: var(--accent-primary); opacity: 0.3; font-family: var(--font-mono);">SYSTEM_VER: 4.2.0-NEXUS</div>
+                            <div style="font-size: 0.35rem; color: var(--text-muted); font-family: var(--font-mono);">VER</div>
+                            <div style="font-size: 0.5rem; font-weight: 900; color: var(--accent-primary); opacity: 0.8;">4.2.0</div>
                         </div>
                     </div>
                 </div>
 
-                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem;">
-                    <button class="btn-cta" style="padding: 0.75rem; border-radius: 12px; font-size: 0.65rem; font-weight: 900; background: var(--accent-primary); color: #000;" onclick="VendorLogic.copyToClipboard('${code}')">COPY_KEY</button>
-                    <button class="btn-ghost auto" style="padding: 0.75rem; border-radius: 12px; font-size: 0.65rem; font-weight: 900; background: rgba(255,255,255,0.05); color: white;" onclick="VendorLogic.captureAndDownloadResult('${code}')">SAVE_CARD</button>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem;">
+                    <button class="btn-cta" style="padding: 0.6rem; border-radius: 10px; font-size: 0.6rem; font-weight: 950; background: var(--accent-primary); color: #000;" onclick="VendorLogic.copyToClipboard('${code}')">COPY</button>
+                    <button class="btn-ghost auto" style="padding: 0.6rem; border-radius: 10px; font-size: 0.6rem; font-weight: 950; background: rgba(255,255,255,0.05); color: white;" onclick="VendorLogic.captureAndDownloadResult('${code}')">SAVE</button>
                 </div>
-                <button class="btn-ghost auto w-full mt-3" style="font-size: 0.6rem; opacity: 0.4; border-radius: 8px; padding: 0.4rem;" onclick="this.closest('.quick-action-overlay').remove()">DISMISS_UPLINK</button>
+                <button class="btn-ghost auto w-full mt-2" style="font-size: 0.55rem; opacity: 0.3; border-radius: 6px; padding: 0.25rem;" onclick="this.closest('.quick-action-overlay').remove()">[DISMISS_UPLINK]</button>
             </div>
         `;
         document.body.appendChild(overlay);

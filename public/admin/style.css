@@ -22,6 +22,13 @@ body {
   padding: 0;
 }
 
+.page-wrap {
+  padding: 1.5rem;
+  padding-bottom: 120px; /* Space for fixed nav */
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
 /* ── Login Gate ──────────────────────────────── */
 .vault-gate {
   position: fixed; inset: 0;

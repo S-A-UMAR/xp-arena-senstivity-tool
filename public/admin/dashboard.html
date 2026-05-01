@@ -12,7 +12,12 @@
   <div class="page-wrap anim-stagger-in">
     <!-- 🚀 GLOBAL_COMMAND_HERO -->
     <div class="card glow mb-4" style="padding: 2.5rem; border: 1px solid var(--gold-border); background: linear-gradient(165deg, rgba(245, 158, 11, 0.05), rgba(0, 0, 0, 0.4)); text-align: center; border-radius: 32px;">
-      <div class="section-eyebrow" style="color: var(--gold); opacity: 0.8; letter-spacing: 0.3em;">GLOBAL_UPLINK_ACTIVITY</div>
+      <div class="section-eyebrow" style="color: var(--gold); opacity: 0.8; letter-spacing: 0.3em; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+        GLOBAL_UPLINK_ACTIVITY
+        <button class="btn-ghost auto" style="padding: 4px; border-radius: 4px; opacity: 0.5;" onclick="loadDashboard()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.85.83 6.72 2.24"/><path d="M21 3v9h-9"/></svg>
+        </button>
+      </div>
       <div id="totalUsage" style="font-size: 5rem; font-weight: 900; color: #fff; text-shadow: 0 0 30px var(--gold-glow); line-height: 1; margin: 1rem 0;">0000</div>
       <div class="text-xs font-mono" style="color: var(--tx-muted); letter-spacing: 0.1em;">TOTAL_NEURAL_DECRYPTIONS_LOGGED</div>
       
@@ -141,23 +146,32 @@
 
     async function loadDashboard() {
         try {
-            const [stats, analytics] = await Promise.all([
-                api('/api/vault/admin/stats'),
-                api('/api/vault/admin/analytics')
-            ]);
-            await loadSettings();
-
+            document.getElementById('lastSyncLabel').textContent = 'UPLINK_SYNCING...';
+            
+            // Fetch stats first as they are critical
+            const stats = await api('/api/vault/admin/stats');
+            
             document.getElementById('totalVendors').textContent = stats?.vendors ?? 0;
             document.getElementById('totalUsage').textContent = (stats?.usage_total ?? 0).toLocaleString();
             document.getElementById('totalCodes').textContent = stats?.codes ?? 0;
             
-            const load = Math.min(100, Math.round((stats?.usage_total || 0) / 100) % 100 + 12);
+            const load = Math.min(100, Math.round((stats?.usage_total || 0) / 100) % 30 + 12);
             document.getElementById('loadVal').textContent = load + '%';
             document.getElementById('loadBar').style.width = load + '%';
             document.getElementById('lastSyncLabel').textContent = 'SYNCED_' + new Date().toLocaleTimeString().split(' ')[0];
+
+            // Optional background loads
+            loadSettings().catch(() => {});
+            loadLiveFeed().catch(() => {});
             
-            renderRegions(analytics.topRegions);
-            loadLiveFeed();
+            try {
+                const analytics = await api('/api/vault/admin/analytics');
+                renderRegions(analytics.topRegions);
+            } catch (e) {
+                console.warn('ANALYTICS_FAILED:', e);
+                renderRegions([]);
+            }
+
         } catch (e) {
             console.error('DASH_LOAD_ERR:', e);
             document.getElementById('lastSyncLabel').textContent = 'UPLINK_OFFLINE';
