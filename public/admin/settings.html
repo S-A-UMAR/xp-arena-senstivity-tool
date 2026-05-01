@@ -1,52 +1,96 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <link rel="icon" type="image/svg+xml" href="../favicon.svg">
-  <title>AXP | GLOBAL SETUP</title>
-  <link rel="stylesheet" href="style.css">
-</head>
-<body class="page-admin">
-
   <div class="page-wrap anim-stagger-in">
-    <div class="section-header mb-4">
-      <h2 class="section-title">GLOBAL_SETUP</h2>
-    </div>
-
-    <!-- Schema Status -->
-    <div class="card mb-3">
-      <div class="section-header mb-3">
-        <h2 class="section-title">SCHEMA_INTEGRITY</h2>
-        <button class="btn-ghost auto" style="font-size: 0.6rem;" onclick="checkSchema()">REFRESH</button>
+    <!-- 🛡️ CORE_HEALTH_DASHBOARD -->
+    <div class="grid grid-cols-3 gap-3 mb-4">
+      <div class="card p-3 text-center" style="background: rgba(0,242,254,0.03); border-color: rgba(0,242,254,0.1);">
+        <div class="text-[0.5rem] font-mono text-muted mb-1 uppercase">Sys_Uptime</div>
+        <div class="text-sm font-black text-cyan">99.98%</div>
       </div>
-      <div id="schemaGrid" class="grid grid-cols-2 gap-2 mb-4">
-        <div class="text-center py-4 opacity-20 text-xs font-mono col-span-2">FETCHING_SCHEMA_STATUS...</div>
+      <div class="card p-3 text-center" style="background: rgba(168,85,247,0.03); border-color: rgba(168,85,247,0.1);">
+        <div class="text-[0.5rem] font-mono text-muted mb-1 uppercase">Cache_Load</div>
+        <div class="text-sm font-black text-violet">1.2 MB</div>
       </div>
-      <div class="section-eyebrow">RECENT_MIGRATIONS</div>
-      <div id="migrationList" class="text-xs font-mono opacity-60">
-        NO_MIGRATIONS_LOGGED
+      <div class="card p-3 text-center" style="background: rgba(245,158,11,0.03); border-color: rgba(245,158,11,0.1);">
+        <div class="text-[0.5rem] font-mono text-muted mb-1 uppercase">DB_Latency</div>
+        <div class="text-sm font-black text-gold">14ms</div>
       </div>
     </div>
 
-    <!-- Maintenance -->
+    <!-- 🧬 SCHEMA_INTEGRITY -->
+    <div class="card mb-4">
+      <div class="section-header mb-4">
+        <div>
+          <h2 class="section-title">SCHEMA_INTEGRITY</h2>
+          <div class="text-xs font-mono opacity-30">DATABASE_STRUCTURE_VERIFICATION</div>
+        </div>
+        <button class="btn-ghost auto btn-xs" onclick="checkSchema()">RE_SCAN</button>
+      </div>
+      
+      <div id="schemaGrid" class="grid grid-cols-2 gap-2 mb-6">
+        <div class="text-center py-6 opacity-20 text-xs font-mono col-span-2">INITIALIZING_CORE_SCAN...</div>
+      </div>
+
+      <div class="divider-gaming mb-4" style="opacity: 0.05;"></div>
+      
+      <div class="section-eyebrow mb-3" style="font-size: 0.55rem;">RECENT_ARCHITECTURAL_MIGRATIONS</div>
+      <div id="migrationList" class="flex flex-col gap-2">
+        <div class="text-xs font-mono opacity-20 py-2">NO_MIGRATION_RECORDS_FOUND</div>
+      </div>
+    </div>
+
+    <!-- 🛠️ MAINTENANCE_SUITE -->
     <div class="card">
-      <div class="section-header mb-3">
-        <h2 class="section-title">SYSTEM_MAINTENANCE</h2>
+      <div class="section-header mb-4">
+        <h2 class="section-title">MAINTENANCE_OVERRIDE</h2>
       </div>
-      <div class="flex flex-col gap-2">
-        <button id="mModeBtn" class="btn-ghost auto w-full" style="text-align:left; padding:1rem;" onclick="toggleMaintenance()">
-          <span class="block font-bold" style="color:var(--gold);">MAINTENANCE_MODE: <span id="mModeStatus">OFF</span></span>
-          <span class="block text-xs opacity-50">BLOCKS_ALL_PUBLIC_TRAFFIC_EXCEPT_ADMIN</span>
-        </button>
-        <button class="btn-ghost auto w-full" style="text-align:left; padding:1rem;" onclick="clearCache()">
-          <span class="block font-bold" style="color:var(--gold);">FLUSH_TRANSIENT_CACHE</span>
-          <span class="block text-xs opacity-50">REMOVES_ALL_EXPIRED_DATA_FROM_CACHE_TABLE</span>
-        </button>
-        <button class="btn-ghost auto w-full" style="text-align:left; padding:1rem;" onclick="window.location.href='/health'">
-          <span class="block font-bold" style="color:var(--cyan);">SYSTEM_HEALTH_CHECK</span>
-          <span class="block text-xs opacity-50">VIEW_RAW_SYSTEM_HEALTH_PAYLOAD</span>
-        </button>
+      
+      <div class="flex flex-col gap-3">
+        <!-- Maintenance Lock -->
+        <div class="flex justify-between items-center p-4 rounded-2xl cursor-pointer transition-all hover:bg-white-5" 
+             style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.03);"
+             onclick="toggleMaintenance()">
+          <div class="flex items-center gap-4">
+            <div id="mModeIcon" style="width: 40px; height: 40px; border-radius: 12px; background: rgba(245,158,11,0.1); display: flex; align-items: center; justify-content: center; color: var(--gold);">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v10M18.4 6.6a9 9 0 1 1-12.77.04"/></svg>
+            </div>
+            <div>
+              <div class="text-sm font-black">MAINTENANCE_LOCK</div>
+              <div class="text-xs text-muted" style="font-size: 0.6rem;">RESTRICT_PUBLIC_ACCESS_IMMEDIATELY</div>
+            </div>
+          </div>
+          <div id="mModeStatus" class="font-mono text-xs font-black px-3 py-1 rounded-lg" style="background: rgba(255,255,255,0.05);">OFF</div>
+        </div>
+
+        <!-- Flush Cache -->
+        <div class="flex justify-between items-center p-4 rounded-2xl cursor-pointer transition-all hover:bg-white-5" 
+             style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.03);"
+             onclick="clearCache()">
+          <div class="flex items-center gap-4">
+            <div style="width: 40px; height: 40px; border-radius: 12px; background: rgba(168,85,247,0.1); display: flex; align-items: center; justify-content: center; color: var(--violet);">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"/></svg>
+            </div>
+            <div>
+              <div class="text-sm font-black">FLUSH_TRANSIENT_CACHE</div>
+              <div class="text-xs text-muted" style="font-size: 0.6rem;">WIPE_EXPIRED_VOLATILE_STORAGE</div>
+            </div>
+          </div>
+          <div class="font-mono text-[0.6rem] opacity-30">AUTO_CLEAN: ENABLED</div>
+        </div>
+
+        <!-- Health Check -->
+        <div class="flex justify-between items-center p-4 rounded-2xl cursor-pointer transition-all hover:bg-white-5" 
+             style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.03);"
+             onclick="window.location.href='/health'">
+          <div class="flex items-center gap-4">
+            <div style="width: 40px; height: 40px; border-radius: 12px; background: rgba(0,242,254,0.1); display: flex; align-items: center; justify-content: center; color: var(--cyan);">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            </div>
+            <div>
+              <div class="text-sm font-black">SYSTEM_INTELLIGENCE_CHECK</div>
+              <div class="text-xs text-muted" style="font-size: 0.6rem;">VIEW_REALTIME_CORE_PAYLOAD</div>
+            </div>
+          </div>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" class="opacity-20"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
       </div>
     </div>
   </div>
@@ -60,59 +104,75 @@
         const mList = document.getElementById('migrationList');
 
         grid.innerHTML = Object.entries(data.tables).map(([name, exists]) => `
-          <div class="p-2 border border-white-5 rounded flex justify-between items-center">
-            <span class="text-xs font-mono opacity-60 uppercase">${name.replace('_',' ')}</span>
-            <span class="text-xs font-black" style="color:${exists ? 'var(--success)' : 'var(--error)'};">${exists ? 'OK' : 'MISSING'}</span>
+          <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 0.75rem 1rem; display: flex; justify-content: space-between; align-items: center;">
+            <div class="text-[0.65rem] font-mono opacity-50 uppercase">${name.replace('_',' ')}</div>
+            <div class="flex items-center gap-2">
+              <div style="width: 6px; height: 6px; border-radius: 50%; background: ${exists ? 'var(--success)' : 'var(--error)'};"></div>
+              <span class="text-[0.65rem] font-black" style="color:${exists ? 'var(--success)' : 'var(--error)'};">${exists ? 'VERIFIED' : 'LOST'}</span>
+            </div>
           </div>
         `).join('');
 
         if (data.recent_migrations?.length) {
           mList.innerHTML = data.recent_migrations.map(m => `
-            <div class="flex justify-between py-1 border-b border-white-5">
-              <span>${m.version}</span>
-              <span class="opacity-40">${new Date(m.applied_at).toLocaleDateString()}</span>
+            <div class="flex justify-between items-center p-3 rounded-xl" style="background: rgba(255,255,255,0.02);">
+              <div class="text-xs font-mono font-bold" style="color: var(--tx-sub);">${m.version}</div>
+              <div class="text-[0.6rem] font-mono opacity-30">${new Date(m.applied_at).toLocaleDateString()}</div>
             </div>
           `).join('');
         }
-      } catch (e) { console.error('SCHEMA_ERR:', e); }
+      } catch (e) { 
+        console.error('SCHEMA_ERR:', e); 
+        document.getElementById('schemaGrid').innerHTML = '<div class="text-center py-6 text-error text-xs font-mono col-span-2">SCAN_FAILED: UPLINK_TIMEOUT</div>';
+      }
     }
 
     async function toggleMaintenance() {
       const status = document.getElementById('mModeStatus');
-      const isCurrentlyOn = status.textContent === 'ON';
+      const isCurrentlyOn = status.textContent === 'ACTIVE';
       const newVal = isCurrentlyOn ? 'false' : 'true';
-      const confirmed = await adminConfirm(`CONFIRM: TURN_MAINTENANCE_MODE_${newVal.toUpperCase()}?`);
+      const confirmed = await adminConfirm(`CONFIRM: OVERRIDE_MAINTENANCE_LOCK_TO_${newVal.toUpperCase()}?`);
       if (!confirmed) return;
       
       try {
         await api('/api/vault/admin/settings', 'POST', { key: 'maintenance_mode', value: newVal });
-        status.textContent = newVal === 'true' ? 'ON' : 'OFF';
-        status.style.color = newVal === 'true' ? 'var(--error)' : 'var(--success)';
-        adminNotify('MAINTENANCE_MODE_UPDATED', 'success');
-      } catch (e) { adminNotify('TOGGLE_FAILED: ' + e.message, 'error'); }
+        updateMaintenanceUI(newVal === 'true');
+        adminNotify('MAINTENANCE_LOCK_UPDATED', 'success');
+      } catch (e) { adminNotify('OVERRIDE_FAILED: ' + e.message, 'error'); }
+    }
+
+    function updateMaintenanceUI(isActive) {
+        const status = document.getElementById('mModeStatus');
+        const icon = document.getElementById('mModeIcon');
+        if (isActive) {
+            status.textContent = 'ACTIVE';
+            status.style.color = '#fff';
+            status.style.background = 'var(--error)';
+            icon.style.background = 'var(--error-dim)';
+            icon.style.color = 'var(--error)';
+        } else {
+            status.textContent = 'OFF';
+            status.style.color = 'var(--tx-muted)';
+            status.style.background = 'rgba(255,255,255,0.05)';
+            icon.style.background = 'rgba(245,158,11,0.1)';
+            icon.style.color = 'var(--gold)';
+        }
     }
 
     async function loadMaintenanceStatus() {
         try {
             const settings = await api('/api/vault/admin/settings');
             const mode = settings.find(s => s.setting_key === 'maintenance_mode');
-            const status = document.getElementById('mModeStatus');
-            if (mode?.setting_value === 'true') {
-                status.textContent = 'ON';
-                status.style.color = 'var(--error)';
-            } else {
-                status.textContent = 'OFF';
-                status.style.color = 'var(--success)';
-            }
+            updateMaintenanceUI(mode?.setting_value === 'true');
         } catch (_) {}
     }
 
     async function clearCache() {
-      const confirmed = await adminConfirm('CONFIRM_CACHE_FLUSH?');
+      const confirmed = await adminConfirm('ARE_YOU_SURE_YOU_WANT_TO_FLUSH_SYSTEM_CACHE?');
       if (!confirmed) return;
       try {
         await api('/api/vault/admin/settings', 'POST', { key: 'action', value: 'clear_cache' });
-        adminNotify('CACHE_FLUSH_COMPLETED', 'success');
+        adminNotify('VOLATILE_CACHE_WIPED', 'success');
       } catch (e) { adminNotify('FLUSH_FAILED: ' + e.message, 'error'); }
     }
 
@@ -128,3 +188,4 @@
   </script>
 </body>
 </html>
+

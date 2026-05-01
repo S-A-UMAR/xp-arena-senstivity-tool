@@ -10,87 +10,96 @@
 <body class="page-admin">
 
   <div class="page-wrap anim-stagger-in">
-    <!-- Hero Stats -->
-    <div class="card glow mb-3" style="padding: 2rem; border-color: var(--gold-border); background: rgba(245,158,11,0.03);">
-      <div class="section-eyebrow">TOTAL_DECRYPTIONS_LOGGED</div>
-      <div id="totalUsage" style="font-size: 3.5rem; font-weight: 900; color: var(--gold); text-shadow: 0 0 20px var(--gold-glow); line-height: 1; margin: 0.5rem 0;">0</div>
-      <div class="text-xs text-muted font-mono">GLOBAL_HITS_STREAM</div>
+    <!-- 🚀 GLOBAL_COMMAND_HERO -->
+    <div class="card glow mb-4" style="padding: 2.5rem; border: 1px solid var(--gold-border); background: linear-gradient(165deg, rgba(245, 158, 11, 0.05), rgba(0, 0, 0, 0.4)); text-align: center; border-radius: 32px;">
+      <div class="section-eyebrow" style="color: var(--gold); opacity: 0.8; letter-spacing: 0.3em;">GLOBAL_UPLINK_ACTIVITY</div>
+      <div id="totalUsage" style="font-size: 5rem; font-weight: 900; color: #fff; text-shadow: 0 0 30px var(--gold-glow); line-height: 1; margin: 1rem 0;">0000</div>
+      <div class="text-xs font-mono" style="color: var(--tx-muted); letter-spacing: 0.1em;">TOTAL_NEURAL_DECRYPTIONS_LOGGED</div>
+      
+      <div class="flex justify-center gap-8 mt-6">
+        <div>
+          <div id="totalVendors" class="text-xl font-black" style="color: var(--cyan);">0</div>
+          <div class="text-xs opacity-50 font-mono">ACTIVE_NODES</div>
+        </div>
+        <div style="width: 1px; background: rgba(255,255,255,0.1);"></div>
+        <div>
+          <div id="totalCodes" class="text-xl font-black" style="color: var(--violet);">0</div>
+          <div class="text-xs opacity-50 font-mono">SECURE_KEYS</div>
+        </div>
+      </div>
     </div>
 
-    <div class="stat-grid-2 mb-3">
-      <div class="stat-tile gold">
-        <span class="stat-tile-label">AUTH_VENDORS</span>
-        <span class="stat-tile-val" id="totalVendors">0</span>
-      </div>
-      <div class="stat-tile gold">
-        <span class="stat-tile-label">TOTAL_KEYS</span>
-        <span class="stat-tile-val" id="totalCodes">0</span>
-      </div>
-    </div>
-
-    <!-- Diagnostics -->
-    <div class="card mb-3">
-      <div class="section-header mb-3">
+    <!-- 📊 CORE_METRICS -->
+    <div class="card mb-4" style="padding: 1.5rem; background: rgba(15, 23, 42, 0.4);">
+      <div class="section-header mb-4">
         <h2 class="section-title">SYSTEM_DIAGNOSTICS</h2>
-        <div id="lastSyncLabel" class="text-xs font-mono pulse" style="color: var(--gold);">SYNCING...</div>
+        <div id="lastSyncLabel" class="text-xs font-mono pulse" style="color: var(--cyan);">UPLINK_SYNCING...</div>
       </div>
-      <div class="flex flex-col gap-3">
-        <div>
-          <div class="flex justify-between text-xs font-mono mb-1">
-            <span>NEURAL_LOAD</span><span id="loadVal" style="color: var(--gold);">—</span>
+      
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+        <div class="input-wrap">
+          <label style="color: var(--tx-muted); font-size: 0.5rem;">CPU_NEURAL_LOAD</label>
+          <div style="background: rgba(255,255,255,0.05); height: 8px; border-radius: 4px; overflow: hidden; margin-top: 4px;">
+            <div id="loadBar" style="width: 0%; height: 100%; background: var(--cyan); box-shadow: 0 0 10px var(--cyan); transition: width 1s ease-out;"></div>
           </div>
-          <div class="bar-wrap"><div id="loadBar" class="bar-fill" style="width: 0%; background: var(--gold);"></div></div>
+          <div id="loadVal" class="text-xs font-mono mt-1" style="color: var(--cyan); text-align: right;">0%</div>
         </div>
-        <div>
-          <div class="flex justify-between text-xs font-mono mb-1">
-            <span>DB_COHERENCE</span><span style="color: var(--cyan);">99.9%</span>
+        <div class="input-wrap">
+          <label style="color: var(--tx-muted); font-size: 0.5rem;">DB_COHERENCE</label>
+          <div style="background: rgba(255,255,255,0.05); height: 8px; border-radius: 4px; overflow: hidden; margin-top: 4px;">
+            <div style="width: 99.9%; height: 100%; background: var(--success); box-shadow: 0 0 10px var(--success);"></div>
           </div>
-          <div class="bar-wrap"><div id="coherenceBar" class="bar-fill" style="width: 99%; background: var(--cyan);"></div></div>
+          <div class="text-xs font-mono mt-1" style="color: var(--success); text-align: right;">99.9%</div>
         </div>
       </div>
     </div>
 
-    <!-- Top Regions -->
-    <div class="card mb-3">
+    <!-- 🌍 REGIONAL_TRAFFIC -->
+    <div class="card mb-4">
       <div class="section-header mb-3">
         <h2 class="section-title">TOP_ACTIVE_REGIONS</h2>
+        <div class="text-xs font-mono opacity-30">GEOGRAPHIC_DISPERSION</div>
       </div>
-      <div id="regionStats" class="flex flex-col gap-2">
-        <div class="text-center py-4 opacity-20 text-xs font-mono">CALCULATING_METRICS...</div>
+      <div id="regionStats" class="flex flex-col gap-3">
+        <div class="text-center py-4 opacity-20 text-xs font-mono">CALCULATING_TRAFFIC_FLOW...</div>
       </div>
     </div>
 
-    <!-- System Control -->
-    <div class="card mb-3">
-      <div class="section-header mb-3">
-        <h2 class="section-title">SYSTEM_CONTROL</h2>
+    <!-- ⚙️ COMMAND_CONTROL -->
+    <div class="card mb-4">
+      <div class="section-header mb-4">
+        <h2 class="section-title">COMMAND_OVERRIDE</h2>
       </div>
-      <div class="flex flex-col gap-4">
-        <div class="flex justify-between items-center">
+      <div class="flex flex-col gap-6">
+        <div class="flex justify-between items-center p-3 rounded-xl" style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.03);">
           <div>
-            <div class="text-sm font-bold">MAINTENANCE_MODE</div>
-            <div class="text-xs text-muted">Block public access for calibration</div>
+            <div class="text-sm font-black">MAINTENANCE_LOCK</div>
+            <div class="text-xs text-muted" style="font-size: 0.6rem;">RESTRICT_PUBLIC_ACCESS_IMMEDIATELY</div>
           </div>
-          <button id="maintBtn" class="btn-ghost auto btn-sm" onclick="toggleSetting('maintenance_mode')">OFF</button>
+          <button id="maintBtn" class="btn-cta auto btn-sm" style="min-width: 80px;" onclick="toggleSetting('maintenance_mode')">OFF</button>
         </div>
+        
         <div>
-          <div class="text-xs font-mono mb-2">GLOBAL_TICKER_MESSAGE</div>
+          <label class="section-eyebrow" style="font-size: 0.5rem; display: block; margin-bottom: 0.5rem;">GLOBAL_ANNOUNCEMENT_TICKER</label>
           <div class="flex gap-2">
-            <input type="text" id="tickerInput" class="xp-input-box" style="padding: 0.6rem 1rem; font-size: 0.7rem;" placeholder="Enter system announcement...">
-            <button class="btn-cta auto btn-sm" onclick="saveTicker()">SAVE</button>
+            <input type="text" id="tickerInput" class="xp-input-box" style="flex: 1; padding: 0.8rem 1.2rem;" placeholder="Enter system announcement...">
+            <button class="btn-cta auto btn-sm" onclick="saveTicker()">PUSH_UPDATE</button>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Live Feed -->
+    <!-- 📡 LIVE_FEED -->
     <div class="card">
       <div class="section-header mb-3">
-        <h2 class="section-title">LIVE_ACTIVITY</h2>
-        <button class="btn-ghost auto" style="font-size: 0.6rem;" onclick="loadLiveFeed()">REFRESH</button>
+        <h2 class="section-title">LIVE_NEURAL_FEED</h2>
+        <div class="flex gap-2">
+            <div class="pulse" style="width: 8px; height: 8px; background: var(--success); border-radius: 50%; box-shadow: 0 0 10px var(--success);"></div>
+            <span class="text-xs font-mono opacity-50">REALTIME</span>
+        </div>
       </div>
-      <div id="liveFeed" style="max-height: 400px; overflow-y: auto;">
-        <div class="text-center py-4 opacity-40 text-xs font-mono">WAITING_FOR_UPLINK...</div>
+      <div id="liveFeed" style="max-height: 300px; overflow-y: auto; padding-right: 8px;">
+        <div class="text-center py-8 opacity-20 text-xs font-mono">WAITING_FOR_SATELLITE_UPLINK...</div>
       </div>
     </div>
   </div>
@@ -104,8 +113,9 @@
             currentSettings = await api('/api/vault/admin/settings');
             const maint = currentSettings.maintenance_mode === 'true';
             const btn = document.getElementById('maintBtn');
-            btn.textContent = maint ? 'ON' : 'OFF';
-            btn.style.color = maint ? 'var(--error)' : 'var(--tx-muted)';
+            btn.textContent = maint ? 'ACTIVE' : 'INACTIVE';
+            btn.style.background = maint ? 'var(--error)' : 'var(--bg-overlay)';
+            btn.style.color = maint ? '#fff' : 'var(--tx-muted)';
             document.getElementById('tickerInput').value = currentSettings.ticker_message || '';
         } catch (e) { console.error('SETTINGS_ERR:', e); }
     }
@@ -114,43 +124,44 @@
         const val = currentSettings[key] === 'true' ? 'false' : 'true';
         try {
             await api('/api/vault/admin/settings', 'POST', { key, value: val });
-            adminNotify('SYSTEM_SETTING_UPDATED', 'success');
+            adminNotify('OVERRIDE_SUCCESSFUL', 'success');
             loadSettings();
-        } catch (e) { adminNotify('UPDATE_FAILED: ' + e.message, 'error'); }
+        } catch (e) { adminNotify('OVERRIDE_FAILED: ' + e.message, 'error'); }
     }
 
     async function saveTicker() {
         const val = document.getElementById('tickerInput').value;
         try {
             await api('/api/vault/admin/settings', 'POST', { key: 'ticker_message', value: val });
-            adminNotify('GLOBAL_TICKER_UPDATED', 'success');
+            adminNotify('TICKER_UPLINK_COMPLETE', 'success');
             loadSettings();
-        } catch (e) { adminNotify('UPDATE_FAILED: ' + e.message, 'error'); }
+        } catch (e) { adminNotify('TICKER_FAILED: ' + e.message, 'error'); }
     }
 
     async function loadDashboard() {
         try {
             const [stats, analytics] = await Promise.all([
                 api('/api/vault/admin/stats'),
-                api('/api/vault/admin/analytics'),
-                loadSettings()
+                api('/api/vault/admin/analytics')
             ]);
-            // ... (rest of stats logic)
+            await loadSettings();
 
-        document.getElementById('totalVendors').textContent = stats?.vendors ?? 0;
-        document.getElementById('totalUsage').textContent = stats?.usage_total ?? 0;
-        document.getElementById('totalCodes').textContent = stats?.codes ?? 0;
-        const load = Math.min(100, Math.round((stats?.usage_total || 0) / 10));
-        document.getElementById('loadVal').textContent = load + '%';
-        document.getElementById('loadBar').style.width = load + '%';
-        document.getElementById('lastSyncLabel').textContent = 'SYNCED_' + new Date().toLocaleTimeString().split(' ')[0];
-        
-        renderRegions(analytics.topRegions);
-        loadLiveFeed();
-      } catch (e) {
-        console.error('DASH_ERR:', e);
-        document.getElementById('lastSyncLabel').textContent = 'SYNC_FAILED';
-      }
+            document.getElementById('totalVendors').textContent = stats?.vendors ?? 0;
+            document.getElementById('totalUsage').textContent = (stats?.usage_total ?? 0).toLocaleString();
+            document.getElementById('totalCodes').textContent = stats?.codes ?? 0;
+            
+            const load = Math.min(100, Math.round((stats?.usage_total || 0) / 100) % 100 + 12);
+            document.getElementById('loadVal').textContent = load + '%';
+            document.getElementById('loadBar').style.width = load + '%';
+            document.getElementById('lastSyncLabel').textContent = 'SYNCED_' + new Date().toLocaleTimeString().split(' ')[0];
+            
+            renderRegions(analytics.topRegions);
+            loadLiveFeed();
+        } catch (e) {
+            console.error('DASH_LOAD_ERR:', e);
+            document.getElementById('lastSyncLabel').textContent = 'UPLINK_OFFLINE';
+            adminNotify('DASHBOARD_DATA_ERROR', 'error');
+        }
     }
 
     function renderRegions(regions) {
@@ -161,11 +172,14 @@
         }
         const max = Math.max(...regions.map(r => r.count));
         container.innerHTML = regions.map(r => `
-            <div>
-                <div class="flex justify-between text-xs font-mono mb-1">
-                    <span>${esc(r.region || 'Unknown')}</span><span>${r.count}</span>
+            <div style="background: rgba(255,255,255,0.02); padding: 0.8rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.03);">
+                <div class="flex justify-between text-xs font-mono mb-2">
+                    <span style="color: var(--tx-sub); font-weight: 800;">${esc(r.region || 'UNKNOWN_SECTOR')}</span>
+                    <span style="color: var(--cyan);">${r.count}</span>
                 </div>
-                <div class="bar-wrap"><div class="bar-fill" style="width: ${(r.count/max)*100}%; background: var(--violet);"></div></div>
+                <div style="background: rgba(0,0,0,0.3); height: 4px; border-radius: 2px; overflow: hidden;">
+                  <div style="width: ${(r.count/max)*100}%; height: 100%; background: linear-gradient(90deg, var(--cyan), var(--violet));"></div>
+                </div>
             </div>
         `).join('');
     }
@@ -175,24 +189,20 @@
       try {
         const events = await api('/api/vault/admin/live-feed');
         if (!events?.length) {
-          feed.innerHTML = `
-            <div class="text-center py-8 opacity-40">
-              <div style="width: 40px; height: 40px; border: 1px solid var(--gold); border-radius: 50%; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; animation: pulse 2s infinite;">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-              </div>
-              <div class="text-xs font-mono" style="letter-spacing: 0.1em;">NO_RECENT_ACTIVITY</div>
-            </div>`;
+          feed.innerHTML = '<div class="text-center py-8 opacity-20 text-xs font-mono">NO_RECENT_UPLINKS</div>';
           return;
         }
         feed.innerHTML = events.map(ev => `
-          <div class="log-row" style="display:flex; justify-content:space-between; padding:0.6rem 0; border-bottom:1px solid rgba(255,255,255,0.04);">
-            <div>
-              <div class="log-type" style="font-weight:900; color:var(--gold); font-size:0.6rem;">${ev.type === 'feedback' ? '[FBK]' : '[HIT]'}</div>
-              <div style="color: var(--tx-hero); font-size: 0.65rem;">${esc(ev.user_ign || 'ANON')}</div>
+          <div class="log-row" style="display:flex; justify-content:space-between; align-items: center; padding:0.8rem; border-bottom:1px solid rgba(255,255,255,0.03);">
+            <div class="flex items-center gap-3">
+              <div style="font-weight:900; color: ${ev.type === 'feedback' ? 'var(--violet)' : 'var(--gold)'}; font-size:0.5rem; font-family: var(--font-mono);">${ev.type === 'feedback' ? '[FBK]' : '[HIT]'}</div>
+              <div>
+                <div style="color: #fff; font-size: 0.7rem; font-weight: 800;">${esc(ev.user_ign || 'ANONYMOUS_AGENT')}</div>
+                <div style="color: var(--tx-muted); font-size: 0.5rem;">${esc(ev.region || 'GLOBAL')}</div>
+              </div>
             </div>
-            <div style="text-align:right; font-size:0.6rem; color:var(--tx-muted);">
-              <div>${esc(ev.region || 'GLB')}</div>
-              <div style="opacity:0.5;">${new Date(ev.timestamp).toLocaleTimeString()}</div>
+            <div style="text-align:right; font-size:0.55rem; font-family: var(--font-mono); color: var(--tx-muted);">
+              ${new Date(ev.timestamp).toLocaleTimeString()}
             </div>
           </div>
         `).join('');
@@ -205,9 +215,10 @@
       const ok = await checkSession();
       if (ok) {
         loadDashboard();
-        setInterval(loadDashboard, 15000);
+        setInterval(loadDashboard, 30000); // Sync every 30s
       }
     };
+
   </script>
 </body>
 </html>

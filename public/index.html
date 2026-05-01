@@ -467,7 +467,15 @@
 
   <!-- Top logo bar -->
   <header class="portal-top">
-    <div class="portal-logo">AXP_CORE</div>
+    <div class="flex items-center gap-6">
+      <div class="portal-logo">AXP_CORE</div>
+      <div style="width: 1px; height: 16px; background: rgba(255,255,255,0.1);"></div>
+      <div class="flex items-center gap-3">
+        <div class="dot-live" style="width: 6px; height: 6px;"></div>
+        <span class="text-[0.6rem] font-mono text-cyan" id="liveUsers" style="opacity: 0.8; letter-spacing: 0.05em;">0_NODES_ACTIVE</span>
+        <span class="text-[0.6rem] font-mono text-ghost" id="liveCalibrations" style="opacity: 0.5;">0_CAL/HR</span>
+      </div>
+    </div>
     <div class="portal-top-links">
       <a href="stats.html" class="portal-top-link">Global</a>
       <a href="lab.html" class="portal-top-link">Lab</a>
@@ -536,25 +544,15 @@
   </main>
   <div id="scannerOverlay" aria-hidden="true" style="display:none;"></div>
 
-    <!-- Live Status -->
-    <div class="flex justify-center mb-8 anim-up" style="animation-delay: 0.8s;">
-      <div class="glass-pill flex items-center gap-4 px-6 py-2" style="background: rgba(0, 242, 254, 0.05); border: 1px solid rgba(0, 242, 254, 0.1);">
-        <div class="flex items-center gap-2">
-          <div class="dot-live"></div>
-          <span class="text-xs font-mono text-cyan" id="liveUsers">2,842_NODES_ACTIVE</span>
-        </div>
-        <div style="width: 1px; height: 12px; background: rgba(255,255,255,0.1);"></div>
-        <div class="text-xs font-mono text-ghost" id="liveCalibrations">142_CALIBRATIONS/HR</div>
-      </div>
-    </div>
+    <!-- Removed cluttered stat bar from middle -->
 
     <!-- Master Access Footer -->
-    <footer class="mt-20 py-10 border-t border-white/5 text-center anim-up">
-      <p class="text-ghost text-xs font-mono mb-4">AXP_SENSITIVITY_ENGINE_V3.0 // SECURE_UPLINK</p>
-      <div class="flex justify-center gap-6">
-        <a href="admin/index.html" class="text-ghost hover:text-cyan transition-colors text-[10px] font-mono tracking-widest">MASTER_LOGIN</a>
-        <a href="privacy.html" class="text-ghost hover:text-white transition-colors text-[10px] font-mono tracking-widest">PRIVACY_PROTOCOL</a>
-        <a href="terms.html" class="text-ghost hover:text-white transition-colors text-[10px] font-mono tracking-widest">USER_AGREEMENT</a>
+    <footer class="mt-20 py-12 border-t border-white/5 text-center anim-up">
+      <p class="text-ghost text-[0.65rem] font-mono mb-8 opacity-40">AXP_SENSITIVITY_ENGINE_V3.0 // SECURE_UPLINK</p>
+      <div class="flex flex-wrap justify-center gap-8 px-4">
+        <a href="admin/index.html" class="text-ghost hover:text-cyan transition-colors text-[10px] font-mono tracking-[0.2em] uppercase">Master_Login</a>
+        <a href="privacy.html" class="text-ghost hover:text-white transition-colors text-[10px] font-mono tracking-[0.2em] uppercase">Privacy_Protocol</a>
+        <a href="terms.html" class="text-ghost hover:text-white transition-colors text-[10px] font-mono tracking-[0.2em] uppercase">User_Agreement</a>
       </div>
     </footer>
   </div>
