@@ -23,11 +23,13 @@ function getPool() {
         database: process.env.DB_NAME || 'xp_sensitivity_tool',
         port: parseInt(process.env.DB_PORT, 10) || 4000,
         waitForConnections: true,
-        connectionLimit: process.env.DB_CONNECTION_LIMIT ? parseInt(process.env.DB_CONNECTION_LIMIT, 10) : 5,
-        queueLimit: 0,
-        connectTimeout: 15000,
+        connectionLimit: 3,
+        maxIdle: 1,
+        idleTimeout: 60000,
+        enableKeepAlive: true,
+        keepAliveInitialDelay: 0,
+        connectTimeout: 20000,
         ssl: {
-            minVersion: 'TLSv1.2',
             rejectUnauthorized: false
         }
     });

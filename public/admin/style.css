@@ -1,12 +1,10 @@
 /* ═══════════════════════════════════════════════════════════════
    AXP ADMIN STYLE — Unified Design System
    ═══════════════════════════════════════════════════════════════ */
-
 @import url('../design-system.css');
 @import url('../gaming-animations.css');
 @import url('../gaming-components.css');
 @import url('../mobile-polish.css');
-
 :root {
   --gold-border: rgba(245,158,11,0.22);
   --gold-glow: rgba(245,158,11,0.3);
