@@ -45,11 +45,17 @@ function getPool() {
 
 async function runConnectionDiagnostic() {
     try {
-        const conn = await getPool().getConnection();
-        console.log('✅ DB_CONNECTION_ESTABLISHED');
-        conn.release();
+        const pool = getPool();
+        const [rows] = await pool.query('SELECT 1 as connected');
+        return { success: true, data: rows };
     } catch (err) {
-        console.error('❌ DB_CONNECTION_FAILED:', err?.message || 'UNKNOWN');
+        return { 
+            success: false, 
+            error: err.message, 
+            code: err.code,
+            fatal: err.fatal,
+            host: process.env.DB_HOST 
+        };
     }
 }
 

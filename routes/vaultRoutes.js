@@ -60,19 +60,19 @@ router.use(async (_req, _res, next) => {
 router.get('/public/pulse', async (_req, res) => {
     try {
         const { runConnectionDiagnostic } = require('../db');
-        await runConnectionDiagnostic();
-        const dbStatus = await db.get('SELECT 1 as connected');
+        const diagnostic = await runConnectionDiagnostic();
+        
         res.json({ 
-            status: 'HEALTHY', 
-            db: dbStatus ? 'CONNECTED' : 'FAILED',
+            status: diagnostic.success ? 'HEALTHY' : 'UNHEALTHY', 
+            db: diagnostic.success ? 'CONNECTED' : 'FAILED',
+            diagnostic: diagnostic,
             env: process.env.NODE_ENV,
             ts: new Date().toISOString()
         });
     } catch (err) {
         res.status(500).json({ 
-            status: 'UNHEALTHY', 
-            error: err.message,
-            stack: process.env.NODE_ENV === 'production' ? null : err.stack
+            status: 'CRITICAL_FAILURE', 
+            error: err.message
         });
     }
 });
