@@ -9,37 +9,8 @@ const VendorLogic = {
     },
 
     async init() {
-        // Direct device population — reads window.devices immediately (no DeviceRegistry dependency)
-        (function populateDevices() {
-            const brands = window.devices;
-            if (!brands || !brands.length) return;
-            const brandSel  = document.getElementById('genBrand');
-            const seriesSel = document.getElementById('genSeries');
-            const modelSel  = document.getElementById('genModel');
-            if (!brandSel) return;
-            brandSel.innerHTML = '<option value="" disabled selected>SELECT_BRAND</option>' +
-                brands.map(b => `<option value="${b.brand}">${b.brand.toUpperCase()}</option>`).join('');
-            brandSel.disabled = false;
-            brandSel.onchange = function() {
-                const bd = brands.find(b => b.brand === brandSel.value);
-                seriesSel.innerHTML = '<option value="" disabled selected>SELECT_SERIES</option>';
-                if (bd && bd.series) {
-                    bd.series.forEach((s, i) => seriesSel.innerHTML += `<option value="${i}">${s.name.toUpperCase()}</option>`);
-                    seriesSel.disabled = false;
-                } else { seriesSel.disabled = true; }
-                modelSel.innerHTML = '<option value="" disabled selected>SELECT_MODEL</option>';
-                modelSel.disabled = true;
-            };
-            seriesSel.onchange = function() {
-                const bd = brands.find(b => b.brand === brandSel.value);
-                const sd = bd && bd.series ? bd.series[seriesSel.value] : null;
-                modelSel.innerHTML = '<option value="" disabled selected>SELECT_MODEL</option>';
-                if (sd && sd.models) {
-                    sd.models.forEach(m => modelSel.innerHTML += `<option value="${m.name}" data-ram="${m.ram}">${m.name.toUpperCase()}</option>`);
-                    modelSel.disabled = false;
-                } else { modelSel.disabled = true; }
-            };
-        })();
+        // Robust device population
+        this.populateDevices();
         
         // Only enforce vendor auth on dashboard pages
         const isDashboard = window.location.pathname.includes('vendor_');
@@ -55,6 +26,52 @@ const VendorLogic = {
         
         this.updateUI();
         this.initMetaStatus();
+    },
+
+    populateDevices(retryCount = 0) {
+        const brands = window.devices;
+        const brandSel  = document.getElementById('genBrand');
+        const seriesSel = document.getElementById('genSeries');
+        const modelSel  = document.getElementById('genModel');
+
+        if (!brandSel) return; // Not on the hub page
+
+        if (!brands || !brands.length) {
+            if (retryCount < 10) {
+                console.warn(`RETRYING_DEVICE_POPULATION: ATTEMPT_${retryCount + 1}`);
+                setTimeout(() => this.populateDevices(retryCount + 1), 500);
+            } else {
+                console.error('DEVICE_ARCHITECTURE_LOAD_FAILED');
+            }
+            return;
+        }
+
+        brandSel.innerHTML = '<option value="" disabled selected>SELECT_BRAND</option>' +
+            brands.map(b => `<option value="${b.brand}">${b.brand.toUpperCase()}</option>`).join('');
+        brandSel.disabled = false;
+
+        brandSel.onchange = () => {
+            const bd = brands.find(b => b.brand === brandSel.value);
+            seriesSel.innerHTML = '<option value="" disabled selected>SELECT_SERIES</option>';
+            if (bd && bd.series) {
+                bd.series.forEach((s, i) => seriesSel.innerHTML += `<option value="${i}">${s.name.toUpperCase()}</option>`);
+                seriesSel.disabled = false;
+            } else { seriesSel.disabled = true; }
+            modelSel.innerHTML = '<option value="" disabled selected>SELECT_MODEL</option>';
+            modelSel.disabled = true;
+        };
+
+        seriesSel.onchange = () => {
+            const bd = brands.find(b => b.brand === brandSel.value);
+            const sd = bd && bd.series ? bd.series[seriesSel.value] : null;
+            modelSel.innerHTML = '<option value="" disabled selected>SELECT_MODEL</option>';
+            if (sd && sd.models) {
+                sd.models.forEach(m => modelSel.innerHTML += `<option value="${m.name}" data-ram="${m.ram}">${m.name.toUpperCase()}</option>`);
+                modelSel.disabled = false;
+            } else { modelSel.disabled = true; }
+        };
+
+        console.log('DEVICE_ARCHITECTURE_READY');
     },
 
     initMetaStatus() {
@@ -108,6 +125,9 @@ const VendorLogic = {
         const feed = document.getElementById('activityFeed');
         if (!feed) return;
 
+        // Clear "ESTABLISHING_CONNECTION" placeholder
+        feed.innerHTML = '';
+
         const events = [
             'CALIBRATION_SYNC: Node {id} established',
             'SYSTEM: Vault key {id} provisioned',
@@ -138,6 +158,7 @@ const VendorLogic = {
                 border-radius: 8px;
                 border-left: 2px solid var(--accent-primary);
                 animation: slideInLeft 0.5s ease-out;
+                margin-bottom: 0.5rem;
             `;
             itemEl.textContent = `[${new Date().toLocaleTimeString()}] ${text}`;
             

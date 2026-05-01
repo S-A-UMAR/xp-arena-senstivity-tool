@@ -10,7 +10,6 @@
   <link rel="stylesheet" href="gaming-components.css">
   <link rel="stylesheet" href="mobile-polish.css">
   <style>
-  <style>
     :root {
       --lab-cyan: #00f2fe;
       --lab-violet: #a855f7;
@@ -301,6 +300,40 @@
       transition: transform 0.3s;
     }
     .help-modal.active .help-content { transform: translateY(0); }
+
+    /* Mode Selector Grid */
+    .mode-grid-5 {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 0.75rem;
+      margin: 2rem 0;
+    }
+    .mode-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 20px;
+      padding: 1rem 0.5rem;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .mode-card.active {
+      background: rgba(0, 242, 254, 0.1);
+      border-color: var(--lab-cyan);
+      box-shadow: 0 0 20px rgba(0, 242, 254, 0.15);
+      transform: translateY(-5px);
+    }
+    .mode-card-icon { font-size: 1.25rem; }
+    .mode-card-title { font-size: 0.55rem; font-weight: 900; color: #fff; letter-spacing: 0.05em; }
+    .mode-card-tag { font-size: 0.45rem; color: var(--lab-cyan); opacity: 0.6; font-weight: 800; text-transform: uppercase; }
+
+    @media (max-width: 600px) {
+      .mode-grid-5 { grid-template-columns: repeat(3, 1fr); }
+      .mode-grid-5 > div:nth-child(n+4) { grid-column: span 1.5; }
+    }
   </style>
 </head>
 <body class="page-lab">
@@ -343,14 +376,31 @@
       <h1 class="text-hero text-2xl mb-2">NEURAL_CALIBRATION</h1>
       <p class="lab-prompt">Synchronize your biological response time with our sensitivity algorithm for expert-tier results.</p>
       
-      <div class="mode-selector">
-        <div class="mode-btn active" onclick="setMode('flick', this)">
-          <i>🎯</i>
-          <span>FLICK_SPEED</span>
+      <div class="mode-grid-5">
+        <div class="mode-card active" onclick="setMode('flick', this)">
+          <div class="mode-card-icon">🎯</div>
+          <div class="mode-card-title">FLICK</div>
+          <div class="mode-card-tag">SPEED</div>
         </div>
-        <div class="mode-btn" onclick="setMode('tracking', this)">
-          <i>👁️</i>
-          <span>TRACK_PRECISION</span>
+        <div class="mode-card" onclick="setMode('tracking', this)">
+          <div class="mode-card-icon">👁️</div>
+          <div class="mode-card-title">TRACK</div>
+          <div class="mode-card-tag">STABILITY</div>
+        </div>
+        <div class="mode-card" onclick="setMode('reflex', this)">
+          <div class="mode-card-icon">⚡</div>
+          <div class="mode-card-title">REFLEX</div>
+          <div class="mode-card-tag">LATENCY</div>
+        </div>
+        <div class="mode-card" onclick="setMode('burst', this)">
+          <div class="mode-card-icon">🔥</div>
+          <div class="mode-card-title">BURST</div>
+          <div class="mode-card-tag">ACQUISITION</div>
+        </div>
+        <div class="mode-card" onclick="setMode('drift', this)">
+          <div class="mode-card-icon">🌀</div>
+          <div class="mode-card-title">DRIFT</div>
+          <div class="mode-card-tag">PRECISION</div>
         </div>
       </div>
 
@@ -405,38 +455,7 @@
     </div>
   </div>
 
-  <div class="lab-help-fab" onclick="toggleHelp(true)">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-  </div>
-
-  <div id="helpModal" class="help-modal" onclick="toggleHelp(false)">
-    <div class="help-content" onclick="event.stopPropagation()">
-      <div class="badge-cyan mb-4">UPLINK_MANUAL</div>
-      <h2 class="text-hero text-xl mb-6">HOW_LABS_WORK</h2>
-      
-      <div class="space-y-6">
-        <div>
-          <div class="text-cyan font-black text-[0.65rem] tracking-widest mb-2 uppercase">Mode_01: Flick_Speed</div>
-          <p class="text-sub text-xs leading-relaxed">Targets appear at random neural nodes. Tap them instantly to measure raw reaction latency. This mode determines your "Acquisition Speed" coefficient.</p>
-        </div>
-        
-        <div class="divider-gaming" style="opacity: 0.1;"></div>
-        
-        <div>
-          <div class="text-violet font-black text-[0.65rem] tracking-widest mb-2 uppercase">Mode_02: Track_Precision</div>
-          <p class="text-sub text-xs leading-relaxed">The target moves dynamically. Maintain focus and tap repeatedly. This measures your biological "Drift Control" and consistency.</p>
-        </div>
-
-        <div class="divider-gaming" style="opacity: 0.1;"></div>
-
-        <div class="p-4 rounded-xl bg-white-5 border border-white-10">
-          <p class="text-[0.65rem] text-hero leading-relaxed"><strong>PRO_TIP:</strong> Use the same grip and device posture you use while playing. The goal is to calibrate your sensitivity to your <em>actual</em> biological response.</p>
-        </div>
-      </div>
-
-      <button class="btn-cta cyan w-full mt-8" onclick="toggleHelp(false)">ACKNOWLEDGED</button>
-    </div>
-  </div>
+  <!-- Global UI will inject help and settings here via theme-manager.js -->
 
   <script src="translations.js"></script>
   <script src="gaming-effects.js"></script>
@@ -450,16 +469,24 @@
     let misses = 0;
     let currentMode = 'flick';
     let moveInterval = null;
+    let lapStartTime = 0;
 
     function toggleHelp(show) {
-      document.getElementById('helpModal').classList.toggle('active', show);
+        if (window.ThemeManager) ThemeManager.toggleFaq(show);
     }
 
     function setMode(mode, el) {
       currentMode = mode;
-      document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.mode-card').forEach(b => b.classList.remove('active'));
       el.classList.add('active');
-      document.getElementById('labHint').textContent = mode === 'flick' ? 'TAP_TARGETS_AS_THEY_APPEAR' : 'FOLLOW_TARGET_AND_TAP_REPEATEDLY';
+      const hints = {
+        flick: 'TAP_TARGETS_AS_THEY_APPEAR',
+        tracking: 'FOLLOW_TARGET_AND_TAP_REPEATEDLY',
+        reflex: 'HIT_BEFORE_TARGET_DISAPPEARS',
+        burst: 'CLEAR_ALL_NODES_IN_SEQUENCE',
+        drift: 'MAINTAIN_FOCUS_ON_MORPHING_TARGET'
+      };
+      document.getElementById('labHint').textContent = hints[mode] || 'INITIALIZING_MODE...';
     }
 
     function startTest() {
@@ -490,43 +517,77 @@
       zone.innerHTML = '';
       if (moveInterval) clearInterval(moveInterval);
       
-      const target = document.createElement('div');
-      target.className = 'lab-target';
-      
-      let x = 10 + Math.random() * 80;
-      let y = 30 + Math.random() * 50;
-      
-      target.style.left = x + '%';
-      target.style.top = y + '%';
-      
-      if (currentMode === 'tracking') {
-        let dx = (Math.random() - 0.5) * 0.5;
-        let dy = (Math.random() - 0.5) * 0.5;
-        moveInterval = setInterval(() => {
-          x += dx;
-          y += dy;
-          if (x < 5 || x > 95) dx *= -1;
-          if (y < 25 || y > 85) dy *= -1;
-          target.style.left = x + '%';
-          target.style.top = y + '%';
-        }, 16);
+      const createTarget = (initialX, initialY, isDrift = false) => {
+        const target = document.createElement('div');
+        target.className = 'lab-target';
+        let x = initialX || (10 + Math.random() * 80);
+        let y = initialY || (30 + Math.random() * 50);
+        target.style.left = x + '%';
+        target.style.top = y + '%';
+
+        if (currentMode === 'reflex') {
+            const timeout = setTimeout(() => {
+                if (target.parentElement) {
+                    target.style.opacity = '0';
+                    target.style.transform = 'scale(0)';
+                    setTimeout(() => { if (target.parentElement) spawnTarget(); }, 200);
+                }
+            }, 650); // Reflex window
+            target._reflexTimeout = timeout;
+        }
+
+        if (currentMode === 'drift') {
+            target.style.transition = 'all 0.8s ease-in-out';
+            setInterval(() => {
+                target.style.transform = `scale(${0.5 + Math.random()})`;
+                target.style.filter = `hue-rotate(${Math.random() * 360}deg)`;
+            }, 800);
+        }
+
+        const handleTrigger = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (target._reflexTimeout) clearTimeout(target._reflexTimeout);
+            const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+            const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+            createLaserEffect(clientX, clientY);
+            
+            if (currentMode === 'burst') {
+                target.remove();
+                if (zone.children.length === 0) handleHit();
+            } else {
+                handleHit();
+            }
+        };
+
+        target.onmousedown = handleTrigger;
+        target.ontouchstart = handleTrigger;
+        return target;
+      };
+
+      if (currentMode === 'burst') {
+          for (let i = 0; i < 3; i++) zone.appendChild(createTarget());
+      } else {
+          const mainTarget = createTarget();
+          zone.appendChild(mainTarget);
+          
+          if (currentMode === 'tracking' || currentMode === 'drift') {
+              let x = parseFloat(mainTarget.style.left);
+              let y = parseFloat(mainTarget.style.top);
+              let dx = (Math.random() - 0.5) * 0.8;
+              let dy = (Math.random() - 0.5) * 0.8;
+              moveInterval = setInterval(() => {
+                  x += dx;
+                  y += dy;
+                  if (x < 5 || x > 95) dx *= -1;
+                  if (y < 25 || y > 85) dy *= -1;
+                  mainTarget.style.left = x + '%';
+                  mainTarget.style.top = y + '%';
+              }, 16);
+          }
       }
       
       lapStartTime = performance.now();
-      
-      const handleTrigger = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        const clientX = e.clientX || (e.touches && e.touches[0].clientX);
-        const clientY = e.clientY || (e.touches && e.touches[0].clientY);
-        createLaserEffect(clientX, clientY);
-        handleHit();
-      };
-
-      target.onmousedown = handleTrigger;
-      target.ontouchstart = handleTrigger;
-      
-      zone.appendChild(target);
     }
 
     function handleHit() {

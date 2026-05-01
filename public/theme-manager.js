@@ -22,6 +22,7 @@ const ThemeManager = {
         this.applyTheme(this.config.accent);
         this.applyLanguage(this.config.lang);
         this.injectSettingsFAB();
+        this.initHelpSystem();
         
         // Listen for vendor tier classes to override defaults
         document.addEventListener('DOMContentLoaded', () => {
@@ -191,6 +192,20 @@ const ThemeManager = {
                 </select>
             </div>
 
+            <div style="margin-bottom: 2rem;">
+                <label style="display: block; font-size: 0.6rem; font-weight: 800; color: var(--accent-primary); letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 1rem;">NEURAL_PORTAL</label>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <a href="index.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(255,255,255,0.03); border: 1px solid var(--bd-subtle); border-radius: 12px; padding: 0.75rem; text-decoration: none; transition: 0.2s;">
+                        <span style="font-size: 1.2rem; margin-bottom: 4px;">🏛️</span>
+                        <span style="font-size: 0.5rem; font-weight: 800; color: #fff; letter-spacing: 0.05em;">THE_VAULT</span>
+                    </a>
+                    <a href="admin/index.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(255,255,255,0.03); border: 1px solid var(--bd-subtle); border-radius: 12px; padding: 0.75rem; text-decoration: none; transition: 0.2s;">
+                        <span style="font-size: 1.2rem; margin-bottom: 4px;">🛡️</span>
+                        <span style="font-size: 0.5rem; font-weight: 800; color: #fff; letter-spacing: 0.05em;">MASTER_GATE</span>
+                    </a>
+                </div>
+            </div>
+
             <button onclick="ThemeManager.toggleSettingsModal()" class="btn-cta" style="width: 100%; padding: 1rem; border-radius: 16px; font-size: 0.75rem;">SAVE_AND_RESUME</button>
         `;
 
@@ -213,28 +228,31 @@ const ThemeManager = {
             `;
             document.head.appendChild(s);
         }
-    }
+    },
 
-    static initHelpSystem() {
+    initHelpSystem() {
+        if (document.getElementById('globalHelpFab')) return;
+
         const fab = document.createElement('div');
         fab.id = 'globalHelpFab';
         fab.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`;
         fab.style.cssText = `
-            position: fixed; bottom: 20px; left: 20px; width: 44px; height: 44px;
+            position: fixed; bottom: 24px; left: 24px; width: 44px; height: 44px;
             background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255,255,255,0.1);
             border-radius: 14px; display: flex; align-items: center; justify-content: center;
-            color: var(--tx-muted); cursor: pointer; z-index: 9999; backdrop-filter: blur(10px);
+            color: var(--tx-muted); cursor: pointer; z-index: 10000; backdrop-filter: blur(10px);
             transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
         `;
         fab.onmouseover = () => { fab.style.background = 'rgba(255,255,255,0.1)'; fab.style.color = '#fff'; fab.style.transform = 'scale(1.1)'; };
         fab.onmouseout = () => { fab.style.background = 'rgba(15, 23, 42, 0.8)'; fab.style.color = 'var(--tx-muted)'; fab.style.transform = 'scale(1)'; };
-        fab.onclick = () => ThemeManager.toggleFaq(true);
+        fab.onclick = () => this.toggleFaq(true);
 
         const modal = document.createElement('div');
         modal.id = 'globalFaqModal';
         modal.style.cssText = `
             position: fixed; inset: 0; background: rgba(2, 6, 23, 0.95);
-            z-index: 10000; display: flex; align-items: center; justify-content: center;
+            z-index: 10001; display: flex; align-items: center; justify-content: center;
             padding: 20px; opacity: 0; pointer-events: none; transition: all 0.3s;
             backdrop-filter: blur(20px);
         `;
@@ -257,27 +275,31 @@ const ThemeManager = {
                         <div style="font-size:0.7rem; font-weight:800; color:var(--violet); margin-bottom:4px;">03. DATA SECURITY?</div>
                         <p style="font-size:0.75rem; color:var(--tx-muted); line-height:1.5;">All neural profiles are encrypted using AES-256 protocols. Your biological latency data is anonymized and stored on secure nodes.</p>
                     </div>
+                    <div style="height:1px; background:rgba(255,255,255,0.05);"></div>
+                    <div class="faq-item">
+                        <div style="font-size:0.7rem; font-weight:800; color:var(--violet); margin-bottom:4px;">04. LAB PROTOCOLS?</div>
+                        <p style="font-size:0.75rem; color:var(--tx-muted); line-height:1.5;">The Diagnostic Lab uses 5 distinct modes (Reflex, Burst, Track, etc.) to measure sub-millisecond reactions. Complete all modes for a Master Accuracy Rating.</p>
+                    </div>
                 </div>
                 <button class="btn-cta violet w-full mt-8" onclick="ThemeManager.toggleFaq(false)">CLOSE_UPLINK</button>
             </div>
         `;
-        modal.onclick = () => ThemeManager.toggleFaq(false);
+        modal.onclick = () => this.toggleFaq(false);
         modal.querySelector('.faq-content').onclick = (e) => e.stopPropagation();
 
         document.body.appendChild(fab);
         document.body.appendChild(modal);
-    }
+    },
 
-    static toggleFaq(show) {
+    toggleFaq(show) {
         const modal = document.getElementById('globalFaqModal');
         if (!modal) return;
         modal.style.opacity = show ? '1' : '0';
         modal.style.pointerEvents = show ? 'all' : 'none';
         modal.querySelector('.faq-content').style.transform = show ? 'translateY(0)' : 'translateY(20px)';
     }
-}
+};
 
 document.addEventListener('DOMContentLoaded', () => {
     ThemeManager.init();
-    ThemeManager.initHelpSystem();
 });
