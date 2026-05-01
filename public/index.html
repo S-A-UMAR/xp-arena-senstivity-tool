@@ -664,7 +664,7 @@
           updateStatus('VENDOR_HANDSHAKE_PULSE...', 'active');
           const { res: vRes, data: vData } = await portalRequest('/api/vault/vendor/login', { access_key: key });
           if (vRes.ok) {
-            if (vData.token) NexusAuth.setToken(vData.token);
+            if (vData.token) localStorage.setItem('axp_vendor_token', vData.token);
             updateStatus('VENDOR_UPLINK_SUCCESS', 'success');
             GamingEffects.createParticles(btn, 25, 'cyan');
             GamingEffects.showSuccess('Vendor Access Granted!');
@@ -683,7 +683,6 @@
         const { res: adminRes, data: aData } = await portalRequest('/api/vault/admin/login', { password: key });
         if (adminRes.ok) {
           if (aData.token) {
-            NexusAuth.setToken(aData.token);
             localStorage.setItem('axp_admin_token', aData.token);
           }
           updateStatus('ADMIN_UPLINK_GRANTED', 'success');
