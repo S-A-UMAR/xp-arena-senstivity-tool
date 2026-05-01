@@ -56,50 +56,75 @@ body {
 /* ── Navigation ─────────────────────────────── */
 .admin-nav {
   position: fixed; bottom: 0; left: 0; right: 0;
-  height: 72px; background: rgba(2,6,23,0.95); backdrop-filter: blur(20px);
-  border-top: 1px solid rgba(245,158,11,0.12);
-  display: flex; justify-content: space-around; align-items: center;
-  padding-bottom: env(safe-area-inset-bottom); z-index: 900;
-  box-shadow: 0 -10px 40px rgba(0,0,0,0.4);
+  height: 80px; background: rgba(2,6,23,0.85); backdrop-filter: blur(40px) saturate(180%);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex; justify-content: space-evenly; align-items: center;
+  padding-bottom: env(safe-area-inset-bottom); z-index: 1000;
+  box-shadow: 0 -10px 50px rgba(0,0,0,0.6);
 }
+
 .anav-item {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 4px; color: var(--tx-muted); flex: 1; cursor: pointer; transition: color 0.2s; padding: 0.5rem;
-  text-decoration: none;
+  gap: 6px; color: var(--tx-muted); min-width: 50px; cursor: pointer; transition: all 0.3s var(--ease); 
+  text-decoration: none; position: relative;
 }
-.anav-item.active { color: var(--gold); }
-.anav-item svg { width: 22px; height: 22px; }
-.anav-item span { font-size: 0.58rem; font-weight: 800; letter-spacing: 0.08em; }
+
+.anav-item.active { color: var(--gold); transform: translateY(-2px); }
+.anav-item.active::after {
+  content: ''; position: absolute; bottom: -8px; width: 4px; height: 4px; 
+  background: var(--gold); border-radius: 50%; box-shadow: 0 0 10px var(--gold);
+}
 
 .fab-slot {
-  position: relative; top: -20px; width: 60px; height: 60px;
-  background: var(--gold); border: 3px solid #020617; border-radius: 50%;
+  width: 56px; height: 56px;
+  background: var(--gold); border-radius: 20px;
   display: flex; align-items: center; justify-content: center;
-  color: #000; font-size: 1.6rem; box-shadow: 0 0 28px var(--gold-glow);
-  cursor: pointer; transition: transform 0.25s var(--ease), box-shadow 0.25s;
-}
-.fab-slot:active { transform: scale(0.92); }
-
-/* ── Content Layout ─────────────────────────── */
-.page-wrap {
-  padding-top: 80px;
-  padding-bottom: 110px;
-  max-width: 800px;
-  margin: 0 auto;
-  padding-left: 1.5rem;
-  padding-right: 1.5rem;
+  color: #000; box-shadow: 0 10px 30px var(--gold-glow);
+  cursor: pointer; transition: all 0.4s var(--ease);
+  transform: translateY(-22px) rotate(0deg);
+  border: 1px solid rgba(255,255,255,0.2);
 }
 
-/* ── Stats & Tiles ──────────────────────────── */
-.stat-tile.gold { border-color: var(--gold-border); }
-.stat-tile.gold .stat-tile-val { color: var(--gold); text-shadow: 0 0 12px var(--gold-glow); }
+.fab-slot:hover { transform: translateY(-28px) rotate(90deg); box-shadow: 0 15px 40px var(--gold-glow); }
+.fab-slot:active { transform: translateY(-22px) scale(0.9); }
 
 .registry-node {
-  background: var(--bg-surface); border: 1px solid var(--bd-subtle);
-  border-radius: var(--r-lg); padding: 1.25rem; margin-bottom: 0.85rem;
-  transition: all 0.25s var(--ease);
+  background: linear-gradient(165deg, rgba(15, 23, 42, 0.8), rgba(10, 15, 28, 0.9));
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 24px;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
 }
-.registry-node:hover { border-color: var(--gold-border); background: rgba(245,158,11,0.02); }
+
+.registry-node:hover {
+  transform: translateY(-4px) scale(1.01);
+  border-color: var(--gold-border);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.6), 0 0 20px rgba(245,158,11,0.15);
+}
+
+.registry-node::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: radial-gradient(circle at top right, rgba(245,158,11,0.05), transparent 60%);
+  pointer-events: none;
+}
+
+.registry-node .badge {
+  background: rgba(0,0,0,0.5);
+  padding: 0.4rem 0.8rem;
+  border-radius: 10px;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  font-weight: 900;
+  letter-spacing: 0.15em;
+  border: 1px solid rgba(255,255,255,0.1);
+}
 
 /* ── Success Overlays & Sheets ───────────────── */
 .admin-sheet {

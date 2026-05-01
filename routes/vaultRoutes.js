@@ -1659,8 +1659,9 @@ router.post('/admin/vendors', authenticateAdmin, async (req, res) => {
             return value;
         }, z.coerce.number().int().min(minimum).optional());
 
-        const { vendorId: requestedId, orgId: rawOrgId, orgName: rawOrgName, usageLimit, durationDays, brandConfig, tier } = z.object({
+        const { vendorId: requestedId, accessKey: requestedKey, orgId: rawOrgId, orgName: rawOrgName, usageLimit, durationDays, brandConfig, tier } = z.object({
             vendorId: z.string().min(2).optional(),
+            accessKey: z.string().min(4).optional(),
             orgId: z.string().optional(),
             orgName: z.string().optional(),
             usageLimit: nullableInt(0),
@@ -1680,8 +1681,11 @@ router.post('/admin/vendors', authenticateAdmin, async (req, res) => {
 
         await ensureKeyStorageCapacity();
 
-        const randomDigits = Math.floor(1000 + Math.random() * 9000);
-        const accessKey = `AXP-${vendorId}-${randomDigits}`;
+        // 🛡️ KEY_GEN: Use requested key if provided, otherwise generate the AXP-ID-RANDOM format
+        const accessKey = requestedKey 
+            ? requestedKey.trim().toUpperCase() 
+            : `AXP-${vendorId}-${Math.floor(1000 + Math.random() * 9000)}`;
+            
         const hashedAccessKey = await bcrypt.hash(accessKey, 10);
         const lookupKey = getLookupKey(accessKey);
 

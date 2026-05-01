@@ -49,8 +49,8 @@
         <input type="text" id="v_id" placeholder="e.g. AX-PRO-99" class="p-2 w-full bg-dark border-gold rounded text-white">
       </div>
       <div class="input-wrap">
-        <label>ACCESS_PHRASE</label>
-        <input type="text" id="v_key" placeholder="SECURE_PHRASE" class="p-2 w-full bg-dark border-gold rounded text-white">
+        <label>ACCESS_PHRASE (OPTIONAL)</label>
+        <input type="text" id="v_key" placeholder="LEAVE_BLANK_TO_AUTO_GENERATE" class="p-2 w-full bg-dark border-gold rounded text-white">
       </div>
       <div class="input-wrap">
         <label>MASTER_TIER</label>
@@ -146,7 +146,13 @@
           </div>`;
         return;
       }
-      const tierColor = { gold: '#f59e0b', premium: '#a855f7', normal: '#00e5ff' };
+      const tierColor = { 
+        premium: '#a855f7', // Violet
+        gold: '#f59e0b',    // Amber
+        platinum: '#e2e8f0', // Platinum
+        nexus: '#00e5ff',   // Cyan
+        normal: '#94a3b8'   // Muted
+      };
       container.innerHTML = vendors.map(v => {
         const usageText = v.usage_limit ? `${v.current_usage || 0}/${v.usage_limit}` : '∞';
         const expiryText = v.active_until ? new Date(v.active_until).toLocaleDateString() : 'NEVER';
@@ -154,25 +160,33 @@
         const statusColor = isExpired ? 'var(--error)' : v.status === 'active' ? 'var(--success)' : 'var(--tx-muted)';
         const statusText = isExpired ? 'EXPIRED' : v.status.toUpperCase();
         
+        const tierStyle = `color: ${tierColor[v.tier] || '#fff'}; border-color: ${tierColor[v.tier] || '#fff'}44; box-shadow: 0 0 10px ${tierColor[v.tier] || '#fff'}22;`;
+        
         return `
         <div class="registry-node anim-fade-in">
           <div class="flex justify-between items-start mb-2">
             <div>
-              <div class="text-xs font-mono opacity-50 mb-1" style="font-size:0.55rem;">ID: ${v.vendor_id}</div>
-              <div class="font-black" style="font-size:1rem; letter-spacing:0.02em;">${esc(v.brand_config?.display_name || v.vendor_id)}</div>
+              <div class="text-xs font-mono opacity-40 mb-1" style="font-size:0.5rem; letter-spacing:0.1em;">UPLINK_NODE // ${v.vendor_id}</div>
+              <div class="font-black" style="font-size:1.1rem; letter-spacing:-0.01em; color: #fff;">${esc(v.brand_config?.display_name || v.vendor_id)}</div>
             </div>
-            <div class="badge" style="color:${tierColor[v.tier] || '#fff'}; background:rgba(0,0,0,0.4); border-color:currentColor;">${v.tier.toUpperCase()}</div>
+            <div class="badge" style="${tierStyle}">${v.tier.toUpperCase()}</div>
           </div>
-          <div class="flex gap-4 mt-3 pt-3 border-t border-white-5 flex-wrap">
-            <div class="text-xs font-mono"><span class="opacity-40">GENERATIONS:</span> <span style="color:var(--gold);">${usageText}</span></div>
-            <div class="text-xs font-mono"><span class="opacity-40">EXPIRES:</span> <span style="color:var(--cyan);">${expiryText}</span></div>
-            <div class="text-xs font-mono w-full mt-1"><span class="opacity-40">STATUS:</span> <span style="color:${statusColor}; font-weight:bold;">${statusText}</span></div>
+          
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1.25rem; padding: 1rem; background: rgba(0,0,0,0.2); border-radius: 12px; border: 1px solid rgba(255,255,255,0.03);">
+            <div class="text-xs font-mono"><div class="opacity-40 mb-1" style="font-size:0.5rem;">GEN_QUOTA</div><span style="color:var(--gold); font-weight: 800;">${usageText}</span></div>
+            <div class="text-xs font-mono"><div class="opacity-40 mb-1" style="font-size:0.5rem;">ACCESS_WINDOW</div><span style="color:var(--cyan); font-weight: 800;">${expiryText}</span></div>
           </div>
-          <div class="flex gap-2 mt-4">
-            <button class="btn-ghost auto flex-1" style="font-size:0.55rem; padding: 0.4rem;" onclick="copyVendorLink('${v.vendor_id}')">UPLINK</button>
-            <button class="btn-ghost auto flex-1" style="font-size:0.55rem; padding: 0.4rem; color:var(--gold);" onclick="openRedownloadCard('${v.vendor_id}')">CARD</button>
-            <button class="btn-ghost auto" style="font-size:0.55rem; padding: 0.4rem; color:var(--cyan);" onclick="toggleBulkSheet(true, '${v.vendor_id}')">BULK</button>
-            <button class="btn-ghost auto" style="font-size:0.55rem; padding: 0.4rem; color:var(--error);" onclick="confirmDeleteVendor('${v.vendor_id}')">ERASE</button>
+
+          <div class="flex items-center gap-2 mt-4">
+             <div style="width: 6px; height: 6px; border-radius: 50%; background: ${statusColor}; box-shadow: 0 0 10px ${statusColor};"></div>
+             <span class="text-xs font-mono font-bold" style="color: ${statusColor}; font-size: 0.6rem; letter-spacing: 0.1em;">SYSTEM_${statusText}</span>
+          </div>
+
+          <div class="flex gap-2 mt-4 pt-4 border-t border-white-5">
+            <button class="btn-ghost auto flex-1" style="font-size:0.55rem; padding: 0.5rem;" onclick="copyVendorLink('${v.vendor_id}')">UPLINK</button>
+            <button class="btn-ghost auto flex-1" style="font-size:0.55rem; padding: 0.5rem; color:var(--gold);" onclick="openRedownloadCard('${v.vendor_id}')">CARD</button>
+            <button class="btn-ghost auto" style="font-size:0.55rem; padding: 0.5rem; color:var(--cyan);" onclick="toggleBulkSheet(true, '${v.vendor_id}')">BULK</button>
+            <button class="btn-ghost auto" style="font-size:0.55rem; padding: 0.5rem; color:var(--error);" onclick="confirmDeleteVendor('${v.vendor_id}')">ERASE</button>
           </div>
         </div>
       `}).join('');
@@ -230,12 +244,12 @@
       const vusage = document.getElementById('v_usage').value;
       const vduration = document.getElementById('v_duration').value;
       
-      if (!vid || !vkey) return adminNotify('MISSING_NODE_PARAMS', 'error');
+      if (!vid) return adminNotify('VENDOR_ID_IS_REQUIRED', 'error');
 
       try {
-        await api('/api/vault/admin/vendors', 'POST', {
+        const result = await api('/api/vault/admin/vendors', 'POST', {
           vendorId: vid,
-          accessKey: vkey,
+          accessKey: vkey || undefined,
           tier: vtier,
           usageLimit: vusage ? parseInt(vusage) : null,
           durationDays: vduration ? parseInt(vduration) : null,
@@ -244,9 +258,10 @@
         
         toggleActionSheet(false);
         
-        document.getElementById('cardVendorId').textContent = vid;
-        document.getElementById('cardAccessKey').textContent = vkey;
-        document.getElementById('cardTierBadge').textContent = vtier.toUpperCase();
+        // 🛡️ SYNC_CARD: Use the actual data returned by the server
+        document.getElementById('cardVendorId').textContent = result.vendorId;
+        document.getElementById('cardAccessKey').textContent = result.accessKey;
+        document.getElementById('cardTierBadge').textContent = result.tier.toUpperCase();
         document.getElementById('cardDate').textContent = new Date().toISOString().split('T')[0];
         toggleCardSheet(true);
 
@@ -315,6 +330,12 @@
       const ok = await checkSession();
       if (ok) {
         loadVendors();
+        
+        // 🛡️ AUTO_ACTION: If redirected with ?action=add, open the sheet immediately
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('action') === 'add') {
+          setTimeout(() => toggleActionSheet(true), 300);
+        }
       }
     };
   </script>
