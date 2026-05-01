@@ -645,7 +645,7 @@ router.post('/verify', async (req, res) => {
                 path: '/',
                 maxAge: 24 * 60 * 60 * 1000
             });
-            return res.json({ type: 'admin', redirect: '/admin.html', token, message: 'MASTER ACCESS GRANTED' });
+            return res.json({ type: 'admin', redirect: '/admin/dashboard.html', token, message: 'MASTER ACCESS GRANTED' });
         }
 
         let blocked = false;
@@ -782,7 +782,7 @@ router.post('/admin/login', async (req, res, next) => {
             path: '/',
             maxAge: 24 * 60 * 60 * 1000
         });
-        return res.json({ token, type: 'admin', redirect: '/admin.html' });
+        return res.json({ token, type: 'admin', redirect: '/admin/dashboard.html' });
     } catch (err) {
         if (err instanceof z.ZodError) return fail(res, 'XP_VAL_FAILED', 'INVALID_LOGIN_INPUT', 400, err.errors);
         return next(err);

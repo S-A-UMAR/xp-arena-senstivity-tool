@@ -110,7 +110,7 @@
             ['.device-access-header', 'deviceAccess'],
             ['#followBtn', 'followCreator']
         ],
-        'admin.html': [
+        '/admin/dashboard.html': [
             ['#toolBrand option[value=""]', 'selectBrand'],
             ['#toolSeries option[value=""]', 'selectSeries'],
             ['#toolModel option[value=""]', 'selectModel']
@@ -266,13 +266,13 @@
             return sessionStorage.getItem('axp_nav_origin') === 'vendor_dashboard.html' ? '/vendor_dashboard.html' : '/verify.html';
         }
         if (pathName === 'verify.html') return '/index.html';
-        if (pathName === 'admin.html') return '/verify.html';
+        if (pathName.includes('admin/')) return '/admin/index.html';
         return null;
     }
 
     function shouldShowBackButton() {
         const pathName = getCurrentPageName();
-        return ['result.html', 'verify.html', 'admin.html'].includes(pathName);
+        return ['result.html', 'verify.html', 'index.html'].includes(pathName) || pathName.includes('admin/');
     }
 
 
