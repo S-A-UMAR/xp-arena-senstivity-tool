@@ -449,6 +449,10 @@
       0% { transform: translateX(0); }
       100% { transform: translateX(-50%); }
     }
+    @keyframes fadeDown {
+      from { opacity: 0; transform: translateY(-100%); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
   </style>
 </head>
 <body class="page-portal">
@@ -578,14 +582,32 @@
             const data = await res.json();
             
             if (data.maintenance_mode === 'true') {
-                document.body.innerHTML = `
-                    <div style="height: 100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; background:var(--bg-void); color:var(--tx-hero); text-align:center; padding:2rem;">
-                        <div class="dot-live" style="width:12px; height:12px; margin-bottom:1.5rem; background:var(--gold); box-shadow:0 0 15px var(--gold-glow);"></div>
-                        <h1 style="font-size:1.5rem; font-weight:900; letter-spacing:0.2em; margin-bottom:1rem;">NEURAL_RECALIBRATION</h1>
-                        <p style="color:var(--tx-muted); font-size:0.8rem; max-width:400px; line-height:1.6;">The AXP engine is undergoing scheduled maintenance to optimize precision metrics. Please return shortly.</p>
-                        <div style="margin-top:2rem; font-size:0.6rem; font-mono; opacity:0.3;">UPLINK_PAUSED // AUTH_GATED</div>
-                    </div>
-                `;
+                // 🛡️ ADMIN_SAFE: Show a banner overlay — do NOT wipe the page.
+                // This keeps the vault input alive so admin can log in and turn maintenance off.
+                if (!document.getElementById('maintenance-banner')) {
+                    const banner = document.createElement('div');
+                    banner.id = 'maintenance-banner';
+                    banner.style.cssText = `
+                        position: fixed; top: 0; left: 0; right: 0; z-index: 9999;
+                        background: linear-gradient(135deg, rgba(245,158,11,0.15), rgba(234,88,12,0.1));
+                        border-bottom: 1px solid rgba(245,158,11,0.4);
+                        backdrop-filter: blur(20px);
+                        padding: 0.75rem 1.5rem;
+                        display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+                        animation: fadeDown 0.4s ease;
+                    `;
+                    banner.innerHTML = `
+                        <div style="display:flex; align-items:center; gap:0.75rem; flex:1;">
+                            <div style="width:8px; height:8px; border-radius:50%; background:var(--gold); box-shadow:0 0 10px var(--gold); flex-shrink:0; animation:dotPulse 1.5s infinite;"></div>
+                            <div>
+                                <div style="font-family:var(--font-mono); font-size:0.6rem; font-weight:900; color:var(--gold); letter-spacing:0.2em; text-transform:uppercase;">SYSTEM_MAINTENANCE_ACTIVE</div>
+                                <div style="font-family:var(--font-mono); font-size:0.55rem; color:var(--tx-muted); letter-spacing:0.08em; margin-top:2px;">Site is offline for users · Admin login below to disable</div>
+                            </div>
+                        </div>
+                        <button onclick="document.getElementById('maintenance-banner').style.display='none'" style="background:transparent; border:1px solid rgba(245,158,11,0.3); color:var(--gold); font-family:var(--font-mono); font-size:0.55rem; letter-spacing:0.1em; padding:0.35rem 0.75rem; border-radius:6px; cursor:pointer; flex-shrink:0;">DISMISS</button>
+                    `;
+                    document.body.prepend(banner);
+                }
                 return;
             }
 
