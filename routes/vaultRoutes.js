@@ -230,16 +230,34 @@ async function trackEvent(type, orgId, vendorId, session, device) {
 }
 // 🛡️ MAINTENANCE MIDDLEWARE
 async function checkMaintenance(req, res, next) {
-    // Skip for admin routes and health check
-    if (req.path.startsWith('/admin') || req.path === '/health' || req.path.startsWith('/api/vault/admin')) {
-        return next();
-    }
+    const path = req.path;
+    // ⚡ EXEMPTION LAYER: Routes that MUST work even during maintenance or DB failure
+    const isExempt = path.startsWith('/admin') || 
+                     path.startsWith('/api/vault/admin') || 
+                     path === '/verify' || 
+                     path === '/health' || 
+                     path.startsWith('/public/');
+
+    if (isExempt) return next();
+
     try {
-        const mode = await db.get("SELECT setting_value FROM system_settings WHERE setting_key = 'maintenance_mode'");
+        // Use a race to prevent hanging if DB is slow
+        const maintenanceCheck = Promise.race([
+            db.get("SELECT setting_value FROM system_settings WHERE setting_key = 'maintenance_mode'"),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('TIMEOUT')), 2500))
+        ]);
+
+        const mode = await maintenanceCheck;
         if (mode?.setting_value === 'true') {
-            return res.status(503).json({ error: 'SYSTEM_MAINTENANCE', message: 'The neural engine is undergoing scheduled calibration. Please check back shortly.' });
+            return res.status(503).json({ 
+                error: 'SYSTEM_MAINTENANCE', 
+                message: 'The neural engine is undergoing scheduled calibration. Please check back shortly.' 
+            });
         }
-    } catch (_) {}
+    } catch (err) {
+        // 🛡️ FAIL_OPEN: If DB is down or times out, allow the request to proceed
+        console.warn('⚠️ MAINTENANCE_CHECK_FAILED:', err.message);
+    }
     next();
 }
 
