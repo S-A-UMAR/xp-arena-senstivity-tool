@@ -1,3 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+  <title>AXP | SYSTEM SETUP</title>
+  <link rel="stylesheet" href="../design-system.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="page-admin">
+
+  <div id="adminHeader"></div>
+
   <div class="page-wrap anim-stagger-in">
     <!-- 🛡️ CORE_HEALTH_DASHBOARD -->
     <div class="grid grid-cols-3 gap-3 mb-4">
@@ -95,6 +109,8 @@
     </div>
   </div>
 
+  <div id="adminNav"></div>
+
   <script src="core.js"></script>
   <script>
     async function checkSchema() {
@@ -105,7 +121,7 @@
 
         grid.innerHTML = Object.entries(data.tables).map(([name, exists]) => `
           <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 0.75rem 1rem; display: flex; justify-content: space-between; align-items: center;">
-            <div class="text-[0.65rem] font-mono opacity-50 uppercase">${name.replace('_',' ')}</div>
+            <div class="text-[0.65rem] font-mono opacity-50 uppercase">${name.replace(/_/g,' ')}</div>
             <div class="flex items-center gap-2">
               <div style="width: 6px; height: 6px; border-radius: 50%; background: ${exists ? 'var(--success)' : 'var(--error)'};"></div>
               <span class="text-[0.65rem] font-black" style="color:${exists ? 'var(--success)' : 'var(--error)'};">${exists ? 'VERIFIED' : 'LOST'}</span>
@@ -148,7 +164,7 @@
             status.textContent = 'ACTIVE';
             status.style.color = '#fff';
             status.style.background = 'var(--error)';
-            icon.style.background = 'var(--error-dim)';
+            icon.style.background = 'rgba(239, 68, 68, 0.1)';
             icon.style.color = 'var(--error)';
         } else {
             status.textContent = 'OFF';
@@ -186,6 +202,8 @@
       }
     };
   </script>
+</body>
+</html>
 </body>
 </html>
 

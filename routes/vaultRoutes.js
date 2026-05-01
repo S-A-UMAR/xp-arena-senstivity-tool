@@ -1652,6 +1652,22 @@ router.get('/admin/vendor/:vendorId/analytics', authenticateAdmin, async (req, r
     }
 });
 
+router.post('/admin/vendor/:vendorId/status', authenticateAdmin, async (req, res) => {
+    try {
+        const { status } = z.object({ status: z.enum(['active', 'suspended', 'revoked']) }).parse(req.body || {});
+        const vendorId = req.params.vendorId;
+        
+        await db.run('UPDATE vendors SET status = ? WHERE vendor_id = ?', [status, vendorId]);
+        await logAudit('admin', 'SYSTEM', 'VENDOR_STATUS_CHANGE', { vendorId, new_status: status }, getClientIp(req));
+        
+        return res.json({ success: true, status });
+    } catch (err) {
+        if (err instanceof z.ZodError) return res.status(400).json({ error: 'INVALID_STATUS' });
+        console.error('POST /admin/vendor/status error:', err);
+        return res.status(500).json({ error: 'STATUS_UPDATE_FAILED' });
+    }
+});
+
 router.post('/admin/vendors', authenticateAdmin, async (req, res) => {
     try {
         const nullableInt = (minimum) => z.preprocess((value) => {

@@ -244,6 +244,63 @@
       0% { transform: scale(0.2); opacity: 0.8; }
       100% { transform: scale(1.5); opacity: 0; }
     }
+
+    /* Help Floating FAB */
+    .lab-help-fab {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      width: 48px;
+      height: 48px;
+      background: rgba(0, 242, 254, 0.1);
+      border: 1px solid rgba(0, 242, 254, 0.3);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--lab-cyan);
+      cursor: pointer;
+      z-index: 1000;
+      backdrop-filter: blur(10px);
+      transition: all 0.3s;
+      box-shadow: 0 0 20px rgba(0, 242, 254, 0.1);
+    }
+    .lab-help-fab:hover {
+      background: var(--lab-cyan);
+      color: #000;
+      box-shadow: 0 0 30px var(--lab-glow);
+      transform: scale(1.1);
+    }
+
+    .help-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(2, 6, 23, 0.9);
+      z-index: 2000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.3s;
+      backdrop-filter: blur(15px);
+    }
+    .help-modal.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+    .help-content {
+      width: 100%;
+      max-width: 500px;
+      background: var(--bg-surface);
+      border: 1px solid var(--lab-cyan);
+      border-radius: 32px;
+      padding: 2.5rem;
+      transform: translateY(20px);
+      transition: transform 0.3s;
+    }
+    .help-modal.active .help-content { transform: translateY(0); }
   </style>
 </head>
 <body class="page-lab">
@@ -348,6 +405,39 @@
     </div>
   </div>
 
+  <div class="lab-help-fab" onclick="toggleHelp(true)">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+  </div>
+
+  <div id="helpModal" class="help-modal" onclick="toggleHelp(false)">
+    <div class="help-content" onclick="event.stopPropagation()">
+      <div class="badge-cyan mb-4">UPLINK_MANUAL</div>
+      <h2 class="text-hero text-xl mb-6">HOW_LABS_WORK</h2>
+      
+      <div class="space-y-6">
+        <div>
+          <div class="text-cyan font-black text-[0.65rem] tracking-widest mb-2 uppercase">Mode_01: Flick_Speed</div>
+          <p class="text-sub text-xs leading-relaxed">Targets appear at random neural nodes. Tap them instantly to measure raw reaction latency. This mode determines your "Acquisition Speed" coefficient.</p>
+        </div>
+        
+        <div class="divider-gaming" style="opacity: 0.1;"></div>
+        
+        <div>
+          <div class="text-violet font-black text-[0.65rem] tracking-widest mb-2 uppercase">Mode_02: Track_Precision</div>
+          <p class="text-sub text-xs leading-relaxed">The target moves dynamically. Maintain focus and tap repeatedly. This measures your biological "Drift Control" and consistency.</p>
+        </div>
+
+        <div class="divider-gaming" style="opacity: 0.1;"></div>
+
+        <div class="p-4 rounded-xl bg-white-5 border border-white-10">
+          <p class="text-[0.65rem] text-hero leading-relaxed"><strong>PRO_TIP:</strong> Use the same grip and device posture you use while playing. The goal is to calibrate your sensitivity to your <em>actual</em> biological response.</p>
+        </div>
+      </div>
+
+      <button class="btn-cta cyan w-full mt-8" onclick="toggleHelp(false)">ACKNOWLEDGED</button>
+    </div>
+  </div>
+
   <script src="translations.js"></script>
   <script src="gaming-effects.js"></script>
   <script src="notifications.js"></script>
@@ -360,6 +450,10 @@
     let misses = 0;
     let currentMode = 'flick';
     let moveInterval = null;
+
+    function toggleHelp(show) {
+      document.getElementById('helpModal').classList.toggle('active', show);
+    }
 
     function setMode(mode, el) {
       currentMode = mode;

@@ -188,14 +188,29 @@
             STATUS: <span style="color: ${statusColor}; font-weight: 800;">${statusText}</span>
           </div>
 
-          <div class="flex gap-2 mt-2 pt-4 border-t border-white-5">
+          <div class="flex flex-wrap gap-2 mt-2 pt-4 border-t border-white-5">
             <button class="btn-ghost auto flex-1" style="font-size: 0.65rem; font-weight: 800; padding: 0.65rem;" onclick="copyVendorLink('${v.vendor_id}')">UPLINK</button>
             <button class="btn-ghost auto flex-1" style="font-size: 0.65rem; font-weight: 800; padding: 0.65rem; color: var(--gold);" onclick="openRedownloadCard('${v.vendor_id}')">CARD</button>
             <button class="btn-ghost auto" style="font-size: 0.65rem; font-weight: 800; padding: 0.65rem 1rem; color: var(--cyan);" onclick="toggleBulkSheet(true, '${v.vendor_id}')">BULK</button>
+            <button class="btn-ghost auto" style="font-size: 0.65rem; font-weight: 800; padding: 0.65rem 1rem; color: ${v.status === 'active' ? 'var(--gold)' : 'var(--success)'};" onclick="toggleSuspension('${v.vendor_id}', '${v.status}')">
+              ${v.status === 'active' ? 'SUSPEND' : 'ACTIVATE'}
+            </button>
             <button class="btn-ghost auto" style="font-size: 0.65rem; font-weight: 800; padding: 0.65rem 1rem; color: var(--error);" onclick="confirmDeleteVendor('${v.vendor_id}')">ERASE</button>
           </div>
         </div>
       `}).join('');
+    }
+
+    async function toggleSuspension(vid, currentStatus) {
+      const nextStatus = currentStatus === 'active' ? 'suspended' : 'active';
+      const confirmed = await adminConfirm(`CONFIRM: ${nextStatus.toUpperCase()}_NODE_${vid}?`);
+      if (!confirmed) return;
+      
+      try {
+        await api(`/api/vault/admin/vendor/${vid}/status`, 'POST', { status: nextStatus });
+        adminNotify(`NODE_${vid}_${nextStatus.toUpperCase()}`, 'success');
+        loadVendors();
+      } catch (e) { adminNotify('STATUS_UPDATE_FAILED: ' + e.message, 'error'); }
     }
 
     function openRedownloadCard(vid) {

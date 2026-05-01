@@ -214,6 +214,70 @@ const ThemeManager = {
             document.head.appendChild(s);
         }
     }
-};
 
-ThemeManager.init();
+    static initHelpSystem() {
+        const fab = document.createElement('div');
+        fab.id = 'globalHelpFab';
+        fab.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`;
+        fab.style.cssText = `
+            position: fixed; bottom: 20px; left: 20px; width: 44px; height: 44px;
+            background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 14px; display: flex; align-items: center; justify-content: center;
+            color: var(--tx-muted); cursor: pointer; z-index: 9999; backdrop-filter: blur(10px);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        `;
+        fab.onmouseover = () => { fab.style.background = 'rgba(255,255,255,0.1)'; fab.style.color = '#fff'; fab.style.transform = 'scale(1.1)'; };
+        fab.onmouseout = () => { fab.style.background = 'rgba(15, 23, 42, 0.8)'; fab.style.color = 'var(--tx-muted)'; fab.style.transform = 'scale(1)'; };
+        fab.onclick = () => ThemeManager.toggleFaq(true);
+
+        const modal = document.createElement('div');
+        modal.id = 'globalFaqModal';
+        modal.style.cssText = `
+            position: fixed; inset: 0; background: rgba(2, 6, 23, 0.95);
+            z-index: 10000; display: flex; align-items: center; justify-content: center;
+            padding: 20px; opacity: 0; pointer-events: none; transition: all 0.3s;
+            backdrop-filter: blur(20px);
+        `;
+        modal.innerHTML = `
+            <div class="faq-content" style="width:100%; max-width:440px; background:var(--bg-surface); border:1px solid var(--bd-subtle); border-radius:32px; padding:32px; transform:translateY(20px); transition:transform 0.3s;">
+                <div class="badge-violet mb-4">NEURAL_KNOWLEDGE_BASE</div>
+                <h2 style="font-size:1.4rem; font-weight:900; color:#fff; margin-bottom:24px;">FREQUENTLY_ASKED</h2>
+                <div style="display:flex; flex-direction:column; gap:16px; max-height:400px; overflow-y:auto; padding-right:10px;">
+                    <div class="faq-item">
+                        <div style="font-size:0.7rem; font-weight:800; color:var(--violet); margin-bottom:4px;">01. WHAT IS AXP?</div>
+                        <p style="font-size:0.75rem; color:var(--tx-muted); line-height:1.5;">Advanced Sensitivity Calibration (AXP) is a diagnostic engine used to synchronize hardware sensitivity with biological response times.</p>
+                    </div>
+                    <div style="height:1px; background:rgba(255,255,255,0.05);"></div>
+                    <div class="faq-item">
+                        <div style="font-size:0.7rem; font-weight:800; color:var(--violet); margin-bottom:4px;">02. HOW DO I REDEEM?</div>
+                        <p style="font-size:0.75rem; color:var(--tx-muted); line-height:1.5;">Enter your unique Access Token on the Vault landing page. If valid, your Neural Profile will unlock immediately.</p>
+                    </div>
+                    <div style="height:1px; background:rgba(255,255,255,0.05);"></div>
+                    <div class="faq-item">
+                        <div style="font-size:0.7rem; font-weight:800; color:var(--violet); margin-bottom:4px;">03. DATA SECURITY?</div>
+                        <p style="font-size:0.75rem; color:var(--tx-muted); line-height:1.5;">All neural profiles are encrypted using AES-256 protocols. Your biological latency data is anonymized and stored on secure nodes.</p>
+                    </div>
+                </div>
+                <button class="btn-cta violet w-full mt-8" onclick="ThemeManager.toggleFaq(false)">CLOSE_UPLINK</button>
+            </div>
+        `;
+        modal.onclick = () => ThemeManager.toggleFaq(false);
+        modal.querySelector('.faq-content').onclick = (e) => e.stopPropagation();
+
+        document.body.appendChild(fab);
+        document.body.appendChild(modal);
+    }
+
+    static toggleFaq(show) {
+        const modal = document.getElementById('globalFaqModal');
+        if (!modal) return;
+        modal.style.opacity = show ? '1' : '0';
+        modal.style.pointerEvents = show ? 'all' : 'none';
+        modal.querySelector('.faq-content').style.transform = show ? 'translateY(0)' : 'translateY(20px)';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    ThemeManager.init();
+    ThemeManager.initHelpSystem();
+});
