@@ -200,49 +200,49 @@ const VendorLogic = {
         `;
         
         overlay.innerHTML = `
-            <div class="glass-panel" style="width: min(95vw, 420px); text-align: center; background: transparent; border: none; box-shadow: none;">
+            <div class="glass-panel" style="width: min(90vw, 280px); text-align: center; background: transparent; border: none; box-shadow: none;">
                 <div id="captureArea" class="holo-card-vertical" onmousemove="VendorLogic.handleHoloMove(event, this)" style="
                     background: linear-gradient(165deg, #0f172a 0%, #020617 100%);
                     border: 2px solid var(--accent-primary);
                     border-radius: 40px;
-                    padding: 2rem 1.5rem;
-                    margin-bottom: 1.5rem;
+                    padding: 1.25rem;
+                    margin-bottom: 1.25rem;
                     position: relative;
                     overflow: hidden;
-                    aspect-ratio: 2 / 2.8;
+                    aspect-ratio: 2 / 2.6;
                     display: flex;
                     flex-direction: column;
                     align-items: center;
-                    box-shadow: 0 40px 100px rgba(0,0,0,0.8), inset 0 0 40px var(--accent-primary-dim);
+                    box-shadow: 0 30px 60px rgba(0,0,0,0.8), inset 0 0 30px var(--accent-primary-dim);
                     transition: transform 0.1s ease-out;
                 ">
                     <!-- Tech Background Elements -->
                     <div style="position: absolute; inset: 0; opacity: 0.05; background-image: radial-gradient(var(--accent-primary) 1px, transparent 1px); background-size: 20px 20px;"></div>
                     <div style="position: absolute; top:0; left:0; width: 100%; height: 4px; background: var(--accent-primary); opacity: 0.3;"></div>
                     
-                    <div style="width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                        <div style="font-family: var(--font-mono); font-size: 0.6rem; color: var(--accent-primary); letter-spacing: 0.3em; font-weight: 900;">AXP_NEXUS_REGISTRY</div>
-                        <div style="background: var(--accent-primary); color: #000; font-size: 0.5rem; padding: 4px 10px; border-radius: 8px; font-weight: 900;">SECURE</div>
+                    <div style="width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <div style="font-family: var(--font-mono); font-size: 0.5rem; color: var(--accent-primary); letter-spacing: 0.2em; font-weight: 900;">AXP_NEXUS</div>
+                        <div style="background: var(--accent-primary); color: #000; font-size: 0.45rem; padding: 2px 6px; border-radius: 4px; font-weight: 900;">SECURE</div>
                     </div>
 
                     <!-- Main Identity -->
                     <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%;">
-                        <div style="width: 80px; height: 80px; border: 2px solid var(--accent-primary-border); border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; background: rgba(0,0,0,0.4); margin-bottom: 2rem; box-shadow: 0 0 30px var(--accent-primary-dim);">🔑</div>
-                        <div style="font-size: 0.55rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.2em; margin-bottom: 1rem; font-weight: 800; opacity: 0.6;">PROVISIONED_ACCESS_KEY</div>
-                        <div style="font-family: var(--font-mono); font-size: 2.2rem; font-weight: 950; color: white; letter-spacing: -0.02em; text-align: center; line-height: 1.1; margin-bottom: 2rem; text-shadow: 0 0 25px var(--accent-primary-glow);">
-                            ${code.split('-').join('<br>')}
+                        <div style="width: 50px; height: 50px; border: 1px solid var(--accent-primary-border); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; background: rgba(0,0,0,0.4); margin-bottom: 1rem; box-shadow: 0 0 20px var(--accent-primary-dim);">🔑</div>
+                        <div style="font-size: 0.45rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 0.5rem; font-weight: 800; opacity: 0.6;">PROVISIONED_KEY</div>
+                        <div style="font-family: var(--font-mono); font-size: 1.25rem; font-weight: 950; color: white; letter-spacing: 0.05em; text-align: center; line-height: 1.2; margin-bottom: 1.5rem; text-shadow: 0 0 15px var(--accent-primary-glow); word-break: break-all;">
+                            ${code}
                         </div>
                     </div>
 
                     <!-- Hardware Stats -->
-                    <div style="width: 100%; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 24px; padding: 1.5rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                    <div style="width: 100%; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; padding: 1rem; display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1rem;">
                         <div style="text-align: left;">
-                            <div style="font-size: 0.45rem; color: var(--text-muted); font-family: var(--font-mono); margin-bottom: 4px;">ARCHITECTURE</div>
-                            <div style="font-size: 0.8rem; font-weight: 900; color: white; text-transform: uppercase;">${brand}</div>
+                            <div style="font-size: 0.4rem; color: var(--text-muted); font-family: var(--font-mono); margin-bottom: 2px;">ARCH</div>
+                            <div style="font-size: 0.6rem; font-weight: 900; color: white; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${brand}</div>
                         </div>
                         <div style="text-align: left;">
-                            <div style="font-size: 0.45rem; color: var(--text-muted); font-family: var(--font-mono); margin-bottom: 4px;">MODEL_HUNT</div>
-                            <div style="font-size: 0.8rem; font-weight: 900; color: white; text-transform: uppercase;">${model}</div>
+                            <div style="font-size: 0.4rem; color: var(--text-muted); font-family: var(--font-mono); margin-bottom: 2px;">MODEL</div>
+                            <div style="font-size: 0.6rem; font-weight: 900; color: white; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${model}</div>
                         </div>
                     </div>
 
@@ -258,11 +258,11 @@ const VendorLogic = {
                     </div>
                 </div>
 
-                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
-                    <button class="btn-cta" style="padding: 1.25rem; border-radius: 20px; font-weight: 900; background: var(--accent-primary); color: #000;" onclick="VendorLogic.copyToClipboard('${code}')">COPY_KEY</button>
-                    <button class="btn-ghost auto" style="padding: 1.25rem; border-radius: 20px; font-weight: 900; background: rgba(255,255,255,0.05); color: white;" onclick="VendorLogic.captureAndDownloadResult('${code}')">SAVE_CARD</button>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem;">
+                    <button class="btn-cta" style="padding: 0.75rem; border-radius: 12px; font-size: 0.65rem; font-weight: 900; background: var(--accent-primary); color: #000;" onclick="VendorLogic.copyToClipboard('${code}')">COPY_KEY</button>
+                    <button class="btn-ghost auto" style="padding: 0.75rem; border-radius: 12px; font-size: 0.65rem; font-weight: 900; background: rgba(255,255,255,0.05); color: white;" onclick="VendorLogic.captureAndDownloadResult('${code}')">SAVE_CARD</button>
                 </div>
-                <button class="btn-ghost auto w-full mt-4" style="font-size: 0.7rem; opacity: 0.4; border-radius: 12px;" onclick="this.closest('.quick-action-overlay').remove()">DISMISS_UPLINK</button>
+                <button class="btn-ghost auto w-full mt-3" style="font-size: 0.6rem; opacity: 0.4; border-radius: 8px; padding: 0.4rem;" onclick="this.closest('.quick-action-overlay').remove()">DISMISS_UPLINK</button>
             </div>
         `;
         document.body.appendChild(overlay);
@@ -296,50 +296,50 @@ const VendorLogic = {
         `;
         
         overlay.innerHTML = `
-            <div class="glass-panel" style="width: min(95vw, 420px); text-align: center; background: transparent; border: none; box-shadow: none;">
+            <div class="glass-panel" style="width: min(90vw, 280px); text-align: center; background: transparent; border: none; box-shadow: none;">
                 <div id="captureArea" class="holo-card-vertical" onmousemove="VendorLogic.handleHoloMove(event, this)" style="
                     background: linear-gradient(165deg, #0f172a 0%, #020617 100%);
                     border: 2px solid var(--accent-primary);
                     border-radius: 40px;
-                    padding: 2rem 1.5rem;
-                    margin-bottom: 1.5rem;
+                    padding: 1.25rem;
+                    margin-bottom: 1.25rem;
                     position: relative;
                     overflow: hidden;
-                    aspect-ratio: 2 / 2.8;
+                    aspect-ratio: 2 / 2.6;
                     display: flex;
                     flex-direction: column;
                     align-items: center;
-                    box-shadow: 0 40px 100px rgba(0,0,0,0.8), inset 0 0 40px var(--accent-primary-dim);
+                    box-shadow: 0 30px 60px rgba(0,0,0,0.8), inset 0 0 30px var(--accent-primary-dim);
                     transition: transform 0.1s ease-out;
                 ">
                     <!-- Tech Background Elements -->
                     <div style="position: absolute; inset: 0; opacity: 0.05; background-image: radial-gradient(var(--accent-primary) 1px, transparent 1px); background-size: 20px 20px;"></div>
                     <div style="position: absolute; top:0; left:0; width: 100%; height: 4px; background: var(--accent-primary); opacity: 0.3;"></div>
                     
-                    <div style="width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                        <div style="font-family: var(--font-mono); font-size: 0.6rem; color: var(--accent-primary); letter-spacing: 0.3em; font-weight: 900;">MASTER_OPERATOR_ID</div>
-                        <div style="background: var(--accent-primary); color: #000; font-size: 0.5rem; padding: 4px 10px; border-radius: 8px; font-weight: 900;">AUTHORIZED</div>
+                    <div style="width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <div style="font-family: var(--font-mono); font-size: 0.5rem; color: var(--accent-primary); letter-spacing: 0.2em; font-weight: 900;">OPERATOR_ID</div>
+                        <div style="background: var(--accent-primary); color: #000; font-size: 0.45rem; padding: 2px 6px; border-radius: 4px; font-weight: 900;">AUTH</div>
                     </div>
 
                     <!-- Main Identity -->
                     <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%;">
-                        <div style="width: 120px; height: 120px; border: 2px dashed var(--accent-primary); border-radius: 30px; display: flex; align-items: center; justify-content: center; font-size: 3.5rem; background: rgba(255,255,255,0.02); margin-bottom: 2rem; box-shadow: 0 0 40px var(--accent-primary-dim);">🛡️</div>
-                        <div style="font-size: 0.55rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.2em; margin-bottom: 1rem; font-weight: 800; opacity: 0.6;">OPERATOR_SIGNATURE</div>
-                        <div style="font-size: 1.8rem; font-weight: 950; color: white; text-transform: uppercase; letter-spacing: -0.01em; text-align: center; line-height: 1.1; margin-bottom: 1rem;">
+                        <div style="width: 60px; height: 60px; border: 1px dashed var(--accent-primary); border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 2rem; background: rgba(255,255,255,0.02); margin-bottom: 1rem; box-shadow: 0 0 20px var(--accent-primary-dim);">🛡️</div>
+                        <div style="font-size: 0.45rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.5rem; font-weight: 800; opacity: 0.6;">SIGNATURE</div>
+                        <div style="font-size: 1.25rem; font-weight: 950; color: white; text-transform: uppercase; letter-spacing: -0.01em; text-align: center; line-height: 1.1; margin-bottom: 0.5rem;">
                             ${data.display_name}
                         </div>
-                        <div style="font-family: var(--font-mono); font-size: 0.7rem; color: var(--accent-primary); font-weight: 800; opacity: 0.8;">UID: ${data.vendor_id}</div>
+                        <div style="font-family: var(--font-mono); font-size: 0.55rem; color: var(--accent-primary); font-weight: 800; opacity: 0.8;">UID: ${data.vendor_id}</div>
                     </div>
 
                     <!-- Authorization Stats -->
-                    <div style="width: 100%; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05); border-radius: 24px; padding: 1.5rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                    <div style="width: 100%; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; padding: 1rem; display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1rem;">
                         <div style="text-align: left;">
-                            <div style="font-size: 0.45rem; color: var(--text-muted); font-family: var(--font-mono); margin-bottom: 4px;">CLEARANCE</div>
-                            <div style="font-size: 0.8rem; font-weight: 900; color: white; text-transform: uppercase;">${tier.toUpperCase()}</div>
+                            <div style="font-size: 0.4rem; color: var(--text-muted); font-family: var(--font-mono); margin-bottom: 2px;">CLEARANCE</div>
+                            <div style="font-size: 0.6rem; font-weight: 900; color: white; text-transform: uppercase;">${tier.toUpperCase()}</div>
                         </div>
                         <div style="text-align: left;">
-                            <div style="font-size: 0.45rem; color: var(--text-muted); font-family: var(--font-mono); margin-bottom: 4px;">STATUS</div>
-                            <div style="font-size: 0.8rem; font-weight: 900; color: #10b981; text-transform: uppercase;">DECRYPT_READY</div>
+                            <div style="font-size: 0.4rem; color: var(--text-muted); font-family: var(--font-mono); margin-bottom: 2px;">STATUS</div>
+                            <div style="font-size: 0.6rem; font-weight: 900; color: #10b981; text-transform: uppercase;">READY</div>
                         </div>
                     </div>
 
@@ -348,9 +348,9 @@ const VendorLogic = {
                     </div>
                 </div>
 
-                <div style="display: grid; grid-template-columns: 1fr; gap: 1rem;">
-                    <button class="btn-cta" style="padding: 1.25rem; border-radius: 20px; font-weight: 900; background: var(--accent-primary); color: #000;" onclick="VendorLogic.captureAndDownloadResult('OPERATOR_${data.vendor_id}')">EXPORT_MASTER_ID</button>
-                    <button class="btn-ghost auto w-full" style="padding: 1.25rem; border-radius: 20px; font-weight: 900; opacity: 0.4;" onclick="this.closest('.quick-action-overlay').remove()">DISMISS_UPLINK</button>
+                <div style="display: grid; grid-template-columns: 1fr; gap: 0.75rem;">
+                    <button class="btn-cta" style="padding: 0.75rem; border-radius: 12px; font-size: 0.65rem; font-weight: 900; background: var(--accent-primary); color: #000;" onclick="VendorLogic.captureAndDownloadResult('OPERATOR_${data.vendor_id}')">EXPORT_ID</button>
+                    <button class="btn-ghost auto w-full" style="padding: 0.5rem; border-radius: 8px; font-size: 0.6rem; opacity: 0.4;" onclick="this.closest('.quick-action-overlay').remove()">DISMISS</button>
                 </div>
             </div>
         `;
