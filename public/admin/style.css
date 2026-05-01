@@ -1,0 +1,124 @@
+/* ═══════════════════════════════════════════════════════════════
+   AXP ADMIN STYLE — Unified Design System
+   ═══════════════════════════════════════════════════════════════ */
+
+@import url('../design-system.css');
+@import url('../gaming-animations.css');
+@import url('../gaming-components.css');
+@import url('../mobile-polish.css');
+
+:root {
+  --gold-border: rgba(245,158,11,0.22);
+  --gold-glow: rgba(245,158,11,0.3);
+}
+
+body {
+  background-color: #020617;
+  background-image:
+    radial-gradient(ellipse at 80% 0%, rgba(245,158,11,0.08), transparent 60%),
+    radial-gradient(ellipse at 20% 100%, rgba(245,158,11,0.05), transparent 50%);
+  color: var(--tx-main);
+  font-family: var(--font-sans);
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+/* ── Login Gate ──────────────────────────────── */
+.vault-gate {
+  position: fixed; inset: 0;
+  background:
+    radial-gradient(1200px 520px at 50% -18%, rgba(16,185,129,0.12), transparent 58%),
+    radial-gradient(900px 440px at 85% 110%, rgba(245,158,11,0.12), transparent 65%),
+    #020617;
+  z-index: 9999;
+  display: flex; align-items: center; justify-content: center; padding: 2rem;
+}
+.vault-card {
+  width: 100%;
+  max-width: 440px;
+  text-align: center;
+  animation: scaleIn 0.8s var(--ease) both;
+  background: linear-gradient(165deg, rgba(10,18,38,0.95), rgba(4,9,22,0.9));
+  border: 1px solid rgba(16,185,129,0.22);
+  border-radius: 28px;
+  padding: 2.5rem 2rem;
+  box-shadow: 0 34px 70px rgba(0,0,0,0.55), 0 0 32px rgba(16,185,129,0.12);
+  backdrop-filter: blur(14px);
+}
+.vault-input {
+  background: rgba(245,158,11,0.06); border: 1px solid var(--gold-border);
+  color: var(--gold); font-family: var(--font-mono); font-size: 1.4rem;
+  text-align: center; letter-spacing: 0.5em; padding: 1.4rem;
+  border-radius: var(--r-lg); width: 100%; outline: none; margin-bottom: 1.2rem;
+  transition: all 0.3s var(--ease);
+}
+.vault-input:focus { border-color: var(--gold); box-shadow: 0 0 24px var(--gold-glow); }
+
+/* ── Navigation ─────────────────────────────── */
+.admin-nav {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  height: 72px; background: rgba(2,6,23,0.95); backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(245,158,11,0.12);
+  display: flex; justify-content: space-around; align-items: center;
+  padding-bottom: env(safe-area-inset-bottom); z-index: 900;
+  box-shadow: 0 -10px 40px rgba(0,0,0,0.4);
+}
+.anav-item {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 4px; color: var(--tx-muted); flex: 1; cursor: pointer; transition: color 0.2s; padding: 0.5rem;
+  text-decoration: none;
+}
+.anav-item.active { color: var(--gold); }
+.anav-item svg { width: 22px; height: 22px; }
+.anav-item span { font-size: 0.58rem; font-weight: 800; letter-spacing: 0.08em; }
+
+.fab-slot {
+  position: relative; top: -20px; width: 60px; height: 60px;
+  background: var(--gold); border: 3px solid #020617; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: #000; font-size: 1.6rem; box-shadow: 0 0 28px var(--gold-glow);
+  cursor: pointer; transition: transform 0.25s var(--ease), box-shadow 0.25s;
+}
+.fab-slot:active { transform: scale(0.92); }
+
+/* ── Content Layout ─────────────────────────── */
+.page-wrap {
+  padding-top: 80px;
+  padding-bottom: 110px;
+  max-width: 800px;
+  margin: 0 auto;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
+/* ── Stats & Tiles ──────────────────────────── */
+.stat-tile.gold { border-color: var(--gold-border); }
+.stat-tile.gold .stat-tile-val { color: var(--gold); text-shadow: 0 0 12px var(--gold-glow); }
+
+.registry-node {
+  background: var(--bg-surface); border: 1px solid var(--bd-subtle);
+  border-radius: var(--r-lg); padding: 1.25rem; margin-bottom: 0.85rem;
+  transition: all 0.25s var(--ease);
+}
+.registry-node:hover { border-color: var(--gold-border); background: rgba(245,158,11,0.02); }
+
+/* ── Success Overlays & Sheets ───────────────── */
+.admin-sheet {
+  position: fixed; bottom: -110%; left: 0; right: 0;
+  background: #0a1128; border-radius: 24px 24px 0 0; padding: 2rem 1.5rem 3rem;
+  z-index: 1000; transition: all 0.45s cubic-bezier(0.22,1,0.36,1);
+  border-top: 1px solid var(--gold-border); max-height: 92vh; overflow-y: auto;
+}
+.admin-sheet.active { bottom: 0; }
+.sheet-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px);
+  z-index: 999; opacity: 0; visibility: hidden; transition: 0.3s;
+}
+.sheet-overlay.active { opacity: 1; visibility: visible; }
+
+/* ── Analytics Funnel ───────────────────────── */
+.funnel-step {
+  background: rgba(255,255,255,0.02); border: 1px solid var(--bd-subtle);
+  border-radius: var(--r-md); padding: 1rem; margin-bottom: 0.6rem; text-align: center;
+}

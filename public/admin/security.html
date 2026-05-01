@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+  <title>AXP | SECURITY OVERRIDE</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="page-admin">
+
+  <div class="page-wrap anim-stagger-in">
+    <div class="section-header mb-4">
+      <h2 class="section-title">SECURITY_OVERRIDE</h2>
+    </div>
+
+    <!-- Master Key Override -->
+    <div class="card mb-3" style="border-color: var(--error);">
+      <div class="section-eyebrow" style="color: var(--error);">DANGER_ZONE: MASTER_KEY_UPDATE</div>
+      <p class="text-xs text-muted mb-3">UPDATING_THE_MASTER_KEY_WILL_REVOKE_EXISTING_SESSIONS</p>
+      <input type="password" id="newMasterKey" placeholder="NEW_SECURE_PHRASE" class="p-2 w-full bg-dark border-gold rounded text-white mb-3">
+      <button class="btn-cta gold w-full" style="background: var(--error); border-color: var(--error); color: #fff;" onclick="updateMasterKey()">UPDATE_MASTER_CREDENTIALS</button>
+    </div>
+
+    <!-- Security Logs -->
+    <div class="card mb-3">
+      <div class="section-header mb-3">
+        <h2 class="section-title">SECURITY_EVENT_LOG</h2>
+        <button class="btn-ghost auto" style="font-size: 0.6rem;" onclick="loadLogs()">REFRESH</button>
+      </div>
+      <div id="securityLogs" style="max-height: 300px; overflow-y: auto;">
+        <div class="text-center py-4 opacity-30 text-xs font-mono">FETCHING_EVENT_LOG...</div>
+      </div>
+    </div>
+
+    <!-- Audit Logs -->
+    <div class="card">
+      <div class="section-header mb-3">
+        <h2 class="section-title">SYSTEM_AUDIT_TRAIL</h2>
+      </div>
+      <div id="auditLogs" style="max-height: 300px; overflow-y: auto;">
+        <div class="text-center py-4 opacity-30 text-xs font-mono">FETCHING_AUDIT_TRAIL...</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="core.js"></script>
+  <script>
+    async function updateMasterKey() {
+      const key = document.getElementById('newMasterKey').value.trim();
+      if (!key || key.length < 4) return alert('KEY_TOO_SHORT');
+      if (!confirm('WARNING: THIS_WILL_CHANGE_ACCESS_FOR_ALL_ADMINS. PROCEED?')) return;
+      
+      try {
+        await api('/api/vault/admin/update-master-key', 'POST', { newKey: key });
+        alert('MASTER_KEY_UPDATED_SUCCESSFULLY. PLEASE_RELOGIN.');
+        logoutAdmin();
+      } catch (e) { alert('UPDATE_FAILED: ' + e.message); }
+    }
+
+    async function loadLogs() {
+      try {
+        const [secLogs, auditLogs] = await Promise.all([
+          api('/api/vault/admin/security-logs'),
+          api('/api/vault/admin/audit-logs')
+        ]);
+        
+        const secDiv = document.getElementById('securityLogs');
+        const auditDiv = document.getElementById('auditLogs');
+
+        if (!secLogs?.length) {
+          secDiv.innerHTML = '<div class="text-center py-4 opacity-20 text-xs font-mono">NO_SECURITY_EVENTS</div>';
+        } else {
+          secDiv.innerHTML = secLogs.map(l => `
+            <div class="log-row py-2 border-b border-white-5">
+              <div class="flex justify-between">
+                <span class="font-bold" style="color:var(--error); font-size:0.6rem;">${l.event_type}</span>
+                <span class="opacity-40" style="font-size:0.55rem;">${new Date(l.created_at).toLocaleString()}</span>
+              </div>
+              <div class="text-xs opacity-70">${l.ip_address}</div>
+            </div>
+          `).join('');
+        }
+
+        if (!auditLogs?.length) {
+          auditDiv.innerHTML = '<div class="text-center py-4 opacity-20 text-xs font-mono">NO_AUDIT_ENTRIES</div>';
+        } else {
+          auditDiv.innerHTML = auditLogs.map(l => `
+            <div class="log-row py-2 border-b border-white-5">
+              <div class="flex justify-between">
+                <span class="font-bold" style="color:var(--cyan); font-size:0.6rem;">${l.action}</span>
+                <span class="opacity-40" style="font-size:0.55rem;">${new Date(l.created_at).toLocaleString()}</span>
+              </div>
+              <div class="text-xs opacity-70">${l.actor_type}: ${l.actor_id}</div>
+            </div>
+          `).join('');
+        }
+      } catch (e) { console.error('LOGS_ERR:', e); }
+    }
+
+    window.onload = async () => {
+      const ok = await checkSession();
+      if (ok) {
+        renderAdminHeader('Security Override');
+        renderAdminNav('security');
+        loadLogs();
+      }
+    };
+  </script>
+</body>
+</html>

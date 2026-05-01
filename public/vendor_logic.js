@@ -174,39 +174,42 @@ const VendorLogic = {
         overlay.id = 'resultOverlay';
         overlay.style.zIndex = '10000';
         overlay.innerHTML = `
-            <div class="glass-panel tier-${tier}" style="width: min(95vw, 440px); padding: clamp(1rem, 4vw, 2.5rem); text-align: center; background: rgba(10, 15, 25, 0.98); border: 1.5px solid var(--accent-primary);">
-                <div id="captureArea" class="holo-card" onmousemove="VendorLogic.handleHoloMove(event, this)" style="background: linear-gradient(135deg, #020617 0%, #0f172a 100%); border: 1px solid rgba(0, 242, 254, 0.2); border-radius: 24px; padding: clamp(1rem, 4vw, 2.5rem); margin-bottom: 1.25rem; position: relative; overflow: hidden; text-align: left;">
+            <div class="glass-panel tier-${tier}" style="width: min(95vw, 440px); padding: clamp(1rem, 2vw, 2.5rem); text-align: center; background: rgba(10, 15, 25, 0.98); border: 1.5px solid var(--accent-primary); border-radius: 32px; box-shadow: 0 0 50px rgba(0,0,0,0.8);">
+                <div id="captureArea" class="holo-card" onmousemove="VendorLogic.handleHoloMove(event, this)" style="background: linear-gradient(135deg, #020617 0%, #0f172a 100%); border: 1px solid rgba(0, 242, 254, 0.2); border-radius: 28px; padding: 2rem; margin-bottom: 1.5rem; position: relative; overflow: hidden; text-align: left; transition: transform 0.1s ease-out;">
                     <div style="position: absolute; top:0; left:0; width: 100%; height: 2px; background: var(--accent-primary); opacity: 0.15; animation: scanLineMove 3s linear infinite;"></div>
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem;">
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem;">
                         <div>
-                            <div style="font-family: 'JetBrains Mono'; font-size: 0.7rem; color: var(--accent-primary); letter-spacing: 0.2em; font-weight: 800;">AXP_SIGNATURE</div>
-                            <div style="font-size: 0.5rem; color: var(--text-muted); margin-top: 4px;">NEURAL_CALIBRATION_FRAGMENT</div>
+                            <div style="font-family: 'JetBrains Mono'; font-size: 0.65rem; color: var(--accent-primary); letter-spacing: 0.25em; font-weight: 800; opacity: 0.8;">AXP_SIGNATURE</div>
+                            <div style="font-size: 0.5rem; color: var(--text-muted); margin-top: 4px; font-family: var(--font-mono);">CALIBRATION_NODE_${Math.floor(Math.random()*999)}</div>
                         </div>
-                        <div style="background: rgba(0, 242, 254, 0.1); color: var(--accent-primary); font-size: 0.5rem; padding: 4px 10px; border-radius: 8px; border: 1px solid rgba(0, 242, 254, 0.2); font-family: var(--font-mono); font-weight: 800;">VERIFIED</div>
+                        <div style="background: rgba(0, 242, 254, 0.1); color: var(--accent-primary); font-size: 0.55rem; padding: 4px 12px; border-radius: 8px; border: 1px solid rgba(0, 242, 254, 0.2); font-family: var(--font-mono); font-weight: 900; letter-spacing: 0.05em;">SECURE</div>
                     </div>
 
-                    <div style="margin-bottom: 2rem;">
-                        <div style="font-size: 0.55rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.5rem; font-weight: 800;">ACCESS_KEY</div>
-                        <div style="font-family: var(--font-mono); font-size: clamp(1.05rem, 5.8vw, 2rem); font-weight: 900; color: white; letter-spacing: 0.08em; text-shadow: 0 0 20px rgba(0, 242, 254, 0.4); line-height: 1.2; white-space: nowrap; overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; padding-bottom: 0.1rem;">${code}</div>
+                    <div style="margin-bottom: 2.5rem;">
+                        <div style="font-size: 0.5rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 0.75rem; font-weight: 800; font-family: var(--font-mono);">PROVISIONED_ACCESS_KEY</div>
+                        <div style="font-family: var(--font-mono); font-size: clamp(1.2rem, 6vw, 2.2rem); font-weight: 900; color: white; letter-spacing: 0.05em; text-shadow: 0 0 20px rgba(0, 242, 254, 0.5); line-height: 1; word-break: break-all;">${code}</div>
                     </div>
 
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 1rem; padding-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.05);">
-                        <div>
-                            <div style="font-size: 0.5rem; color: var(--text-muted);">ARCHITECTURE</div>
-                            <div style="font-size: 0.75rem; font-weight: 800; color: white; margin-top: 2px; word-break: break-word;">${brand}</div>
+                    <div style="display: flex; gap: 2rem; padding-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.06);">
+                        <div style="flex: 1;">
+                            <div style="font-size: 0.45rem; color: var(--text-muted); font-family: var(--font-mono); margin-bottom: 2px;">ARCHITECTURE</div>
+                            <div style="font-size: 0.75rem; font-weight: 800; color: white; text-transform: uppercase; letter-spacing: 0.02em;">${brand}</div>
                         </div>
-                        <div>
-                            <div style="font-size: 0.5rem; color: var(--text-muted);">MODEL_HUNT</div>
-                            <div style="font-size: 0.75rem; font-weight: 800; color: white; margin-top: 2px; word-break: break-word;">${model}</div>
+                        <div style="flex: 1;">
+                            <div style="font-size: 0.45rem; color: var(--text-muted); font-family: var(--font-mono); margin-bottom: 2px;">MODEL_HUNT</div>
+                            <div style="font-size: 0.75rem; font-weight: 800; color: white; text-transform: uppercase; letter-spacing: 0.02em;">${model}</div>
                         </div>
                     </div>
+                    
+                    <div style="position: absolute; bottom: 1rem; right: 1.5rem; font-family: var(--font-mono); font-size: 0.4rem; color: var(--accent-primary); opacity: 0.2;">AXP-OS_V3.0.4</div>
                 </div>
 
-                <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem;">
-                    <button class="btn-nexus-primary" style="margin: 0; padding: 1rem;" onclick="VendorLogic.copyToClipboard('${code}')">COPY_KEY</button>
-                    <button class="btn-nexus-primary" style="margin: 0; padding: 1rem; background: rgba(255,255,255,0.05); color: white; border: 1px solid rgba(255,255,255,0.1);" onclick="VendorLogic.captureAndDownloadResult('${code}')">DOWNLOAD</button>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem;">
+                    <button class="btn-nexus-primary" style="margin: 0; padding: 1.1rem; border-radius: 16px; font-weight: 900;" onclick="VendorLogic.copyToClipboard('${code}')">COPY_KEY</button>
+                    <button class="btn-nexus-primary" style="margin: 0; padding: 1.1rem; background: rgba(255,255,255,0.05); color: white; border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; font-weight: 900;" onclick="VendorLogic.captureAndDownloadResult('${code}')">DOWNLOAD</button>
                 </div>
-                <button class="btn-secondary" style="margin-top: 1rem; width: 100%; border-radius: 16px; font-size: 0.75rem;" onclick="this.closest('.quick-action-overlay').remove()">CLOSE_TERMINAL</button>
+                <button class="btn-ghost auto w-full mt-4" style="font-size: 0.7rem; opacity: 0.6; border-radius: 12px;" onclick="this.closest('.quick-action-overlay').remove()">DISMISS_TERMINAL</button>
             </div>
         `;
         document.body.appendChild(overlay);

@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+  <title>AXP | NEURAL REGISTRY</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="page-admin">
+
+  <div class="page-wrap anim-stagger-in">
+    <div class="section-header mb-4">
+      <h2 class="section-title">NEURAL_REGISTRY</h2>
+      <div id="vendorCountChip" class="badge-gold">0 NODES</div>
+    </div>
+
+    <div id="vendorGrid">
+      <div class="text-center py-12 opacity-30 text-xs font-mono">INITIALIZING_QUERY...</div>
+    </div>
+  </div>
+
+  <!-- Action Sheet (Bulk Generate) -->
+  <div id="bulkSheet" class="admin-sheet">
+    <h3 style="color:var(--gold); font-size:1rem; font-weight:900; margin-bottom:1.5rem; letter-spacing:0.05em;">BULK_PROVISION_NODES</h3>
+    <div class="flex flex-col gap-4">
+      <input type="hidden" id="bulk_vid">
+      <div class="input-wrap">
+        <label>NODE_COUNT (1-100)</label>
+        <input type="number" id="bulk_count" value="10" min="1" max="100" class="p-2 w-full bg-dark border-gold rounded text-white">
+      </div>
+      <div class="input-wrap">
+        <label>BRAND_IDENTIFIER</label>
+        <input type="text" id="bulk_brand" placeholder="BULK_PROVISION" class="p-2 w-full bg-dark border-gold rounded text-white">
+      </div>
+      <button class="btn-cta gold w-full mt-2" onclick="bulkGenerate()">GENERATE_BATCH</button>
+      <div id="bulkProgress" class="text-xs font-mono text-center opacity-50">READY</div>
+    </div>
+  </div>
+
+  <!-- Action Sheet (Add Vendor) -->
+  <div id="sheetOverlay" class="sheet-overlay" onclick="toggleActionSheet(false)"></div>
+  <div id="actionSheet" class="admin-sheet">
+    <h3 style="color:var(--gold); font-size:1rem; font-weight:900; margin-bottom:1.5rem; letter-spacing:0.05em;">PROVISION_NEW_NODE</h3>
+    <div class="flex flex-col gap-4">
+      <div class="input-wrap">
+        <label>VENDOR_ID (UNQIUE)</label>
+        <input type="text" id="v_id" placeholder="e.g. AX-PRO-99" class="p-2 w-full bg-dark border-gold rounded text-white">
+      </div>
+      <div class="input-wrap">
+        <label>ACCESS_PHRASE</label>
+        <input type="text" id="v_key" placeholder="SECURE_PHRASE" class="p-2 w-full bg-dark border-gold rounded text-white">
+      </div>
+      <div class="input-wrap">
+        <label>MASTER_TIER</label>
+        <select id="v_tier" class="p-2 w-full bg-dark border-gold rounded text-white">
+          <option value="normal">NORMAL</option>
+          <option value="gold">GOLD</option>
+          <option value="premium">PREMIUM</option>
+        </select>
+      </div>
+      <button class="btn-cta gold w-full mt-2" onclick="addVendor()">INITIALIZE_NODE</button>
+    </div>
+  </div>
+
+  <script src="core.js"></script>
+  <script>
+    let allVendorsCache = [];
+
+    async function loadVendors() {
+      try {
+        const vendors = await api('/api/vault/admin/vendors');
+        allVendorsCache = Array.isArray(vendors) ? vendors : [];
+        renderVendorCards(allVendorsCache);
+        document.getElementById('vendorCountChip').textContent = allVendorsCache.length + ' NODES';
+      } catch (e) {
+        console.error('NODES_ERR:', e);
+      }
+    }
+
+    function renderVendorCards(vendors) {
+      const container = document.getElementById('vendorGrid');
+      if (!vendors.length) {
+        container.innerHTML = '<div class="text-center py-8 opacity-20 text-xs font-mono">NO_VENDORS_BUFFERED</div>';
+        return;
+      }
+      const tierColor = { gold: '#f59e0b', premium: '#a855f7', normal: '#00e5ff' };
+      container.innerHTML = vendors.map(v => `
+        <div class="registry-node anim-fade-in">
+          <div class="flex justify-between items-start mb-2">
+            <div>
+              <div class="text-xs font-mono opacity-50 mb-1" style="font-size:0.55rem;">ID: ${v.vendor_id}</div>
+              <div class="font-black" style="font-size:1rem; letter-spacing:0.02em;">${esc(v.brand_config?.display_name || v.vendor_id)}</div>
+            </div>
+            <div class="badge" style="color:${tierColor[v.tier] || '#fff'}; background:rgba(0,0,0,0.4); border-color:currentColor;">${v.tier.toUpperCase()}</div>
+          </div>
+          <div class="flex gap-4 mt-3 pt-3 border-t border-white-5">
+            <div class="text-xs font-mono"><span class="opacity-40">ST_HITS:</span> <span style="color:var(--gold);">${v.usage_limit || '∞'}</span></div>
+            <div class="text-xs font-mono"><span class="opacity-40">STATUS:</span> <span style="color:var(--success);">${v.status.toUpperCase()}</span></div>
+          </div>
+          <div class="flex gap-2 mt-4">
+            <button class="btn-ghost auto flex-1" style="font-size:0.55rem;" onclick="copyVendorLink('${v.vendor_id}')">COPY_UPLINK</button>
+            <button class="btn-ghost auto" style="font-size:0.55rem; color:var(--cyan);" onclick="toggleBulkSheet(true, '${v.vendor_id}')">BULK</button>
+            <button class="btn-ghost auto" style="font-size:0.55rem; color:var(--error);" onclick="confirmDeleteVendor('${v.vendor_id}')">ERASE</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function toggleActionSheet(show) {
+      document.getElementById('sheetOverlay').classList.toggle('active', show);
+      document.getElementById('actionSheet').classList.toggle('active', show);
+      document.getElementById('bulkSheet').classList.remove('active');
+    }
+
+    function toggleBulkSheet(show, vid = '') {
+      document.getElementById('sheetOverlay').classList.toggle('active', show);
+      document.getElementById('bulkSheet').classList.toggle('active', show);
+      if (vid) document.getElementById('bulk_vid').value = vid;
+    }
+
+    async function bulkGenerate() {
+      const vid = document.getElementById('bulk_vid').value;
+      const count = parseInt(document.getElementById('bulk_count').value);
+      const brand = document.getElementById('bulk_brand').value;
+      const progress = document.getElementById('bulkProgress');
+
+      try {
+        progress.textContent = 'PROVISIONING...';
+        const res = await api(`/api/vault/admin/vendors/${vid}/bulk-generate`, 'POST', { count, brand });
+        progress.textContent = `SUCCESS: ${res.count} CODES CREATED`;
+        setTimeout(() => toggleBulkSheet(false), 2000);
+      } catch (e) {
+        progress.textContent = 'FAILED: ' + e.message;
+      }
+    }
+
+    async function addVendor() {
+      const vid = document.getElementById('v_id').value.trim();
+      const vkey = document.getElementById('v_key').value.trim();
+      const vtier = document.getElementById('v_tier').value;
+      if (!vid || !vkey) return alert('MISSING_NODE_PARAMS');
+
+      try {
+        await api('/api/vault/admin/vendors', 'POST', {
+          vendorId: vid,
+          accessKey: vkey,
+          tier: vtier,
+          brandConfig: { display_name: vid }
+        });
+        toggleActionSheet(false);
+        loadVendors();
+      } catch (e) { alert('NODE_CREATION_FAILED: ' + e.message); }
+    }
+
+    async function confirmDeleteVendor(vid) {
+      if (!confirm(`ARE_YOU_SURE? ERASE_NODE_${vid}? ALL_DATA_WILL_BE_LOST.`)) return;
+      try {
+        await api(`/api/vault/admin/vendors/${vid}`, 'DELETE');
+        loadVendors();
+      } catch(e) { alert('ERASE_FAILED: ' + e.message); }
+    }
+
+    function copyVendorLink(vid) {
+      const url = `${window.location.origin}/index.html?v=${vid}`;
+      navigator.clipboard.writeText(url).then(() => {
+        alert('LINK_COPIED_TO_NEURAL_BUFFER');
+      });
+    }
+
+    window.onload = async () => {
+      const ok = await checkSession();
+      if (ok) {
+        renderAdminHeader('Neural Registry');
+        renderAdminNav('nodes');
+        loadVendors();
+      }
+    };
+  </script>
+</body>
+</html>

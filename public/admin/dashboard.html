@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+  <title>AXP | MASTER COMMAND</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="page-admin">
+
+  <div class="page-wrap anim-stagger-in">
+    <!-- Hero Stats -->
+    <div class="card glow mb-3" style="padding: 2rem; border-color: var(--gold-border); background: rgba(245,158,11,0.03);">
+      <div class="section-eyebrow">TOTAL_DECRYPTIONS_LOGGED</div>
+      <div id="totalUsage" style="font-size: 3.5rem; font-weight: 900; color: var(--gold); text-shadow: 0 0 20px var(--gold-glow); line-height: 1; margin: 0.5rem 0;">0</div>
+      <div class="text-xs text-muted font-mono">GLOBAL_HITS_STREAM</div>
+    </div>
+
+    <div class="stat-grid-2 mb-3">
+      <div class="stat-tile gold">
+        <span class="stat-tile-label">AUTH_VENDORS</span>
+        <span class="stat-tile-val" id="totalVendors">0</span>
+      </div>
+      <div class="stat-tile gold">
+        <span class="stat-tile-label">TOTAL_KEYS</span>
+        <span class="stat-tile-val" id="totalCodes">0</span>
+      </div>
+    </div>
+
+    <!-- Diagnostics -->
+    <div class="card mb-3">
+      <div class="section-header mb-3">
+        <h2 class="section-title">SYSTEM_DIAGNOSTICS</h2>
+        <div id="lastSyncLabel" class="text-xs font-mono pulse" style="color: var(--gold);">SYNCING...</div>
+      </div>
+      <div class="flex flex-col gap-3">
+        <div>
+          <div class="flex justify-between text-xs font-mono mb-1">
+            <span>NEURAL_LOAD</span><span id="loadVal" style="color: var(--gold);">—</span>
+          </div>
+          <div class="bar-wrap"><div id="loadBar" class="bar-fill" style="width: 0%; background: var(--gold);"></div></div>
+        </div>
+        <div>
+          <div class="flex justify-between text-xs font-mono mb-1">
+            <span>DB_COHERENCE</span><span style="color: var(--cyan);">99.9%</span>
+          </div>
+          <div class="bar-wrap"><div id="coherenceBar" class="bar-fill" style="width: 99%; background: var(--cyan);"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top Regions -->
+    <div class="card mb-3">
+      <div class="section-header mb-3">
+        <h2 class="section-title">TOP_ACTIVE_REGIONS</h2>
+      </div>
+      <div id="regionStats" class="flex flex-col gap-2">
+        <div class="text-center py-4 opacity-20 text-xs font-mono">CALCULATING_METRICS...</div>
+      </div>
+    </div>
+
+    <!-- Live Feed -->
+    <div class="card">
+      <div class="section-header mb-3">
+        <h2 class="section-title">LIVE_ACTIVITY</h2>
+        <button class="btn-ghost auto" style="font-size: 0.6rem;" onclick="loadLiveFeed()">REFRESH</button>
+      </div>
+      <div id="liveFeed" style="max-height: 400px; overflow-y: auto;">
+        <div class="text-center py-4 opacity-40 text-xs font-mono">WAITING_FOR_UPLINK...</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="core.js"></script>
+  <script>
+    async function loadDashboard() {
+      try {
+        const [stats, analytics] = await Promise.all([
+            api('/api/vault/admin/stats'),
+            api('/api/vault/admin/analytics')
+        ]);
+
+        document.getElementById('totalVendors').textContent = stats?.vendors ?? 0;
+        document.getElementById('totalUsage').textContent = stats?.usage_total ?? 0;
+        document.getElementById('totalCodes').textContent = stats?.codes ?? 0;
+        const load = Math.min(100, Math.round((stats?.usage_total || 0) / 10));
+        document.getElementById('loadVal').textContent = load + '%';
+        document.getElementById('loadBar').style.width = load + '%';
+        document.getElementById('lastSyncLabel').textContent = 'SYNCED_' + new Date().toLocaleTimeString().split(' ')[0];
+        
+        renderRegions(analytics.topRegions);
+        loadLiveFeed();
+      } catch (e) {
+        console.error('DASH_ERR:', e);
+        document.getElementById('lastSyncLabel').textContent = 'SYNC_FAILED';
+      }
+    }
+
+    function renderRegions(regions) {
+        const container = document.getElementById('regionStats');
+        if (!regions?.length) {
+            container.innerHTML = '<div class="text-center py-4 opacity-20 text-xs font-mono">NO_REGIONAL_DATA</div>';
+            return;
+        }
+        const max = Math.max(...regions.map(r => r.count));
+        container.innerHTML = regions.map(r => `
+            <div>
+                <div class="flex justify-between text-xs font-mono mb-1">
+                    <span>${esc(r.region || 'Unknown')}</span><span>${r.count}</span>
+                </div>
+                <div class="bar-wrap"><div class="bar-fill" style="width: ${(r.count/max)*100}%; background: var(--violet);"></div></div>
+            </div>
+        `).join('');
+    }
+
+    async function loadLiveFeed() {
+      const feed = document.getElementById('liveFeed');
+      try {
+        const events = await api('/api/vault/admin/live-feed');
+        if (!events?.length) {
+          feed.innerHTML = '<div class="text-center py-4 opacity-30 text-xs font-mono">NO_RECENT_ACTIVITY</div>';
+          return;
+        }
+        feed.innerHTML = events.map(ev => `
+          <div class="log-row" style="display:flex; justify-content:space-between; padding:0.6rem 0; border-bottom:1px solid rgba(255,255,255,0.04);">
+            <div>
+              <div class="log-type" style="font-weight:900; color:var(--gold); font-size:0.6rem;">${ev.type === 'feedback' ? '[FBK]' : '[HIT]'}</div>
+              <div style="color: var(--tx-hero); font-size: 0.65rem;">${esc(ev.user_ign || 'ANON')}</div>
+            </div>
+            <div style="text-align:right; font-size:0.6rem; color:var(--tx-muted);">
+              <div>${esc(ev.region || 'GLB')}</div>
+              <div style="opacity:0.5;">${new Date(ev.timestamp).toLocaleTimeString()}</div>
+            </div>
+          </div>
+        `).join('');
+      } catch(_) { feed.innerHTML = '<div class="text-center py-4 opacity-20 text-xs font-mono">FEED_UNAVAILABLE</div>'; }
+    }
+
+    window.onload = async () => {
+      const ok = await checkSession();
+      if (ok) {
+        renderAdminHeader('Command Center');
+        renderAdminNav('dashboard');
+        loadDashboard();
+        setInterval(loadDashboard, 15000);
+      }
+    };
+  </script>
+</body>
+</html>

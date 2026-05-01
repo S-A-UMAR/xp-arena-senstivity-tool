@@ -532,20 +532,46 @@
   </main>
   <div id="scannerOverlay" aria-hidden="true" style="display:none;"></div>
 
-  <!-- Footer links -->
-  <footer class="portal-footer" role="contentinfo">
-    <a href="privacy.html">Privacy</a>
-    <a href="terms.html">Terms</a>
-    <a href="lab.html">Lab</a>
-    <a href="support.html">Support</a>
-    <a href="stats.html">Platform Stats</a>
-  </footer>
+    <!-- Live Status -->
+    <div class="flex justify-center mb-8 anim-up" style="animation-delay: 0.8s;">
+      <div class="glass-pill flex items-center gap-4 px-6 py-2" style="background: rgba(0, 242, 254, 0.05); border: 1px solid rgba(0, 242, 254, 0.1);">
+        <div class="flex items-center gap-2">
+          <div class="dot-live"></div>
+          <span class="text-xs font-mono text-cyan" id="liveUsers">2,842_NODES_ACTIVE</span>
+        </div>
+        <div style="width: 1px; height: 12px; background: rgba(255,255,255,0.1);"></div>
+        <div class="text-xs font-mono text-ghost" id="liveCalibrations">142_CALIBRATIONS/HR</div>
+      </div>
+    </div>
 
-  <script src="nexus-auth.js"></script>
+    <!-- Master Access Footer -->
+    <footer class="mt-20 py-10 border-t border-white/5 text-center anim-up">
+      <p class="text-ghost text-xs font-mono mb-4">AXP_SENSITIVITY_ENGINE_V3.0 // SECURE_UPLINK</p>
+      <div class="flex justify-center gap-6">
+        <a href="admin/index.html" class="text-ghost hover:text-cyan transition-colors text-[10px] font-mono tracking-widest">MASTER_LOGIN</a>
+        <a href="privacy.html" class="text-ghost hover:text-white transition-colors text-[10px] font-mono tracking-widest">PRIVACY_PROTOCOL</a>
+        <a href="terms.html" class="text-ghost hover:text-white transition-colors text-[10px] font-mono tracking-widest">USER_AGREEMENT</a>
+      </div>
+    </footer>
+  </div>
+
+  <script src="translations.js"></script>
   <script src="gaming-effects.js"></script>
   <script src="notifications.js"></script>
   <script src="theme-manager.js"></script>
   <script>
+    // Live Activity Simulation
+    function updateLiveStats() {
+      const users = 2800 + Math.floor(Math.random() * 200);
+      const calls = 120 + Math.floor(Math.random() * 50);
+      const userEl = document.getElementById('liveUsers');
+      const callEl = document.getElementById('liveCalibrations');
+      if(userEl) userEl.textContent = `${users.toLocaleString()}_NODES_ACTIVE`;
+      if(callEl) callEl.textContent = `${calls}_CALIBRATIONS/HR`;
+    }
+    setInterval(updateLiveStats, 5000);
+    updateLiveStats();
+
     async function portalRequest(path, body) {
       const res = await fetch(path, {
         method: body ? 'POST' : 'GET',
@@ -635,7 +661,7 @@
           GamingEffects.createParticles(btn, 30, 'gold');
           GamingEffects.showSuccess('Admin Access Granted!');
           btn.textContent = 'ACCESS GRANTED ✓';
-          setTimeout(() => window.location.href = 'admin.html', 700);
+          setTimeout(() => window.location.href = 'admin/index.html', 700);
           return;
         }
 
@@ -660,7 +686,12 @@
         }
       } catch (err) {
         console.error('VAULT_ENTRY_ERR:', err);
-        updateStatus('UPLINK_TIMEOUT · SYSTEM_OFFLINE', 'error');
+        if (err.status === 503) {
+            updateStatus('SYSTEM_CALIBRATION_IN_PROGRESS', 'error');
+            if (window.notify) window.notify('Maintenance: The neural engine is being recalibrated.', 'info');
+        } else {
+            updateStatus('UPLINK_TIMEOUT · SYSTEM_OFFLINE', 'error');
+        }
         btn.disabled = false;
         btn.textContent = 'AUTHENTICATE ACCESS';
       }

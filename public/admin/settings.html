@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+  <title>AXP | GLOBAL SETUP</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="page-admin">
+
+  <div class="page-wrap anim-stagger-in">
+    <div class="section-header mb-4">
+      <h2 class="section-title">GLOBAL_SETUP</h2>
+    </div>
+
+    <!-- Schema Status -->
+    <div class="card mb-3">
+      <div class="section-header mb-3">
+        <h2 class="section-title">SCHEMA_INTEGRITY</h2>
+        <button class="btn-ghost auto" style="font-size: 0.6rem;" onclick="checkSchema()">REFRESH</button>
+      </div>
+      <div id="schemaGrid" class="grid grid-cols-2 gap-2 mb-4">
+        <div class="text-center py-4 opacity-20 text-xs font-mono col-span-2">FETCHING_SCHEMA_STATUS...</div>
+      </div>
+      <div class="section-eyebrow">RECENT_MIGRATIONS</div>
+      <div id="migrationList" class="text-xs font-mono opacity-60">
+        NO_MIGRATIONS_LOGGED
+      </div>
+    </div>
+
+    <!-- Maintenance -->
+    <div class="card">
+      <div class="section-header mb-3">
+        <h2 class="section-title">SYSTEM_MAINTENANCE</h2>
+      </div>
+      <div class="flex flex-col gap-2">
+        <button id="mModeBtn" class="btn-ghost auto w-full" style="text-align:left; padding:1rem;" onclick="toggleMaintenance()">
+          <span class="block font-bold" style="color:var(--gold);">MAINTENANCE_MODE: <span id="mModeStatus">OFF</span></span>
+          <span class="block text-xs opacity-50">BLOCKS_ALL_PUBLIC_TRAFFIC_EXCEPT_ADMIN</span>
+        </button>
+        <button class="btn-ghost auto w-full" style="text-align:left; padding:1rem;" onclick="clearCache()">
+          <span class="block font-bold" style="color:var(--gold);">FLUSH_TRANSIENT_CACHE</span>
+          <span class="block text-xs opacity-50">REMOVES_ALL_EXPIRED_DATA_FROM_CACHE_TABLE</span>
+        </button>
+        <button class="btn-ghost auto w-full" style="text-align:left; padding:1rem;" onclick="window.location.href='/health'">
+          <span class="block font-bold" style="color:var(--cyan);">SYSTEM_HEALTH_CHECK</span>
+          <span class="block text-xs opacity-50">VIEW_RAW_SYSTEM_HEALTH_PAYLOAD</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="core.js"></script>
+  <script>
+    async function checkSchema() {
+      try {
+        const data = await api('/api/vault/admin/schema/status');
+        const grid = document.getElementById('schemaGrid');
+        const mList = document.getElementById('migrationList');
+
+        grid.innerHTML = Object.entries(data.tables).map(([name, exists]) => `
+          <div class="p-2 border border-white-5 rounded flex justify-between items-center">
+            <span class="text-xs font-mono opacity-60 uppercase">${name.replace('_',' ')}</span>
+            <span class="text-xs font-black" style="color:${exists ? 'var(--success)' : 'var(--error)'};">${exists ? 'OK' : 'MISSING'}</span>
+          </div>
+        `).join('');
+
+        if (data.recent_migrations?.length) {
+          mList.innerHTML = data.recent_migrations.map(m => `
+            <div class="flex justify-between py-1 border-b border-white-5">
+              <span>${m.version}</span>
+              <span class="opacity-40">${new Date(m.applied_at).toLocaleDateString()}</span>
+            </div>
+          `).join('');
+        }
+      } catch (e) { console.error('SCHEMA_ERR:', e); }
+    }
+
+    async function toggleMaintenance() {
+      const status = document.getElementById('mModeStatus');
+      const isCurrentlyOn = status.textContent === 'ON';
+      const newVal = isCurrentlyOn ? 'false' : 'true';
+      if (!confirm(`CONFIRM: TURN_MAINTENANCE_MODE_${newVal.toUpperCase()}?`)) return;
+      
+      try {
+        await api('/api/vault/admin/settings', 'POST', { key: 'maintenance_mode', value: newVal });
+        status.textContent = newVal === 'true' ? 'ON' : 'OFF';
+        status.style.color = newVal === 'true' ? 'var(--error)' : 'var(--success)';
+      } catch (e) { alert('TOGGLE_FAILED: ' + e.message); }
+    }
+
+    async function loadMaintenanceStatus() {
+        try {
+            const settings = await api('/api/vault/admin/settings');
+            const mode = settings.find(s => s.setting_key === 'maintenance_mode');
+            const status = document.getElementById('mModeStatus');
+            if (mode?.setting_value === 'true') {
+                status.textContent = 'ON';
+                status.style.color = 'var(--error)';
+            } else {
+                status.textContent = 'OFF';
+                status.style.color = 'var(--success)';
+            }
+        } catch (_) {}
+    }
+
+    async function clearCache() {
+      if (!confirm('CONFIRM_CACHE_FLUSH?')) return;
+      try {
+        await api('/api/vault/admin/settings', 'POST', { key: 'action', value: 'clear_cache' });
+        alert('CACHE_FLUSH_COMPLETED');
+      } catch (e) { alert('FLUSH_FAILED: ' + e.message); }
+    }
+
+    window.onload = async () => {
+      const ok = await checkSession();
+      if (ok) {
+        renderAdminHeader('Global Setup');
+        renderAdminNav('settings');
+        checkSchema();
+        loadMaintenanceStatus();
+      }
+    };
+  </script>
+</body>
+</html>

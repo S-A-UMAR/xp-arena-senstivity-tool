@@ -196,6 +196,22 @@ async function trackEvent(type, orgId, vendorId, session, device) {
         console.error('EVENT_TRACK_ERR:', err);
     }
 }
+// 🛡️ MAINTENANCE MIDDLEWARE
+async function checkMaintenance(req, res, next) {
+    // Skip for admin routes and health check
+    if (req.path.startsWith('/admin') || req.path === '/health' || req.path.startsWith('/api/vault/admin')) {
+        return next();
+    }
+    try {
+        const mode = await db.get("SELECT setting_value FROM system_settings WHERE setting_key = 'maintenance_mode'");
+        if (mode?.setting_value === 'true') {
+            return res.status(503).json({ error: 'SYSTEM_MAINTENANCE', message: 'The neural engine is undergoing scheduled calibration. Please check back shortly.' });
+        }
+    } catch (_) {}
+    next();
+}
+
+router.use(checkMaintenance);
 
 async function logAudit(actorType, actorId, action, details, ip) {
     try {
@@ -612,6 +628,13 @@ router.post('/verify', async (req, res) => {
         }
 
         const adminSecret = await getAdminSecret();
+        const isMatch = password === adminSecret || await bcrypt.compare(password, adminSecret);
+        
+        console.log('--- ADMIN_LOGIN_DEBUG ---');
+        console.log('Input length:', password.length);
+        console.log('Match result:', isMatch);
+        if (!isMatch) console.log('Secret source:', adminSecret ? (adminSecret.startsWith('$2') ? 'HASH' : 'PLAINTEXT') : 'EMPTY');
+        console.log('-------------------------');
         if (adminSecret && (input === adminSecret || await bcrypt.compare(input, adminSecret).catch(()=>false))) {
             const secret = await getJwtSecret();
             const token = jwt.sign({ role: 'admin' }, secret, { expiresIn: '1d' });
@@ -739,9 +762,17 @@ router.post('/admin/login', async (req, res, next) => {
     try {
         const adminSecret = await getAdminSecret();
         if (!adminSecret) return res.status(503).json({ error: 'ADMIN_SECRET_NOT_CONFIGURED' });
+        
         const { password } = z.object({ password: z.string().min(4) }).parse(req.body || {});
-        const isMatch = password === adminSecret || await bcrypt.compare(password, adminSecret);
-        if (!isMatch) return res.status(401).json({ error: 'Unauthorized' });
+        const isMatch = (password === adminSecret) || (adminSecret.startsWith('$2') && await bcrypt.compare(password, adminSecret));
+
+        console.log('--- ADMIN_LOGIN_DIAGNOSTIC ---');
+        console.log('Password length:', password.length);
+        console.log('Secret type:', adminSecret.startsWith('$2') ? 'HASH' : 'PLAINTEXT');
+        console.log('Match result:', isMatch);
+        console.log('------------------------------');
+
+        if (!isMatch) return res.status(401).json({ error: 'ACCESS_DENIED_INVALID_SECRET' });
         const secret = await getJwtSecret();
         const token = jwt.sign({ role: 'admin' }, secret, { expiresIn: '1d' });
         res.cookie('xp_admin_token', token, {
@@ -755,6 +786,36 @@ router.post('/admin/login', async (req, res, next) => {
     } catch (err) {
         if (err instanceof z.ZodError) return fail(res, 'XP_VAL_FAILED', 'INVALID_LOGIN_INPUT', 400, err.errors);
         return next(err);
+    }
+});
+
+router.post('/admin/vendors/:vendorId/bulk-generate', authenticateAdmin, async (req, res) => {
+    try {
+        const { vendorId } = req.params;
+        const { count, brand } = z.object({
+            count: z.number().int().min(1).max(100).default(10),
+            brand: z.string().optional().default('BULK_PROVISION')
+        }).parse(req.body || {});
+
+        const codes = [];
+        for (let i = 0; i < count; i++) {
+            const results = {
+                formula_version: 1,
+                brand: brand,
+                model: `BATCH_NODE_${i + 1}`,
+                general: 85,
+                redDot: 120,
+                isBulk: true
+            };
+            const created = await createVendorCode(vendorId, results, `BULK_PROVISION_${new Date().toLocaleDateString()}`);
+            codes.push(created.accessKey);
+        }
+
+        await logAudit('admin', 'SYSTEM', 'BULK_GENERATE', { vendorId, count }, getClientIp(req));
+        return res.json({ success: true, count: codes.length, codes });
+    } catch (err) {
+        console.error('BULK_GEN_ERR:', err);
+        return res.status(500).json({ error: 'BULK_GENERATION_FAILED' });
     }
 });
 
@@ -1454,6 +1515,25 @@ router.get('/admin/stats', authenticateAdmin, async (_req, res) => {
     } catch (err) {
         console.error('GET /admin/stats error:', err);
         return res.status(500).json({ error: 'Server error' });
+    }
+});
+
+router.get('/admin/analytics', authenticateAdmin, async (_req, res) => {
+    try {
+        const topRegions = await db.all(`
+            SELECT user_region as region, COUNT(*) as count
+            FROM code_activity
+            GROUP BY user_region
+            ORDER BY count DESC LIMIT 5
+        `);
+        const conversion = await db.get(`
+            SELECT 
+                (SELECT COUNT(*) FROM audit_logs WHERE action = 'TRACK_CODE_GENERATED') as generated,
+                (SELECT COUNT(*) FROM code_activity) as verified
+        `);
+        return res.json({ topRegions, conversion });
+    } catch (err) {
+        return res.status(500).json({ error: 'ANALYTICS_UNAVAILABLE' });
     }
 });
 

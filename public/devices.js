@@ -1288,6 +1288,159 @@ window.devices = [
                 ]
             }
         ]
+    },
+    {
+        brand: "Black Shark",
+        series: [
+            {
+                name: "Black Shark 5/6 Series",
+                models: [
+                    { name: "Black Shark 6 Pro", ram: 18 }, { name: "Black Shark 6", ram: 16 },
+                    { name: "Black Shark 5 Pro", ram: 16 }, { name: "Black Shark 5 RS", ram: 12 },
+                    { name: "Black Shark 5", ram: 12 }
+                ]
+            },
+            {
+                name: "Black Shark 4 Series",
+                models: [
+                    { name: "Black Shark 4 Pro", ram: 12 }, { name: "Black Shark 4S Pro", ram: 16 },
+                    { name: "Black Shark 4S", ram: 12 }, { name: "Black Shark 4", ram: 12 }
+                ]
+            },
+            {
+                name: "Black Shark 3 Series",
+                models: [
+                    { name: "Black Shark 3 Pro", ram: 12 }, { name: "Black Shark 3S", ram: 12 },
+                    { name: "Black Shark 3", ram: 12 }
+                ]
+            }
+        ]
+    },
+    {
+        brand: "Meizu",
+        series: [
+            {
+                name: "Meizu 20/21 Series",
+                models: [
+                    { name: "Meizu 21 Pro", ram: 16 }, { name: "Meizu 21", ram: 12 },
+                    { name: "Meizu 21 Note", ram: 16 }, { name: "Meizu 20 Pro", ram: 12 },
+                    { name: "Meizu 20", ram: 12 }, { name: "Meizu 20 Classic", ram: 16 }
+                ]
+            },
+            {
+                name: "Meizu 18 Series",
+                models: [
+                    { name: "Meizu 18s Pro", ram: 12 }, { name: "Meizu 18s", ram: 12 },
+                    { name: "Meizu 18 Pro", ram: 12 }, { name: "Meizu 18", ram: 8 },
+                    { name: "Meizu 18X", ram: 8 }
+                ]
+            }
+        ]
+    },
+    {
+        brand: "ZTE",
+        series: [
+            {
+                name: "Axon Series",
+                models: [
+                    { name: "Axon 60 Ultra", ram: 16 }, { name: "Axon 50 Ultra", ram: 12 },
+                    { name: "Axon 40 Ultra", ram: 12 }, { name: "Axon 30 Ultra", ram: 12 },
+                    { name: "Axon 30 Pro", ram: 8 }
+                ]
+            },
+            {
+                name: "Nubia / RedMagic",
+                models: [
+                    { name: "Nubia Z60 Ultra", ram: 16 }, { name: "Nubia Z50S Pro", ram: 12 },
+                    { name: "RedMagic 9S Pro+", ram: 16 }, { name: "RedMagic 9 Pro", ram: 12 },
+                    { name: "RedMagic 8 Pro+", ram: 16 }, { name: "RedMagic 7 Pro", ram: 12 }
+                ]
+            }
+        ]
+    },
+    {
+        brand: "Poco",
+        series: [
+            {
+                name: "Poco F Series",
+                models: [
+                    { name: "Poco F6 Pro", ram: 16 }, { name: "Poco F6", ram: 12 },
+                    { name: "Poco F5 Pro", ram: 12 }, { name: "Poco F5", ram: 12 },
+                    { name: "Poco F4 GT", ram: 12 }, { name: "Poco F4", ram: 8 },
+                    { name: "Poco F3 GT", ram: 8 }, { name: "Poco F3", ram: 8 }
+                ]
+            },
+            {
+                name: "Poco X/M Series",
+                models: [
+                    { name: "Poco X6 Pro", ram: 12 }, { name: "Poco X6", ram: 12 },
+                    { name: "Poco X5 Pro", ram: 8 }, { name: "Poco X5", ram: 8 },
+                    { name: "Poco X4 GT", ram: 8 }, { name: "Poco X4 Pro", ram: 8 },
+                    { name: "Poco M6 Pro", ram: 12 }, { name: "Poco M5", ram: 6 }
+                ]
+            }
+        ]
+    },
+    {
+        brand: "Lenovo",
+        series: [
+            {
+                name: "Legion Gaming Series",
+                models: [
+                    { name: "Legion Y70", ram: 16 }, { name: "Legion Duel 2", ram: 18 },
+                    { name: "Legion Duel", ram: 16 }, { name: "Legion Y90", ram: 18 }
+                ]
+            }
+        ]
+    },
+    {
+        brand: "iTel",
+        series: [
+            {
+                name: "S/P Series",
+                models: [
+                    { name: "iTel S24", ram: 8 }, { name: "iTel S23+", ram: 8 },
+                    { name: "iTel P55+", ram: 8 }, { name: "iTel P40", ram: 4 },
+                    { name: "iTel A70", ram: 4 }, { name: "iTel Vision 5", ram: 4 }
+                ]
+            }
+        ]
+    },
+    {
+        brand: "HMD / Nokia",
+        series: [
+            {
+                name: "Nokia X/G/C Series",
+                models: [
+                    { name: "Nokia XR21", ram: 6 }, { name: "Nokia X30", ram: 8 },
+                    { name: "Nokia G60", ram: 6 }, { name: "Nokia G42", ram: 6 },
+                    { name: "HMD Skyline", ram: 12 }, { name: "HMD Pulse Pro", ram: 8 }
+                ]
+            }
+        ]
+    },
+    {
+        brand: "Fairphone",
+        series: [
+            {
+                name: "Sustainable Series",
+                models: [
+                    { name: "Fairphone 5", ram: 8 }, { name: "Fairphone 4", ram: 6 }
+                ]
+            }
+        ]
+    },
+    {
+        brand: "Sharp",
+        series: [
+            {
+                name: "Aquos Series",
+                models: [
+                    { name: "Aquos R8 Pro", ram: 12 }, { name: "Aquos R7", ram: 12 },
+                    { name: "Aquos sense8", ram: 6 }, { name: "Aquos wish3", ram: 4 }
+                ]
+            }
+        ]
     }
 ];
 
