@@ -356,7 +356,6 @@ const VendorLogic = {
         `;
         document.body.appendChild(overlay);
     },
-    },
 
     async captureAndDownloadResult(code) {
         const area = document.getElementById('captureArea');

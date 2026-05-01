@@ -203,6 +203,14 @@ const ThemeManager = {
                         <span style="font-size: 1.2rem; margin-bottom: 4px;">🛡️</span>
                         <span style="font-size: 0.5rem; font-weight: 800; color: #fff; letter-spacing: 0.05em;">MASTER_GATE</span>
                     </a>
+                    <a href="archive/leaderboard.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(255,255,255,0.03); border: 1px solid var(--bd-subtle); border-radius: 12px; padding: 0.75rem; text-decoration: none; transition: 0.2s;">
+                        <span style="font-size: 1.2rem; margin-bottom: 4px;">🏆</span>
+                        <span style="font-size: 0.5rem; font-weight: 800; color: #fff; letter-spacing: 0.05em;">GLOBAL_RANK</span>
+                    </a>
+                    <a href="archive/winners.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(255,255,255,0.03); border: 1px solid var(--bd-subtle); border-radius: 12px; padding: 0.75rem; text-decoration: none; transition: 0.2s;">
+                        <span style="font-size: 1.2rem; margin-bottom: 4px;">✨</span>
+                        <span style="font-size: 0.5rem; font-weight: 800; color: #fff; letter-spacing: 0.05em;">AXP_CHAMPIONS</span>
+                    </a>
                 </div>
             </div>
 

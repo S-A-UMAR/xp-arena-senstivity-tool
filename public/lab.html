@@ -102,7 +102,39 @@
       border-radius: 16px;
       font-family: var(--font-mono);
       min-width: 120px;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     }
+
+    .progress-track {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 4px;
+      background: rgba(255,255,255,0.05);
+      z-index: 1000;
+    }
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--lab-cyan), var(--lab-violet));
+      box-shadow: 0 0 20px var(--lab-glow);
+      transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .rating-badge {
+      font-size: 0.5rem;
+      font-weight: 900;
+      padding: 2px 8px;
+      border-radius: 4px;
+      margin-top: 4px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      display: inline-block;
+      transition: all 0.3s;
+    }
+    .rating-stable { background: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid #ef4444; }
+    .rating-good { background: rgba(245, 158, 11, 0.2); color: #f59e0b; border: 1px solid #f59e0b; }
+    .rating-perfect { background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid #10b981; }
+    .rating-unstoppable { background: rgba(0, 242, 254, 0.2); color: var(--lab-cyan); border: 1px solid var(--lab-cyan); box-shadow: 0 0 15px var(--lab-glow); }
 
     .lab-overlay {
       position: fixed;
@@ -352,14 +384,18 @@
   <div id="gameZone"></div>
   
   <div class="lab-ui">
+    <div class="progress-track"><div id="syncProgress" class="progress-fill"></div></div>
+
     <div class="lab-stats-top">
       <div class="stat-pill">
-        <div class="text-ghost" style="font-size: 0.5rem; letter-spacing: 0.1em;">REMAINING_NODES</div>
-        <div id="hitsLeft" class="text-xl font-black text-white">10</div>
+        <div class="text-ghost" style="font-size: 0.5rem; letter-spacing: 0.1em;">NEURAL_SYNC_TIMER</div>
+        <div id="labTimer" class="text-xl font-black text-white">30.0s</div>
+        <div id="perfRating" class="rating-badge rating-stable">STABLE</div>
       </div>
       <div class="stat-pill text-right">
         <div class="text-ghost" style="font-size: 0.5rem; letter-spacing: 0.1em;">NEURAL_LATENCY</div>
         <div id="currentAvg" class="text-xl font-black text-white">0ms</div>
+        <div class="text-[0.5rem] font-mono opacity-40">NODES_HIT: <span id="hitsCount">0</span></div>
       </div>
     </div>
     
@@ -464,12 +500,25 @@
   <script>
     let latencies = [];
     let hits = 0;
-    const maxHits = 10;
+    const maxHits = 30; // Increased for time-based mode
     let isRunning = false;
     let misses = 0;
     let currentMode = 'flick';
     let moveInterval = null;
     let lapStartTime = 0;
+    let timeLeft = 30;
+    let timerInterval = null;
+
+    function updatePerfRating(avg) {
+      const rating = document.getElementById('perfRating');
+      if (!rating) return;
+      rating.className = 'rating-badge';
+      if (avg === 0) { rating.textContent = 'STABLE'; rating.classList.add('rating-stable'); }
+      else if (avg < 200) { rating.textContent = 'UNSTOPPABLE'; rating.classList.add('rating-unstoppable'); }
+      else if (avg < 280) { rating.textContent = 'PERFECT'; rating.classList.add('rating-perfect'); }
+      else if (avg < 380) { rating.textContent = 'GOOD'; rating.classList.add('rating-good'); }
+      else { rating.textContent = 'STABLE'; rating.classList.add('rating-stable'); }
+    }
 
     function toggleHelp(show) {
         if (window.ThemeManager) ThemeManager.toggleFaq(show);
@@ -495,6 +544,22 @@
       hits = 0;
       misses = 0;
       isRunning = true;
+      timeLeft = 30;
+      
+      document.getElementById('hitsCount').textContent = '0';
+      document.getElementById('syncProgress').style.width = '0%';
+      
+      timerInterval = setInterval(() => {
+        timeLeft -= 0.1;
+        if (timeLeft <= 0) {
+          timeLeft = 0;
+          finishTest();
+        }
+        document.getElementById('labTimer').textContent = timeLeft.toFixed(1) + 's';
+        if (timeLeft < 5) document.getElementById('labTimer').style.color = 'var(--error)';
+        else document.getElementById('labTimer').style.color = '#fff';
+      }, 100);
+
       spawnTarget();
     }
 
@@ -596,14 +661,21 @@
       latencies.push(latency);
       hits++;
       
-      document.getElementById('hitsLeft').textContent = maxHits - hits;
+      document.getElementById('hitsCount').textContent = hits;
+      const progress = Math.min(100, (hits / maxHits) * 100);
+      document.getElementById('syncProgress').style.width = progress + '%';
       
       const avg = Math.round(latencies.reduce((a, b) => a + b) / latencies.length);
       document.getElementById('currentAvg').textContent = avg + 'ms';
+      updatePerfRating(avg);
       
       if (window.SFX) window.SFX.play('ping');
       
-      spawnTarget();
+      if (hits >= maxHits) {
+          finishTest();
+      } else {
+          spawnTarget();
+      }
     }
 
     document.body.onmousedown = (e) => {
@@ -617,6 +689,7 @@
     async function finishTest() {
       isRunning = false;
       if (moveInterval) clearInterval(moveInterval);
+      if (timerInterval) clearInterval(timerInterval);
       document.getElementById('gameZone').innerHTML = '';
       
       const avg = Math.round(latencies.reduce((a, b) => a + b) / latencies.length);

@@ -7,106 +7,127 @@
   <title>AXP | SYSTEM SETUP</title>
   <link rel="stylesheet" href="../design-system.css">
   <link rel="stylesheet" href="style.css">
+  <style>
+    .settings-layout { display: grid; grid-template-columns: 280px 1fr; gap: 1.5rem; align-items: start; }
+    .settings-sidebar { position: sticky; top: 1.5rem; }
+    
+    .vital-item { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; }
+    .vital-label { font-size: 0.55rem; font-family: var(--font-mono); color: var(--tx-muted); text-transform: uppercase; }
+    .vital-val { font-size: 0.9rem; font-weight: 900; }
+
+    .maintenance-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .maintenance-tile { 
+      background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.03); 
+      border-radius: 20px; padding: 1.25rem; display: flex; flex-direction: column; gap: 1rem;
+      cursor: pointer; transition: all 0.2s; position: relative; overflow: hidden;
+    }
+    .maintenance-tile:hover { background: rgba(255,255,255,0.02); transform: translateY(-2px); border-color: rgba(255,255,255,0.1); }
+    .tile-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; }
+    .icon-gold { background: rgba(245,158,11,0.1); color: var(--gold); }
+    .icon-violet { background: rgba(168,85,247,0.1); color: var(--violet); }
+    
+    .tile-badge { position: absolute; top: 1.25rem; right: 1.25rem; font-size: 0.5rem; font-weight: 900; padding: 2px 8px; border-radius: 4px; background: rgba(255,255,255,0.05); }
+
+    @media (max-width: 900px) {
+      .settings-layout { grid-template-columns: 1fr; }
+      .settings-sidebar { position: static; }
+    }
+  </style>
 </head>
 <body class="page-admin">
 
   <div id="adminHeader"></div>
 
   <div class="page-wrap anim-stagger-in">
-    <!-- 🛡️ CORE_HEALTH_DASHBOARD -->
-    <div class="grid grid-cols-3 gap-3 mb-4">
-      <div class="card p-3 text-center" style="background: rgba(0,242,254,0.03); border-color: rgba(0,242,254,0.1);">
-        <div class="text-[0.5rem] font-mono text-muted mb-1 uppercase">Sys_Uptime</div>
-        <div class="text-sm font-black text-cyan">99.98%</div>
-      </div>
-      <div class="card p-3 text-center" style="background: rgba(168,85,247,0.03); border-color: rgba(168,85,247,0.1);">
-        <div class="text-[0.5rem] font-mono text-muted mb-1 uppercase">Cache_Load</div>
-        <div class="text-sm font-black text-violet">1.2 MB</div>
-      </div>
-      <div class="card p-3 text-center" style="background: rgba(245,158,11,0.03); border-color: rgba(245,158,11,0.1);">
-        <div class="text-[0.5rem] font-mono text-muted mb-1 uppercase">DB_Latency</div>
-        <div class="text-sm font-black text-gold">14ms</div>
-      </div>
-    </div>
-
-    <!-- 🧬 SCHEMA_INTEGRITY -->
-    <div class="card mb-4">
-      <div class="section-header mb-4">
-        <div>
-          <h2 class="section-title">SCHEMA_INTEGRITY</h2>
-          <div class="text-xs font-mono opacity-30">DATABASE_STRUCTURE_VERIFICATION</div>
+    <div class="settings-layout">
+      <!-- 📟 SYSTEM_VITALS_SIDEBAR -->
+      <aside class="settings-sidebar">
+        <div class="card vitals-panel mb-3">
+          <div class="section-eyebrow mb-3">SYSTEM_VITALS</div>
+          <div class="vital-item">
+            <span class="vital-label">Sys_Uptime</span>
+            <span class="vital-val text-cyan">99.98%</span>
+          </div>
+          <div class="vital-item">
+            <span class="vital-label">Cache_Load</span>
+            <span class="vital-val text-violet">1.2 MB</span>
+          </div>
+          <div class="vital-item">
+            <span class="vital-label">DB_Latency</span>
+            <span class="vital-val text-gold">14ms</span>
+          </div>
+          <div class="divider-gaming my-3" style="opacity: 0.1;"></div>
+          <div class="flex justify-between items-center opacity-50">
+            <span class="text-[0.5rem] font-mono">CONNECTION</span>
+            <span class="text-[0.5rem] font-mono text-success">STABLE</span>
+          </div>
         </div>
-        <button class="btn-ghost auto btn-xs" onclick="checkSchema()">RE_SCAN</button>
-      </div>
-      
-      <div id="schemaGrid" class="grid grid-cols-2 gap-2 mb-6">
-        <div class="text-center py-6 opacity-20 text-xs font-mono col-span-2">INITIALIZING_CORE_SCAN...</div>
-      </div>
 
-      <div class="divider-gaming mb-4" style="opacity: 0.05;"></div>
-      
-      <div class="section-eyebrow mb-3" style="font-size: 0.55rem;">RECENT_ARCHITECTURAL_MIGRATIONS</div>
-      <div id="migrationList" class="flex flex-col gap-2">
-        <div class="text-xs font-mono opacity-20 py-2">NO_MIGRATION_RECORDS_FOUND</div>
-      </div>
-    </div>
+        <div class="card p-4 text-center">
+          <div class="section-eyebrow mb-2">QUICK_ACTIONS</div>
+          <button class="btn-ghost auto w-full mb-2" onclick="checkSchema()" style="font-size: 0.6rem;">FORCE_SCHEMA_SCAN</button>
+          <button class="btn-ghost auto w-full" onclick="loadMaintenanceStatus()" style="font-size: 0.6rem;">REFRESH_STATUS</button>
+        </div>
+      </aside>
 
-    <!-- 🛠️ MAINTENANCE_SUITE -->
-    <div class="card">
-      <div class="section-header mb-4">
-        <h2 class="section-title">MAINTENANCE_OVERRIDE</h2>
-      </div>
-      
-      <div class="flex flex-col gap-3">
-        <!-- Maintenance Lock -->
-        <div class="flex justify-between items-center p-4 rounded-2xl cursor-pointer transition-all hover:bg-white-5" 
-             style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.03);"
-             onclick="toggleMaintenance()">
-          <div class="flex items-center gap-4">
-            <div id="mModeIcon" style="width: 40px; height: 40px; border-radius: 12px; background: rgba(245,158,11,0.1); display: flex; align-items: center; justify-content: center; color: var(--gold);">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v10M18.4 6.6a9 9 0 1 1-12.77.04"/></svg>
-            </div>
+      <!-- 🎮 ARCHITECTURE_CONTROL_PANEL -->
+      <main class="settings-main">
+        <!-- 🧬 SCHEMA_INTEGRITY -->
+        <div class="card mb-3">
+          <div class="section-header mb-4">
             <div>
-              <div class="text-sm font-black">MAINTENANCE_LOCK</div>
-              <div class="text-xs text-muted" style="font-size: 0.6rem;">RESTRICT_PUBLIC_ACCESS_IMMEDIATELY</div>
+              <h2 class="section-title">SCHEMA_INTEGRITY</h2>
+              <div class="text-xs font-mono opacity-30">DATABASE_STRUCTURE_VERIFICATION</div>
+            </div>
+            <div id="scanStatus" class="badge-gold" style="font-size: 0.5rem;">READY</div>
+          </div>
+          
+          <div id="schemaGrid" class="grid grid-cols-2 gap-2 mb-4">
+            <div class="text-center py-6 opacity-20 text-xs font-mono col-span-2">INITIALIZING_CORE_SCAN...</div>
+          </div>
+
+          <div class="divider-gaming mb-4" style="opacity: 0.05;"></div>
+          
+          <div class="section-eyebrow mb-3" style="font-size: 0.55rem;">RECENT_ARCHITECTURAL_MIGRATIONS</div>
+          <div id="migrationList" class="flex flex-col gap-2">
+            <div class="text-xs font-mono opacity-20 py-2">NO_MIGRATION_RECORDS_FOUND</div>
+          </div>
+        </div>
+
+        <!-- 🛠️ MAINTENANCE_SUITE -->
+        <div class="card">
+          <div class="section-header mb-4">
+            <h2 class="section-title">MAINTENANCE_OVERRIDE</h2>
+          </div>
+          
+          <div class="maintenance-grid">
+            <!-- Maintenance Lock -->
+            <div class="maintenance-tile" onclick="toggleMaintenance()">
+              <div id="mModeIcon" class="tile-icon icon-gold">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v10M18.4 6.6a9 9 0 1 1-12.77.04"/></svg>
+              </div>
+              <div class="tile-content">
+                <div class="text-sm font-black">MAINTENANCE_LOCK</div>
+                <div class="text-xs text-muted">RESTRICT_PUBLIC_ACCESS</div>
+              </div>
+              <div id="mModeStatus" class="tile-badge">OFF</div>
+            </div>
+
+            <!-- Flush Cache -->
+            <div class="maintenance-tile" onclick="clearCache()">
+              <div class="tile-icon icon-violet">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"/></svg>
+              </div>
+              <div class="tile-content">
+                <div class="text-sm font-black">FLUSH_CACHE</div>
+                <div class="text-xs text-muted">WIPE_VOLATILE_STORAGE</div>
+              </div>
             </div>
           </div>
-          <div id="mModeStatus" class="font-mono text-xs font-black px-3 py-1 rounded-lg" style="background: rgba(255,255,255,0.05);">OFF</div>
         </div>
-
-        <!-- Flush Cache -->
-        <div class="flex justify-between items-center p-4 rounded-2xl cursor-pointer transition-all hover:bg-white-5" 
-             style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.03);"
-             onclick="clearCache()">
-          <div class="flex items-center gap-4">
-            <div style="width: 40px; height: 40px; border-radius: 12px; background: rgba(168,85,247,0.1); display: flex; align-items: center; justify-content: center; color: var(--violet);">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"/></svg>
-            </div>
-            <div>
-              <div class="text-sm font-black">FLUSH_TRANSIENT_CACHE</div>
-              <div class="text-xs text-muted" style="font-size: 0.6rem;">WIPE_EXPIRED_VOLATILE_STORAGE</div>
-            </div>
-          </div>
-          <div class="font-mono text-[0.6rem] opacity-30">AUTO_CLEAN: ENABLED</div>
-        </div>
-
-        <!-- Health Check -->
-        <div class="flex justify-between items-center p-4 rounded-2xl cursor-pointer transition-all hover:bg-white-5" 
-             style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.03);"
-             onclick="window.location.href='/health'">
-          <div class="flex items-center gap-4">
-            <div style="width: 40px; height: 40px; border-radius: 12px; background: rgba(0,242,254,0.1); display: flex; align-items: center; justify-content: center; color: var(--cyan);">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-            </div>
-            <div>
-              <div class="text-sm font-black">SYSTEM_INTELLIGENCE_CHECK</div>
-              <div class="text-xs text-muted" style="font-size: 0.6rem;">VIEW_REALTIME_CORE_PAYLOAD</div>
-            </div>
-          </div>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" class="opacity-20"><polyline points="9 18 15 12 9 6"/></svg>
-        </div>
-      </div>
+      </main>
     </div>
+  </div>
   </div>
 
   <div id="adminNav"></div>
