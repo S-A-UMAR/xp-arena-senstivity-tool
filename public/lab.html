@@ -4,185 +4,165 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
-  <title>AXP | NEURAL DIAGNOSTIC</title>
+  <title>AXP | REACTION LAB</title>
   <link rel="stylesheet" href="design-system.css">
   <link rel="stylesheet" href="gaming-animations.css">
   <link rel="stylesheet" href="gaming-components.css">
   <link rel="stylesheet" href="mobile-polish.css">
   <style>
     :root {
-      --lab-bg: #020617;
       --lab-cyan: #00f2fe;
       --lab-violet: #a855f7;
-      --lab-gold: #f59e0b;
-      --hud-border: rgba(0, 242, 254, 0.2);
+      --lab-glow: rgba(0, 242, 254, 0.4);
     }
     
     body.page-lab {
-      background: var(--lab-bg);
+      background: #020617;
       overflow: hidden;
       touch-action: none;
-      font-family: 'Inter', sans-serif;
-      height: 100vh;
-      margin: 0;
+      font-family: var(--font-main);
     }
 
-    /* 📟 HUD_SCANLINES */
-    body.page-lab::after {
-      content: "";
-      position: fixed; inset: 0;
-      background: repeating-linear-gradient(0deg, rgba(0,0,0,0.1) 0px, rgba(0,0,0,0.1) 1px, transparent 2px);
-      pointer-events: none; z-index: 10000;
-    }
-
+    /* Cyber Grid Background */
     .neural-grid {
       position: fixed; inset: 0;
       background-image: 
-        radial-gradient(circle at 50% 50%, rgba(15, 23, 42, 0.5), var(--lab-bg)),
-        linear-gradient(rgba(0, 242, 254, 0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0, 242, 254, 0.03) 1px, transparent 1px);
-      background-size: 100% 100%, 40px 40px, 40px 40px;
-      z-index: 1;
+        linear-gradient(rgba(0, 242, 254, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 242, 254, 0.05) 1px, transparent 1px);
+      background-size: 60px 60px;
+      z-index: 1; pointer-events: none;
     }
+    .neural-grid::before {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(to bottom, rgba(0, 242, 254, 0.05) 1px, transparent 1px);
+      background-size: 100% 4px; animation: scanline 8s linear infinite;
+    }
+    .neural-grid::after {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(circle at 50% 50%, transparent 20%, #020617 90%);
+    }
+    @keyframes scanline { 0% { transform: translateY(0); } 100% { transform: translateY(100vh); } }
 
-    .hud-frame {
-      position: fixed; inset: 20px;
-      border: 1px solid var(--hud-border);
-      pointer-events: none;
-      z-index: 50;
-    }
-    .hud-corner {
-      position: absolute; width: 20px; height: 20px;
-      border: 2px solid var(--lab-cyan);
-    }
-    .hc-tl { top: -1px; left: -1px; border-right: 0; border-bottom: 0; }
-    .hc-tr { top: -1px; right: -1px; border-left: 0; border-bottom: 0; }
-    .hc-bl { bottom: -1px; left: -1px; border-right: 0; border-top: 0; }
-    .hc-br { bottom: -1px; right: -1px; border-left: 0; border-top: 0; }
+    #gameZone { position: absolute; inset: 0; z-index: 5; }
 
-    #gameZone {
-      position: relative; width: 100%; height: 100%;
+    .lab-target {
+      position: absolute; width: 58px; height: 58px;
+      background: radial-gradient(circle, rgba(0, 242, 254, 0.2) 0%, transparent 70%);
+      border: 1.5px solid var(--lab-cyan); border-radius: 12px;
+      box-shadow: 0 0 30px var(--lab-glow); cursor: crosshair; z-index: 10;
       display: flex; align-items: center; justify-content: center;
-      z-index: 10;
+      animation: targetSpawn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+    }
+    .lab-target::before { content: ''; position: absolute; inset: 4px; border: 1px solid rgba(0, 242, 254, 0.3); border-radius: 8px; }
+    .lab-target::after { content: ''; width: 6px; height: 6px; background: white; border-radius: 1px; box-shadow: 0 0 15px white; transform: rotate(45deg); }
+    
+    @keyframes targetSpawn { 0% { transform: scale(0) rotate(-45deg); opacity: 0; } 100% { transform: scale(1) rotate(0); opacity: 1; } }
+
+    .lab-ui {
+      position: fixed; inset: 0; pointer-events: none; z-index: 20;
+      padding: env(safe-area-inset-top) 1.5rem env(safe-area-inset-bottom);
+      display: flex; flex-direction: column; justify-content: space-between;
     }
 
-    .diagnostic-target {
-      position: absolute; width: 60px; height: 60px; border-radius: 50%;
-      background: radial-gradient(circle, var(--lab-cyan) 0%, transparent 70%);
-      border: 2px solid var(--lab-cyan);
-      box-shadow: 0 0 30px var(--lab-cyan);
-      cursor: crosshair; display: flex; align-items: center; justify-content: center;
-      transition: transform 0.1s, opacity 0.2s; z-index: 100;
+    .lab-stats-top {
+      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-top: 1rem;
+      padding: 0.75rem; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 20px; backdrop-filter: blur(20px); pointer-events: all;
     }
-    .diagnostic-target::before { content: ""; width: 4px; height: 4px; background: #fff; border-radius: 50%; }
 
+    .stat-pill { text-align: center; padding: 0.5rem; position: relative; }
+    .stat-pill:not(:last-child)::after { content: ''; position: absolute; right: -0.5rem; top: 20%; bottom: 20%; width: 1px; background: rgba(255,255,255,0.1); }
+
+    .progress-track { position: fixed; top: 0; left: 0; right: 0; bottom: 0; border: 2px solid transparent; z-index: 1000; pointer-events: none; }
+    .progress-fill { position: absolute; top: 0; left: 0; height: 2px; width: 0%; background: var(--lab-cyan); box-shadow: 0 0 20px var(--lab-cyan); transition: width 0.1s linear; }
+
+    .rating-badge { font-size: 0.5rem; font-weight: 900; padding: 2px 8px; border-radius: 4px; margin-top: 4px; letter-spacing: 0.1em; text-transform: uppercase; display: inline-block; transition: all 0.3s; }
+    .rating-stable { background: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid #ef4444; }
+    .rating-good { background: rgba(245, 158, 11, 0.2); color: #f59e0b; border: 1px solid #f59e0b; }
+    .rating-perfect { background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid #10b981; }
+    .rating-unstoppable { background: rgba(0, 242, 254, 0.2); color: var(--lab-cyan); border: 1px solid var(--lab-cyan); box-shadow: 0 0 15px var(--lab-glow); }
+
+    .lab-overlay {
+      position: fixed; inset: 0; background: rgba(2, 6, 23, 0.98); z-index: 100;
+      display: flex; align-items: center; justify-content: center; padding: 1.5rem;
+      pointer-events: all; backdrop-filter: blur(10px);
+    }
+
+    /* 📊 CERTIFICATE_STYLE_RESULT */
     .certificate-card {
       background: linear-gradient(165deg, #0f172a 0%, #020617 100%);
       border: 1px solid rgba(255,255,255,0.1); border-radius: 4px;
       width: 100%; max-width: 420px; padding: 2.5rem; position: relative;
-      box-shadow: 0 40px 100px rgba(0,0,0,0.8); overflow: hidden;
+      box-shadow: 0 40px 100px rgba(0,0,0,0.8); overflow: hidden; color: #fff; text-align: left;
     }
-    .cert-header {
-      border-bottom: 1px solid rgba(255,255,255,0.05);
-      padding-bottom: 1rem; margin-bottom: 1.5rem;
-      display: flex; justify-content: space-between; align-items: flex-end;
-    }
+    .cert-header { border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 1rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: flex-end; }
     .cert-logo { font-weight: 900; font-size: 1.2rem; letter-spacing: -0.05em; color: var(--lab-cyan); }
     .cert-id { font-family: monospace; font-size: 0.6rem; opacity: 0.4; }
 
-    .metrics-cluster {
-      display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 1rem;
-    }
-    .metric-box {
-      background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);
-      padding: 12px; border-radius: 4px; text-align: center;
-    }
+    .metrics-cluster { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 1rem; }
+    .metric-box { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 12px; border-radius: 4px; text-align: center; }
     .mb-val { font-size: 1.3rem; font-weight: 950; display: block; line-height: 1; margin-bottom: 4px; }
     .mb-label { font-size: 0.45rem; font-family: monospace; opacity: 0.4; text-transform: uppercase; letter-spacing: 0.1em; }
 
-    .narrative-box {
-      background: rgba(0, 242, 254, 0.03); border-left: 2px solid var(--lab-cyan);
-      padding: 1.2rem; font-size: 0.75rem; line-height: 1.6;
-      margin-bottom: 1.5rem; color: rgba(255,255,255,0.8); font-family: 'JetBrains Mono', monospace;
-    }
+    .narrative-box { background: rgba(0, 242, 254, 0.03); border-left: 2px solid var(--lab-cyan); padding: 1.2rem; font-size: 0.75rem; line-height: 1.6; margin-bottom: 1.5rem; color: rgba(255,255,255,0.8); font-family: 'JetBrains Mono', monospace; }
 
-    .btn-cta {
-      border: none; padding: 1rem 2rem; border-radius: 4px;
-      font-weight: 900; letter-spacing: 0.1em; cursor: pointer; transition: 0.3s;
-      text-transform: uppercase; display: flex; align-items: center; justify-content: center; gap: 10px;
-    }
+    .btn-cta { border: none; padding: 1rem 2rem; border-radius: 4px; font-weight: 900; letter-spacing: 0.1em; cursor: pointer; transition: 0.3s; text-transform: uppercase; display: flex; align-items: center; justify-content: center; gap: 10px; }
     .btn-cta.cyan { background: var(--lab-cyan); color: #000; }
     .btn-cta.ghost { background: rgba(255,255,255,0.03); color: #fff; border: 1px solid rgba(255,255,255,0.1); }
+    .btn-cta:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0, 242, 254, 0.2); }
 
-    .page-header {
-      position: fixed; top: 0; left: 0; width: 100%;
-      padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; z-index: 1000;
-    }
+    .mode-grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.75rem; margin: 2rem 0; }
+    .mode-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 0.75rem 0.25rem; cursor: pointer; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); display: flex; flex-direction: column; align-items: center; gap: 0.4rem; position: relative; overflow: hidden; }
+    .mode-card.active { background: rgba(0, 242, 254, 0.08); border-color: rgba(0, 242, 254, 0.3); box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4), inset 0 0 10px rgba(0, 242, 254, 0.1); transform: translateY(-2px); }
+    .mode-card-icon { font-size: 1.1rem; }
+    .mode-card-title { font-size: 0.45rem; font-weight: 950; color: rgba(255,255,255,0.4); letter-spacing: 0.1em; text-transform: uppercase; }
+    .mode-card.active .mode-card-title { color: #fff; }
 
-    .mode-overlay, .result-overlay {
-      position: fixed; inset: 0; background: rgba(2, 6, 23, 0.98); backdrop-filter: blur(20px);
-      display: flex; align-items: center; justify-content: center; z-index: 2000; transition: 0.5s;
-    }
-    .hidden { display: none !important; }
-
-    .mode-grid {
-      display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; width: 100%; max-width: 400px; padding: 1rem;
-    }
-    .mode-card {
-      background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);
-      border-radius: 4px; padding: 1.5rem; text-align: center; cursor: pointer; transition: 0.3s;
-    }
-    .mode-card.active { background: rgba(0,242,254,0.1); border-color: var(--lab-cyan); }
-    .mode-card-icon { font-size: 1.2rem; margin-bottom: 0.5rem; }
-    .mode-card-title { font-weight: 900; font-size: 0.6rem; letter-spacing: 0.1em; opacity: 0.6; }
-
-    .lab-stats-top {
-      position: fixed; top: 6rem; left: 50%; transform: translateX(-50%);
-      display: flex; gap: 2rem; z-index: 100;
-    }
-    .stat-pill { text-align: center; }
+    @media (max-width: 600px) { .mode-grid-5 { grid-template-columns: repeat(3, 1fr); } }
   </style>
 </head>
 <body class="page-lab">
   <div class="neural-grid"></div>
-  <div class="hud-frame">
-    <div class="hud-corner hc-tl"></div><div class="hud-corner hc-tr"></div>
-    <div class="hud-corner hc-bl"></div><div class="hud-corner hc-br"></div>
-  </div>
 
-  <header class="page-header" style="padding-top: max(1rem, env(safe-area-inset-top));">
-    <a href="index.html" class="ph-back" style="background: rgba(255,255,255,0.05); padding: 0.5rem 1rem; border-radius: 4px; color: #fff; text-decoration: none; font-size: 0.6rem; font-weight: 900;">EXIT_CORE</a>
-    <div style="letter-spacing: 0.4em; font-weight: 900; font-size: 0.6rem; opacity: 0.4; color: var(--lab-cyan);">NEURAL_DIAGNOSTIC_HUB</div>
+  <header class="page-header" style="position: fixed; top: 0; left: 0; width: 100%; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; z-index: 1000; padding-top: max(1rem, env(safe-area-inset-top));">
+    <a href="index.html" class="ph-back" style="background: rgba(255,255,255,0.05); padding: 0.5rem 1rem; border-radius: 12px; backdrop-filter: blur(10px); display: flex; align-items: center; gap: 8px; color: #fff; text-decoration: none; font-size: 0.65rem; font-weight: 800;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="width: 14px;"><path d="M19 12H5"/><polyline points="12 19 5 12 12 5"/></svg>
+      <span>EXIT</span>
+    </a>
+    <div style="letter-spacing: 0.3em; font-weight: 900; font-size: 0.7rem; opacity: 0.6; color: #fff;">NEURAL_DIAGNOSTIC_HUB</div>
     <div style="width: 80px;"></div>
   </header>
 
-  <div class="lab-stats-top hidden" id="liveStats">
-    <div class="stat-pill">
-      <div style="font-size: 0.4rem; opacity: 0.4; letter-spacing: 0.2em;">LATENCY</div>
-      <div id="currentAvg" style="font-weight: 900; font-size: 1.2rem;">0ms</div>
+  <div id="gameZone"></div>
+  
+  <div class="lab-ui">
+    <div class="progress-track"><div id="syncProgress" class="progress-fill"></div></div>
+    <div class="lab-stats-top">
+      <div class="stat-pill"><div style="font-size: 0.45rem; opacity: 0.5; color: #fff;">LATENCY</div><div id="currentAvg" style="font-weight: 900; color: #fff;">0ms</div></div>
+      <div class="stat-pill"><div style="font-size: 0.45rem; opacity: 0.5; color: #fff;">SYNC</div><div id="perfRating" class="rating-badge rating-stable">STABLE</div></div>
+      <div class="stat-pill"><div style="font-size: 0.45rem; opacity: 0.5; color: #fff;">TIMER</div><div id="labTimer" style="font-weight: 900; color: #fff;">30.0s</div></div>
     </div>
-    <div class="stat-pill">
-      <div style="font-size: 0.4rem; opacity: 0.4; letter-spacing: 0.2em;">PROGRESS</div>
-      <div id="hitCount" style="font-weight: 900; font-size: 1.2rem;">0/30</div>
+    <div class="flex flex-col items-center mb-8">
+      <p style="font-size: 0.6rem; color: #fff; opacity: 0.6; font-family: monospace;" id="labHint">TAP_TARGETS_AS_THEY_APPEAR</p>
     </div>
   </div>
 
-  <div id="gameZone"></div>
-
-  <div id="modeOverlay" class="mode-overlay">
-    <div class="flex flex-col items-center">
-      <div class="mode-grid">
+  <div id="startOverlay" class="lab-overlay">
+    <div style="background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(0, 242, 254, 0.2); border-radius: 28px; padding: 2.5rem; max-width: 500px; width: 100%; text-align: center;">
+      <div style="font-size: 3rem; margin-bottom: 1rem;">🧬</div>
+      <h1 style="color: #fff; font-size: 1.5rem; font-weight: 900; margin-bottom: 1rem;">NEURAL_CALIBRATION</h1>
+      <div class="mode-grid-5">
         <div class="mode-card active" onclick="setMode('flick', this)"><div class="mode-card-icon">🎯</div><div class="mode-card-title">FLICK</div></div>
-        <div class="mode-card" onclick="setMode('tracking', this)"><div class="mode-card-icon">👁️</div><div class="mode-card-title">TRACKING</div></div>
+        <div class="mode-card" onclick="setMode('tracking', this)"><div class="mode-card-icon">👁️</div><div class="mode-card-title">TRACK</div></div>
         <div class="mode-card" onclick="setMode('reflex', this)"><div class="mode-card-icon">⚡</div><div class="mode-card-title">REFLEX</div></div>
-        <div class="mode-card" onclick="setMode('grid', this)"><div class="mode-card-icon">⏹️</div><div class="mode-card-title">GRID_SYNC</div></div>
+        <div class="mode-card" onclick="setMode('sniper', this)"><div class="mode-card-icon">🎯</div><div class="mode-card-title">SNIPER</div></div>
         <div class="mode-card" onclick="setMode('surge', this)"><div class="mode-card-icon">☢️</div><div class="mode-card-title">SURGE</div></div>
       </div>
-      <button class="btn-cta cyan w-full mt-8" style="max-width: 400px; padding: 1.2rem;" onclick="startTest()">INITIALIZE_DIAGNOSTIC</button>
+      <button class="btn-cta cyan w-full" onclick="startTest()">INITIALIZE_SCAN</button>
     </div>
   </div>
 
-  <div id="resultOverlay" class="result-overlay hidden">
+  <div id="resultOverlay" class="lab-overlay hidden">
     <div class="certificate-card" id="cardToCapture">
       <div class="cert-header">
         <div class="cert-logo">AXP_NEURAL_CERTIFICATE</div>
@@ -194,16 +174,16 @@
         <div class="metric-box"><span class="mb-val" id="perfRank" style="color: var(--lab-cyan);">RECRUIT</span><span class="mb-label">RANK</span></div>
       </div>
       <div class="metrics-cluster" style="grid-template-columns: repeat(2, 1fr); margin-top: -5px;">
-        <div class="metric-box"><span class="mb-val" id="jitterVal" style="color: var(--lab-violet);">--</span><span class="mb-label">JITTER_INDEX</span></div>
-        <div class="metric-box"><span class="mb-val" id="accelVal" style="color: var(--lab-gold);">--</span><span class="mb-label">NEURAL_SYNC</span></div>
+        <div class="metric-box"><span class="mb-val" id="jitterVal" style="color: var(--lab-violet); font-size: 1.1rem;">--</span><span class="mb-label">JITTER_INDEX</span></div>
+        <div class="metric-box"><span class="mb-val" id="accelVal" style="color: var(--lab-gold); font-size: 1.1rem;">--</span><span class="mb-label">NEURAL_SYNC</span></div>
       </div>
       <div class="narrative-box" id="advisorQuote">ANALYZING_BIOMETRICS...</div>
       <div class="flex flex-col gap-3">
         <div class="flex gap-3">
-          <button class="btn-cta ghost flex-1" style="font-size: 0.6rem;" onclick="copyLabId()">COPY_UPLINK</button>
-          <button class="btn-cta cyan flex-1" style="font-size: 0.6rem;" onclick="downloadLabCard()">SAVE_RESULT</button>
+          <button class="btn-cta ghost flex-1" style="font-size: 0.6rem; padding: 0.8rem;" onclick="copyLabId()">COPY_UPLINK</button>
+          <button class="btn-cta cyan flex-1" style="font-size: 0.6rem; padding: 0.8rem;" onclick="downloadLabCard()">SAVE_RESULT</button>
         </div>
-        <button class="btn-cta ghost w-full" style="font-size: 0.5rem; opacity: 0.4;" onclick="location.reload()">RE_CALIBRATE</button>
+        <button class="btn-cta ghost w-full" style="font-size: 0.5rem; padding: 0.6rem; border: none; opacity: 0.4;" onclick="location.reload()">RE_CALIBRATE</button>
       </div>
     </div>
   </div>
@@ -220,65 +200,82 @@
     let isRunning = false;
     let currentMode = 'flick';
     let lapStartTime = 0;
+    let timeLeft = 30;
+    let timerInterval = null;
+    let moveInterval = null;
 
     function setMode(mode, el) {
       currentMode = mode;
-      document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('active'));
+      document.querySelectorAll('.mode-card').forEach(b => b.classList.remove('active'));
       el.classList.add('active');
     }
 
     function startTest() {
-      document.getElementById('modeOverlay').classList.add('hidden');
-      document.getElementById('liveStats').classList.remove('hidden');
-      hits = 0; latencies = [];
-      isRunning = true;
+      document.getElementById('startOverlay').classList.add('hidden');
+      latencies = []; hits = 0; isRunning = true; timeLeft = 30;
+      timerInterval = setInterval(() => {
+        timeLeft -= 0.1;
+        if (timeLeft <= 0) finishTest();
+        document.getElementById('labTimer').textContent = timeLeft.toFixed(1) + 's';
+      }, 100);
       spawnTarget();
     }
 
     function spawnTarget() {
-      if (hits >= maxHits) return endTest();
-      
+      if (hits >= maxHits) return finishTest();
       const zone = document.getElementById('gameZone');
       zone.innerHTML = '';
-      const target = document.createElement('div');
-      target.className = 'diagnostic-target';
+      if (moveInterval) clearInterval(moveInterval);
       
-      if (currentMode === 'grid') {
-        const x = (hits % 3) * 30 + 20;
-        const y = Math.floor(hits / 3 % 3) * 30 + 20;
-        target.style.left = x + '%';
-        target.style.top = y + '%';
-      } else {
-        target.style.left = Math.random() * 80 + 10 + '%';
-        target.style.top = Math.random() * 80 + 10 + '%';
+      const target = document.createElement('div');
+      target.className = 'lab-target';
+      target.style.left = (10 + Math.random() * 80) + '%';
+      target.style.top = (30 + Math.random() * 50) + '%';
+
+      if (currentMode === 'tracking') {
+          let x = parseFloat(target.style.left);
+          let y = parseFloat(target.style.top);
+          let dx = (Math.random() - 0.5) * 1.2;
+          let dy = (Math.random() - 0.5) * 1.2;
+          moveInterval = setInterval(() => {
+              x += dx; y += dy;
+              if (x < 5 || x > 95) dx *= -1;
+              if (y < 25 || y > 85) dy *= -1;
+              target.style.left = x + '%';
+              target.style.top = y + '%';
+          }, 16);
       }
 
       lapStartTime = performance.now();
-      target.onclick = () => {
+      const trigger = (e) => {
+        e.preventDefault();
         const lat = performance.now() - lapStartTime;
         latencies.push(lat);
         hits++;
         document.getElementById('currentAvg').textContent = Math.round(latencies.reduce((a,b)=>a+b,0)/latencies.length) + 'ms';
-        document.getElementById('hitCount').textContent = `${hits}/${maxHits}`;
+        document.getElementById('syncProgress').style.width = (hits/maxHits*100) + '%';
         spawnTarget();
       };
-      
+      target.onmousedown = trigger;
+      target.ontouchstart = trigger;
       zone.appendChild(target);
     }
 
-    async function endTest() {
+    async function finishTest() {
+      if (timerInterval) clearInterval(timerInterval);
+      if (moveInterval) clearInterval(moveInterval);
       isRunning = false;
       document.getElementById('gameZone').innerHTML = '';
-      document.getElementById('liveStats').classList.add('hidden');
       
-      const avg = latencies.reduce((a,b)=>a+b,0)/latencies.length;
+      const avg = latencies.length > 0 ? Math.round(latencies.reduce((a, b) => a + b) / latencies.length) : 0;
       const precision = Math.max(60, 100 - (avg / 20)); 
       
-      document.getElementById('finalAvg').textContent = Math.round(avg);
+      document.getElementById('finalAvg').textContent = avg;
       document.getElementById('finalPrecision').textContent = Math.round(precision) + '%';
       
-      const jitter = (Math.random() * (avg / 100)).toFixed(2);
-      const sync = (precision * 0.9).toFixed(1);
+      const jitter = (Math.random() * (avg / 100) + (100 - precision) / 10).toFixed(2);
+      const sync = (precision * 0.8 + (1000 - avg) / 100).toFixed(1);
+      
       document.getElementById('jitterVal').textContent = jitter;
       document.getElementById('accelVal').textContent = sync + '%';
 
@@ -287,17 +284,11 @@
       else if (avg < 250) rankEl.textContent = 'ELITE';
       else rankEl.textContent = 'OPERATOR';
 
-      confetti({
-        particleCount: 150,
-        spread: 70,
-        origin: { y: 0.6 },
-        colors: ['#00f2fe', '#a855f7', '#ffffff']
-      });
+      confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#00f2fe', '#a855f7', '#ffffff'] });
 
-      document.getElementById('advisorQuote').innerHTML = `Neural Latency: ${Math.round(avg)}ms. Consistency: ${sync}%. <br><br> **DIAGNOSTIC:** Your response profile is optimized for ${avg < 240 ? 'AGILITY' : 'STABILITY'}.`;
-
+      document.getElementById('advisorQuote').innerHTML = `Neural Latency: ${avg}ms. Consistency: ${sync}%. <br><br> **DIAGNOSTIC:** Optimized for ${avg < 240 ? 'AGILITY' : 'STABILITY'}.`;
       document.getElementById('resultOverlay').classList.remove('hidden');
-      
+
       try {
         const res = await fetch('/api/vault/diagnostics/submit', {
           method: 'POST',
@@ -306,9 +297,7 @@
         });
         const data = await res.json();
         if (data.diagnostic_id) document.getElementById('diagnosticId').textContent = data.diagnostic_id;
-      } catch (e) {
-        document.getElementById('diagnosticId').textContent = 'LAB-OFFLINE';
-      }
+      } catch (e) { document.getElementById('diagnosticId').textContent = 'LAB-OFFLINE'; }
     }
 
     function copyLabId() {
@@ -317,14 +306,15 @@
       alert('UPLINK_COPIED');
     }
 
-    function downloadLabCard() {
+    async function downloadLabCard() {
       const card = document.getElementById('cardToCapture');
-      html2canvas(card, { backgroundColor: '#020617', scale: 2 }).then(canvas => {
-        const link = document.createElement('a');
-        link.download = `AXP_CERT_${document.getElementById('diagnosticId').textContent}.png`;
-        link.href = canvas.toDataURL();
-        link.click();
-      });
+      if (window.html2canvas) {
+        const canvas = await html2canvas(card, { backgroundColor: '#020617', scale: 2 });
+        const a = document.createElement('a');
+        a.download = `AXP_CERT_${document.getElementById('diagnosticId').textContent}.png`;
+        a.href = canvas.toDataURL();
+        a.click();
+      }
     }
   </script>
 </body>
