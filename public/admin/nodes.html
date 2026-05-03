@@ -53,14 +53,22 @@
       <button class="btn-ghost auto" style="width:36px; height:36px; border-radius:50%; padding:0; display:flex; align-items:center; justify-content:center; color:var(--tx-muted);" onclick="toggleAnalysisSheet(false)">✕</button>
     </div>
 
-    <div class="analytics-grid">
+    <div class="analytics-grid mb-6">
       <div class="metric-card">
         <div id="metricTotalKeys" class="metric-val">--</div>
-        <div class="metric-label">TOTAL_KEYS</div>
+        <div class="metric-label">TOTAL_RESOURCES</div>
       </div>
       <div class="metric-card">
         <div id="metricTotalUsage" class="metric-val">--</div>
         <div class="metric-label">ENGAGEMENTS</div>
+      </div>
+      <div class="metric-card">
+        <div id="metricActiveKeys" class="metric-val">--</div>
+        <div class="metric-label">ACTIVE_NODES</div>
+      </div>
+      <div class="metric-card">
+        <div id="metricConversion" class="metric-val">--</div>
+        <div class="metric-label">CONV_RATE</div>
       </div>
     </div>
 
@@ -112,22 +120,19 @@
       </div>
       
       <div class="input-wrap">
-        <label class="text-[0.6rem] opacity-50 mb-1 block">NETWORK_TIER</label>
-        <div class="grid grid-cols-3 gap-2">
-          <label class="flex flex-col items-center p-3 rounded-xl border border-white/5 bg-white/2 cursor-pointer hover:bg-white/5 transition-all">
+        <label class="section-eyebrow mb-2 block">NETWORK_TIER</label>
+        <div class="flex gap-2">
+          <label class="flex-1 flex items-center justify-center p-3 rounded-xl border border-white/10 bg-white/5 cursor-pointer hover:bg-white/10 transition-all peer-checked:border-gold">
             <input type="radio" name="tier" value="normal" checked class="hidden peer">
-            <div class="w-2 h-2 rounded-full bg-slate-400 mb-2 peer-checked:ring-2 ring-slate-400 ring-offset-2 ring-offset-black"></div>
-            <span class="text-[0.6rem] font-bold opacity-60">NORMAL</span>
+            <span class="text-[0.6rem] font-bold opacity-60 peer-checked:opacity-100">NORMAL</span>
           </label>
-          <label class="flex flex-col items-center p-3 rounded-xl border border-white/5 bg-white/2 cursor-pointer hover:bg-white/5 transition-all">
+          <label class="flex-1 flex items-center justify-center p-3 rounded-xl border border-white/10 bg-white/5 cursor-pointer hover:bg-white/10 transition-all peer-checked:border-gold">
             <input type="radio" name="tier" value="gold" class="hidden peer">
-            <div class="w-2 h-2 rounded-full bg-amber-500 mb-2 peer-checked:ring-2 ring-amber-500 ring-offset-2 ring-offset-black"></div>
-            <span class="text-[0.6rem] font-bold opacity-60">GOLD</span>
+            <span class="text-[0.6rem] font-bold opacity-60 peer-checked:opacity-100">GOLD</span>
           </label>
-          <label class="flex flex-col items-center p-3 rounded-xl border border-white/5 bg-white/2 cursor-pointer hover:bg-white/5 transition-all">
+          <label class="flex-1 flex items-center justify-center p-3 rounded-xl border border-white/10 bg-white/5 cursor-pointer hover:bg-white/10 transition-all peer-checked:border-gold">
             <input type="radio" name="tier" value="premium" class="hidden peer">
-            <div class="w-2 h-2 rounded-full bg-purple-500 mb-2 peer-checked:ring-2 ring-purple-500 ring-offset-2 ring-offset-black"></div>
-            <span class="text-[0.6rem] font-bold opacity-60">PREMIUM</span>
+            <span class="text-[0.6rem] font-bold opacity-60 peer-checked:opacity-100">PREMIUM</span>
           </label>
         </div>
       </div>
@@ -288,50 +293,57 @@
         // Populate Summary
         document.getElementById('metricTotalKeys').textContent = data.summary.total_codes;
         document.getElementById('metricTotalUsage').textContent = data.summary.total_usage;
+        document.getElementById('metricActiveKeys').textContent = data.summary.active_codes;
+        document.getElementById('metricConversion').textContent = data.summary.conversion_rate;
         
         // Populate Brands
         const bList = document.getElementById('brandList');
         const maxBrand = Math.max(...data.top_brands.map(b => b.count), 1);
         bList.innerHTML = data.top_brands.map(b => `
-          <div class="stat-row">
-            <div class="text-[0.6rem] font-mono font-bold w-20">${b.brand}</div>
-            <div class="stat-bar-container">
-              <div class="stat-bar-fill" style="width:${(b.count/maxBrand)*100}%; background: var(--gold);"></div>
+          <div class="mb-4">
+            <div class="flex justify-between text-[0.65rem] font-bold mb-1">
+              <span style="color: #ffffff;">${esc(b.brand)}</span>
+              <span style="color: var(--gold);">${b.count}</span>
             </div>
-            <div class="text-[0.6rem] font-mono opacity-50">${b.count}</div>
+            <div class="progress-bar-mini">
+              <div class="fill" style="width: ${(b.count/maxBrand)*100}%; background: var(--gold);"></div>
+            </div>
           </div>
-        `).join('') || '<div class="text-center py-4 opacity-20 text-xs">NO_BRAND_DATA</div>';
+        `).join('') || '<div class="text-center py-4 opacity-20 text-xs font-mono">NO_BRAND_DATA</div>';
 
         // Populate Regions
         const rList = document.getElementById('regionList');
         const maxRegion = Math.max(...data.top_regions.map(r => r.count), 1);
         rList.innerHTML = data.top_regions.map(r => `
-          <div class="stat-row">
-            <div class="text-[0.6rem] font-mono font-bold w-20">${r.region}</div>
-            <div class="stat-bar-container">
-              <div class="stat-bar-fill" style="width:${(r.count/maxRegion)*100}%; background: var(--cyan);"></div>
+          <div class="mb-4">
+            <div class="flex justify-between text-[0.65rem] font-bold mb-1">
+              <span style="color: #ffffff;">${esc(r.region)}</span>
+              <span style="color: var(--cyan);">${r.count}</span>
             </div>
-            <div class="text-[0.6rem] font-mono opacity-50">${r.count}</div>
+            <div class="progress-bar-mini">
+              <div class="fill" style="width: ${(r.count/maxRegion)*100}%; background: var(--cyan);"></div>
+            </div>
           </div>
-        `).join('') || '<div class="text-center py-4 opacity-20 text-xs">NO_REGION_DATA</div>';
+        `).join('') || '<div class="text-center py-4 opacity-20 text-xs font-mono">NO_REGION_DATA</div>';
 
         // Populate Feed
-        const feed = document.getElementById('activityFeed');
-        feed.innerHTML = data.recent_activity.map(a => `
-          <div class="feed-item">
+        const fList = document.getElementById('activityFeed');
+        fList.innerHTML = data.recent_activity.map(a => `
+          <div class="flex justify-between items-center p-3 rounded-xl bg-white/2 border border-white/5 mb-2">
             <div>
-              <div class="text-[0.65rem] font-black">${esc(a.user_ign)}</div>
-              <div class="text-[0.55rem] font-mono opacity-40 uppercase">${a.brand || 'GENERIC'} ${a.model || 'UNIT'}</div>
+              <div class="text-[0.7rem] font-black" style="color: #ffffff;">${esc(a.user_ign)}</div>
+              <div class="text-[0.55rem] font-mono opacity-50 uppercase">${esc(a.brand)} ${esc(a.model)}</div>
             </div>
             <div class="text-right">
-              <div class="text-[0.55rem] font-mono text-cyan">${a.user_region || 'GLB'}</div>
+              <div class="text-[0.55rem] font-mono text-cyan">${esc(a.user_region)}</div>
               <div class="text-[0.45rem] font-mono opacity-20">${new Date(a.used_at).toLocaleTimeString()}</div>
             </div>
           </div>
-        `).join('') || '<div class="text-center py-8 opacity-20 text-xs">NO_RECENT_ACTIVITY</div>';
+        `).join('') || '<div class="text-center py-8 opacity-20 text-xs font-mono">NO_RECENT_ACTIVITY</div>';
 
-      } catch (e) {
-        adminNotify('ANALYTICS_CORE_FAILURE', 'error');
+      } catch (err) {
+        adminNotify('ANALYTICS_RETRIEVAL_FAILED', 'error');
+        console.error(err);
       }
     }
 
@@ -375,21 +387,19 @@
     }
 
     function toggleActionSheet(show) {
-      document.getElementById('sheetOverlay').classList.toggle('active', show);
       document.getElementById('actionSheet').classList.toggle('active', show);
-      document.getElementById('bulkSheet').classList.remove('active');
-      document.getElementById('cardSheet').classList.remove('active');
+      document.getElementById('sheetOverlay').classList.toggle('active', show);
     }
 
     function toggleCardSheet(show) {
-      document.getElementById('sheetOverlay').classList.toggle('active', show);
       document.getElementById('cardSheet').classList.toggle('active', show);
+      document.getElementById('sheetOverlay').classList.toggle('active', show);
     }
 
-    function toggleBulkSheet(show, vid = '') {
-      document.getElementById('sheetOverlay').classList.toggle('active', show);
+    function toggleBulkSheet(show, vid = null) {
+      if(vid) document.getElementById('bulk_vid').value = vid;
       document.getElementById('bulkSheet').classList.toggle('active', show);
-      if (vid) document.getElementById('bulk_vid').value = vid;
+      document.getElementById('sheetOverlay').classList.toggle('active', show);
     }
 
     async function bulkGenerate() {
@@ -406,6 +416,11 @@
       } catch (e) {
         progress.textContent = 'FAILED: ' + e.message;
       }
+    }
+
+    function toggleAnalysisSheet(show) {
+      document.getElementById('analysisSheet').classList.toggle('active', show);
+      document.getElementById('sheetOverlay').classList.toggle('active', show);
     }
 
     async function addVendor() {

@@ -1646,13 +1646,28 @@ router.get('/admin/vendor/:vendorId/analytics', authenticateAdmin, async (req, r
         const summary = await db.get(`
             SELECT 
                 COUNT(*) as total_codes,
-                SUM(current_usage) as total_usage
+                SUM(current_usage) as total_usage,
+                COUNT(CASE WHEN current_usage > 0 THEN 1 END) as active_codes
             FROM sensitivity_keys 
             WHERE vendor_id = ?
         `, [vid]);
 
-        // 2. Top Brands (Parsing JSON results)
-        // Note: We use a subquery to extract the brand from JSON and then count
+        const conversionRate = summary?.total_codes > 0 
+            ? ((summary.active_codes / summary.total_codes) * 100).toFixed(1) 
+            : 0;
+
+        // 2. Peak Time
+        const peakTime = await db.get(`
+            SELECT HOUR(used_at) as peak_hour, COUNT(*) as count
+            FROM code_activity ca
+            JOIN sensitivity_keys sk ON ca.lookup_key = sk.lookup_key
+            WHERE sk.vendor_id = ?
+            GROUP BY peak_hour
+            ORDER BY count DESC
+            LIMIT 1
+        `, [vid]);
+
+        // 3. Top Brands
         const topBrands = await db.all(`
             SELECT brand, COUNT(*) as count 
             FROM (
@@ -1666,7 +1681,7 @@ router.get('/admin/vendor/:vendorId/analytics', authenticateAdmin, async (req, r
             LIMIT 5
         `, [vid]);
 
-        // 3. Top Regions
+        // 4. Top Regions
         const topRegions = await db.all(`
             SELECT user_region as region, COUNT(*) as count 
             FROM code_activity ca 
@@ -1677,7 +1692,7 @@ router.get('/admin/vendor/:vendorId/analytics', authenticateAdmin, async (req, r
             LIMIT 5
         `, [vid]);
 
-        // 4. Activity Timeline (Last 14 days)
+        // 5. Activity Timeline
         const timeline = await db.all(`
             SELECT DATE(ca.used_at) as day, COUNT(*) as count
             FROM code_activity ca
@@ -1687,7 +1702,7 @@ router.get('/admin/vendor/:vendorId/analytics', authenticateAdmin, async (req, r
             ORDER BY day ASC
         `, [vid]);
 
-        // 5. Recent Activity Feed
+        // 6. Recent Feed
         const activities = await db.all(`
             SELECT ca.*, JSON_UNQUOTE(JSON_EXTRACT(sk.results_json, '$.brand')) as brand, JSON_UNQUOTE(JSON_EXTRACT(sk.results_json, '$.model')) as model
             FROM code_activity ca
@@ -1700,7 +1715,10 @@ router.get('/admin/vendor/:vendorId/analytics', authenticateAdmin, async (req, r
         return res.json({
             summary: {
                 total_codes: summary?.total_codes || 0,
-                total_usage: summary?.total_usage || 0
+                total_usage: summary?.total_usage || 0,
+                active_codes: summary?.active_codes || 0,
+                conversion_rate: conversionRate + '%',
+                peak_hour: peakTime ? `${peakTime.peak_hour}:00` : '--'
             },
             top_brands: topBrands,
             top_regions: topRegions,

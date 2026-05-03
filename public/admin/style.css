@@ -168,18 +168,57 @@ body {
 
 /* ── Success Overlays & Sheets ───────────────── */
 .admin-sheet {
-  position: fixed; bottom: -110%; left: 0; right: 0;
-  background: linear-gradient(180deg, rgba(10, 17, 40, 0.95), rgba(4, 9, 22, 0.98));
-  backdrop-filter: blur(30px) saturate(180%);
-  -webkit-backdrop-filter: blur(30px) saturate(180%);
-  border-radius: 32px 32px 0 0; 
-  padding: 2.5rem 1.5rem 4rem;
-  z-index: 1000; 
-  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-  border-top: 1px solid var(--gold);
-  max-height: 94vh; 
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.95);
+  width: 90%;
+  max-width: 500px;
+  max-height: 85vh;
+  background: rgba(10, 15, 28, 0.95);
+  backdrop-filter: blur(40px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 32px;
+  padding: 2.5rem;
+  z-index: 2000;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 242, 254, 0.05);
   overflow-y: auto;
-  box-shadow: 0 -20px 80px rgba(0,0,0,0.8), 0 0 40px rgba(245, 158, 11, 0.1);
+}
+.admin-sheet.active {
+  opacity: 1;
+  pointer-events: all;
+  transform: translate(-50%, -50%) scale(1);
+}
+.sheet-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(10px);
+  z-index: 1999;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s;
+}
+.sheet-overlay.active {
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* Fix for dark text */
+.admin-sheet label, 
+.admin-sheet .metric-label,
+.admin-sheet .section-eyebrow,
+.admin-sheet p {
+  color: rgba(255, 255, 255, 0.5) !important;
+  font-weight: 800;
+}
+.admin-sheet h1, 
+.admin-sheet h2, 
+.admin-sheet h3 {
+  color: #fff !important;
 }
 
 @media (max-width: 480px) {
