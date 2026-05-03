@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+  <title>AXP | VENDOR INTELLIGENCE</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .analysis-container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+    .stat-hero { background: linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01)); border: 1px solid rgba(255,255,255,0.05); border-radius: 24px; padding: 2rem; margin-bottom: 2rem; }
+    .chart-box { background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.03); border-radius: 20px; padding: 1.5rem; height: 100%; }
+    .tag-badge { padding: 4px 10px; border-radius: 6px; font-size: 0.6rem; font-weight: 900; letter-spacing: 0.05em; text-transform: uppercase; }
+    .pulse-bar { height: 8px; border-radius: 4px; background: rgba(255,255,255,0.05); overflow: hidden; position: relative; }
+    .pulse-bar-fill { position: absolute; top: 0; left: 0; height: 100%; transition: width 1s ease-out; }
+  </style>
+</head>
+<body class="page-admin">
+
+  <div class="analysis-container anim-fade-in">
+    <!-- Header Section -->
+    <div class="flex justify-between items-center mb-8">
+      <div class="flex items-center gap-4">
+        <a href="nodes.html" class="btn-ghost auto" style="width:40px; height:40px; border-radius:12px; display:flex; align-items:center; justify-content:center; border: 1px solid rgba(255,255,255,0.1);">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        </a>
+        <div>
+          <h1 id="vendorTitle" class="text-2xl font-black tracking-tighter text-white">VENDOR_INTEL</h1>
+          <div id="vendorSub" class="text-xs font-mono opacity-40 uppercase">DEEP_ANALYTICS_PROTOCOL_V4</div>
+        </div>
+      </div>
+      <div class="flex gap-2" id="headerBadges">
+        <!-- Badges dynamic -->
+      </div>
+    </div>
+
+    <!-- Main Stats -->
+    <div class="stat-hero">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+        <div class="text-center md:text-left">
+          <div class="text-[0.6rem] font-mono opacity-40 mb-1">TOTAL_RESOURCES</div>
+          <div id="statTotalKeys" class="text-3xl font-black text-white">--</div>
+        </div>
+        <div class="text-center md:text-left">
+          <div class="text-[0.6rem] font-mono opacity-40 mb-1">TOTAL_ENGAGEMENTS</div>
+          <div id="statTotalUsage" class="text-3xl font-black text-cyan">--</div>
+        </div>
+        <div class="text-center md:text-left">
+          <div class="text-[0.6rem] font-mono opacity-40 mb-1">REACH_COEFFICIENT</div>
+          <div id="statReach" class="text-3xl font-black text-purple-400">--</div>
+        </div>
+        <div class="text-center md:text-left">
+          <div class="text-[0.6rem] font-mono opacity-40 mb-1">UPTIME_NODE</div>
+          <div id="statUptime" class="text-3xl font-black text-emerald-400">99.9%</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts & Lists -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+      <!-- Left Column: Usage Patterns -->
+      <div class="lg:col-span-2 flex flex-col gap-6">
+        <div class="chart-box">
+          <h3 class="text-xs font-black mb-6 opacity-60 uppercase">Usage_Timeline (Last_14_Days)</h3>
+          <div id="usageTimeline" class="flex items-end justify-between h-40 gap-2 px-2">
+            <!-- Spark bars dynamic -->
+          </div>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="chart-box">
+            <h3 class="text-xs font-black mb-6 opacity-60 uppercase">Top_Hardware_Distribution</h3>
+            <div id="brandList" class="flex flex-col gap-4">
+              <!-- Brand rows dynamic -->
+            </div>
+          </div>
+          <div class="chart-box">
+            <h3 class="text-xs font-black mb-6 opacity-60 uppercase">Geographic_Intel</h3>
+            <div id="regionList" class="flex flex-col gap-4">
+              <!-- Region rows dynamic -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Recent Feed -->
+      <div class="chart-box">
+        <h3 class="text-xs font-black mb-6 opacity-60 uppercase">Live_Verification_Stream</h3>
+        <div id="activityLog" class="flex flex-col gap-3 overflow-y-auto pr-2" style="max-height: 500px;">
+          <!-- Log items dynamic -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer Actions -->
+    <div class="flex justify-between items-center py-6 border-t border-white/5 opacity-50 text-[0.6rem] font-mono">
+      <div>PROTOCOL: VENDOR_SECURE_AUDIT // ID: <span id="footerId">--</span></div>
+      <div class="flex gap-4">
+        <button onclick="exportData()" class="hover:text-gold transition-colors">EXPORT_DATA</button>
+        <button onclick="window.print()" class="hover:text-cyan transition-colors">GENERATE_PDF</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="core.js"></script>
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const vendorId = urlParams.get('vendorId');
+
+    if (!vendorId) {
+      window.location.href = 'nodes.html';
+    }
+
+    async function initAnalysis() {
+      document.getElementById('footerId').textContent = vendorId;
+      document.getElementById('vendorTitle').textContent = vendorId;
+      
+      try {
+        const data = await api(`/api/vault/admin/vendor/${vendorId}/analytics`);
+        
+        // Populate Summary
+        document.getElementById('statTotalKeys').textContent = data.summary.total_codes;
+        document.getElementById('statTotalUsage').textContent = data.summary.total_usage;
+        document.getElementById('statReach').textContent = (data.top_regions?.length || 0) + ' REG';
+        
+        // Header Badges
+        const badges = document.getElementById('headerBadges');
+        badges.innerHTML = `
+          <span class="tag-badge" style="background: rgba(0,229,255,0.1); color: var(--cyan); border: 1px solid rgba(0,229,255,0.2);">NODE_ONLINE</span>
+          <span class="tag-badge" style="background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1);">V_ALPHA</span>
+        `;
+
+        // Brand Chart
+        const bList = document.getElementById('brandList');
+        const maxBrand = Math.max(...(data.top_brands || []).map(b => b.count), 1);
+        bList.innerHTML = (data.top_brands || []).map(b => `
+          <div class="flex flex-col gap-1">
+            <div class="flex justify-between text-[0.65rem] font-bold">
+              <span>${b.brand}</span>
+              <span class="opacity-40">${b.count}</span>
+            </div>
+            <div class="pulse-bar">
+              <div class="pulse-bar-fill" style="width: ${(b.count/maxBrand)*100}%; background: var(--gold);"></div>
+            </div>
+          </div>
+        `).join('') || '<div class="text-center opacity-20 text-xs py-8">NO_DATA_BUFFERED</div>';
+
+        // Region Chart
+        const rList = document.getElementById('regionList');
+        const maxRegion = Math.max(...(data.top_regions || []).map(r => r.count), 1);
+        rList.innerHTML = (data.top_regions || []).map(r => `
+          <div class="flex flex-col gap-1">
+            <div class="flex justify-between text-[0.65rem] font-bold">
+              <span>${r.region}</span>
+              <span class="opacity-40">${r.count}</span>
+            </div>
+            <div class="pulse-bar">
+              <div class="pulse-bar-fill" style="width: ${(r.count/maxRegion)*100}%; background: var(--cyan);"></div>
+            </div>
+          </div>
+        `).join('') || '<div class="text-center opacity-20 text-xs py-8">NO_DATA_BUFFERED</div>';
+
+        // Usage Timeline (Sparklines)
+        const timeline = document.getElementById('usageTimeline');
+        const maxTime = Math.max(...(data.timeline || []).map(t => t.count), 1);
+        timeline.innerHTML = (data.timeline || []).map(t => {
+            const dayStr = typeof t.day === 'string' ? t.day : new Date(t.day).toISOString().split('T')[0];
+            return `
+          <div class="flex-1 group relative">
+            <div class="bg-white/5 group-hover:bg-cyan/30 transition-all rounded-t-sm w-full" style="height: ${(t.count/maxTime)*100}%;"></div>
+            <div class="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[0.4rem] font-mono opacity-0 group-hover:opacity-40 transition-opacity whitespace-nowrap">${dayStr.split('-').slice(1).join('/')}</div>
+          </div>
+        `}).join('');
+
+        // Recent Activity
+        const feed = document.getElementById('activityLog');
+        feed.innerHTML = (data.recent_activity || []).map(a => `
+          <div class="flex justify-between items-center p-3 rounded-xl bg-white/2 border border-white/5 hover:border-white/10 transition-all">
+            <div>
+              <div class="text-[0.7rem] font-black">${esc(a.user_ign)}</div>
+              <div class="text-[0.55rem] font-mono opacity-40 uppercase">${a.brand || 'GENERIC'} ${a.model || 'UNIT'}</div>
+            </div>
+            <div class="text-right">
+              <div class="text-[0.55rem] font-mono text-cyan">${a.user_region || 'GLB'}</div>
+              <div class="text-[0.45rem] font-mono opacity-20">${new Date(a.used_at).toLocaleTimeString()}</div>
+            </div>
+          </div>
+        `).join('') || '<div class="text-center opacity-20 text-xs py-12">STREAM_EMPTY</div>';
+
+      } catch (err) {
+        console.error(err);
+        adminNotify('ANALYTICS_UPLINK_FAILURE', 'error');
+      }
+    }
+
+    function exportData() {
+      adminNotify('EXPORT_PROTOCOL_INITIATED', 'success');
+    }
+
+    initAnalysis();
+  </script>
+</body>
+</html>

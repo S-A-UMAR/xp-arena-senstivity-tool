@@ -322,6 +322,9 @@ async function authenticateAdmin(req, res, next) {
         if (!token) return res.status(401).json({ error: 'Unauthorized' });
         const payload = jwt.verify(token, secret);
         if (payload.role !== 'admin') return res.status(401).json({ error: 'Unauthorized' });
+        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
         return next();
     } catch (_err) {
         return res.status(401).json({ error: 'Unauthorized' });

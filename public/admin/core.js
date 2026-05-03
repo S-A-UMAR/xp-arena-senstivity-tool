@@ -29,7 +29,8 @@ async function adminFetch(url, options = {}) {
     const res = await fetch(url, {
       ...fetchOptions,
       headers,
-      credentials: 'include'
+      credentials: 'include',
+      cache: 'no-store'
     });
     
     if (autoRedirect401 && res.status === 401) {
