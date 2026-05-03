@@ -92,7 +92,7 @@ const ThemeManager = {
         fab.id = 'axpSettingsFAB';
         fab.style.cssText = `
             position: fixed;
-            bottom: 24px;
+            bottom: 120px;
             right: 24px;
             width: 52px;
             height: 52px;
@@ -245,7 +245,7 @@ const ThemeManager = {
         fab.id = 'globalHelpFab';
         fab.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`;
         fab.style.cssText = `
-            position: fixed; bottom: 24px; left: 24px; width: 44px; height: 44px;
+            position: fixed; bottom: 120px; left: 24px; width: 44px; height: 44px;
             background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255,255,255,0.1);
             border-radius: 14px; display: flex; align-items: center; justify-content: center;
             color: var(--tx-muted); cursor: pointer; z-index: 10000; backdrop-filter: blur(10px);

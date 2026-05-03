@@ -142,14 +142,32 @@ body {
 /* ── Success Overlays & Sheets ───────────────── */
 .admin-sheet {
   position: fixed; bottom: -110%; left: 0; right: 0;
-  background: #0a1128; border-radius: 24px 24px 0 0; padding: 2rem 1.5rem 3rem;
-  z-index: 1000; transition: all 0.45s cubic-bezier(0.22,1,0.36,1);
-  border-top: 1px solid var(--gold-border); max-height: 92vh; overflow-y: auto;
+  background: linear-gradient(180deg, rgba(10, 17, 40, 0.95), rgba(4, 9, 22, 0.98));
+  backdrop-filter: blur(30px) saturate(180%);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  border-radius: 32px 32px 0 0; 
+  padding: 2.5rem 1.5rem 4rem;
+  z-index: 1000; 
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  border-top: 1px solid var(--gold);
+  max-height: 94vh; 
+  overflow-y: auto;
+  box-shadow: 0 -20px 80px rgba(0,0,0,0.8), 0 0 40px rgba(245, 158, 11, 0.1);
 }
+
+.admin-sheet::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: repeating-linear-gradient(0deg, rgba(255,255,255,0.01) 0px, rgba(255,255,255,0.01) 1px, transparent 1px, transparent 2px);
+  pointer-events: none;
+  opacity: 0.5;
+}
+
 .admin-sheet.active { bottom: 0; }
 .sheet-overlay {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px);
-  z-index: 999; opacity: 0; visibility: hidden; transition: 0.3s;
+  position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(12px);
+  z-index: 999; opacity: 0; visibility: hidden; transition: all 0.4s;
 }
 .sheet-overlay.active { opacity: 1; visibility: visible; }
 
@@ -160,24 +178,41 @@ body {
 }
 
 /* ── Form Inputs ─────────────────────────────── */
-.input-wrap { display: flex; flex-direction: column; gap: 0.5rem; }
+.input-wrap { display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 0.5rem; }
 .input-wrap label {
-  font-size: 0.58rem; font-weight: 800; color: var(--gold);
-  letter-spacing: 0.1em; text-transform: uppercase;
+  font-size: 0.6rem; font-weight: 900; color: var(--gold);
+  letter-spacing: 0.15em; text-transform: uppercase;
+  padding-left: 4px;
+  display: flex; align-items: center; gap: 6px;
+}
+.input-wrap label::before {
+  content: ''; width: 4px; height: 4px; background: var(--gold); border-radius: 50%;
+  box-shadow: 0 0 8px var(--gold);
 }
 .input-wrap input,
 .input-wrap select {
-  background: rgba(0,0,0,0.4); border: 1px solid var(--gold-border);
-  border-radius: var(--r-md); padding: 0.65rem 0.9rem;
-  color: #fff; font-family: var(--font-mono); font-size: 0.78rem;
-  outline: none; width: 100%; transition: border-color 0.2s, box-shadow 0.2s;
+  background: rgba(0,0,0,0.5); 
+  border: 1.5px solid rgba(245, 158, 11, 0.15);
+  border-radius: 16px; 
+  padding: 1rem 1.2rem;
+  color: #fff; 
+  font-family: var(--font-mono); 
+  font-size: 0.85rem;
+  font-weight: 700;
+  outline: none; 
+  width: 100%; 
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   box-sizing: border-box;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
 }
 .input-wrap input:focus,
 .input-wrap select:focus {
-  border-color: var(--gold); box-shadow: 0 0 12px var(--gold-glow);
+  border-color: var(--gold); 
+  background: rgba(245, 158, 11, 0.05);
+  box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.1), 0 0 24px rgba(245, 158, 11, 0.1);
+  transform: translateY(-1px);
 }
-.input-wrap select option { background: #0a1128; }
+.input-wrap select option { background: #0a1128; color: #fff; }
 
 /* Legacy class aliases for inline styled inputs */
 .border-gold { border: 1px solid var(--gold-border); }

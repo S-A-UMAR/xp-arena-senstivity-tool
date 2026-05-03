@@ -23,52 +23,62 @@
 
   <!-- Action Sheet (Bulk Generate) -->
   <div id="bulkSheet" class="admin-sheet">
-    <h3 style="color:var(--gold); font-size:1rem; font-weight:900; margin-bottom:1.5rem; letter-spacing:0.05em;">BULK_PROVISION_NODES</h3>
-    <div class="flex flex-col gap-4">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2rem;">
+      <h3 style="color:var(--gold); font-size:1.1rem; font-weight:900; letter-spacing:0.1em; margin:0;">BULK_PROVISION</h3>
+      <button class="btn-ghost auto" onclick="toggleBulkSheet(false)" style="border:none; font-size:1.5rem; color:var(--tx-muted);">&times;</button>
+    </div>
+    
+    <div class="flex flex-col gap-5">
       <input type="hidden" id="bulk_vid">
       <div class="input-wrap">
         <label>NODE_COUNT (1-100)</label>
-        <input type="number" id="bulk_count" value="10" min="1" max="100" class="p-2 w-full bg-dark border-gold rounded text-white">
+        <input type="number" id="bulk_count" value="10" min="1" max="100" placeholder="ENTER_COUNT">
       </div>
       <div class="input-wrap">
         <label>BRAND_IDENTIFIER</label>
-        <input type="text" id="bulk_brand" placeholder="BULK_PROVISION" class="p-2 w-full bg-dark border-gold rounded text-white">
+        <input type="text" id="bulk_brand" placeholder="e.g. ALPHA_TEAM">
       </div>
-      <button class="btn-cta gold w-full mt-2" onclick="bulkGenerate()">GENERATE_BATCH</button>
-      <div id="bulkProgress" class="text-xs font-mono text-center opacity-50">READY</div>
+      <button class="btn-gaming btn-gaming-primary w-full mt-4" onclick="bulkGenerate()" style="background:var(--gold); color:#000; box-shadow:0 0 30px rgba(245,158,11,0.3);">INITIALIZE_BATCH</button>
+      <div id="bulkProgress" class="text-xs font-mono text-center opacity-50 mt-2">READY_FOR_UPLINK</div>
     </div>
   </div>
 
   <!-- Action Sheet (Add Vendor) -->
   <div id="sheetOverlay" class="sheet-overlay" onclick="toggleActionSheet(false)"></div>
   <div id="actionSheet" class="admin-sheet">
-    <h3 style="color:var(--gold); font-size:1rem; font-weight:900; margin-bottom:1.5rem; letter-spacing:0.05em;">PROVISION_NEW_NODE</h3>
-    <div class="flex flex-col gap-4">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2rem;">
+      <h3 style="color:var(--gold); font-size:1.1rem; font-weight:900; letter-spacing:0.1em; margin:0;">PROVISION_NODE</h3>
+      <button class="btn-ghost auto" onclick="toggleActionSheet(false)" style="border:none; font-size:1.5rem; color:var(--tx-muted);">&times;</button>
+    </div>
+
+    <div class="flex flex-col gap-5">
       <div class="input-wrap">
-        <label>VENDOR_ID (UNQIUE)</label>
-        <input type="text" id="v_id" placeholder="e.g. AX-PRO-99" class="p-2 w-full bg-dark border-gold rounded text-white">
+        <label>VENDOR_ID (UNIQUE)</label>
+        <input type="text" id="v_id" placeholder="e.g. AX-PRO-99">
       </div>
       <div class="input-wrap">
-        <label>ACCESS_PHRASE (OPTIONAL)</label>
-        <input type="text" id="v_key" placeholder="LEAVE_BLANK_TO_AUTO_GENERATE" class="p-2 w-full bg-dark border-gold rounded text-white">
+        <label>ACCESS_PHRASE (SECURE)</label>
+        <input type="text" id="v_key" placeholder="AUTO_GENERATE_IF_BLANK">
       </div>
+      
       <div class="input-wrap">
         <label>MASTER_TIER</label>
-        <select id="v_tier" class="p-2 w-full bg-dark border-gold rounded text-white">
-          <option value="normal">NORMAL</option>
-          <option value="gold">GOLD</option>
-          <option value="premium">PREMIUM</option>
+        <select id="v_tier">
+          <option value="normal">TIER_NORMAL</option>
+          <option value="gold">TIER_GOLD</option>
+          <option value="premium">TIER_PREMIUM</option>
         </select>
       </div>
-      <div class="flex gap-2">
+
+      <div class="flex gap-4">
         <div class="input-wrap flex-1">
-          <label>GENERATION_LIMIT</label>
-          <input type="number" id="v_usage" placeholder="e.g. 500 (blank = ∞)" class="p-2 w-full bg-dark border-gold rounded text-white" min="1">
+          <label>LIMIT</label>
+          <input type="number" id="v_usage" placeholder="∞" min="1">
         </div>
         <div class="input-wrap flex-1">
           <label>DURATION</label>
-          <select id="v_duration" class="p-2 w-full bg-dark border-gold rounded text-white">
-            <option value="">INFINITE</option>
+          <select id="v_duration">
+            <option value="">PERMANENT</option>
             <option value="1">24_HOURS</option>
             <option value="7">7_DAYS</option>
             <option value="30">30_DAYS</option>
@@ -76,7 +86,8 @@
           </select>
         </div>
       </div>
-      <button class="btn-cta gold w-full mt-2" onclick="addVendor()">INITIALIZE_NODE</button>
+      
+      <button class="btn-gaming btn-gaming-primary w-full mt-6" onclick="addVendor()" style="background:var(--gold); color:#000; box-shadow:0 10px 40px rgba(245,158,11,0.4); font-size:1rem; padding:1.2rem;">INITIALIZE_NEURAL_NODE</button>
     </div>
   </div>
 
