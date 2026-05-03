@@ -1637,18 +1637,76 @@ router.get('/admin/vendors', authenticateAdmin, async (_req, res) => {
 
 router.get('/admin/vendor/:vendorId/analytics', authenticateAdmin, async (req, res) => {
     try {
+        const vid = req.params.vendorId;
+
+        // 1. Core Summary
+        const summary = await db.get(`
+            SELECT 
+                COUNT(*) as total_codes,
+                SUM(current_usage) as total_usage
+            FROM sensitivity_keys 
+            WHERE vendor_id = ?
+        `, [vid]);
+
+        // 2. Top Brands (Parsing JSON results)
+        // Note: We use a subquery to extract the brand from JSON and then count
+        const topBrands = await db.all(`
+            SELECT brand, COUNT(*) as count 
+            FROM (
+                SELECT JSON_UNQUOTE(JSON_EXTRACT(results_json, '$.brand')) as brand 
+                FROM sensitivity_keys 
+                WHERE vendor_id = ?
+            ) t 
+            WHERE brand IS NOT NULL AND brand != 'null'
+            GROUP BY brand 
+            ORDER BY count DESC 
+            LIMIT 5
+        `, [vid]);
+
+        // 3. Top Regions
+        const topRegions = await db.all(`
+            SELECT user_region as region, COUNT(*) as count 
+            FROM code_activity ca 
+            JOIN sensitivity_keys sk ON ca.lookup_key = sk.lookup_key 
+            WHERE sk.vendor_id = ?
+            GROUP BY user_region 
+            ORDER BY count DESC 
+            LIMIT 5
+        `, [vid]);
+
+        // 4. Activity Timeline (Last 14 days)
+        const timeline = await db.all(`
+            SELECT DATE(ca.used_at) as day, COUNT(*) as count
+            FROM code_activity ca
+            JOIN sensitivity_keys sk ON ca.lookup_key = sk.lookup_key
+            WHERE sk.vendor_id = ? AND ca.used_at > DATE_SUB(NOW(), INTERVAL 14 DAY)
+            GROUP BY day
+            ORDER BY day ASC
+        `, [vid]);
+
+        // 5. Recent Activity Feed
         const activities = await db.all(`
-            SELECT ca.*, sk.results_json
+            SELECT ca.*, JSON_UNQUOTE(JSON_EXTRACT(sk.results_json, '$.brand')) as brand, JSON_UNQUOTE(JSON_EXTRACT(sk.results_json, '$.model')) as model
             FROM code_activity ca
             JOIN sensitivity_keys sk ON ca.lookup_key = sk.lookup_key
             WHERE sk.vendor_id = ?
             ORDER BY ca.used_at DESC
-            LIMIT 50
-        `, [req.params.vendorId]);
-        return res.json(activities.map((activity) => ({ ...activity, results_json: jsonOrObject(activity.results_json, {}) })));
+            LIMIT 20
+        `, [vid]);
+
+        return res.json({
+            summary: {
+                total_codes: summary?.total_codes || 0,
+                total_usage: summary?.total_usage || 0
+            },
+            top_brands: topBrands,
+            top_regions: topRegions,
+            timeline: timeline,
+            recent_activity: activities
+        });
     } catch (err) {
         console.error('GET /vendor/analytics error:', err);
-        return res.status(500).json({ error: 'Server error' });
+        return res.status(500).json({ error: 'ANALYTICS_RETRIEVAL_FAILED', details: err.message });
     }
 });
 

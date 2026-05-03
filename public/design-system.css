@@ -46,9 +46,9 @@
   /* Text Hierarchy — 4 levels */
   --tx-hero:    #ffffff;
   --tx-body:    #e2e8f0;
-  --tx-sub:     #94a3b8;
-  --tx-muted:   #475569;
-  --tx-ghost:   #1e293b;
+  --tx-sub:     #a0aec0;
+  --tx-muted:   #718096;
+  --tx-ghost:   #4a5568;
 
   /* Borders */
   --bd-subtle:  rgba(255, 255, 255, 0.05);
@@ -368,6 +368,7 @@ body::before {
   color: var(--cyan);
   letter-spacing: 0.15em;
   text-transform: uppercase;
+  flex-shrink: 0;
 }
 
 .ph-title {
@@ -376,6 +377,16 @@ body::before {
   color: var(--tx-sub);
   letter-spacing: 0.05em;
   text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 0 1rem;
+  text-align: center;
+}
+
+@media (max-width: 420px) {
+  .ph-title { font-size: 0.7rem; margin: 0 0.5rem; }
+  .ph-logo { font-size: 0.65rem; letter-spacing: 0.05em; }
 }
 
 .ph-action {

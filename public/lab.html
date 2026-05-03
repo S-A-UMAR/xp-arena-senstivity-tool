@@ -469,13 +469,13 @@
 
   <div class="neural-grid"></div>
 
-  <header class="page-header" style="z-index: 1000; background: transparent; border: none;">
-    <a href="index.html" class="ph-back" style="background: rgba(255,255,255,0.05); padding: 0.5rem 1rem; border-radius: 12px; backdrop-filter: blur(10px);">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M19 12H5"/><polyline points="12 19 5 12 12 5"/></svg>
-      EXIT
+  <header class="page-header" style="z-index: 1000; background: transparent; border: none; padding-top: max(1rem, env(safe-area-inset-top));">
+    <a href="index.html" class="ph-back" style="background: rgba(255,255,255,0.05); padding: 0.5rem 1rem; border-radius: 12px; backdrop-filter: blur(10px); display: flex; align-items: center; gap: 8px;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="width: 14px;"><path d="M19 12H5"/><polyline points="12 19 5 12 12 5"/></svg>
+      <span style="font-size: 0.65rem; font-weight: 800;">EXIT</span>
     </a>
-    <div class="ph-title" style="letter-spacing: 0.3em; font-weight: 900; font-size: 0.7rem;">NEURAL_DIAGNOSTIC_HUB</div>
-    <div style="width: 50px;"></div>
+    <div class="ph-title" style="letter-spacing: 0.3em; font-weight: 900; font-size: 0.7rem; opacity: 0.6;">NEURAL_DIAGNOSTIC_HUB</div>
+    <div style="width: 80px;"></div>
   </header>
 
   <div id="gameZone"></div>
@@ -524,6 +524,8 @@
           <div class="mode-card" onclick="setMode('reflex', this)"><div class="mode-card-icon">⚡</div><div class="mode-card-title">REFLEX</div></div>
           <div class="mode-card" onclick="setMode('burst', this)"><div class="mode-card-icon">🔥</div><div class="mode-card-title">BURST</div></div>
           <div class="mode-card" onclick="setMode('drift', this)"><div class="mode-card-icon">🌀</div><div class="mode-card-title">DRIFT</div></div>
+          <div class="mode-card" onclick="setMode('sniper', this)"><div class="mode-card-icon">🎯</div><div class="mode-card-title">SNIPER</div></div>
+          <div class="mode-card" onclick="setMode('surge', this)"><div class="mode-card-icon">☢️</div><div class="mode-card-title">SURGE</div></div>
         </div>
 
         <button class="btn-cta cyan w-full" style="padding: 0.8rem; border-radius: 12px; font-size: 0.7rem;" onclick="startTest()">INITIALIZE_SCAN</button>
@@ -543,12 +545,13 @@
             <circle id="gaugeFill" class="gauge-fill" cx="80" cy="80" r="70" />
           </svg>
           <div class="gauge-content">
+            <div id="perfRank" style="font-size: 0.5rem; color: var(--lab-cyan); font-weight: 900; letter-spacing: 0.1em; margin-bottom: -5px;">--</div>
             <div class="diagnostic-val" id="finalAvg">--</div>
             <div class="diagnostic-unit" style="font-size: 0.5rem;">MS_LATENCY</div>
           </div>
         </div>
         <div id="finalRating" class="rating-badge rating-stable" style="width: 100%; margin-bottom: 0.5rem;">STABLE</div>
-        <div class="text-[0.55rem] font-mono text-cyan" id="finalPrecision">PRECISION: --%</div>
+        <div class="text-[0.55rem] font-mono text-cyan" id="finalPrecision" style="background: rgba(0,242,254,0.1); padding: 4px; border-radius: 4px;">PRECISION: --%</div>
       </div>
       
       <!-- Right: Narrative & Actions -->
@@ -616,7 +619,9 @@
         tracking: 'FOLLOW_TARGET_AND_TAP_REPEATEDLY',
         reflex: 'HIT_BEFORE_TARGET_DISAPPEARS',
         burst: 'CLEAR_ALL_NODES_IN_SEQUENCE',
-        drift: 'MAINTAIN_FOCUS_ON_MORPHING_TARGET'
+        drift: 'MAINTAIN_FOCUS_ON_MORPHING_TARGET',
+        sniper: 'EXTREME_PRECISION_REQUIRED_SMALL_TARGETS',
+        surge: 'ADAPTIVE_INTENSITY_PROGRESSIVE_SPEED'
       };
       document.getElementById('labHint').textContent = hints[mode] || 'INITIALIZING_MODE...';
     }
@@ -692,10 +697,36 @@
             }, 800);
         }
 
+        if (currentMode === 'sniper') {
+            target.style.width = '18px';
+            target.style.height = '18px';
+            target.style.borderWidth = '1px';
+            const sniperTimeout = setTimeout(() => {
+                if (target.parentElement) {
+                    target.style.opacity = '0';
+                    setTimeout(() => { if (target.parentElement) spawnTarget(); }, 150);
+                }
+            }, 400); // Very short window
+            target._sniperTimeout = sniperTimeout;
+        }
+
+        if (currentMode === 'surge') {
+            const speedScale = Math.max(0.2, 1 - (hits / 50)); // Gets faster!
+            const surgeTimeout = setTimeout(() => {
+                if (target.parentElement) {
+                    target.style.opacity = '0';
+                    setTimeout(() => { if (target.parentElement) spawnTarget(); }, 200 * speedScale);
+                }
+            }, 800 * speedScale);
+            target._surgeTimeout = surgeTimeout;
+        }
+
         const handleTrigger = (e) => {
             e.preventDefault();
             e.stopPropagation();
             if (target._reflexTimeout) clearTimeout(target._reflexTimeout);
+            if (target._sniperTimeout) clearTimeout(target._sniperTimeout);
+            if (target._surgeTimeout) clearTimeout(target._surgeTimeout);
             const clientX = e.clientX || (e.touches && e.touches[0].clientX);
             const clientY = e.clientY || (e.touches && e.touches[0].clientY);
             createLaserEffect(clientX, clientY);
@@ -818,24 +849,47 @@
         }, 100);
       }
 
-      // Generate AI Advice
+      // Generate Dynamic AI Advice
       const quoteEl = document.getElementById('advisorQuote');
-      let advice = "";
-      if (avg < 220) {
-        advice = `Based on your elite ${avg}ms reaction speed, a **High-Flick** sensitivity profile is recommended. Your neural pathways are optimized for rapid target acquisition.`;
-      } else if (avg < 350) {
-        advice = `With a sharp ${avg}ms response, a **Medium-Balanced** sensitivity is best. This will synchronize your speed with reliable recoil control for versatile combat.`;
-      } else if (avg < 500) {
-        advice = `Your ${avg}ms speed is steady. A **Medium-Low** sensitivity profile will provide the stability needed to maximize your ${precision}% precision rating.`;
-      } else {
-        advice = `Based on your deliberate ${avg}ms timing, a **Low-Precision** sensitivity is ideal. This ensures pixel-perfect tracking and minimizes over-correction.`;
-      }
+      const rankEl = document.getElementById('perfRank');
       
-      if (precision < 70) {
-        advice += " // Note: Neural stability is low; consider lowering sensitivity further to improve consistency.";
-      }
+      let rank = "RECRUIT";
+      let rankColor = "#94a3b8";
       
-      quoteEl.innerHTML = advice;
+      if (avg < 200 && precision > 90) { rank = "NEXUS_GOD"; rankColor = "var(--lab-cyan)"; }
+      else if (avg < 250 && precision > 85) { rank = "ELITE_OPERATOR"; rankColor = "var(--lab-violet)"; }
+      else if (avg < 300 && precision > 80) { rank = "DIAMOND_REACTION"; rankColor = "#3b82f6"; }
+      else if (avg < 400) { rank = "GOLD_STRIKER"; rankColor = "#f59e0b"; }
+      else { rank = "BRONZE_TRAINEE"; rankColor = "#94a3b8"; }
+      
+      if (rankEl) {
+        rankEl.textContent = rank;
+        rankEl.style.color = rankColor;
+      }
+
+      const commentary = {
+        speed: {
+          elite: "Your **Neural Latency** is at professional levels. You're effectively seeing the game in slow motion.",
+          sharp: "Excellent response time. Your motor functions are highly synchronized with visual stimuli.",
+          steady: "Consistent and deliberate. You have a solid foundation for competitive play.",
+          slow: "Reaction lag detected. Consider high-intensity warm-ups to sharpen your reflex nodes."
+        },
+        precision: {
+          perfect: "Your **Precision-Stability** is flawless. You possess the 'One-Tap' capability.",
+          good: "Strong target acquisition. Your crosshair placement is reliable under pressure.",
+          shaky: "Inconsistency in micro-adjustments found. Your flick control needs recalibration.",
+          sloppy: "Neural jitter identified. Practice calm target tracking to reduce over-corrections."
+        }
+      };
+
+      const speedKey = avg < 220 ? 'elite' : avg < 320 ? 'sharp' : avg < 450 ? 'steady' : 'slow';
+      const precKey = precision > 90 ? 'perfect' : precision > 75 ? 'good' : precision > 50 ? 'shaky' : 'sloppy';
+      
+      const finalAdvice = `${commentary.speed[speedKey]} ${commentary.precision[precKey]} 
+
+      **STRATEGIC_COMMAND:** Based on this data, we have optimized your vault results to prioritize **${avg < 280 ? 'AGILITY' : 'STABILITY'}** metrics.`;
+      
+      quoteEl.innerHTML = finalAdvice;
       
       try {
         const res = await fetch('/api/vault/diagnostics/submit', {

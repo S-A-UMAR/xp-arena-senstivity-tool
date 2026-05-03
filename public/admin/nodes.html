@@ -43,6 +43,50 @@
     </div>
   </div>
 
+  <!-- 📊 ANALYSIS_SHEET -->
+  <div id="analysisSheet" class="admin-sheet">
+    <div class="flex justify-between items-center mb-6">
+      <div>
+        <div class="flex items-center gap-3">
+          <h3 id="analysisTitle" style="color:var(--cyan); font-size:1.1rem; font-weight:900; letter-spacing:0.1em; margin:0;">VENDOR_ANALYSIS</h3>
+          <button class="btn-ghost auto" style="font-size: 0.5rem; padding: 2px 8px;" onclick="downloadAnalyticsCSV()">EXPORT_CSV</button>
+        </div>
+        <div id="analysisSub" class="text-xs font-mono opacity-40">DEEP_DATA_CORE_ACCESS</div>
+      </div>
+      <button class="btn-ghost auto" style="width:36px; height:36px; border-radius:50%; padding:0; display:flex; align-items:center; justify-content:center; color:var(--tx-muted);" onclick="toggleAnalysisSheet(false)">✕</button>
+    </div>
+
+    <div class="analytics-grid">
+      <div class="metric-card">
+        <div id="metricTotalKeys" class="metric-val">--</div>
+        <div class="metric-label">TOTAL_KEYS</div>
+      </div>
+      <div class="metric-card">
+        <div id="metricTotalUsage" class="metric-val">--</div>
+        <div class="metric-label">ENGAGEMENTS</div>
+      </div>
+    </div>
+
+    <div class="stats-panel mb-6">
+      <div class="section-eyebrow mb-4" style="font-size:0.5rem;">TOP_PERFORMING_BRANDS</div>
+      <div id="brandList">
+        <div class="text-center py-4 opacity-20 text-xs font-mono">COLLECTING_BRAND_DATA...</div>
+      </div>
+    </div>
+
+    <div class="stats-panel mb-6">
+      <div class="section-eyebrow mb-4" style="font-size:0.5rem;">REGIONAL_DISTRIBUTION</div>
+      <div id="regionList">
+        <div class="text-center py-4 opacity-20 text-xs font-mono">MAPPING_GEOLOCATION...</div>
+      </div>
+    </div>
+
+    <div class="section-eyebrow mb-3" style="font-size:0.5rem;">RECENT_ACCESS_FEED</div>
+    <div id="activityFeed" class="activity-feed">
+      <div class="text-center py-8 opacity-20 text-xs font-mono">INITIALIZING_STREAM...</div>
+    </div>
+  </div>
+
   <!-- Action Sheet (Add Vendor) -->
   <div id="sheetOverlay" class="sheet-overlay" onclick="toggleActionSheet(false)"></div>
   <div id="actionSheet" class="admin-sheet">
@@ -203,6 +247,7 @@
           <div class="flex flex-wrap gap-2 mt-2 pt-4 border-t border-white-5">
             <button class="btn-ghost auto flex-1" style="font-size: 0.65rem; font-weight: 800; padding: 0.65rem;" onclick="copyVendorLink('${v.vendor_id}')">UPLINK</button>
             <button class="btn-ghost auto flex-1" style="font-size: 0.65rem; font-weight: 800; padding: 0.65rem; color: var(--gold);" onclick="openRedownloadCard('${v.vendor_id}')">CARD</button>
+            <button class="btn-ghost auto" style="font-size: 0.65rem; font-weight: 800; padding: 0.65rem 1rem; color: var(--cyan);" onclick="openAnalysis('${v.vendor_id}')">ANALYSIS</button>
             <button class="btn-ghost auto" style="font-size: 0.65rem; font-weight: 800; padding: 0.65rem 1rem; color: var(--cyan);" onclick="toggleBulkSheet(true, '${v.vendor_id}')">BULK</button>
             <button class="btn-ghost auto" style="font-size: 0.65rem; font-weight: 800; padding: 0.65rem 1rem; color: ${v.status === 'active' ? 'var(--gold)' : 'var(--success)'};" onclick="toggleSuspension('${v.vendor_id}', '${v.status}')">
               ${v.status === 'active' ? 'SUSPEND' : 'ACTIVATE'}
@@ -211,6 +256,95 @@
           </div>
         </div>
       `}).join('');
+    }
+
+    async function openAnalysis(vid) {
+      toggleAnalysisSheet(true);
+      document.getElementById('analysisTitle').textContent = vid;
+      
+      try {
+        const data = await api(`/api/vault/admin/vendor/${vid}/analytics`);
+        window.currentAnalysisData = { vid, ...data }; // Cache for export
+        
+        // Populate Summary
+        document.getElementById('metricTotalKeys').textContent = data.summary.total_codes;
+        document.getElementById('metricTotalUsage').textContent = data.summary.total_usage;
+        
+        // Populate Brands
+        const bList = document.getElementById('brandList');
+        const maxBrand = Math.max(...data.top_brands.map(b => b.count), 1);
+        bList.innerHTML = data.top_brands.map(b => `
+          <div class="stat-row">
+            <div class="text-[0.6rem] font-mono font-bold w-20">${b.brand}</div>
+            <div class="stat-bar-container">
+              <div class="stat-bar-fill" style="width:${(b.count/maxBrand)*100}%; background: var(--gold);"></div>
+            </div>
+            <div class="text-[0.6rem] font-mono opacity-50">${b.count}</div>
+          </div>
+        `).join('') || '<div class="text-center py-4 opacity-20 text-xs">NO_BRAND_DATA</div>';
+
+        // Populate Regions
+        const rList = document.getElementById('regionList');
+        const maxRegion = Math.max(...data.top_regions.map(r => r.count), 1);
+        rList.innerHTML = data.top_regions.map(r => `
+          <div class="stat-row">
+            <div class="text-[0.6rem] font-mono font-bold w-20">${r.region}</div>
+            <div class="stat-bar-container">
+              <div class="stat-bar-fill" style="width:${(r.count/maxRegion)*100}%; background: var(--cyan);"></div>
+            </div>
+            <div class="text-[0.6rem] font-mono opacity-50">${r.count}</div>
+          </div>
+        `).join('') || '<div class="text-center py-4 opacity-20 text-xs">NO_REGION_DATA</div>';
+
+        // Populate Feed
+        const feed = document.getElementById('activityFeed');
+        feed.innerHTML = data.recent_activity.map(a => `
+          <div class="feed-item">
+            <div>
+              <div class="text-[0.65rem] font-black">${esc(a.user_ign)}</div>
+              <div class="text-[0.55rem] font-mono opacity-40 uppercase">${a.brand || 'GENERIC'} ${a.model || 'UNIT'}</div>
+            </div>
+            <div class="text-right">
+              <div class="text-[0.55rem] font-mono text-cyan">${a.user_region || 'GLB'}</div>
+              <div class="text-[0.45rem] font-mono opacity-20">${new Date(a.used_at).toLocaleTimeString()}</div>
+            </div>
+          </div>
+        `).join('') || '<div class="text-center py-8 opacity-20 text-xs">NO_RECENT_ACTIVITY</div>';
+
+      } catch (e) {
+        adminNotify('ANALYTICS_CORE_FAILURE', 'error');
+      }
+    }
+
+    function downloadAnalyticsCSV() {
+      const data = window.currentAnalysisData;
+      if (!data) return adminNotify('NO_DATA_TO_EXPORT', 'error');
+      
+      let csv = "Timestamp,User,Region,Brand,Model\n";
+      data.recent_activity.forEach(a => {
+        csv += `${new Date(a.used_at).toISOString()},${a.user_ign},${a.user_region},${a.brand},${a.model}\n`;
+      });
+      
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.setAttribute('hidden', '');
+      a.setAttribute('href', url);
+      a.setAttribute('download', `AXP_ANALYTICS_${data.vid}_${Date.now()}.csv`);
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+
+    function toggleAnalysisSheet(show) {
+      const sheet = document.getElementById('analysisSheet');
+      sheet.style.bottom = show ? '0' : '-110%';
+      if (!show) {
+        window.currentAnalysisData = null; // Clear cache
+        ['brandList', 'regionList', 'activityFeed'].forEach(id => {
+          document.getElementById(id).innerHTML = '<div class="text-center py-4 opacity-20 text-xs font-mono">RESETTING_BUFFERS...</div>';
+        });
+      }
     }
 
     async function toggleSuspension(vid, currentStatus) {
