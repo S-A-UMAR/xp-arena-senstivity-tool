@@ -25,285 +25,843 @@
 
     /* Cyber Grid Background */
     .neural-grid {
-      position: fixed; inset: 0;
+      position: fixed;
+      inset: 0;
       background-image: 
         linear-gradient(rgba(0, 242, 254, 0.05) 1px, transparent 1px),
         linear-gradient(90deg, rgba(0, 242, 254, 0.05) 1px, transparent 1px);
       background-size: 60px 60px;
-      z-index: 1; pointer-events: none;
+      z-index: 1;
+      pointer-events: none;
     }
     .neural-grid::before {
-      content: ''; position: absolute; inset: 0;
+      content: '';
+      position: absolute;
+      inset: 0;
       background: linear-gradient(to bottom, rgba(0, 242, 254, 0.05) 1px, transparent 1px);
-      background-size: 100% 4px; animation: scanline 8s linear infinite;
+      background-size: 100% 4px;
+      animation: scanline 8s linear infinite;
     }
     .neural-grid::after {
-      content: ''; position: absolute; inset: 0;
+      content: '';
+      position: absolute;
+      inset: 0;
       background: radial-gradient(circle at 50% 50%, transparent 20%, #020617 90%);
     }
-    @keyframes scanline { 0% { transform: translateY(0); } 100% { transform: translateY(100vh); } }
+    @keyframes scanline {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(100vh); }
+    }
 
-    #gameZone { position: absolute; inset: 0; z-index: 5; }
+    /* Target Styles */
+    #gameZone {
+      position: absolute;
+      inset: 0;
+      z-index: 5;
+    }
 
     .lab-target {
-      position: absolute; width: 58px; height: 58px;
+      position: absolute;
+      width: 58px;
+      height: 58px;
       background: radial-gradient(circle, rgba(0, 242, 254, 0.2) 0%, transparent 70%);
-      border: 1.5px solid var(--lab-cyan); border-radius: 12px;
-      box-shadow: 0 0 30px var(--lab-glow); cursor: crosshair; z-index: 10;
-      display: flex; align-items: center; justify-content: center;
+      border: 1.5px solid var(--lab-cyan);
+      border-radius: 12px; /* Square with rounded corners for industrial feel */
+      box-shadow: 0 0 30px var(--lab-glow);
+      cursor: crosshair;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       animation: targetSpawn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
     }
-    .lab-target::before { content: ''; position: absolute; inset: 4px; border: 1px solid rgba(0, 242, 254, 0.3); border-radius: 8px; }
-    .lab-target::after { content: ''; width: 6px; height: 6px; background: white; border-radius: 1px; box-shadow: 0 0 15px white; transform: rotate(45deg); }
+    .lab-target::before {
+      content: '';
+      position: absolute;
+      inset: 4px;
+      border: 1px solid rgba(0, 242, 254, 0.3);
+      border-radius: 8px;
+    }
+    .lab-target::after {
+      content: '';
+      width: 6px; height: 6px;
+      background: white;
+      border-radius: 1px;
+      box-shadow: 0 0 15px white;
+      transform: rotate(45deg);
+    }
     
-    @keyframes targetSpawn { 0% { transform: scale(0) rotate(-45deg); opacity: 0; } 100% { transform: scale(1) rotate(0); opacity: 1; } }
+    @keyframes targetSpawn {
+      0% { transform: scale(0) rotate(-45deg); opacity: 0; }
+      100% { transform: scale(1) rotate(0); opacity: 1; }
+    }
 
+    /* UI Layers */
     .lab-ui {
-      position: fixed; inset: 0; pointer-events: none; z-index: 20;
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 20;
       padding: env(safe-area-inset-top) 1.5rem env(safe-area-inset-bottom);
-      display: flex; flex-direction: column; justify-content: space-between;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
     }
 
     .lab-stats-top {
-      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-top: 1rem;
-      padding: 0.75rem; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05);
-      border-radius: 20px; backdrop-filter: blur(20px); pointer-events: all;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 1rem;
+      margin-top: 1rem;
+      padding: 0.75rem;
+      background: rgba(0,0,0,0.4);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 20px;
+      backdrop-filter: blur(20px);
+      pointer-events: all;
     }
 
-    .stat-pill { text-align: center; padding: 0.5rem; position: relative; }
-    .stat-pill:not(:last-child)::after { content: ''; position: absolute; right: -0.5rem; top: 20%; bottom: 20%; width: 1px; background: rgba(255,255,255,0.1); }
+    .stat-pill {
+      text-align: center;
+      padding: 0.5rem;
+      position: relative;
+    }
+    .stat-pill:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      right: -0.5rem; top: 20%; bottom: 20%;
+      width: 1px; background: rgba(255,255,255,0.1);
+    }
 
-    .progress-track { position: fixed; top: 0; left: 0; right: 0; bottom: 0; border: 2px solid transparent; z-index: 1000; pointer-events: none; }
-    .progress-fill { position: absolute; top: 0; left: 0; height: 2px; width: 0%; background: var(--lab-cyan); box-shadow: 0 0 20px var(--lab-cyan); transition: width 0.1s linear; }
+    .progress-track {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      border: 2px solid transparent;
+      z-index: 1000;
+      pointer-events: none;
+    }
+    .progress-fill {
+      position: absolute;
+      top: 0; left: 0;
+      height: 2px; width: 0%;
+      background: var(--lab-cyan);
+      box-shadow: 0 0 20px var(--lab-cyan);
+      transition: width 0.1s linear;
+    }
 
-    .rating-badge { font-size: 0.5rem; font-weight: 900; padding: 2px 8px; border-radius: 4px; margin-top: 4px; letter-spacing: 0.1em; text-transform: uppercase; display: inline-block; transition: all 0.3s; }
+    .rating-badge {
+      font-size: 0.5rem;
+      font-weight: 900;
+      padding: 2px 8px;
+      border-radius: 4px;
+      margin-top: 4px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      display: inline-block;
+      transition: all 0.3s;
+    }
     .rating-stable { background: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid #ef4444; }
     .rating-good { background: rgba(245, 158, 11, 0.2); color: #f59e0b; border: 1px solid #f59e0b; }
     .rating-perfect { background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid #10b981; }
     .rating-unstoppable { background: rgba(0, 242, 254, 0.2); color: var(--lab-cyan); border: 1px solid var(--lab-cyan); box-shadow: 0 0 15px var(--lab-glow); }
 
     .lab-overlay {
-      position: fixed; inset: 0; background: rgba(2, 6, 23, 0.98); z-index: 100;
-      display: flex; align-items: center; justify-content: center; padding: 1.5rem;
-      pointer-events: all; backdrop-filter: blur(10px);
+      position: fixed;
+      inset: 0;
+      background: rgba(2, 6, 23, 0.98);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      pointer-events: all;
+      backdrop-filter: blur(10px);
     }
 
-    /* 📊 CERTIFICATE_STYLE_RESULT */
-    .certificate-card {
-      background: linear-gradient(165deg, #0f172a 0%, #020617 100%);
-      border: 1px solid rgba(255,255,255,0.1); border-radius: 4px;
-      width: 100%; max-width: 420px; padding: 2.5rem; position: relative;
-      box-shadow: 0 40px 100px rgba(0,0,0,0.8); overflow: hidden; color: #fff; text-align: left;
+    /* Holographic Result Card Upgrade */
+    /* Landscape Diagnostic Console */
+    .diagnostic-card {
+      width: 100%;
+      max-width: 600px; /* Wider for landscape */
+      background: linear-gradient(165deg, rgba(15, 23, 42, 0.95), rgba(2, 6, 23, 0.98));
+      border: 1px solid rgba(0, 242, 254, 0.2);
+      border-radius: 28px;
+      padding: 2rem;
+      text-align: left; /* Left align for landscape */
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 40px 100px rgba(0,0,0,0.9), 0 0 40px rgba(0, 242, 254, 0.1);
+      backdrop-filter: blur(25px);
+      display: flex;
+      flex-direction: row; /* Horizontal! */
+      gap: 2rem;
+      align-items: center;
     }
-    .cert-header { border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 1rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: flex-end; }
-    .cert-logo { font-weight: 900; font-size: 1.2rem; letter-spacing: -0.05em; color: var(--lab-cyan); }
-    .cert-id { font-family: monospace; font-size: 0.6rem; opacity: 0.4; }
 
-    .metrics-cluster { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 1rem; }
-    .metric-box { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 12px; border-radius: 4px; text-align: center; }
-    .mb-val { font-size: 1.3rem; font-weight: 950; display: block; line-height: 1; margin-bottom: 4px; }
-    .mb-label { font-size: 0.45rem; font-family: monospace; opacity: 0.4; text-transform: uppercase; letter-spacing: 0.1em; }
+    @media (max-width: 600px) {
+      .diagnostic-card { flex-direction: column; text-align: center; max-width: 320px; padding: 1.5rem; gap: 1rem; }
+    }
+    
+    .diagnostic-card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(125deg, transparent 40%, rgba(0, 242, 254, 0.1) 50%, transparent 60%);
+      background-size: 200% 200%;
+      animation: holoShimmer 6s infinite linear;
+      pointer-events: none;
+    }
 
-    .narrative-box { background: rgba(0, 242, 254, 0.03); border-left: 2px solid var(--lab-cyan); padding: 1.2rem; font-size: 0.75rem; line-height: 1.6; margin-bottom: 1.5rem; color: rgba(255,255,255,0.8); font-family: 'JetBrains Mono', monospace; }
+    @keyframes holoShimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
 
-    .btn-cta { border: none; padding: 1rem 2rem; border-radius: 4px; font-weight: 900; letter-spacing: 0.1em; cursor: pointer; transition: 0.3s; text-transform: uppercase; display: flex; align-items: center; justify-content: center; gap: 10px; }
-    .btn-cta.cyan { background: var(--lab-cyan); color: #000; }
-    .btn-cta.ghost { background: rgba(255,255,255,0.03); color: #fff; border: 1px solid rgba(255,255,255,0.1); }
-    .btn-cta:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0, 242, 254, 0.2); }
+    .diagnostic-gauge-wrap {
+      position: relative;
+      width: 140px; /* Slightly smaller for landscape */
+      height: 140px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    
+    .gauge-svg {
+      transform: rotate(-90deg);
+      width: 100%;
+      height: 100%;
+    }
+    
+    .gauge-bg {
+      fill: none;
+      stroke: rgba(255,255,255,0.05);
+      stroke-width: 8;
+    }
+    
+    .gauge-fill {
+      fill: none;
+      stroke: var(--lab-cyan);
+      stroke-width: 8;
+      stroke-dasharray: 440;
+      stroke-dashoffset: 440;
+      stroke-linecap: round;
+      transition: stroke-dashoffset 2s cubic-bezier(0.16, 1, 0.3, 1);
+      filter: drop-shadow(0 0 10px var(--lab-cyan));
+    }
 
-    .mode-grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.75rem; margin: 2rem 0; }
-    .mode-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 0.75rem 0.25rem; cursor: pointer; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); display: flex; flex-direction: column; align-items: center; gap: 0.4rem; position: relative; overflow: hidden; }
-    .mode-card.active { background: rgba(0, 242, 254, 0.08); border-color: rgba(0, 242, 254, 0.3); box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4), inset 0 0 10px rgba(0, 242, 254, 0.1); transform: translateY(-2px); }
-    .mode-card-icon { font-size: 1.1rem; }
+    .gauge-content {
+      position: absolute;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    .diagnostic-val {
+      font-size: 2.2rem; /* Adjusted for landscape */
+      font-weight: 950;
+      background: linear-gradient(to bottom, #fff, var(--lab-cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 0 15px rgba(0, 242, 254, 0.4));
+      line-height: 1;
+    }
+    
+    .diagnostic-unit {
+      font-size: 0.7rem;
+      font-weight: 800;
+      color: var(--lab-cyan);
+      letter-spacing: 0.2em;
+      margin-top: 4px;
+      opacity: 0.8;
+    }
+
+    .id-seal {
+      background: rgba(0, 242, 254, 0.05);
+      border: 1px dashed rgba(0, 242, 254, 0.3);
+      padding: 1rem 2rem;
+      border-radius: 16px;
+      font-family: var(--font-mono);
+      font-size: 1.25rem;
+      font-weight: 900;
+      letter-spacing: 0.2em;
+      color: var(--lab-cyan);
+      margin: 1.5rem 0;
+      display: inline-block;
+      text-shadow: 0 0 10px rgba(0, 242, 254, 0.5);
+      animation: pulse 2s infinite;
+    }
+
+    /* Result Card Premium Upgrades */
+    .diagnostic-card {
+      background: linear-gradient(165deg, rgba(15, 23, 42, 0.95), rgba(2, 6, 23, 0.98));
+      border: 1px solid rgba(0, 242, 254, 0.2);
+      box-shadow: 0 50px 100px rgba(0,0,0,0.9), 0 0 40px rgba(0, 242, 254, 0.1);
+      transform-style: preserve-3d;
+      perspective: 1000px;
+    }
+
+    .diagnostic-val {
+      font-size: 4.5rem;
+      background: linear-gradient(to bottom, #fff, var(--lab-cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 0 15px rgba(0, 242, 254, 0.4));
+    }
+
+    .advisor-box {
+      background: rgba(0, 242, 254, 0.03) !important;
+      border: 1px solid rgba(0, 242, 254, 0.15) !important;
+      border-radius: 16px;
+      position: relative;
+      padding: 1.5rem !important;
+      box-shadow: inset 0 0 20px rgba(0, 242, 254, 0.05);
+      backdrop-filter: blur(5px);
+    }
+    .advisor-box::before {
+      content: 'NEURAL_PROCESSOR_v4';
+      position: absolute;
+      top: -6px; left: 12px;
+      background: #020617;
+      padding: 0 6px;
+      font-size: 0.45rem;
+      font-family: var(--font-mono);
+      color: var(--lab-cyan);
+      letter-spacing: 0.15em;
+      font-weight: 900;
+    }
+    .advisor-box::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(rgba(0, 242, 254, 0.1) 0.5px, transparent 0.5px);
+      background-size: 8px 8px;
+      opacity: 0.3;
+      pointer-events: none;
+    }
+
+    .gauge-ring-outer {
+      fill: none;
+      stroke: rgba(0, 242, 254, 0.03);
+      stroke-width: 2;
+    }
+
+    /* Laser effect on click */
+    .laser-impact {
+      position: absolute;
+      width: 100px; height: 100px;
+      background: radial-gradient(circle, var(--lab-cyan) 0%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 100;
+      animation: impactFade 0.5s ease-out forwards;
+    }
+    @keyframes impactFade {
+      0% { transform: scale(0.2); opacity: 0.8; }
+      100% { transform: scale(1.5); opacity: 0; }
+    }
+
+    /* Help Floating FAB */
+    .lab-help-fab {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      width: 48px;
+      height: 48px;
+      background: rgba(0, 242, 254, 0.1);
+      border: 1px solid rgba(0, 242, 254, 0.3);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--lab-cyan);
+      cursor: pointer;
+      z-index: 1000;
+      backdrop-filter: blur(10px);
+      transition: all 0.3s;
+      box-shadow: 0 0 20px rgba(0, 242, 254, 0.1);
+    }
+    .lab-help-fab:hover {
+      background: var(--lab-cyan);
+      color: #000;
+      box-shadow: 0 0 30px var(--lab-glow);
+      transform: scale(1.1);
+    }
+
+    .help-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(2, 6, 23, 0.9);
+      z-index: 2000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.3s;
+      backdrop-filter: blur(15px);
+    }
+    .help-modal.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+    .help-content {
+      width: 100%;
+      max-width: 500px;
+      background: var(--bg-surface);
+      border: 1px solid var(--lab-cyan);
+      border-radius: 32px;
+      padding: 2.5rem;
+      transform: translateY(20px);
+      transition: transform 0.3s;
+    }
+    .help-modal.active .help-content { transform: translateY(0); }
+
+    /* Mode Selector Grid */
+    .mode-grid-5 {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 0.75rem;
+      margin: 2rem 0;
+    }
+    .mode-card {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 12px;
+      padding: 0.75rem 0.25rem;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.4rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .mode-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 2px;
+      background: var(--lab-cyan);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .mode-card.active {
+      background: rgba(0, 242, 254, 0.08);
+      border-color: rgba(0, 242, 254, 0.3);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4), inset 0 0 10px rgba(0, 242, 254, 0.1);
+      transform: translateY(-2px);
+    }
+    .mode-card.active::before { opacity: 1; }
+    .mode-card-icon { font-size: 1.1rem; filter: grayscale(0.5); transition: 0.3s; }
+    .mode-card.active .mode-card-icon { filter: grayscale(0) drop-shadow(0 0 8px var(--lab-cyan)); }
     .mode-card-title { font-size: 0.45rem; font-weight: 950; color: rgba(255,255,255,0.4); letter-spacing: 0.1em; text-transform: uppercase; }
     .mode-card.active .mode-card-title { color: #fff; }
 
-    @media (max-width: 600px) { .mode-grid-5 { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 600px) {
+      .mode-grid-5 { grid-template-columns: repeat(3, 1fr); }
+      .mode-grid-5 > div:nth-child(n+4) { grid-column: span 1.5; }
+    }
   </style>
 </head>
 <body class="page-lab">
+
   <div class="neural-grid"></div>
 
-  <header class="page-header" style="position: fixed; top: 0; left: 0; width: 100%; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; z-index: 1000; padding-top: max(1rem, env(safe-area-inset-top));">
-    <a href="index.html" class="ph-back" style="background: rgba(255,255,255,0.05); padding: 0.5rem 1rem; border-radius: 12px; backdrop-filter: blur(10px); display: flex; align-items: center; gap: 8px; color: #fff; text-decoration: none; font-size: 0.65rem; font-weight: 800;">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="width: 14px;"><path d="M19 12H5"/><polyline points="12 19 5 12 12 5"/></svg>
-      <span>EXIT</span>
+  <header class="page-header" style="z-index: 1000; background: transparent; border: none;">
+    <a href="index.html" class="ph-back" style="background: rgba(255,255,255,0.05); padding: 0.5rem 1rem; border-radius: 12px; backdrop-filter: blur(10px);">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M19 12H5"/><polyline points="12 19 5 12 12 5"/></svg>
+      EXIT
     </a>
-    <div style="letter-spacing: 0.3em; font-weight: 900; font-size: 0.7rem; opacity: 0.6; color: #fff;">NEURAL_DIAGNOSTIC_HUB</div>
-    <div style="width: 80px;"></div>
+    <div class="ph-title" style="letter-spacing: 0.3em; font-weight: 900; font-size: 0.7rem;">NEURAL_DIAGNOSTIC_HUB</div>
+    <div style="width: 50px;"></div>
   </header>
 
   <div id="gameZone"></div>
   
   <div class="lab-ui">
     <div class="progress-track"><div id="syncProgress" class="progress-fill"></div></div>
+
     <div class="lab-stats-top">
-      <div class="stat-pill"><div style="font-size: 0.45rem; opacity: 0.5; color: #fff;">LATENCY</div><div id="currentAvg" style="font-weight: 900; color: #fff;">0ms</div></div>
-      <div class="stat-pill"><div style="font-size: 0.45rem; opacity: 0.5; color: #fff;">SYNC</div><div id="perfRating" class="rating-badge rating-stable">STABLE</div></div>
-      <div class="stat-pill"><div style="font-size: 0.45rem; opacity: 0.5; color: #fff;">TIMER</div><div id="labTimer" style="font-weight: 900; color: #fff;">30.0s</div></div>
+      <div class="stat-pill">
+        <div class="text-[0.45rem] font-mono opacity-50 uppercase tracking-widest mb-1">LATENCY</div>
+        <div id="currentAvg" class="text-xl font-black text-white">0ms</div>
+      </div>
+      <div class="stat-pill">
+        <div class="text-[0.45rem] font-mono opacity-50 uppercase tracking-widest mb-1">SYNC_RATING</div>
+        <div id="perfRating" class="rating-badge rating-stable" style="font-size: 0.45rem; margin-top: 0;">STABLE</div>
+      </div>
+      <div class="stat-pill">
+        <div class="text-[0.45rem] font-mono opacity-50 uppercase tracking-widest mb-1">TIMER</div>
+        <div id="labTimer" class="text-xl font-black text-white">30.0s</div>
+      </div>
     </div>
+    
     <div class="flex flex-col items-center mb-8">
-      <p style="font-size: 0.6rem; color: #fff; opacity: 0.6; font-family: monospace;" id="labHint">TAP_TARGETS_AS_THEY_APPEAR</p>
+      <div class="badge-cyan mb-2" style="box-shadow: 0 0 20px rgba(0,242,254,0.3);">CALIBRATION_ACTIVE</div>
+      <p class="text-ghost text-xs font-mono opacity-60" id="labHint">TAP_TARGETS_AS_THEY_APPEAR</p>
     </div>
   </div>
 
+  <!-- Start Overlay -->
   <div id="startOverlay" class="lab-overlay">
-    <div style="background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(0, 242, 254, 0.2); border-radius: 28px; padding: 2.5rem; max-width: 500px; width: 100%; text-align: center;">
-      <div style="font-size: 3rem; margin-bottom: 1rem;">🧬</div>
-      <h1 style="color: #fff; font-size: 1.5rem; font-weight: 900; margin-bottom: 1rem;">NEURAL_CALIBRATION</h1>
-      <div class="mode-grid-5">
-        <div class="mode-card active" onclick="setMode('flick', this)"><div class="mode-card-icon">🎯</div><div class="mode-card-title">FLICK</div></div>
-        <div class="mode-card" onclick="setMode('tracking', this)"><div class="mode-card-icon">👁️</div><div class="mode-card-title">TRACK</div></div>
-        <div class="mode-card" onclick="setMode('reflex', this)"><div class="mode-card-icon">⚡</div><div class="mode-card-title">REFLEX</div></div>
-        <div class="mode-card" onclick="setMode('sniper', this)"><div class="mode-card-icon">🎯</div><div class="mode-card-title">SNIPER</div></div>
-        <div class="mode-card" onclick="setMode('surge', this)"><div class="mode-card-icon">☢️</div><div class="mode-card-title">SURGE</div></div>
+    <div class="diagnostic-card">
+      <!-- Left side: Icon & Mode -->
+      <div style="flex-shrink: 0; text-align: center; width: 120px;">
+        <div style="font-size: 3rem; margin-bottom: 1rem; filter: drop-shadow(0 0 15px var(--lab-cyan));">🧬</div>
+        <div class="badge-cyan">v4.2.0</div>
       </div>
-      <button class="btn-cta cyan w-full" onclick="startTest()">INITIALIZE_SCAN</button>
-    </div>
-  </div>
-
-  <div id="resultOverlay" class="lab-overlay hidden">
-    <div class="certificate-card" id="cardToCapture">
-      <div class="cert-header">
-        <div class="cert-logo">AXP_NEURAL_CERTIFICATE</div>
-        <div class="cert-id" id="diagnosticId">LAB-BUFFERING</div>
-      </div>
-      <div class="metrics-cluster">
-        <div class="metric-box"><span class="mb-val" id="finalAvg">--</span><span class="mb-label">LATENCY_MS</span></div>
-        <div class="metric-box"><span class="mb-val" id="finalPrecision">--%</span><span class="mb-label">ACCURACY</span></div>
-        <div class="metric-box"><span class="mb-val" id="perfRank" style="color: var(--lab-cyan);">RECRUIT</span><span class="mb-label">RANK</span></div>
-      </div>
-      <div class="metrics-cluster" style="grid-template-columns: repeat(2, 1fr); margin-top: -5px;">
-        <div class="metric-box"><span class="mb-val" id="jitterVal" style="color: var(--lab-violet); font-size: 1.1rem;">--</span><span class="mb-label">JITTER_INDEX</span></div>
-        <div class="metric-box"><span class="mb-val" id="accelVal" style="color: var(--lab-gold); font-size: 1.1rem;">--</span><span class="mb-label">NEURAL_SYNC</span></div>
-      </div>
-      <div class="narrative-box" id="advisorQuote">ANALYZING_BIOMETRICS...</div>
-      <div class="flex flex-col gap-3">
-        <div class="flex gap-3">
-          <button class="btn-cta ghost flex-1" style="font-size: 0.6rem; padding: 0.8rem;" onclick="copyLabId()">COPY_UPLINK</button>
-          <button class="btn-cta cyan flex-1" style="font-size: 0.6rem; padding: 0.8rem;" onclick="downloadLabCard()">SAVE_RESULT</button>
+      
+      <!-- Right side: Content -->
+      <div style="flex: 1;">
+        <h1 class="text-hero text-xl mb-1">NEURAL_CALIBRATION</h1>
+        <p class="text-ghost text-[0.6rem] mb-4 opacity-60">Synchronize your biometrics for expert-tier results.</p>
+        
+        <div class="mode-grid-5" style="margin: 0 0 1.5rem 0;">
+          <div class="mode-card active" onclick="setMode('flick', this)"><div class="mode-card-icon">🎯</div><div class="mode-card-title">FLICK</div></div>
+          <div class="mode-card" onclick="setMode('tracking', this)"><div class="mode-card-icon">👁️</div><div class="mode-card-title">TRACK</div></div>
+          <div class="mode-card" onclick="setMode('reflex', this)"><div class="mode-card-icon">⚡</div><div class="mode-card-title">REFLEX</div></div>
+          <div class="mode-card" onclick="setMode('burst', this)"><div class="mode-card-icon">🔥</div><div class="mode-card-title">BURST</div></div>
+          <div class="mode-card" onclick="setMode('drift', this)"><div class="mode-card-icon">🌀</div><div class="mode-card-title">DRIFT</div></div>
         </div>
-        <button class="btn-cta ghost w-full" style="font-size: 0.5rem; padding: 0.6rem; border: none; opacity: 0.4;" onclick="location.reload()">RE_CALIBRATE</button>
+
+        <button class="btn-cta cyan w-full" style="padding: 0.8rem; border-radius: 12px; font-size: 0.7rem;" onclick="startTest()">INITIALIZE_SCAN</button>
       </div>
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <!-- Result Overlay -->
+  <div id="resultOverlay" class="lab-overlay hidden">
+    <div class="diagnostic-card" id="cardToCapture">
+      <!-- Left: Metrics -->
+      <div style="flex-shrink: 0; width: 160px; text-align: center; border-right: 1px solid rgba(255,255,255,0.05); padding-right: 1.5rem;">
+        <div class="diagnostic-gauge-wrap" style="margin: 0 auto 1rem;">
+          <svg class="gauge-svg" viewBox="0 0 160 160">
+            <circle class="gauge-ring-outer" cx="80" cy="80" r="76" />
+            <circle class="gauge-bg" cx="80" cy="80" r="70" />
+            <circle id="gaugeFill" class="gauge-fill" cx="80" cy="80" r="70" />
+          </svg>
+          <div class="gauge-content">
+            <div class="diagnostic-val" id="finalAvg">--</div>
+            <div class="diagnostic-unit" style="font-size: 0.5rem;">MS_LATENCY</div>
+          </div>
+        </div>
+        <div id="finalRating" class="rating-badge rating-stable" style="width: 100%; margin-bottom: 0.5rem;">STABLE</div>
+        <div class="text-[0.55rem] font-mono text-cyan" id="finalPrecision">PRECISION: --%</div>
+      </div>
+      
+      <!-- Right: Narrative & Actions -->
+      <div style="flex: 1;">
+        <div class="flex justify-between items-start mb-4">
+          <div>
+            <div class="badge-cyan mb-1">SCAN_CERTIFIED</div>
+            <div class="id-seal" id="diagnosticId" style="margin: 0; padding: 4px 10px; font-size: 0.8rem; border-radius: 8px;">LAB-XXXXXX</div>
+          </div>
+          <svg style="width: 32px; height: 32px; opacity: 0.2;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M4.93 19.07L19.07 4.93"/></svg>
+        </div>
+        
+        <div id="neuralNarrative" class="advisor-box mb-4" style="padding: 1rem !important; min-height: 80px;">
+          <p id="advisorQuote" class="text-[0.65rem] leading-tight opacity-70">ANALYZING_BIOMETRICS...</p>
+        </div>
+        
+        <div class="flex gap-2">
+          <button class="btn-ghost auto flex-1" onclick="copyLabId()" style="padding: 0.5rem; font-size: 0.6rem;">COPY_ID</button>
+          <button class="btn-cta cyan flex-1" onclick="downloadLabCard()" style="padding: 0.5rem; font-size: 0.6rem;">SAVE_CERT</button>
+        </div>
+        <button class="btn-ghost auto w-full mt-2 text-[0.5rem] opacity-20 hover:opacity-100" onclick="location.reload()">RE-RECALIBRATE</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Global UI will inject help and settings here via theme-manager.js -->
+
   <script src="translations.js"></script>
   <script src="gaming-effects.js"></script>
   <script src="notifications.js"></script>
+  <script src="theme-manager.js"></script>
   <script>
     let latencies = [];
     let hits = 0;
-    const maxHits = 30;
+    const maxHits = 30; // Increased for time-based mode
     let isRunning = false;
+    let misses = 0;
     let currentMode = 'flick';
+    let moveInterval = null;
     let lapStartTime = 0;
     let timeLeft = 30;
     let timerInterval = null;
-    let moveInterval = null;
+
+    function updatePerfRating(avg) {
+      const rating = document.getElementById('perfRating');
+      if (!rating) return;
+      rating.className = 'rating-badge';
+      if (avg === 0) { rating.textContent = 'STABLE'; rating.classList.add('rating-stable'); }
+      else if (avg < 200) { rating.textContent = 'UNSTOPPABLE'; rating.classList.add('rating-unstoppable'); }
+      else if (avg < 280) { rating.textContent = 'PERFECT'; rating.classList.add('rating-perfect'); }
+      else if (avg < 380) { rating.textContent = 'GOOD'; rating.classList.add('rating-good'); }
+      else { rating.textContent = 'STABLE'; rating.classList.add('rating-stable'); }
+    }
+
+    function toggleHelp(show) {
+        if (window.ThemeManager) ThemeManager.toggleFaq(show);
+    }
 
     function setMode(mode, el) {
       currentMode = mode;
       document.querySelectorAll('.mode-card').forEach(b => b.classList.remove('active'));
       el.classList.add('active');
+      const hints = {
+        flick: 'TAP_TARGETS_AS_THEY_APPEAR',
+        tracking: 'FOLLOW_TARGET_AND_TAP_REPEATEDLY',
+        reflex: 'HIT_BEFORE_TARGET_DISAPPEARS',
+        burst: 'CLEAR_ALL_NODES_IN_SEQUENCE',
+        drift: 'MAINTAIN_FOCUS_ON_MORPHING_TARGET'
+      };
+      document.getElementById('labHint').textContent = hints[mode] || 'INITIALIZING_MODE...';
     }
 
     function startTest() {
       document.getElementById('startOverlay').classList.add('hidden');
-      latencies = []; hits = 0; isRunning = true; timeLeft = 30;
+      latencies = [];
+      hits = 0;
+      misses = 0;
+      isRunning = true;
+      timeLeft = 30;
+      
+      document.getElementById('hitsCount').textContent = '0';
+      document.getElementById('syncProgress').style.width = '0%';
+      
       timerInterval = setInterval(() => {
         timeLeft -= 0.1;
-        if (timeLeft <= 0) finishTest();
+        if (timeLeft <= 0) {
+          timeLeft = 0;
+          finishTest();
+        }
         document.getElementById('labTimer').textContent = timeLeft.toFixed(1) + 's';
+        if (timeLeft < 5) document.getElementById('labTimer').style.color = 'var(--error)';
+        else document.getElementById('labTimer').style.color = '#fff';
       }, 100);
+
       spawnTarget();
     }
 
+    function createLaserEffect(x, y) {
+      const impact = document.createElement('div');
+      impact.className = 'laser-impact';
+      impact.style.left = x - 50 + 'px';
+      impact.style.top = y - 50 + 'px';
+      document.body.appendChild(impact);
+      setTimeout(() => impact.remove(), 500);
+    }
+
     function spawnTarget() {
-      if (hits >= maxHits) return finishTest();
+      if (hits >= maxHits) {
+        finishTest();
+        return;
+      }
+      
       const zone = document.getElementById('gameZone');
       zone.innerHTML = '';
       if (moveInterval) clearInterval(moveInterval);
       
-      const target = document.createElement('div');
-      target.className = 'lab-target';
-      target.style.left = (10 + Math.random() * 80) + '%';
-      target.style.top = (30 + Math.random() * 50) + '%';
+      const createTarget = (initialX, initialY, isDrift = false) => {
+        const target = document.createElement('div');
+        target.className = 'lab-target';
+        let x = initialX || (10 + Math.random() * 80);
+        let y = initialY || (30 + Math.random() * 50);
+        target.style.left = x + '%';
+        target.style.top = y + '%';
 
-      if (currentMode === 'tracking') {
-          let x = parseFloat(target.style.left);
-          let y = parseFloat(target.style.top);
-          let dx = (Math.random() - 0.5) * 1.2;
-          let dy = (Math.random() - 0.5) * 1.2;
-          moveInterval = setInterval(() => {
-              x += dx; y += dy;
-              if (x < 5 || x > 95) dx *= -1;
-              if (y < 25 || y > 85) dy *= -1;
-              target.style.left = x + '%';
-              target.style.top = y + '%';
-          }, 16);
-      }
+        if (currentMode === 'reflex') {
+            const timeout = setTimeout(() => {
+                if (target.parentElement) {
+                    target.style.opacity = '0';
+                    target.style.transform = 'scale(0)';
+                    setTimeout(() => { if (target.parentElement) spawnTarget(); }, 200);
+                }
+            }, 650); // Reflex window
+            target._reflexTimeout = timeout;
+        }
 
-      lapStartTime = performance.now();
-      const trigger = (e) => {
-        e.preventDefault();
-        const lat = performance.now() - lapStartTime;
-        latencies.push(lat);
-        hits++;
-        document.getElementById('currentAvg').textContent = Math.round(latencies.reduce((a,b)=>a+b,0)/latencies.length) + 'ms';
-        document.getElementById('syncProgress').style.width = (hits/maxHits*100) + '%';
-        spawnTarget();
+        if (currentMode === 'drift') {
+            target.style.transition = 'all 0.8s ease-in-out';
+            setInterval(() => {
+                target.style.transform = `scale(${0.5 + Math.random()})`;
+                target.style.filter = `hue-rotate(${Math.random() * 360}deg)`;
+            }, 800);
+        }
+
+        const handleTrigger = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (target._reflexTimeout) clearTimeout(target._reflexTimeout);
+            const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+            const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+            createLaserEffect(clientX, clientY);
+            
+            if (currentMode === 'burst') {
+                target.remove();
+                if (zone.children.length === 0) handleHit();
+            } else {
+                handleHit();
+            }
+        };
+
+        target.onmousedown = handleTrigger;
+        target.ontouchstart = handleTrigger;
+        return target;
       };
-      target.onmousedown = trigger;
-      target.ontouchstart = trigger;
-      zone.appendChild(target);
+
+      if (currentMode === 'burst') {
+          for (let i = 0; i < 3; i++) zone.appendChild(createTarget());
+      } else {
+          const mainTarget = createTarget();
+          zone.appendChild(mainTarget);
+          
+          if (currentMode === 'tracking' || currentMode === 'drift') {
+              let x = parseFloat(mainTarget.style.left);
+              let y = parseFloat(mainTarget.style.top);
+              let dx = (Math.random() - 0.5) * 0.8;
+              let dy = (Math.random() - 0.5) * 0.8;
+              moveInterval = setInterval(() => {
+                  x += dx;
+                  y += dy;
+                  if (x < 5 || x > 95) dx *= -1;
+                  if (y < 25 || y > 85) dy *= -1;
+                  mainTarget.style.left = x + '%';
+                  mainTarget.style.top = y + '%';
+              }, 16);
+          }
+      }
+      
+      lapStartTime = performance.now();
     }
 
+    function handleHit() {
+      if (!isRunning) return;
+      const latency = performance.now() - lapStartTime;
+      latencies.push(latency);
+      hits++;
+      
+      document.getElementById('hitsCount').textContent = hits;
+      const progress = Math.min(100, (hits / maxHits) * 100);
+      document.getElementById('syncProgress').style.width = progress + '%';
+      
+      const avg = Math.round(latencies.reduce((a, b) => a + b) / latencies.length);
+      document.getElementById('currentAvg').textContent = avg + 'ms';
+      updatePerfRating(avg);
+      
+      if (window.SFX) window.SFX.play('ping');
+      
+      if (hits >= maxHits) {
+          finishTest();
+      } else {
+          spawnTarget();
+      }
+    }
+
+    document.body.onmousedown = (e) => {
+      if (isRunning && !e.target.classList.contains('lab-target')) {
+        misses++;
+        createLaserEffect(e.clientX, e.clientY);
+        if (window.SFX) window.SFX.play('click');
+      }
+    };
+
     async function finishTest() {
-      if (timerInterval) clearInterval(timerInterval);
-      if (moveInterval) clearInterval(moveInterval);
       isRunning = false;
+      if (moveInterval) clearInterval(moveInterval);
+      if (timerInterval) clearInterval(timerInterval);
       document.getElementById('gameZone').innerHTML = '';
       
-      const avg = latencies.length > 0 ? Math.round(latencies.reduce((a, b) => a + b) / latencies.length) : 0;
-      const precision = Math.max(60, 100 - (avg / 20)); 
+      const avg = Math.round(latencies.reduce((a, b) => a + b) / latencies.length);
+      const precision = Math.max(0, 100 - (misses * 8));
+      const ratingEl = document.getElementById('perfRating');
+      const finalRating = document.getElementById('finalRating');
       
       document.getElementById('finalAvg').textContent = avg;
-      document.getElementById('finalPrecision').textContent = Math.round(precision) + '%';
+      document.getElementById('finalPrecision').textContent = precision + '%';
+      if (finalRating) {
+          finalRating.textContent = ratingEl ? ratingEl.textContent : 'STABLE';
+          finalRating.className = ratingEl ? ratingEl.className : 'rating-badge rating-stable';
+          finalRating.style.fontSize = '0.5rem';
+          finalRating.style.padding = '2px 6px';
+          
+          if (finalRating.textContent === 'UNSTOPPABLE') {
+            GamingEffects.createParticles(finalRating, 30, 'cyan');
+            GamingEffects.screenGlitch(300);
+            if (window.SFX) window.SFX.play('success');
+          } else if (finalRating.textContent === 'PERFECT') {
+            GamingEffects.createParticles(finalRating, 15, 'green');
+            if (window.SFX) window.SFX.play('success');
+          }
+      }
       
-      const jitter = (Math.random() * (avg / 100) + (100 - precision) / 10).toFixed(2);
-      const sync = (precision * 0.8 + (1000 - avg) / 100).toFixed(1);
+      setTimeout(() => {
+        document.getElementById('precisionBar').style.width = precision + '%';
+      }, 500);
       
-      document.getElementById('jitterVal').textContent = jitter;
-      document.getElementById('accelVal').textContent = sync + '%';
+      // Update Circular Gauge
+      const gauge = document.getElementById('gaugeFill');
+      if (gauge) {
+        // 440 is the circumference (2 * PI * 70)
+        // We want to show a percentage of the circle based on reaction time.
+        // Let's say 100ms is "Full/Perfect" (0 offset) and 1000ms is "Empty" (440 offset)
+        const maxMs = 1000;
+        const minMs = 100;
+        const clamped = Math.max(minMs, Math.min(maxMs, avg));
+        const percentage = (clamped - minMs) / (maxMs - minMs); // 0 to 1
+        const offset = percentage * 440;
+        setTimeout(() => {
+          gauge.style.strokeDashoffset = offset;
+        }, 100);
+      }
 
-      const rankEl = document.getElementById('perfRank');
-      if (avg < 200) rankEl.textContent = 'NEXUS_GOD';
-      else if (avg < 250) rankEl.textContent = 'ELITE';
-      else rankEl.textContent = 'OPERATOR';
-
-      confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#00f2fe', '#a855f7', '#ffffff'] });
-
-      document.getElementById('advisorQuote').innerHTML = `Neural Latency: ${avg}ms. Consistency: ${sync}%. <br><br> **DIAGNOSTIC:** Optimized for ${avg < 240 ? 'AGILITY' : 'STABILITY'}.`;
-      document.getElementById('resultOverlay').classList.remove('hidden');
-
+      // Generate AI Advice
+      const quoteEl = document.getElementById('advisorQuote');
+      let advice = "";
+      if (avg < 220) {
+        advice = `Based on your elite ${avg}ms reaction speed, a **High-Flick** sensitivity profile is recommended. Your neural pathways are optimized for rapid target acquisition.`;
+      } else if (avg < 350) {
+        advice = `With a sharp ${avg}ms response, a **Medium-Balanced** sensitivity is best. This will synchronize your speed with reliable recoil control for versatile combat.`;
+      } else if (avg < 500) {
+        advice = `Your ${avg}ms speed is steady. A **Medium-Low** sensitivity profile will provide the stability needed to maximize your ${precision}% precision rating.`;
+      } else {
+        advice = `Based on your deliberate ${avg}ms timing, a **Low-Precision** sensitivity is ideal. This ensures pixel-perfect tracking and minimizes over-correction.`;
+      }
+      
+      if (precision < 70) {
+        advice += " // Note: Neural stability is low; consider lowering sensitivity further to improve consistency.";
+      }
+      
+      quoteEl.innerHTML = advice;
+      
       try {
         const res = await fetch('/api/vault/diagnostics/submit', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ avg_reaction_ms: avg, precision_score: precision, mode: currentMode })
+          body: JSON.stringify({ 
+            avg_reaction_ms: avg, 
+            precision_score: precision,
+            mode: currentMode 
+          })
         });
         const data = await res.json();
-        if (data.diagnostic_id) document.getElementById('diagnosticId').textContent = data.diagnostic_id;
-      } catch (e) { document.getElementById('diagnosticId').textContent = 'LAB-OFFLINE'; }
+        if (data.diagnostic_id) {
+          document.getElementById('diagnosticId').textContent = data.diagnostic_id;
+        }
+      } catch (e) {
+        document.getElementById('diagnosticId').textContent = 'LAB-OFFLINE';
+      }
+      
+      document.getElementById('resultOverlay').classList.remove('hidden');
     }
 
     function copyLabId() {
       const id = document.getElementById('diagnosticId').textContent;
       navigator.clipboard.writeText(id);
-      alert('UPLINK_COPIED');
+      if (window.notify) window.notify('CALIBRATION_COPIED', 'success');
     }
 
     async function downloadLabCard() {
@@ -311,7 +869,7 @@
       if (window.html2canvas) {
         const canvas = await html2canvas(card, { backgroundColor: '#020617', scale: 2 });
         const a = document.createElement('a');
-        a.download = `AXP_CERT_${document.getElementById('diagnosticId').textContent}.png`;
+        a.download = `AXP_LAB_${Date.now()}.png`;
         a.href = canvas.toDataURL();
         a.click();
       }

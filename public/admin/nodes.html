@@ -47,10 +47,7 @@
   <div id="analysisSheet" class="admin-sheet">
     <div class="flex justify-between items-center mb-6">
       <div>
-        <div class="flex items-center gap-3">
-          <h3 id="analysisTitle" style="color:var(--cyan); font-size:1.1rem; font-weight:900; letter-spacing:0.1em; margin:0;">VENDOR_ANALYSIS</h3>
-          <button class="btn-ghost auto" style="font-size: 0.5rem; padding: 2px 8px;" onclick="downloadAnalyticsCSV()">EXPORT_CSV</button>
-        </div>
+        <h3 id="analysisTitle" style="color:var(--cyan); font-size:1.1rem; font-weight:900; letter-spacing:0.1em; margin:0;">VENDOR_ANALYSIS</h3>
         <div id="analysisSub" class="text-xs font-mono opacity-40">DEEP_DATA_CORE_ACCESS</div>
       </div>
       <button class="btn-ghost auto" style="width:36px; height:36px; border-radius:50%; padding:0; display:flex; align-items:center; justify-content:center; color:var(--tx-muted);" onclick="toggleAnalysisSheet(false)">✕</button>
@@ -260,11 +257,10 @@
 
     async function openAnalysis(vid) {
       toggleAnalysisSheet(true);
-      document.getElementById('analysisTitle').textContent = vid;
+      document.getElementById('analysisTitle').textContent = `ANALYSIS: ${vid}`;
       
       try {
         const data = await api(`/api/vault/admin/vendor/${vid}/analytics`);
-        window.currentAnalysisData = { vid, ...data }; // Cache for export
         
         // Populate Summary
         document.getElementById('metricTotalKeys').textContent = data.summary.total_codes;
@@ -316,31 +312,11 @@
       }
     }
 
-    function downloadAnalyticsCSV() {
-      const data = window.currentAnalysisData;
-      if (!data) return adminNotify('NO_DATA_TO_EXPORT', 'error');
-      
-      let csv = "Timestamp,User,Region,Brand,Model\n";
-      data.recent_activity.forEach(a => {
-        csv += `${new Date(a.used_at).toISOString()},${a.user_ign},${a.user_region},${a.brand},${a.model}\n`;
-      });
-      
-      const blob = new Blob([csv], { type: 'text/csv' });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.setAttribute('hidden', '');
-      a.setAttribute('href', url);
-      a.setAttribute('download', `AXP_ANALYTICS_${data.vid}_${Date.now()}.csv`);
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-    }
-
     function toggleAnalysisSheet(show) {
       const sheet = document.getElementById('analysisSheet');
       sheet.style.bottom = show ? '0' : '-110%';
       if (!show) {
-        window.currentAnalysisData = null; // Clear cache
+        // Clear data on close for next load
         ['brandList', 'regionList', 'activityFeed'].forEach(id => {
           document.getElementById(id).innerHTML = '<div class="text-center py-4 opacity-20 text-xs font-mono">RESETTING_BUFFERS...</div>';
         });
