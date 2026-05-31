@@ -21,7 +21,7 @@ const ThemeManager = {
     init() {
         this.applyTheme(this.config.accent);
         this.applyLanguage(this.config.lang);
-        this.injectHeaderButtons();
+        this.injectSettingsFAB();
         
         // Listen for vendor tier classes to override defaults
         document.addEventListener('DOMContentLoaded', () => {
@@ -244,6 +244,20 @@ const ThemeManager = {
                     <option value="tr" ${this.config.lang === 'tr' ? 'selected' : ''}>TÜRKÇE (TR)</option>
                     <option value="ru" ${this.config.lang === 'ru' ? 'selected' : ''}>РУССКИЙ (RU)</option>
                 </select>
+            </div>
+
+            <div style="margin-bottom: 2rem;">
+                <label style="display: block; font-size: 0.6rem; font-weight: 800; color: var(--accent-primary); letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 1rem;">FAQ</label>
+                <div style="max-height: 200px; overflow-y: auto; padding-right: 4px;">
+                    <div style="margin-bottom: 1.5rem;">
+                        <div style="font-size: 0.7rem; font-weight: 800; color: var(--violet); margin-bottom: 0.35rem;">HOW DOES IT WORK?</div>
+                        <p style="font-size: 0.75rem; color: var(--tx-muted); line-height: 1.5;">Use a vendor code from your favorite creator to load an optimized sensitivity profile instantly.</p>
+                    </div>
+                    <div style="margin-bottom: 1.5rem;">
+                        <div style="font-size: 0.7rem; font-weight: 800; color: var(--violet); margin-bottom: 0.35rem;">IS IT SAFE?</div>
+                        <p style="font-size: 0.75rem; color: var(--tx-muted); line-height: 1.5;">All neural profiles are encrypted using AES-256 protocols. Your data is anonymized and stored on secure nodes.</p>
+                    </div>
+                </div>
             </div>
 
             <button onclick="ThemeManager.toggleSettingsModal()" class="btn-cta" style="width: 100%; padding: 1rem; border-radius: 16px; font-size: 0.75rem;">SAVE_AND_RESUME</button>
