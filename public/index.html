@@ -29,9 +29,15 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 1.5rem 1.25rem;
+      padding: 5rem 1rem 2rem; /* Top padding to clear fixed header */
       gap: 0;
       animation: fade-in-scale 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    @media (min-width: 640px) {
+      .portal-shell {
+        padding: 5rem 1.5rem 2rem;
+      }
     }
 
     /* ── Logo strip (top) ─── */
@@ -98,12 +104,12 @@
     /* ── Main vault card ─── */
     .vault-card {
       width: 100%;
-      max-width: 420px;
+      max-width: 480px; /* Wider max width */
       background: rgba(8, 13, 24, 0.85);
       backdrop-filter: blur(40px) saturate(180%);
       border: 1px solid rgba(0,229,255,0.15);
       border-radius: 28px;
-      padding: 2.5rem 2rem;
+      padding: 2rem 1.25rem; /* Smaller padding on mobile for more space */
       box-shadow:
         0 0 0 1px rgba(0,229,255,0.05),
         0 30px 80px rgba(0,0,0,0.7),
@@ -112,6 +118,13 @@
       overflow: hidden;
       animation: scaleIn 0.8s var(--ease) both;
       transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @media (min-width: 640px) {
+      .vault-card {
+        padding: 2.5rem 2rem;
+        max-width: 420px; /* Back to original on larger screens */
+      }
     }
 
     .vault-card:hover {
