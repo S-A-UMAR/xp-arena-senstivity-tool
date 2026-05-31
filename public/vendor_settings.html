@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <title>AXP | ELITE SETTINGS</title>
   <link rel="stylesheet" href="design-system.css">
@@ -121,7 +121,7 @@
     <div class="profile-hero-zone anim-up">
       <div class="card profile-hero-card">
         <div class="avatar-vault">
-          <img src="favicon.png" alt="Vendor Avatar" class="avatar-img" id="vendorAvatar">
+          <img src="favicon.svg" alt="Vendor avatar" class="avatar-img" id="vendorAvatar">
           <div class="tier-label" id="vendorTierBadge">ELITE VENDOR</div>
         </div>
         <h1 class="stat-hero-val mb-1" id="vendorName" style="font-size: 1.8rem;">AXP_OPERATOR</h1>
@@ -154,7 +154,7 @@
             <label class="form-label">Social_Profile_Link</label>
             <input type="text" id="brandSocialInput" class="xp-input-box" placeholder="https://youtube.com/@operator">
           </div>
-          <button class="btn-cta violet w-full" onclick="updateBranding()">
+          <button class="btn-cta violet w-full" id="brandingSaveBtn" onclick="updateBranding()">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
             COMMIT_IDENTITY_SYNC
           </button>
@@ -250,7 +250,7 @@
     });
 
     async function updateBranding() {
-      const btn = document.querySelector('.btn-cta');
+      const btn = document.getElementById('brandingSaveBtn');
       const originalHtml = btn.innerHTML;
       btn.innerHTML = 'SYNCING...';
       btn.style.opacity = '0.7';

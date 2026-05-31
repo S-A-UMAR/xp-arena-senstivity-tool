@@ -221,6 +221,12 @@ body {
   color: #fff !important;
 }
 
+/* Missing float pulse animation */
+@keyframes floatPulse {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-6px) scale(1.03); }
+}
+
 @media (max-width: 480px) {
   .admin-sheet { padding: 2rem 1.25rem 3.5rem; }
   .registry-node { padding: 1.25rem; }
@@ -329,3 +335,91 @@ body {
 .text-sm { font-size: 0.8rem; }
 .text-xl { font-size: 1.25rem; }
 .text-muted { color: var(--tx-muted); }
+
+/* Additional utility classes for admin pages */
+.p-3 { padding: 0.75rem; }
+.p-4 { padding: 1rem; }
+.px-3 { padding-left: 0.75rem; padding-right: 0.75rem; }
+.px-4 { padding-left: 1rem; padding-right: 1rem; }
+.py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+.py-3 { padding-top: 0.75rem; padding-bottom: 0.75rem; }
+.pt-4 { padding-top: 1rem; }
+.gap-1 { gap: 0.25rem; }
+.gap-3 { gap: 0.75rem; }
+.gap-5 { gap: 1.25rem; }
+.gap-6 { gap: 1.5rem; }
+.grid { display: grid; }
+.grid-cols-1 { grid-template-columns: 1fr; }
+.grid-cols-2 { grid-template-columns: 1fr 1fr; }
+.justify-center { justify-content: center; }
+.text-right { text-align: right; }
+.text-cyan { color: var(--cyan); }
+.text-gold { color: var(--gold); }
+.mr-2 { margin-right: 0.5rem; }
+.mt-6 { margin-top: 1.5rem; }
+.mb-5 { margin-bottom: 1.25rem; }
+.mb-6 { margin-bottom: 1.5rem; }
+.opacity-60 { opacity: 0.6; }
+.border-dashed { border-style: dashed; }
+.border-cyan\/30 { border-color: rgba(0, 242, 254, 0.3); }
+
+/* Progress bar mini */
+.progress-bar-mini {
+  height: 4px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.progress-bar-mini .fill {
+  height: 100%;
+  transition: width 1s ease;
+}
+
+/* Button gaming styles */
+.btn-gaming {
+  transition: all 0.2s var(--ease);
+  cursor: pointer;
+}
+.btn-gaming:hover {
+  transform: translateY(-2px);
+}
+.btn-gaming-primary {
+  background: var(--gold);
+  color: #000;
+  border: none;
+}
+
+/* Animations */
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.02); }
+}
+@keyframes anim-fade-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.anim-fade-in {
+  animation: anim-fade-in 0.4s var(--ease) both;
+}
+
+/* More utility classes for settings page */
+.divider-gaming {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+}
+.my-3 {
+  margin-top: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+.mb-3 {
+  margin-bottom: 0.75rem;
+}
+.col-span-2 {
+  grid-column: span 2;
+}
+.text-success {
+  color: var(--success);
+}
+.text-error {
+  color: var(--error);
+}

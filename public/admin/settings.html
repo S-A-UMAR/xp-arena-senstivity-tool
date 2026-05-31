@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <link rel="icon" type="image/svg+xml" href="../favicon.svg">
   <title>AXP | SYSTEM SETUP</title>
   <link rel="stylesheet" href="../design-system.css">
@@ -199,8 +199,7 @@
     async function loadMaintenanceStatus() {
         try {
             const settings = await api('/api/vault/admin/settings');
-            const mode = settings.find(s => s.setting_key === 'maintenance_mode');
-            updateMaintenanceUI(mode?.setting_value === 'true');
+            updateMaintenanceUI(settings.maintenance_mode === 'true');
         } catch (_) {}
     }
 

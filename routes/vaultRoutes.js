@@ -1870,7 +1870,11 @@ router.delete('/admin/vendors/:vendorId', authenticateAdmin, async (req, res) =>
 
 router.get('/admin/settings', authenticateAdmin, async (_req, res) => {
     try {
-        const settings = await db.all('SELECT * FROM system_settings');
+        const rows = await db.all('SELECT setting_key, setting_value FROM system_settings');
+        const settings = {};
+        rows.forEach((row) => {
+            settings[row.setting_key] = row.setting_value;
+        });
         return res.json(settings);
     } catch (_err) {
         return res.status(500).json({ error: 'SETTINGS_UNAVAILABLE' });
@@ -1907,7 +1911,7 @@ router.post('/admin/settings', authenticateAdmin, async (req, res) => {
         const { key, value } = z.object({ key: z.string(), value: z.string() }).parse(req.body || {});
         await db.run('REPLACE INTO system_settings (setting_key, setting_value) VALUES (?, ?)', [key, value]);
         await logAudit('admin', 'SYSTEM', 'SETTING_CHANGE', { key, value }, getClientIp(req));
-        return res.json({ success: true, message: 'SETTING_UPDATED' });
+        return res.json({ success: true, key, value, message: 'SETTING_UPDATED' });
     } catch (err) {
         if (err instanceof z.ZodError) return res.status(400).json({ error: 'Invalid input' });
         return res.status(500).json({ error: 'SETTINGS_UPDATE_FAILED' });
@@ -2486,32 +2490,6 @@ router.get('/public/stats', async (_req, res) => {
     } catch (err) {
         console.error('PUBLIC_STATS_ERR:', err);
         return res.status(500).json({ error: 'STATS_UNAVAILABLE' });
-    }
-});
-
-router.get('/admin/settings', authenticateAdmin, async (_req, res) => {
-    try {
-        const rows = await db.all('SELECT setting_key, setting_value FROM system_settings');
-        const settings = {};
-        rows.forEach(r => settings[r.setting_key] = r.setting_value);
-        res.json(settings);
-    } catch (err) {
-        res.status(500).json({ error: 'SETTINGS_FETCH_FAILED' });
-    }
-});
-
-router.post('/admin/settings', authenticateAdmin, async (req, res) => {
-    try {
-        const { key, value } = z.object({
-            key: z.string(),
-            value: z.string()
-        }).parse(req.body);
-
-        await db.run('INSERT INTO system_settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = ?', [key, value, value]);
-        await logAudit('admin', req.adminId || 'master', 'SETTING_UPDATED', { key, value }, getClientIp(req));
-        res.json({ success: true, key, value });
-    } catch (err) {
-        res.status(400).json({ error: 'SETTING_UPDATE_FAILED' });
     }
 });
 

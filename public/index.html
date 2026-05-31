@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="description" content="AXP — Neural sensitivity calibration for elite mobile gaming. Enter your access code to unlock precision settings.">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <title>AXP | Neural Vault</title>
@@ -197,7 +197,58 @@
       font-size: 0.8rem;
       color: var(--tx-muted);
       line-height: 1.6;
-      margin-bottom: 2rem;
+      margin-bottom: 1.25rem;
+    }
+    .role-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+    .role-chip {
+      border: 1px solid var(--bd-soft);
+      background: var(--bg-raised);
+      color: var(--tx-sub);
+      border-radius: 14px;
+      padding: 0.85rem 0.75rem;
+      text-align: left;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s, color 0.2s, transform 0.2s;
+    }
+    .role-chip strong,
+    .role-chip span {
+      display: block;
+    }
+    .role-chip strong {
+      font-size: 0.72rem;
+      font-weight: 800;
+      color: var(--tx-hero);
+      letter-spacing: 0.04em;
+    }
+    .role-chip span {
+      margin-top: 0.35rem;
+      font-size: 0.62rem;
+      color: var(--tx-muted);
+      line-height: 1.4;
+    }
+    .role-chip:hover,
+    .role-chip:focus-visible {
+      border-color: var(--cyan-border);
+      background: var(--bg-overlay);
+      transform: translateY(-1px);
+      outline: none;
+    }
+    .role-chip.active {
+      border-color: var(--cyan);
+      background: rgba(0, 229, 255, 0.08);
+      box-shadow: 0 0 0 1px rgba(0, 229, 255, 0.15);
+    }
+    .entry-helper {
+      min-height: 2.5rem;
+      font-size: 0.72rem;
+      color: var(--tx-sub);
+      line-height: 1.5;
+      margin-bottom: 1rem;
     }
 
     /* Input with icon */
@@ -404,6 +455,7 @@
     @media (max-width: 480px) {
       .vault-card { padding: 2.2rem 1.25rem; border-radius: 24px; }
       .vault-title { font-size: 1.6rem; }
+      .role-grid { grid-template-columns: 1fr; }
       .trust-strip { gap: 12px; }
       .portal-top { padding: 0 1rem; }
       .portal-logo { font-size: 0.7rem; letter-spacing: 0.1em; }
@@ -504,8 +556,41 @@
         <span class="vault-eyebrow-text" data-t="neuralNexus">Neural Nexus · Secure Uplink</span>
       </div>
 
-      <h1 class="vault-title" data-t="vaultTitle">Enter the<br><span>Sensitivity Vault</span></h1>
-      <p class="vault-desc" data-t="vaultDesc">Paste your AXP vendor code, calibration key, or admin passphrase to authenticate.</p>
+      <h1 class="vault-title">Choose Your<br><span>Access Path</span></h1>
+      <p class="vault-desc">Players, vendors, and admins each have a dedicated entry flow. Pick your role first, then continue with the correct credential.</p>
+
+      <!-- Player Quick Steps Guide -->
+      <div class="mb-4" id="playerGuide" style="background: rgba(0,242,254,0.04); border: 1px solid rgba(0,242,254,0.1); border-radius: 16px; padding: 1rem; margin-bottom: 1.25rem;">
+        <div class="flex items-center gap-2 mb-2">
+          <div class="w-6 h-6 rounded-full bg-cyan/20 flex items-center justify-center text-cyan font-bold text-xs">1</div>
+          <span class="text-xs font-bold text-cyan uppercase tracking-wider">Get a Code from a Creator</span>
+        </div>
+        <div class="text-xs text-muted leading-relaxed mb-3">Creators share calibration codes with their communities. Ask your favorite creator for one!</div>
+        <div class="flex items-center gap-2">
+          <div class="w-6 h-6 rounded-full bg-cyan/20 flex items-center justify-center text-cyan font-bold text-xs">2</div>
+          <span class="text-xs font-bold text-cyan uppercase tracking-wider">Or, Calibrate Yourself</span>
+        </div>
+        <div class="text-xs text-muted leading-relaxed">Try our free AXP Lab to generate your own calibration profile instantly!</div>
+      </div>
+
+      <div class="role-grid" aria-label="Choose access role">
+        <button type="button" class="role-chip active" data-mode="player" onclick="setPortalMode('player')">
+          <strong>Player</strong>
+          <span>Open a calibration profile or redeem a code.</span>
+        </button>
+        <button type="button" class="role-chip" data-mode="vendor" onclick="setPortalMode('vendor')">
+          <strong>Vendor</strong>
+          <span>Sign in with your vendor access key.</span>
+        </button>
+        <button type="button" class="role-chip" data-mode="admin" onclick="setPortalMode('admin')">
+          <strong>Admin</strong>
+          <span>Use the master passphrase for system controls.</span>
+        </button>
+      </div>
+
+      <div class="entry-helper" id="entryHelper">
+        Use a player calibration code to open a verified profile card.
+      </div>
 
       <div class="vault-input-wrap">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
@@ -513,13 +598,13 @@
           type="text"
           id="vaultInput"
           class="vault-input"
-          placeholder="AXP-XXXX-XXXX or passphrase"
+          placeholder="Enter your profile code"
           autocomplete="off"
           autocorrect="off"
           autocapitalize="characters"
           spellcheck="false"
           maxlength="64"
-          aria-label="Access key or passphrase"
+          aria-label="Player code"
         >
       </div>
 
@@ -528,7 +613,7 @@
       </div>
 
       <button class="vault-enter-btn" id="vaultAuthBtn" onclick="handleVaultEntry()">
-        AUTHENTICATE ACCESS
+        OPEN PLAYER PROFILE
       </button>
 
       <div class="vault-or">OR</div>
@@ -546,37 +631,98 @@
       <div class="trust-item"><span class="trust-item-dot gold"></span>200+ Devices</div>
     </div>
   </main>
+
+  <!-- Scanner Overlay -->
   <div id="scannerOverlay" aria-hidden="true" style="display:none;"></div>
 
-    <!-- Removed cluttered stat bar from middle -->
-
-    <!-- Master Access Footer -->
-    <footer class="mt-20 py-12 border-t border-white/5 text-center anim-up">
-      <p class="text-ghost text-[0.65rem] font-mono mb-8 opacity-40">AXP_SENSITIVITY_ENGINE_V3.0 // SECURE_UPLINK</p>
-      <div class="flex flex-wrap justify-center gap-8 px-4">
-        <a href="admin/index.html" class="text-ghost hover:text-cyan transition-colors text-[10px] font-mono tracking-[0.2em] uppercase">Master_Login</a>
-        <a href="privacy.html" class="text-ghost hover:text-white transition-colors text-[10px] font-mono tracking-[0.2em] uppercase">Privacy_Protocol</a>
-        <a href="terms.html" class="text-ghost hover:text-white transition-colors text-[10px] font-mono tracking-[0.2em] uppercase">User_Agreement</a>
-      </div>
-    </footer>
-  </div>
+  <!-- Bottom Footer Links -->
+  <footer class="text-center py-8 anim-up" style="padding-top: 60px;">
+    <p class="text-ghost text-[0.65rem] font-mono mb-6 opacity-40">AXP_SENSITIVITY_ENGINE_V3.0 // SECURE_UPLINK</p>
+    <div class="flex flex-wrap justify-center gap-8 px-4">
+      <a href="admin/index.html" class="text-ghost hover:text-cyan transition-colors text-[10px] font-mono tracking-[0.2em] uppercase">Master_Login</a>
+      <a href="privacy.html" class="text-ghost hover:text-white transition-colors text-[10px] font-mono tracking-[0.2em] uppercase">Privacy_Protocol</a>
+      <a href="terms.html" class="text-ghost hover:text-white transition-colors text-[10px] font-mono tracking-[0.2em] uppercase">User_Agreement</a>
+    </div>
+  </footer>
 
   <script src="translations.js?v=3.2.1"></script>
   <script src="gaming-effects.js?v=3.2.1"></script>
   <script src="notifications.js?v=3.2.1"></script>
   <script src="theme-manager.js?v=3.2.1"></script>
   <script>
-    // Live Activity Simulation
-    function updateLiveStats() {
-      const users = 2800 + Math.floor(Math.random() * 200);
-      const calls = 120 + Math.floor(Math.random() * 50);
+    const portalModes = {
+      player: {
+        helper: 'Use a player calibration code to open a verified profile card.',
+        placeholder: 'Enter your profile code',
+        button: 'OPEN PLAYER PROFILE',
+        label: 'Player code',
+        status: 'PLAYER_MODE · READY',
+        autocapitalize: 'characters'
+      },
+      vendor: {
+        helper: 'Enter your vendor access key to reach the creator dashboard.',
+        placeholder: 'AXP-XXXX-XXXX',
+        button: 'SIGN IN AS VENDOR',
+        label: 'Vendor access key',
+        status: 'VENDOR_MODE · READY',
+        autocapitalize: 'characters'
+      },
+      admin: {
+        helper: 'Enter the admin passphrase to access system controls.',
+        placeholder: 'Enter admin passphrase',
+        button: 'SIGN IN AS ADMIN',
+        label: 'Admin passphrase',
+        status: 'ADMIN_MODE · READY',
+        autocapitalize: 'off'
+      }
+    };
+    let activePortalMode = 'player';
+
+    function normalizeInputValue(value) {
+      return activePortalMode === 'admin' ? value : value.toUpperCase();
+    }
+
+    function setPortalMode(mode) {
+      activePortalMode = mode;
+      const config = portalModes[mode];
+      const input = document.getElementById('vaultInput');
+      const btn = document.getElementById('vaultAuthBtn');
+      const playerGuide = document.getElementById('playerGuide');
+      
+      document.querySelectorAll('.role-chip').forEach((chip) => {
+        chip.classList.toggle('active', chip.dataset.mode === mode);
+      });
+      
+      // Show guide only for player mode
+      if (playerGuide) {
+        playerGuide.style.display = mode === 'player' ? 'block' : 'none';
+      }
+      
+      document.getElementById('entryHelper').textContent = config.helper;
+      input.placeholder = config.placeholder;
+      input.setAttribute('aria-label', config.label);
+      input.setAttribute('autocapitalize', config.autocapitalize);
+      input.value = normalizeInputValue(input.value);
+      btn.textContent = config.button;
+      updateStatus(input.value ? 'READY_TO_CONTINUE' : config.status, input.value ? 'active' : '');
+    }
+
+    async function loadLiveStats() {
       const userEl = document.getElementById('liveUsers');
       const callEl = document.getElementById('liveCalibrations');
-      if(userEl) userEl.textContent = `${users.toLocaleString()}_NODES_ACTIVE`;
-      if(callEl) callEl.textContent = `${calls}_CALIBRATIONS/HR`;
+      try {
+        const res = await fetch('/api/vault/public/stats');
+        const data = await res.json();
+        if (!res.ok) throw new Error('STATS_UNAVAILABLE');
+        if (userEl) userEl.textContent = `${Number(data.active_vendors || 0).toLocaleString()}_ACTIVE_VENDORS`;
+        if (callEl) callEl.textContent = `${Number(data.total_codes || 0).toLocaleString()}_PROFILES_ISSUED`;
+      } catch (_err) {
+        if (userEl) userEl.textContent = 'LIVE_STATS_OFFLINE';
+        if (callEl) callEl.textContent = 'TRY_AGAIN_SHORTLY';
+      }
     }
-    setInterval(updateLiveStats, 5000);
-    updateLiveStats();
+    setInterval(loadLiveStats, 30000);
+    loadLiveStats();
 
     async function checkSystemState() {
         try {
@@ -642,18 +788,18 @@
       if (e.key === 'Enter') handleVaultEntry();
     });
 
-    // Live input formatting (uppercase, visual feedback)
+    // Live input formatting and role-aware feedback
     document.getElementById('vaultInput').addEventListener('input', (e) => {
-      const val = e.target.value.toUpperCase();
+      const val = normalizeInputValue(e.target.value);
       if (val !== e.target.value) e.target.value = val;
 
       const status = document.getElementById('portalStatus');
       if (val.length > 0) {
         status.className = 'vault-status active';
-        status.innerHTML = 'KEY_DETECTED · READY_TO_AUTHENTICATE<span class="status-cursor"></span>';
+        status.innerHTML = 'READY_TO_CONTINUE<span class="status-cursor"></span>';
       } else {
         status.className = 'vault-status';
-        status.innerHTML = 'AWAITING_INPUT<span class="status-cursor"></span>';
+        status.innerHTML = `${portalModes[activePortalMode].status}<span class="status-cursor"></span>`;
       }
     });
 
@@ -664,7 +810,7 @@
     }
 
     async function handleVaultEntry() {
-      const key = document.getElementById('vaultInput').value.trim().toUpperCase();
+      const key = normalizeInputValue(document.getElementById('vaultInput').value.trim());
       const btn = document.getElementById('vaultAuthBtn');
       if (!key) {
         document.getElementById('vaultInput').style.borderColor = 'var(--error)';
@@ -683,8 +829,7 @@
       GamingEffects.scaleUp(btn, 1.02, 300);
 
       try {
-        // 1 — Fast branch for Vendors
-        if ((key.startsWith('AXP-') || key.startsWith('XP-')) && key.split('-').length >= 3) {
+        if (activePortalMode === 'vendor') {
           updateStatus('VENDOR_HANDSHAKE_PULSE...', 'active');
           const { res: vRes, data: vData } = await portalRequest('/api/vault/vendor/login', { access_key: key });
           if (vRes.ok) {
@@ -695,29 +840,40 @@
             btn.textContent = 'REDIRECTING...';
             setTimeout(() => window.location.href = vData.redirect || 'vendor_dashboard.html', 700);
             return;
-          } else if (vRes.status === 403) {
+          }
+          if (vRes.status === 403) {
             updateStatus('ACCESS_DENIED · ACCOUNT_SUSPENDED', 'error');
             btn.disabled = false; btn.textContent = 'AUTHENTICATE ACCESS';
             return;
           }
-        }
-
-        // 2 — Branch for Admin
-        updateStatus('INITIALIZING_ADMIN_DECRYPT...', 'active');
-        const { res: adminRes, data: aData } = await portalRequest('/api/vault/admin/login', { password: key });
-        if (adminRes.ok) {
-          if (aData.token) {
-            localStorage.setItem('axp_admin_token', aData.token);
-          }
-          updateStatus('ADMIN_UPLINK_GRANTED', 'success');
-          GamingEffects.createParticles(btn, 30, 'gold');
-          GamingEffects.showSuccess('Admin Access Granted!');
-          btn.textContent = 'ACCESS GRANTED ✓';
-          setTimeout(() => window.location.href = 'admin/index.html', 700);
+          updateStatus('INVALID_VENDOR_KEY', 'error');
+          if (window.notify) window.notify('Vendor key not recognized', 'error');
+          btn.disabled = false;
+          btn.textContent = portalModes[activePortalMode].button;
           return;
         }
 
-        // 3 — Try calibration code lookup
+        if (activePortalMode === 'admin') {
+          updateStatus('INITIALIZING_ADMIN_DECRYPT...', 'active');
+          const { res: adminRes, data: aData } = await portalRequest('/api/vault/admin/login', { password: key });
+          if (adminRes.ok) {
+            if (aData.token) {
+              localStorage.setItem('axp_admin_token', aData.token);
+            }
+            updateStatus('ADMIN_UPLINK_GRANTED', 'success');
+            GamingEffects.createParticles(btn, 30, 'gold');
+            GamingEffects.showSuccess('Admin Access Granted!');
+            btn.textContent = 'ACCESS GRANTED ✓';
+            setTimeout(() => window.location.href = 'admin/index.html', 700);
+            return;
+          }
+          updateStatus('INVALID_ADMIN_PASSPHRASE', 'error');
+          if (window.notify) window.notify('Admin passphrase not recognized', 'error');
+          btn.disabled = false;
+          btn.textContent = portalModes[activePortalMode].button;
+          return;
+        }
+
         updateStatus('SCANNING_CALIBRATION_REGISTRY...', 'active');
         const { res: codeRes } = await portalRequest(`/api/vault/code/${encodeURIComponent(key)}/status`);
         if (codeRes.ok) {
@@ -733,7 +889,7 @@
           document.getElementById('vaultInput').style.borderColor = 'var(--error)';
           setTimeout(() => document.getElementById('vaultInput').style.borderColor = '', 2000);
           btn.disabled = false;
-          btn.textContent = 'AUTHENTICATE ACCESS';
+          btn.textContent = portalModes[activePortalMode].button;
           if (window.notify) window.notify('Invalid or expired key', 'error');
         }
       } catch (err) {
@@ -745,9 +901,11 @@
             updateStatus('UPLINK_TIMEOUT · SYSTEM_OFFLINE', 'error');
         }
         btn.disabled = false;
-        btn.textContent = 'AUTHENTICATE ACCESS';
+        btn.textContent = portalModes[activePortalMode].button;
       }
     }
+
+    setPortalMode('player');
   </script>
 </body>
 </html>

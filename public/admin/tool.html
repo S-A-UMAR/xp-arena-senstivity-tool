@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <link rel="icon" type="image/svg+xml" href="../favicon.svg">
   <title>AXP | MASTER CALIBRATION</title>
   <link rel="stylesheet" href="style.css">
@@ -51,12 +51,9 @@
     async function loadSettings() {
       try {
         const settings = await api('/api/vault/admin/settings');
-        if (Array.isArray(settings)) {
-          const offset = settings.find(s => s.setting_key === 'global_sensitivity_offset');
-          if (offset) {
-            document.getElementById('globalOffset').value = offset.setting_value;
-            updateOffsetVal();
-          }
+        if (settings.global_sensitivity_offset) {
+          document.getElementById('globalOffset').value = settings.global_sensitivity_offset;
+          updateOffsetVal();
         }
       } catch (e) { console.error('SETTINGS_LOAD_ERR:', e); }
     }

@@ -119,8 +119,8 @@
         </div>
     `;
 
-    const style = document.createElement('style');
-    style.textContent = `
+    const settingsHubStyle = document.createElement('style');
+    settingsHubStyle.textContent = `
         #settings-hub {
             position: fixed;
             bottom: 24px;
@@ -209,7 +209,7 @@
         }
     `;
 
-    document.head.appendChild(style);
+    document.head.appendChild(settingsHubStyle);
     // document.body.appendChild(hub); // Disabled to prevent duplicate settings icon
 
     // Initial State

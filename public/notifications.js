@@ -101,9 +101,9 @@ window.notify = function(message, type = 'info', duration = 4000) {
     }, duration);
 };
 
-// Advanced Styles for Notifications
-const style = document.createElement('style');
-style.textContent = `
+// Scope notification styles to avoid global redeclaration collisions.
+const notificationStyle = document.createElement('style');
+notificationStyle.textContent = `
     @keyframes toastEntrance {
         0% { opacity: 0; transform: translateY(-30px) scale(0.9) rotateX(-10deg); filter: blur(10px); }
         100% { opacity: 1; transform: translateY(0) scale(1) rotateX(0); filter: blur(0); }
@@ -166,4 +166,4 @@ style.textContent = `
         }
     }
 `;
-document.head.appendChild(style);
+document.head.appendChild(notificationStyle);

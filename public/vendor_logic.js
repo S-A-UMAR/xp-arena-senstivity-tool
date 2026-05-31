@@ -432,7 +432,7 @@ const VendorLogic = {
 
         if (!brand || !model) return window.notify('SELECT_DEVICE_FIRST', 'warning');
 
-        const btn = document.querySelector('.btn-nexus-primary');
+        const btn = document.getElementById('generateKeyBtn');
         if (btn) { btn.textContent = 'PROVISIONING...'; btn.disabled = true; }
 
         try {

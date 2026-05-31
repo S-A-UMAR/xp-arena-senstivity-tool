@@ -344,9 +344,9 @@ const GamingEffects = {
   },
 };
 
-// Add ripple animation keyframe
-const style = document.createElement('style');
-style.textContent = `
+// Keep helper styles scoped so shared scripts can coexist on the same page.
+const gamingEffectsStyle = document.createElement('style');
+gamingEffectsStyle.textContent = `
   @keyframes ripple-out {
     0% {
       transform: scale(0);
@@ -376,7 +376,7 @@ style.textContent = `
     }
   }
 `;
-document.head.appendChild(style);
+document.head.appendChild(gamingEffectsStyle);
 
 // Export for use
 if (typeof module !== 'undefined' && module.exports) {

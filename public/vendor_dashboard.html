@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <title>AXP | COMMAND CENTER</title>
   <link rel="stylesheet" href="design-system.css">
@@ -29,6 +29,16 @@
       background: radial-gradient(circle, rgba(168, 85, 247, 0.15) 0%, transparent 70%);
       filter: blur(30px);
     }
+    .vendor-header-btn {
+      background: transparent;
+      border: none;
+      padding: 0;
+    }
+    .vendor-header-btn:focus-visible {
+      outline: 2px solid var(--cyan);
+      outline-offset: 3px;
+      border-radius: 10px;
+    }
     
     .status-badge {
       display: inline-flex;
@@ -54,6 +64,46 @@
       justify-content: space-between;
       align-items: center;
     }
+    .hero-copy {
+      margin-top: 1rem;
+      max-width: 28rem;
+      color: var(--tx-sub);
+      font-size: 0.82rem;
+      line-height: 1.6;
+    }
+    .hero-summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.75rem;
+      margin-top: 1.5rem;
+    }
+    .hero-summary-item {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 16px;
+      padding: 0.9rem 1rem;
+    }
+    .hero-summary-label {
+      font-size: 0.58rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--tx-muted);
+      font-weight: 800;
+      margin-bottom: 0.3rem;
+    }
+    .hero-summary-value {
+      font-size: 0.88rem;
+      color: var(--tx-hero);
+      font-weight: 800;
+    }
+    .section-kicker {
+      margin-bottom: 0.35rem;
+      font-size: 0.62rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--tx-muted);
+      font-weight: 800;
+    }
     
     .quick-grid {
       display: grid;
@@ -78,6 +128,22 @@
       border-color: var(--cyan-border);
       transform: translateY(-4px);
       box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    }
+    .action-card-link,
+    .action-card-button {
+      width: 100%;
+      text-decoration: none;
+      text-align: left;
+      font: inherit;
+      color: inherit;
+    }
+    .action-card-button {
+      border: none;
+    }
+    .action-card-link:focus-visible,
+    .action-card-button:focus-visible {
+      outline: 2px solid var(--cyan);
+      outline-offset: 3px;
     }
     .action-card-icon {
       font-size: 1.5rem;
@@ -128,6 +194,52 @@
       border-radius: 50%;
       box-shadow: 0 0 8px var(--cyan);
     }
+    .generator-intro {
+      margin-top: 0.35rem;
+      font-size: 0.78rem;
+      line-height: 1.6;
+      color: var(--tx-sub);
+    }
+    .micro-note {
+      margin-top: 0.9rem;
+      font-size: 0.7rem;
+      line-height: 1.5;
+      color: var(--tx-muted);
+    }
+    .inline-field-row {
+      display: flex;
+      gap: 0.75rem;
+      align-items: stretch;
+    }
+    .inline-field-row > * {
+      flex: 1;
+    }
+    .lab-fetch-btn {
+      min-width: 112px;
+    }
+    .section-note {
+      margin-bottom: 1rem;
+      color: var(--tx-sub);
+      font-size: 0.75rem;
+      line-height: 1.5;
+    }
+    @media (max-width: 520px) {
+      .profile-hero {
+        padding: 2rem 1.25rem;
+      }
+      .hero-summary-grid,
+      .quick-grid {
+        grid-template-columns: 1fr;
+      }
+      .expiry-row,
+      .inline-field-row {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .action-card {
+        min-height: 92px;
+      }
+    }
   </style>
 </head>
 <body class="page-vendor">
@@ -135,11 +247,11 @@
   <!-- Fixed Header -->
   <header class="page-header">
     <div class="ph-logo">AXP_NEXUS</div>
-    <div class="ph-title">System Dashboard</div>
-    <div class="ph-action" onclick="NexusAuth.logout()">
+    <div class="ph-title">Vendor Dashboard</div>
+    <button type="button" class="ph-action vendor-header-btn" onclick="NexusAuth.logout()">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
       LOGOUT
-    </div>
+    </button>
   </header>
 
   <div class="page-wrap anim-stagger-in" id="section-home">
@@ -152,82 +264,123 @@
           UPLINK_STABLE
         </div>
         <div class="stat-hero">
-          <div class="section-eyebrow">Authenticated Operator</div>
+          <div class="section-eyebrow">Creator workspace</div>
           <div class="stat-hero-val" id="welcomeName">OPERATOR_AXP</div>
-          <div class="stat-hero-sub text-violet">Premium Tier Subscription Active</div>
+          <div class="stat-hero-sub text-violet" id="welcomeTierLabel">Premium access active</div>
+        </div>
+        <p class="hero-copy" id="dashboardHint">
+          Manage your brand, create access keys, and keep an eye on recent activity from one streamlined mobile workspace.
+        </p>
+        <div class="hero-summary-grid">
+          <div class="hero-summary-item">
+            <div class="hero-summary-label">Focus</div>
+            <div class="hero-summary-value">Keys & sharing</div>
+          </div>
+          <div class="hero-summary-item">
+            <div class="hero-summary-label">Mode</div>
+            <div class="hero-summary-value">Mobile ready</div>
+          </div>
+          <div class="hero-summary-item">
+            <div class="hero-summary-label">Status</div>
+            <div class="hero-summary-value">Secure session</div>
+          </div>
         </div>
         
         <div class="expiry-row">
-          <div class="stat-hero-label">Subscription Life</div>
+          <div class="stat-hero-label">Access expiry</div>
           <div class="countdown" id="expiryTimer">30D 23H 59M</div>
         </div>
         
         <button class="btn-cta violet auto mt-4" style="font-size: 0.65rem; padding: 0.6rem 1.25rem;" onclick="VendorLogic.showVendorCredentials()">
-            VIEW_MASTER_CREDENTIAL
+            VIEW VENDOR ID
         </button>
       </div>
     </div>
 
     <!-- Quick Navigation Grid -->
     <div class="quick-grid anim-up">
-      <div class="action-card" onclick="window.location.href='vendor_data.html'">
+      <div style="grid-column: 1 / -1; margin-bottom: 0.15rem;">
+        <div class="section-kicker">Quick actions</div>
+        <div class="section-note">Jump to the tasks vendors use most often on mobile: performance checks, key management, branding, and presets.</div>
+      </div>
+      <a href="vendor_data.html" class="action-card action-card-link">
         <div class="action-card-icon">📊</div>
         <div>
-          <div class="action-card-title">Analytics</div>
-          <div class="action-card-desc">Hits & User Engagement</div>
+          <div class="action-card-title">Performance</div>
+          <div class="action-card-desc">See profile views, engagement, and recent activity.</div>
         </div>
-      </div>
-      <div class="action-card" onclick="openVaultManager()">
+      </a>
+      <button type="button" class="action-card action-card-button" onclick="openVaultManager()">
         <div class="action-card-icon">🔑</div>
         <div>
           <div class="action-card-title">Key Vault</div>
-          <div class="action-card-desc">Manage Access Tokens</div>
+          <div class="action-card-desc">Review active keys and revoke old ones in seconds.</div>
         </div>
-      </div>
-      <div class="action-card" onclick="openBrandingEditor()">
+      </button>
+      <button type="button" class="action-card action-card-button" onclick="openBrandingEditor()">
         <div class="action-card-icon">🎨</div>
         <div>
           <div class="action-card-title">Branding</div>
-          <div class="action-card-desc">Visual Identity Profile</div>
+          <div class="action-card-desc">Update your display name, logo, and creator identity.</div>
         </div>
-      </div>
-      <div class="action-card" onclick="openMasterPresets()">
+      </button>
+      <button type="button" class="action-card action-card-button" onclick="openMasterPresets()">
         <div class="action-card-icon">📦</div>
         <div>
           <div class="action-card-title">Presets</div>
-          <div class="action-card-desc">Rapid Configuration Sets</div>
+          <div class="action-card-desc">Save repeatable setups for faster publishing.</div>
         </div>
-      </div>
+      </button>
     </div>
 
     <!-- Generator Module -->
     <div class="card glow mb-3 anim-up" style="padding: 2.5rem 2rem;">
       <div class="section-header">
         <div>
-          <div class="section-eyebrow">Fabrication Unit</div>
-          <h2 class="section-title">NEURAL_FABRICATOR</h2>
+          <div class="section-eyebrow">Create a new key</div>
+          <h2 class="section-title">Generate Access Key</h2>
+          <p class="generator-intro">Follow these simple steps to create share-ready calibration codes for your community:</p>
         </div>
         <div style="font-size: 1.5rem; opacity: 0.3;">🧪</div>
       </div>
+      
+      <!-- Vendor Steps Guide -->
+      <div class="mb-4" style="background: rgba(168,85,247,0.04); border: 1px solid rgba(168,85,247,0.1); border-radius: 16px; padding: 1rem;">
+        <div class="flex items-center gap-2 mb-2">
+          <div class="w-6 h-6 rounded-full bg-violet/20 flex items-center justify-center text-violet font-bold text-xs">1</div>
+          <span class="text-xs font-bold text-violet uppercase tracking-wider">Select Your Device</span>
+        </div>
+        <div class="text-xs text-muted leading-relaxed mb-3">Choose your device brand, series, and model from the dropdown menus.</div>
+        <div class="flex items-center gap-2 mb-2">
+          <div class="w-6 h-6 rounded-full bg-violet/20 flex items-center justify-center text-violet font-bold text-xs">2</div>
+          <span class="text-xs font-bold text-violet uppercase tracking-wider">Set Playstyle & Layout</span>
+        </div>
+        <div class="text-xs text-muted leading-relaxed mb-3">Select your preferred playstyle (slow/balanced/fast) and finger layout.</div>
+        <div class="flex items-center gap-2 mb-2">
+          <div class="w-6 h-6 rounded-full bg-violet/20 flex items-center justify-center text-violet font-bold text-xs">3</div>
+          <span class="text-xs font-bold text-violet uppercase tracking-wider">Add Lab Data (Optional)</span>
+        </div>
+        <div class="text-xs text-muted leading-relaxed">Paste your AXP Lab ID to attach your personal reaction time calibration data to the code!</div>
+      </div>
 
       <div class="form-group">
-        <label class="form-label">Brand_Architecture</label>
+        <label class="form-label">Device Brand</label>
         <select id="genBrand" class="xp-select">
-          <option value="" disabled selected>SELECT_BRAND</option>
+          <option value="" disabled selected>Select a brand</option>
         </select>
       </div>
 
       <div class="form-group">
-        <label class="form-label">Series_Logic</label>
+        <label class="form-label">Device Series</label>
         <select id="genSeries" class="xp-select" disabled>
-          <option value="" disabled selected>SELECT_SERIES</option>
+          <option value="" disabled selected>Select a series</option>
         </select>
       </div>
 
       <div class="form-group">
-        <label class="form-label">Model_Signature</label>
+        <label class="form-label">Device Model</label>
         <select id="genModel" class="xp-select" disabled>
-          <option value="" disabled selected>SELECT_MODEL</option>
+          <option value="" disabled selected>Select a model</option>
         </select>
       </div>
 
@@ -241,7 +394,7 @@
           </select>
         </div>
         <div class="form-group">
-          <label class="form-label">Fingers</label>
+          <label class="form-label">Finger Layout</label>
           <select id="genClaw" class="xp-select">
             <option value="2">2-FINGER</option>
             <option value="3" selected>3-FINGER</option>
@@ -253,24 +406,27 @@
       <!-- AXP Lab ID Input -->
       <div class="form-group mb-4" style="background: rgba(168, 85, 247, 0.04); border: 1px solid rgba(168, 85, 247, 0.1); border-radius: 12px; padding: 1.25rem;">
         <div class="flex justify-between items-center mb-2">
-            <label class="form-label mb-0" style="color: var(--violet);">AXP_LAB_ID</label>
-            <div id="labStatus" class="text-ghost" style="font-size: 0.55rem; font-family: var(--font-mono);">AWAITING_DATA...</div>
+            <label class="form-label mb-0" style="color: var(--violet);">AXP Lab ID (Optional)</label>
+            <div id="labStatus" class="text-ghost" style="font-size: 0.55rem; font-family: var(--font-mono);">NO_LAB_DATA_LINKED</div>
         </div>
-        <div class="flex gap-2">
+        <div class="inline-field-row">
             <input type="text" id="labIdInput" class="xp-input-box text-xs" style="text-transform: uppercase;" placeholder="e.g. LAB-A83BK">
-            <button class="btn-ghost auto py-2 px-3" onclick="fetchDiagnostic()" style="font-size: 0.6rem;">FETCH</button>
+            <button class="btn-ghost auto py-2 px-3 lab-fetch-btn" onclick="fetchDiagnostic()" style="font-size: 0.6rem;">USE LAB DATA</button>
         </div>
+        <div class="micro-note">Add a recent lab session if you want the generated result to reflect recorded reaction and precision data.</div>
       </div>
 
-      <button class="btn-cta violet" onclick="autoGenerate()">
+      <button class="btn-cta violet" id="generateKeyBtn" onclick="autoGenerate()">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 2v4"/><path d="m16.2 7.8 2.9-2.9"/><path d="M18 12h4"/><path d="m16.2 16.2 2.9 2.9"/><path d="M12 18v4"/><path d="m7.8 16.2-2.9 2.9"/><path d="M2 12h4"/><path d="m7.8 7.8-2.9-2.9"/><circle cx="12" cy="12" r="3"/></svg>
-        PROVISION_ACCESS_KEY
+        GENERATE ACCESS KEY
       </button>
+      <div class="micro-note">Your key will open a verified result card that can be shared with your audience immediately.</div>
     </div>
 
     <!-- Live Feed -->
     <div class="card anim-up" style="background: rgba(10, 15, 25, 0.4);">
-      <div class="section-eyebrow mb-2">Live Uplink Feed</div>
+      <div class="section-eyebrow mb-2">Recent activity</div>
+      <div class="section-note">A lightweight feed of the latest vendor-side actions so you can quickly confirm that publishing and updates are working.</div>
       <div id="activityFeed" class="flex flex-col">
         <div style="padding: 2rem; text-align: center;">
           <div class="skeleton-h sm w-full mb-1"></div>
