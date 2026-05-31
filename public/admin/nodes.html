@@ -95,7 +95,7 @@
 
   <!-- Action Sheet (Add Vendor) -->
   <div id="sheetOverlay" class="sheet-overlay" onclick="toggleActionSheet(false)"></div>
-  <div id="actionSheet" class="admin-sheet">
+  <div id="actionSheet" class="admin-sheet" style="background: linear-gradient(165deg, rgba(10,15,28,0.95), rgba(4,9,22,0.95)); border: 1px solid rgba(245,158,11,0.25); box-shadow: 0 40px 100px rgba(0,0,0,0.8), 0 0 60px rgba(245,158,11,0.1);">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2rem;">
       <h3 style="color:var(--gold); font-size:1.1rem; font-weight:900; letter-spacing:0.1em; margin:0;">PROVISION_NODE</h3>
       <button class="btn-ghost auto" onclick="toggleActionSheet(false)" style="border:none; font-size:1.5rem; color:var(--tx-muted);">&times;</button>
@@ -104,47 +104,47 @@
     <div class="flex flex-col gap-6">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div class="input-wrap">
-          <label class="text-[0.6rem] opacity-50 mb-1 block">IDENTIFIER</label>
-          <div class="flex items-center bg-white/5 rounded-lg border border-white/10 px-3 focus-within:border-gold/50 transition-all">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" class="opacity-50 mr-2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-            <input type="text" id="v_id" placeholder="e.g. AX-PRO-99" class="bg-transparent border-none w-full py-3 text-sm focus:outline-none">
+          <label>IDENTIFIER</label>
+          <div class="flex items-center bg-white/5 rounded-xl border border-white/10 px-4 focus-within:border-gold/50 transition-all">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" class="opacity-50 mr-3"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <input type="text" id="v_id" placeholder="e.g. AX-PRO-99" class="bg-transparent border-none w-full py-4 text-sm focus:outline-none">
           </div>
         </div>
         <div class="input-wrap">
-          <label class="text-[0.6rem] opacity-50 mb-1 block">SECRET_PHRASE</label>
-          <div class="flex items-center bg-white/5 rounded-lg border border-white/10 px-3 focus-within:border-gold/50 transition-all">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" class="opacity-50 mr-2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-            <input type="text" id="v_key" placeholder="AUTO_GENERATE" class="bg-transparent border-none w-full py-3 text-sm focus:outline-none">
+          <label>SECRET_PHRASE</label>
+          <div class="flex items-center bg-white/5 rounded-xl border border-white/10 px-4 focus-within:border-gold/50 transition-all">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" class="opacity-50 mr-3"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <input type="text" id="v_key" placeholder="AUTO_GENERATE" class="bg-transparent border-none w-full py-4 text-sm focus:outline-none">
           </div>
         </div>
       </div>
       
       <div class="input-wrap">
-        <label class="section-eyebrow mb-2 block">NETWORK_TIER</label>
+        <label>NETWORK_TIER</label>
         <div class="flex gap-2">
-          <label class="flex-1 flex items-center justify-center p-3 rounded-xl border border-white/10 bg-white/5 cursor-pointer hover:bg-white/10 transition-all peer-checked:border-gold">
+          <label class="flex-1 flex items-center justify-center p-3 rounded-xl border border-white/10 bg-white/5 cursor-pointer hover:bg-white/10 transition-all peer-checked:border-gold peer-checked:bg-gold/5">
             <input type="radio" name="tier" value="normal" checked class="hidden peer">
-            <span class="text-[0.6rem] font-bold opacity-60 peer-checked:opacity-100">NORMAL</span>
+            <span class="text-[0.6rem] font-bold opacity-60 peer-checked:opacity-100 peer-checked:text-white">NORMAL</span>
           </label>
-          <label class="flex-1 flex items-center justify-center p-3 rounded-xl border border-white/10 bg-white/5 cursor-pointer hover:bg-white/10 transition-all peer-checked:border-gold">
+          <label class="flex-1 flex items-center justify-center p-3 rounded-xl border border-white/10 bg-white/5 cursor-pointer hover:bg-white/10 transition-all peer-checked:border-gold peer-checked:bg-gold/5">
             <input type="radio" name="tier" value="gold" class="hidden peer">
-            <span class="text-[0.6rem] font-bold opacity-60 peer-checked:opacity-100">GOLD</span>
+            <span class="text-[0.6rem] font-bold opacity-60 peer-checked:opacity-100 peer-checked:text-white">GOLD</span>
           </label>
-          <label class="flex-1 flex items-center justify-center p-3 rounded-xl border border-white/10 bg-white/5 cursor-pointer hover:bg-white/10 transition-all peer-checked:border-gold">
+          <label class="flex-1 flex items-center justify-center p-3 rounded-xl border border-white/10 bg-white/5 cursor-pointer hover:bg-white/10 transition-all peer-checked:border-gold peer-checked:bg-gold/5">
             <input type="radio" name="tier" value="premium" class="hidden peer">
-            <span class="text-[0.6rem] font-bold opacity-60 peer-checked:opacity-100">PREMIUM</span>
+            <span class="text-[0.6rem] font-bold opacity-60 peer-checked:opacity-100 peer-checked:text-white">PREMIUM</span>
           </label>
         </div>
       </div>
 
       <div class="grid grid-cols-2 gap-4">
         <div class="input-wrap">
-          <label class="text-[0.6rem] opacity-50 mb-1 block">GEN_LIMIT</label>
-          <input type="number" id="v_usage" placeholder="∞" class="bg-white/5 border border-white/10 rounded-lg w-full py-3 px-4 text-sm focus:border-gold/50 outline-none">
+          <label>GEN_LIMIT</label>
+          <input type="number" id="v_usage" placeholder="∞" class="bg-white/5 border border-white/10 rounded-xl w-full py-4 px-4 text-sm focus:border-gold/50 outline-none">
         </div>
         <div class="input-wrap">
-          <label class="text-[0.6rem] opacity-50 mb-1 block">VALIDITY</label>
-          <select id="v_duration" class="bg-[#0f172a] border border-white/10 rounded-lg w-full py-3 px-4 text-sm focus:border-gold/50 outline-none appearance-none">
+          <label>VALIDITY</label>
+          <select id="v_duration" class="bg-[#0f172a] border border-white/10 rounded-xl w-full py-4 px-4 text-sm focus:border-gold/50 outline-none appearance-none">
             <option value="">PERMANENT</option>
             <option value="1">24_HOURS</option>
             <option value="7">7_DAYS</option>
@@ -153,7 +153,7 @@
         </div>
       </div>
       
-      <button class="btn-gaming w-full py-4 rounded-xl font-black tracking-widest mt-2" onclick="addVendor()" style="background:linear-gradient(to right, var(--gold), #fbbf24); color:#000; box-shadow:0 0 40px rgba(245,158,11,0.25);">PROVISION_ACCESS_NODE</button>
+      <button class="btn-gaming w-full py-4 rounded-xl font-black tracking-widest mt-2" onclick="addVendor()" style="background:linear-gradient(to right, var(--gold), #fbbf24); color:#000; box-shadow:0 0 40px rgba(245,158,11,0.3);">PROVISION_ACCESS_NODE</button>
     </div>
   </div>
 
