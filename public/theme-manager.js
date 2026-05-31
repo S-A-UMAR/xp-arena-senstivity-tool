@@ -259,12 +259,7 @@ const ThemeManager = {
                     <div style="height:1px; background:rgba(255,255,255,0.05);"></div>
                     <div class="faq-item">
                         <div style="font-size:0.7rem; font-weight:800; color:var(--violet); margin-bottom:4px;">03. DATA SECURITY?</div>
-                        <p style="font-size:0.75rem; color:var(--tx-muted); line-height:1.5;">All neural profiles are encrypted using AES-256 protocols. Your biological latency data is anonymized and stored on secure nodes.</p>
-                    </div>
-                    <div style="height:1px; background:rgba(255,255,255,0.05);"></div>
-                    <div class="faq-item">
-                        <div style="font-size:0.7rem; font-weight:800; color:var(--violet); margin-bottom:4px;">04. LAB PROTOCOLS?</div>
-                        <p style="font-size:0.75rem; color:var(--tx-muted); line-height:1.5;">The Diagnostic Lab uses 5 distinct modes (Reflex, Burst, Track, etc.) to measure sub-millisecond reactions. Complete all modes for a Master Accuracy Rating.</p>
+                        <p style="font-size:0.75rem; color:var(--tx-muted); line-height:1.5;">All neural profiles are encrypted using AES-256 protocols. Your data is anonymized and stored on secure nodes.</p>
                     </div>
                 </div>
                 <button class="btn-cta violet w-full mt-8" onclick="ThemeManager.toggleFaq(false)">CLOSE_UPLINK</button>
