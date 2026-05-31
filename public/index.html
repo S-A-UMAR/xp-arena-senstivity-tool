@@ -582,10 +582,6 @@
           <strong>Vendor</strong>
           <span>Sign in with your vendor access key.</span>
         </button>
-        <button type="button" class="role-chip" data-mode="admin" onclick="setPortalMode('admin')">
-          <strong>Admin</strong>
-          <span>Use the master passphrase for system controls.</span>
-        </button>
       </div>
 
       <div class="entry-helper" id="entryHelper">
@@ -639,10 +635,9 @@
   <footer class="text-center py-8 anim-up" style="padding-top: 60px;">
     <p class="text-ghost text-[0.65rem] font-mono mb-6 opacity-40">AXP_SENSITIVITY_ENGINE_V3.0 // SECURE_UPLINK</p>
     <div class="flex flex-wrap justify-center gap-8 px-4">
-      <a href="admin/index.html" class="text-ghost hover:text-cyan transition-colors text-[10px] font-mono tracking-[0.2em] uppercase">Master_Login</a>
-      <a href="privacy.html" class="text-ghost hover:text-white transition-colors text-[10px] font-mono tracking-[0.2em] uppercase">Privacy_Protocol</a>
-      <a href="terms.html" class="text-ghost hover:text-white transition-colors text-[10px] font-mono tracking-[0.2em] uppercase">User_Agreement</a>
-    </div>
+        <a href="privacy.html" class="text-ghost hover:text-white transition-colors text-[10px] font-mono tracking-[0.2em] uppercase">Privacy_Protocol</a>
+        <a href="terms.html" class="text-ghost hover:text-white transition-colors text-[10px] font-mono tracking-[0.2em] uppercase">User_Agreement</a>
+      </div>
   </footer>
 
   <script src="translations.js?v=3.2.1"></script>
@@ -651,31 +646,53 @@
   <script src="theme-manager.js?v=3.2.1"></script>
   <script>
     const portalModes = {
-      player: {
-        helper: 'Use a player calibration code to open a verified profile card.',
-        placeholder: 'Enter your profile code',
-        button: 'OPEN PLAYER PROFILE',
-        label: 'Player code',
-        status: 'PLAYER_MODE · READY',
-        autocapitalize: 'characters'
-      },
-      vendor: {
-        helper: 'Enter your vendor access key to reach the creator dashboard.',
-        placeholder: 'AXP-XXXX-XXXX',
-        button: 'SIGN IN AS VENDOR',
-        label: 'Vendor access key',
-        status: 'VENDOR_MODE · READY',
-        autocapitalize: 'characters'
-      },
-      admin: {
-        helper: 'Enter the admin passphrase to access system controls.',
-        placeholder: 'Enter admin passphrase',
-        button: 'SIGN IN AS ADMIN',
-        label: 'Admin passphrase',
-        status: 'ADMIN_MODE · READY',
-        autocapitalize: 'off'
-      }
+        player: {
+            helper: 'Use a player calibration code to open a verified profile card.',
+            placeholder: 'Enter your profile code',
+            button: 'OPEN PLAYER PROFILE',
+            label: 'Player code',
+            status: 'PLAYER_MODE · READY',
+            autocapitalize: 'characters'
+        },
+        vendor: {
+            helper: 'Enter your vendor access key to reach the creator dashboard.',
+            placeholder: 'AXP-XXXX-XXXX',
+            button: 'SIGN IN AS VENDOR',
+            label: 'Vendor access key',
+            status: 'VENDOR_MODE · READY',
+            autocapitalize: 'characters'
+        },
+        admin: {
+            helper: 'Enter the admin passphrase to access system controls.',
+            placeholder: 'Enter admin passphrase',
+            button: 'SIGN IN AS ADMIN',
+            label: 'Admin passphrase',
+            status: 'ADMIN_MODE · READY',
+            autocapitalize: 'characters'
+        }
     };
+
+    // Hidden admin mode shortcut: Type "adminmode" in the input
+    let adminModeTrigger = '';
+    document.getElementById('vaultInput').addEventListener('keydown', (e) => {
+        if (e.key.length === 1) {
+            adminModeTrigger += e.key.toLowerCase();
+            if (adminModeTrigger.endsWith('adminmode')) {
+                activePortalMode = 'admin';
+                const config = portalModes['admin'];
+                const input = document.getElementById('vaultInput');
+                const btn = document.getElementById('vaultAuthBtn');
+                document.getElementById('entryHelper').textContent = config.helper;
+                input.placeholder = config.placeholder;
+                input.setAttribute('aria-label', config.label);
+                input.setAttribute('autocapitalize', config.autocapitalize);
+                input.value = '';
+                btn.textContent = config.button;
+                updateStatus(config.status, '');
+                adminModeTrigger = '';
+            }
+        }
+    });
     let activePortalMode = 'player';
 
     function normalizeInputValue(value) {
@@ -810,7 +827,18 @@
     }
 
     async function handleVaultEntry() {
-      const key = normalizeInputValue(document.getElementById('vaultInput').value.trim());
+      let key = document.getElementById('vaultInput').value.trim();
+      
+      // Special case: If key is AXP-9090 (admin key), use it as-is
+      let isAdminKey = key === 'AXP-9090' || key === 'axp-9090';
+      
+      if (isAdminKey) {
+        activePortalMode = 'admin';
+        key = 'AXP-9090';
+      } else {
+        key = normalizeInputValue(key);
+      }
+      
       const btn = document.getElementById('vaultAuthBtn');
       if (!key) {
         document.getElementById('vaultInput').style.borderColor = 'var(--error)';
@@ -829,6 +857,24 @@
       GamingEffects.scaleUp(btn, 1.02, 300);
 
       try {
+        // First try admin login for any key, just in case
+        try {
+          const { res: adminRes, data: aData } = await portalRequest('/api/vault/admin/login', { password: key });
+          if (adminRes.ok) {
+            if (aData.token) {
+              localStorage.setItem('axp_admin_token', aData.token);
+            }
+            updateStatus('ADMIN_UPLINK_GRANTED', 'success');
+            GamingEffects.createParticles(btn, 30, 'gold');
+            GamingEffects.showSuccess('Admin Access Granted!');
+            btn.textContent = 'ACCESS GRANTED ✓';
+            setTimeout(() => window.location.href = 'admin/index.html', 700);
+            return;
+          }
+        } catch (e) {
+          // Ignore admin login failure and try vendor/player
+        }
+
         if (activePortalMode === 'vendor') {
           updateStatus('VENDOR_HANDSHAKE_PULSE...', 'active');
           const { res: vRes, data: vData } = await portalRequest('/api/vault/vendor/login', { access_key: key });
@@ -848,27 +894,6 @@
           }
           updateStatus('INVALID_VENDOR_KEY', 'error');
           if (window.notify) window.notify('Vendor key not recognized', 'error');
-          btn.disabled = false;
-          btn.textContent = portalModes[activePortalMode].button;
-          return;
-        }
-
-        if (activePortalMode === 'admin') {
-          updateStatus('INITIALIZING_ADMIN_DECRYPT...', 'active');
-          const { res: adminRes, data: aData } = await portalRequest('/api/vault/admin/login', { password: key });
-          if (adminRes.ok) {
-            if (aData.token) {
-              localStorage.setItem('axp_admin_token', aData.token);
-            }
-            updateStatus('ADMIN_UPLINK_GRANTED', 'success');
-            GamingEffects.createParticles(btn, 30, 'gold');
-            GamingEffects.showSuccess('Admin Access Granted!');
-            btn.textContent = 'ACCESS GRANTED ✓';
-            setTimeout(() => window.location.href = 'admin/index.html', 700);
-            return;
-          }
-          updateStatus('INVALID_ADMIN_PASSPHRASE', 'error');
-          if (window.notify) window.notify('Admin passphrase not recognized', 'error');
           btn.disabled = false;
           btn.textContent = portalModes[activePortalMode].button;
           return;
