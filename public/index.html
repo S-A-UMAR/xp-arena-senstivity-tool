@@ -49,37 +49,40 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 1rem;
+      padding: 0 0.85rem;
       background: rgba(2,4,9,0.6);
       backdrop-filter: blur(20px);
       border-bottom: 1px solid rgba(255,255,255,0.05);
     }
     .portal-logo {
       font-family: var(--font-mono);
-      font-size: 0.75rem;
+      font-size: 0.7rem;
       font-weight: 800;
       color: var(--cyan);
-      letter-spacing: 0.15em;
+      letter-spacing: 0.12em;
+      white-space: nowrap;
     }
     .portal-top-links {
       display: flex;
-      gap: 0.75rem;
+      gap: 1rem;
       align-items: center;
     }
     .portal-top-link {
       font-size: 0.55rem;
-      font-weight: 700;
+      font-weight: 800;
       letter-spacing: 0.08em;
       text-transform: uppercase;
-      color: var(--tx-muted);
+      color: var(--tx-body);
       text-decoration: none;
       transition: color 0.2s;
+      white-space: nowrap;
     }
-    .portal-top-link:hover { color: var(--tx-body); }
+    .portal-top-link:hover { color: var(--cyan); }
     @media (min-width: 768px) {
       .portal-top-links { gap: 1.5rem; }
       .portal-top-link { font-size: 0.65rem; letter-spacing: 0.1em; }
       .portal-top { padding: 0 1.5rem; }
+      .portal-logo { font-size: 0.75rem; letter-spacing: 0.15em; }
     }
 
     /* ── Orb glow behind vault ─── */
