@@ -43,21 +43,21 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 1.5rem;
+      padding: 0 1rem;
       background: rgba(2,4,9,0.6);
       backdrop-filter: blur(20px);
       border-bottom: 1px solid rgba(255,255,255,0.05);
     }
     .portal-logo {
       font-family: var(--font-mono);
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       font-weight: 800;
       color: var(--cyan);
-      letter-spacing: 0.18em;
+      letter-spacing: 0.15em;
     }
     .portal-top-links {
-      display: flex;
-      gap: 1.5rem;
+      display: none; /* Hide on mobile to save space */
+      gap: 1rem;
       align-items: center;
     }
     .portal-top-link {
@@ -70,6 +70,10 @@
       transition: color 0.2s;
     }
     .portal-top-link:hover { color: var(--tx-body); }
+    @media (min-width: 768px) {
+      .portal-top-links { display: flex; }
+      .portal-top { padding: 0 1.5rem; }
+    }
 
     /* ── Orb glow behind vault ─── */
     .portal-orb {
@@ -523,13 +527,13 @@
 
   <!-- Top logo bar -->
   <header class="portal-top">
-    <div class="flex items-center gap-6">
+    <div class="flex items-center gap-4">
       <div class="portal-logo">AXP_CORE</div>
-      <div style="width: 1px; height: 16px; background: rgba(255,255,255,0.1);"></div>
-      <div class="flex items-center gap-3">
+      <div class="hidden sm:block" style="width: 1px; height: 16px; background: rgba(255,255,255,0.1);"></div>
+      <div class="flex items-center gap-2">
         <div class="dot-live" style="width: 6px; height: 6px;"></div>
-        <span class="text-[0.6rem] font-mono text-cyan" id="liveUsers" style="opacity: 0.8; letter-spacing: 0.05em;">0_NODES_ACTIVE</span>
-        <span class="text-[0.6rem] font-mono text-ghost" id="liveCalibrations" style="opacity: 0.5;">0_CAL/HR</span>
+        <span class="text-[0.55rem] font-mono text-cyan" id="liveUsers" style="opacity: 0.8; letter-spacing: 0.03em;">0_NODES</span>
+        <span class="hidden sm:inline text-[0.55rem] font-mono text-ghost" id="liveCalibrations" style="opacity: 0.5;">0_PROFILES</span>
       </div>
     </div>
     <div class="portal-top-links">
@@ -632,11 +636,11 @@
   <div id="scannerOverlay" aria-hidden="true" style="display:none;"></div>
 
   <!-- Bottom Footer Links -->
-  <footer class="text-center py-8 anim-up" style="padding-top: 60px;">
-    <p class="text-ghost text-[0.65rem] font-mono mb-6 opacity-40">AXP_SENSITIVITY_ENGINE_V3.0 // SECURE_UPLINK</p>
-    <div class="flex flex-wrap justify-center gap-8 px-4">
-        <a href="privacy.html" class="text-ghost hover:text-white transition-colors text-[10px] font-mono tracking-[0.2em] uppercase">Privacy_Protocol</a>
-        <a href="terms.html" class="text-ghost hover:text-white transition-colors text-[10px] font-mono tracking-[0.2em] uppercase">User_Agreement</a>
+  <footer class="text-center py-8 anim-up" style="padding-top: 2rem;">
+    <p class="text-ghost text-[0.55rem] font-mono mb-4 opacity-40">AXP_SENSITIVITY_ENGINE_V3.0</p>
+    <div class="flex flex-col sm:flex-row items-center gap-3 px-4">
+        <a href="privacy.html" class="text-ghost hover:text-white transition-colors text-[8px] font-mono tracking-[0.15em] uppercase">Privacy_Protocol</a>
+        <a href="terms.html" class="text-ghost hover:text-white transition-colors text-[8px] font-mono tracking-[0.15em] uppercase">User_Agreement</a>
       </div>
   </footer>
 
@@ -731,11 +735,11 @@
         const res = await fetch('/api/vault/public/stats');
         const data = await res.json();
         if (!res.ok) throw new Error('STATS_UNAVAILABLE');
-        if (userEl) userEl.textContent = `${Number(data.active_vendors || 0).toLocaleString()}_ACTIVE_VENDORS`;
-        if (callEl) callEl.textContent = `${Number(data.total_codes || 0).toLocaleString()}_PROFILES_ISSUED`;
+        if (userEl) userEl.textContent = `${Number(data.active_vendors || 0).toLocaleString()}_NODES`;
+        if (callEl) callEl.textContent = `${Number(data.total_codes || 0).toLocaleString()}_PROFILES`;
       } catch (_err) {
-        if (userEl) userEl.textContent = 'LIVE_STATS_OFFLINE';
-        if (callEl) callEl.textContent = 'TRY_AGAIN_SHORTLY';
+        if (userEl) userEl.textContent = 'STATS_OFFLINE';
+        if (callEl) callEl.textContent = 'TRY_AGAIN';
       }
     }
     setInterval(loadLiveStats, 30000);
