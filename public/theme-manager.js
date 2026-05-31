@@ -21,14 +21,68 @@ const ThemeManager = {
     init() {
         this.applyTheme(this.config.accent);
         this.applyLanguage(this.config.lang);
-        this.injectSettingsFAB();
-        this.initHelpSystem();
+        this.injectHeaderButtons();
         
         // Listen for vendor tier classes to override defaults
         document.addEventListener('DOMContentLoaded', () => {
             if (document.body.classList.contains('tier-gold')) this.applyTheme('gold');
             this.syncTranslations();
         });
+    },
+
+    injectHeaderButtons() {
+        // Try to find the specific container first (for index.html)
+        let btnContainer = document.querySelector('.portal-top .flex:last-child');
+        
+        // If not found, look for header
+        if (!btnContainer) {
+            let header = document.querySelector('.portal-top');
+            if (!header) header = document.querySelector('.admin-nav');
+            if (header) {
+                btnContainer = document.createElement('div');
+                btnContainer.style.cssText = 'display: flex; gap: 0.5rem; align-items: center;';
+                header.appendChild(btnContainer);
+            }
+        }
+        
+        if (btnContainer) {
+            // Settings button
+            const settingsBtn = document.createElement('button');
+            settingsBtn.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--tx-muted);"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2Z"/><circle cx="12" cy="12" r="3"/></svg>`;
+            settingsBtn.style.cssText = 'width: 36px; height: 36px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;';
+            settingsBtn.onmouseenter = () => {
+                settingsBtn.style.background = 'rgba(255,255,255,0.1)';
+                settingsBtn.querySelector('svg').style.color = '#fff';
+            };
+            settingsBtn.onmouseleave = () => {
+                settingsBtn.style.background = 'rgba(255,255,255,0.05)';
+                settingsBtn.querySelector('svg').style.color = 'var(--tx-muted)';
+            };
+            settingsBtn.onclick = () => this.toggleSettingsModal();
+            
+            // Help button
+            const helpBtn = document.createElement('button');
+            helpBtn.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`;
+            helpBtn.style.cssText = 'width: 36px; height: 36px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;';
+            helpBtn.onmouseenter = () => {
+                helpBtn.style.background = 'rgba(255,255,255,0.1)';
+                helpBtn.querySelector('svg').style.color = '#fff';
+            };
+            helpBtn.onmouseleave = () => {
+                helpBtn.style.background = 'rgba(255,255,255,0.05)';
+                helpBtn.querySelector('svg').style.color = 'var(--tx-muted)';
+            };
+            helpBtn.onclick = () => this.toggleFaq(true);
+            
+            // Check if we're in index.html (we added the container there)
+            if (btnContainer.querySelector('.portal-top-links')) {
+                btnContainer.appendChild(settingsBtn);
+                btnContainer.appendChild(helpBtn);
+            } else {
+                btnContainer.appendChild(settingsBtn);
+                btnContainer.appendChild(helpBtn);
+            }
+        }
     },
 
     applyTheme(themeKey) {
