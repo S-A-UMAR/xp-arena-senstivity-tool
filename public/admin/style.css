@@ -207,18 +207,49 @@ body {
   pointer-events: all;
 }
 
-/* Fix for dark text */
+/* Fix for dark text - all text in admin sheets white */
+.admin-sheet,
+.admin-sheet *,
+.analytics-grid *,
+.stats-panel *,
+.activity-feed *,
+.metric-val,
+.metric-label,
+.section-eyebrow {
+  color: #fff !important;
+}
+
 .admin-sheet label, 
 .admin-sheet .metric-label,
 .admin-sheet .section-eyebrow,
-.admin-sheet p {
-  color: rgba(255, 255, 255, 0.5) !important;
+.admin-sheet p,
+.admin-sheet span {
+  color: rgba(255, 255, 255, 0.7) !important;
   font-weight: 800;
 }
 .admin-sheet h1, 
 .admin-sheet h2, 
 .admin-sheet h3 {
   color: #fff !important;
+}
+.admin-sheet .text-cyan {
+  color: var(--cyan) !important;
+}
+.admin-sheet .text-gold {
+  color: var(--gold) !important;
+}
+.admin-sheet .text-success {
+  color: var(--success) !important;
+}
+.admin-sheet .text-error {
+  color: var(--error) !important;
+}
+.admin-sheet .opacity-20,
+.admin-sheet .opacity-30,
+.admin-sheet .opacity-40,
+.admin-sheet .opacity-50,
+.admin-sheet .opacity-60 {
+  color: rgba(255, 255, 255, 0.4) !important;
 }
 
 /* Missing float pulse animation */

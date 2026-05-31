@@ -7,13 +7,24 @@
   <title>AXP | VENDOR INTELLIGENCE</title>
   <link rel="stylesheet" href="style.css">
   <style>
-    .analysis-container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
-    .stat-hero { background: linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01)); border: 1px solid rgba(255,255,255,0.05); border-radius: 24px; padding: 2rem; margin-bottom: 2rem; }
-    .chart-box { background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.03); border-radius: 20px; padding: 1.5rem; height: 100%; }
-    .tag-badge { padding: 4px 10px; border-radius: 6px; font-size: 0.6rem; font-weight: 900; letter-spacing: 0.05em; text-transform: uppercase; }
-    .pulse-bar { height: 8px; border-radius: 4px; background: rgba(255,255,255,0.05); overflow: hidden; position: relative; }
-    .pulse-bar-fill { position: absolute; top: 0; left: 0; height: 100%; transition: width 1s ease-out; }
-  </style>
+  .analysis-container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+  .stat-hero { background: linear-gradient(135deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border: 1px solid rgba(255,255,255,0.05); border-radius: 24px; padding: 2rem; margin-bottom: 2rem; }
+  .chart-box { background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.03); border-radius: 20px; padding: 1.5rem; height: 100%; }
+  .tag-badge { padding: 4px 10px; border-radius: 6px; font-size: 0.6rem; font-weight: 900; letter-spacing: 0.05em; text-transform: uppercase; }
+  .pulse-bar { height: 8px; border-radius: 4px; background: rgba(255,255,255,0.05); overflow: hidden; position: relative; }
+  .pulse-bar-fill { position: absolute; top: 0; left: 0; height: 100%; transition: width 1s ease-out; }
+  /* Ensure all text is white on analysis page */
+  .analysis-container, .analysis-container * {
+    color: #fff !important;
+  }
+  .analysis-container .opacity-20, .analysis-container .opacity-30, .analysis-container .opacity-40, .analysis-container .opacity-50, .analysis-container .opacity-60 {
+    color: rgba(255,255,255,0.4) !important;
+  }
+  .analysis-container .text-cyan { color: var(--cyan) !important; }
+  .analysis-container .text-gold { color: var(--gold) !important; }
+  .analysis-container .text-success { color: var(--success) !important; }
+  .analysis-container .text-error { color: var(--error) !important; }
+</style>
 </head>
 <body class="page-admin">
 
