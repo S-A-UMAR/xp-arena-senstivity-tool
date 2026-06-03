@@ -202,7 +202,7 @@ const UI = {
                     </div>
                     <div class="flex items-center gap-3">
                         <div style="background: rgba(255,255,255,0.1); width: 24px; height: 24px; border-radius: 6px; display: flex; align-items: center; justify-content: center;">3</div>
-                        <span>Launch <strong>AXP Lab</strong> from your dock</span>
+                        <span>Launch <strong>AXP Hub</strong> from your dock</span>
                     </div>
                 </div>
                 <button class="action-btn w-full mt-4" onclick="this.closest('#pwaIOSModal').remove()">ACKNOWLEDGE</button>
