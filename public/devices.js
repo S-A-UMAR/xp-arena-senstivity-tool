@@ -229,58 +229,145 @@ window.devices = [
             {
                 name: "Redmi K Series",
                 models: [
-                    { name: "Redmi K80 Pro", ram: 16 }, { name: "Redmi K80", ram: 12 }, { name: "Redmi K70 Ultra", ram: 16 },
-                    { name: "Redmi K70 Pro", ram: 12 }, { name: "Redmi K70", ram: 12 }, { name: "Redmi K70E", ram: 8 },
-                    { name: "Redmi K60 Ultra", ram: 12 }, { name: "Redmi K60 Pro", ram: 8 }, { name: "Redmi K60", ram: 8 },
-                    { name: "Redmi K60E", ram: 8 }, { name: "Redmi K50 Ultra", ram: 8 }, { name: "Redmi K50 Pro", ram: 8 },
-                    { name: "Redmi K50 Gaming", ram: 8 }, { name: "Redmi K50", ram: 8 }, { name: "Redmi K50i", ram: 6 },
-                    { name: "Redmi K40 Pro+", ram: 12 }, { name: "Redmi K40 Pro", ram: 8 }, { name: "Redmi K40 Gaming", ram: 8 },
-                    { name: "Redmi K40", ram: 6 }, { name: "Redmi K40S", ram: 6 }, { name: "Redmi K30 Pro Zoom", ram: 8 },
-                    { name: "Redmi K30 Pro", ram: 6 }, { name: "Redmi K30 Ultra", ram: 6 }, { name: "Redmi K30S", ram: 8 },
-                    { name: "Redmi K30 5G", ram: 6 }, { name: "Redmi K30i", ram: 6 }, { name: "Redmi K30", ram: 6 },
-                    { name: "Redmi K20 Pro Premium", ram: 12 }, { name: "Redmi K20 Pro", ram: 6 }, { name: "Redmi K20", ram: 6 }
+                    { name: "Redmi K80 Ultra", ram: 24 }, { name: "Redmi K80 Pro", ram: 16 }, { name: "Redmi K80", ram: 12 },
+                    { name: "Redmi K80E", ram: 8 }, { name: "Redmi K70 Ultra", ram: 16 }, { name: "Redmi K70 Pro", ram: 12 },
+                    { name: "Redmi K70 Pro Champion Edition", ram: 24 }, { name: "Redmi K70", ram: 12 }, { name: "Redmi K70E", ram: 8 },
+                    { name: "Redmi K60 Ultra", ram: 12 }, { name: "Redmi K60 Pro", ram: 8 }, { name: "Redmi K60 Pro Champion", ram: 16 },
+                    { name: "Redmi K60", ram: 8 }, { name: "Redmi K60E", ram: 8 }, { name: "Redmi K50 Ultra", ram: 8 },
+                    { name: "Redmi K50 Ultra Champion Edition", ram: 12 }, { name: "Redmi K50 Pro", ram: 8 }, { name: "Redmi K50 Gaming", ram: 8 },
+                    { name: "Redmi K50", ram: 8 }, { name: "Redmi K50i", ram: 6 }, { name: "Redmi K40 Pro+", ram: 12 },
+                    { name: "Redmi K40 Pro", ram: 8 }, { name: "Redmi K40 Gaming", ram: 8 }, { name: "Redmi K40 Gaming Enhanced Edition", ram: 8 },
+                    { name: "Redmi K40", ram: 6 }, { name: "Redmi K40S", ram: 6 }, { name: "Redmi K40S Pro", ram: 8 },
+                    { name: "Redmi K30 Pro Zoom", ram: 8 }, { name: "Redmi K30 Pro", ram: 6 }, { name: "Redmi K30 Ultra", ram: 6 },
+                    { name: "Redmi K30 Ultra Limited Edition", ram: 8 }, { name: "Redmi K30S Ultra", ram: 8 }, { name: "Redmi K30i", ram: 6 },
+                    { name: "Redmi K30 5G", ram: 6 }, { name: "Redmi K30", ram: 6 }, { name: "Redmi K30 Pro Premium", ram: 8 },
+                    { name: "Redmi K20 Pro Premium", ram: 12 }, { name: "Redmi K20 Pro", ram: 6 }, { name: "Redmi K20 Pro Exclusive", ram: 8 },
+                    { name: "Redmi K20", ram: 6 }
                 ]
             },
             {
                 name: "Redmi Note Series",
                 models: [
-                    { name: "Redmi Note 14 Pro+", ram: 12 }, { name: "Redmi Note 14 Pro", ram: 8 }, { name: "Redmi Note 14", ram: 6 },
-                    { name: "Redmi Note 13 Pro+", ram: 12 }, { name: "Redmi Note 13 Pro", ram: 8 }, { name: "Redmi Note 13 5G", ram: 6 },
-                    { name: "Redmi Note 13 4G", ram: 6 }, { name: "Redmi Note 13R Pro", ram: 12 }, { name: "Redmi Note 12 Pro+ Speed", ram: 8 },
-                    { name: "Redmi Note 12 Pro+", ram: 8 }, { name: "Redmi Note 12 Pro", ram: 6 }, { name: "Redmi Note 12S", ram: 8 },
-                    { name: "Redmi Note 12 5G", ram: 4 }, { name: "Redmi Note 12 4G", ram: 4 }, { name: "Redmi Note 12 Turbo", ram: 8 },
-                    { name: "Redmi Note 12R", ram: 4 }, { name: "Redmi Note 11 Pro+ 5G", ram: 8 }, { name: "Redmi Note 11 Pro 5G", ram: 6 },
-                    { name: "Redmi Note 11 Pro", ram: 6 }, { name: "Redmi Note 11S 5G", ram: 4 }, { name: "Redmi Note 11S", ram: 6 },
-                    { name: "Redmi Note 11", ram: 4 }, { name: "Redmi Note 11E Pro", ram: 6 }, { name: "Redmi Note 11T Pro+", ram: 8 },
-                    { name: "Redmi Note 11T Pro", ram: 6 }, { name: "Redmi Note 11R", ram: 4 }, { name: "Redmi Note 10 Pro Max", ram: 6 },
+                    { name: "Redmi Note 15 Pro+", ram: 16 }, { name: "Redmi Note 15 Pro", ram: 12 }, { name: "Redmi Note 15", ram: 8 },
+                    { name: "Redmi Note 14 Pro+", ram: 12 }, { name: "Redmi Note 14 Pro", ram: 8 }, { name: "Redmi Note 14 Pro Speed", ram: 12 },
+                    { name: "Redmi Note 14", ram: 6 }, { name: "Redmi Note 14 5G", ram: 6 }, { name: "Redmi Note 14R Pro", ram: 12 },
+                    { name: "Redmi Note 14R", ram: 6 }, { name: "Redmi Note 14T Pro+", ram: 12 }, { name: "Redmi Note 14T Pro", ram: 8 },
+                    { name: "Redmi Note 13 Pro+", ram: 12 }, { name: "Redmi Note 13 Pro", ram: 8 }, { name: "Redmi Note 13 Pro Speed", ram: 12 },
+                    { name: "Redmi Note 13", ram: 6 }, { name: "Redmi Note 13 5G", ram: 6 }, { name: "Redmi Note 13 4G", ram: 6 },
+                    { name: "Redmi Note 13R Pro", ram: 12 }, { name: "Redmi Note 13R", ram: 6 }, { name: "Redmi Note 13T Pro+", ram: 12 },
+                    { name: "Redmi Note 13T Pro", ram: 8 }, { name: "Redmi Note 13 Turbo", ram: 12 }, { name: "Redmi Note 12 Pro+ Speed", ram: 8 },
+                    { name: "Redmi Note 12 Pro+", ram: 8 }, { name: "Redmi Note 12 Pro", ram: 6 }, { name: "Redmi Note 12 Pro Speed", ram: 12 },
+                    { name: "Redmi Note 12S", ram: 8 }, { name: "Redmi Note 12", ram: 4 }, { name: "Redmi Note 12 5G", ram: 4 },
+                    { name: "Redmi Note 12 4G", ram: 4 }, { name: "Redmi Note 12 Turbo", ram: 8 }, { name: "Redmi Note 12R", ram: 4 },
+                    { name: "Redmi Note 12R Pro", ram: 8 }, { name: "Redmi Note 12T Pro", ram: 8 }, { name: "Redmi Note 11 Pro+ 5G", ram: 8 },
+                    { name: "Redmi Note 11 Pro 5G", ram: 6 }, { name: "Redmi Note 11 Pro", ram: 6 }, { name: "Redmi Note 11 Pro+", ram: 8 },
+                    { name: "Redmi Note 11S 5G", ram: 4 }, { name: "Redmi Note 11S", ram: 6 }, { name: "Redmi Note 11", ram: 4 },
+                    { name: "Redmi Note 11 5G", ram: 4 }, { name: "Redmi Note 11 4G", ram: 3 }, { name: "Redmi Note 11E Pro", ram: 6 },
+                    { name: "Redmi Note 11E", ram: 4 }, { name: "Redmi Note 11T Pro+", ram: 8 }, { name: "Redmi Note 11T Pro", ram: 6 },
+                    { name: "Redmi Note 11T Pro+ Tim Burton Edition", ram: 8 }, { name: "Redmi Note 11R", ram: 4 }, { name: "Redmi Note 10 Pro Max", ram: 6 },
                     { name: "Redmi Note 10 Pro", ram: 6 }, { name: "Redmi Note 10S", ram: 6 }, { name: "Redmi Note 10", ram: 4 },
                     { name: "Redmi Note 10 5G", ram: 4 }, { name: "Redmi Note 10T", ram: 4 }, { name: "Redmi Note 10 JE", ram: 4 },
-                    { name: "Redmi Note 9 Pro Max", ram: 6 }, { name: "Redmi Note 9 Pro", ram: 4 }, { name: "Redmi Note 9S", ram: 4 },
-                    { name: "Redmi Note 9", ram: 4 }, { name: "Redmi Note 9 5G", ram: 6 }, { name: "Redmi Note 9T", ram: 4 },
-                    { name: "Redmi Note 9 4G", ram: 4 }, { name: "Redmi Note 8 Pro", ram: 6 }, { name: "Redmi Note 8 (2021)", ram: 4 },
-                    { name: "Redmi Note 8", ram: 4 }, { name: "Redmi Note 8T", ram: 4 }, { name: "Redmi Note 7 Pro", ram: 4 },
+                    { name: "Redmi Note 10 Lite", ram: 4 }, { name: "Redmi Note 9 Pro Max", ram: 6 }, { name: "Redmi Note 9 Pro", ram: 4 },
+                    { name: "Redmi Note 9S", ram: 4 }, { name: "Redmi Note 9", ram: 4 }, { name: "Redmi Note 9 5G", ram: 6 },
+                    { name: "Redmi Note 9T", ram: 4 }, { name: "Redmi Note 9 4G", ram: 4 }, { name: "Redmi Note 9 Power", ram: 4 },
+                    { name: "Redmi Note 9i", ram: 4 }, { name: "Redmi Note 9 Prime", ram: 4 }, { name: "Redmi Note 8 Pro", ram: 6 },
+                    { name: "Redmi Note 8 Pro 2021", ram: 6 }, { name: "Redmi Note 8 (2021)", ram: 4 }, { name: "Redmi Note 8", ram: 4 },
+                    { name: "Redmi Note 8T", ram: 4 }, { name: "Redmi Note 8 2021", ram: 4 }, { name: "Redmi Note 7 Pro", ram: 4 },
                     { name: "Redmi Note 7", ram: 3 }, { name: "Redmi Note 7S", ram: 3 }, { name: "Redmi Note 6 Pro", ram: 3 },
-                    { name: "Redmi Note 5 Pro", ram: 4 }, { name: "Redmi Note 5", ram: 3 }, { name: "Redmi Note 4", ram: 2 },
-                    { name: "Redmi Note 3", ram: 2 }
+                    { name: "Redmi Note 5 Pro", ram: 4 }, { name: "Redmi Note 5 Pro AI Dual Camera", ram: 4 }, { name: "Redmi Note 5", ram: 3 },
+                    { name: "Redmi Note 5A", ram: 2 }, { name: "Redmi Note 5A Prime", ram: 3 }, { name: "Redmi Note 4", ram: 2 },
+                    { name: "Redmi Note 4X", ram: 3 }, { name: "Redmi Note 3", ram: 2 }, { name: "Redmi Note 3 Pro", ram: 3 },
+                    { name: "Redmi Note 3 Special Edition", ram: 3 }, { name: "Redmi Note 2", ram: 2 }, { name: "Redmi Note 2 Pro", ram: 2 },
+                    { name: "Redmi Note", ram: 1 }
                 ]
             },
             {
-                name: "Redmi standard/A/C Series",
+                name: "Redmi Standard Series",
                 models: [
-                    { name: "Redmi 13C 5G", ram: 4 }, { name: "Redmi 13C", ram: 4 }, { name: "Redmi 13", ram: 6 },
-                    { name: "Redmi 13R", ram: 4 }, { name: "Redmi 12 5G", ram: 4 }, { name: "Redmi 12", ram: 4 },
-                    { name: "Redmi 12C", ram: 4 }, { name: "Redmi 10 5G", ram: 4 }, { name: "Redmi 10 (2022)", ram: 4 },
-                    { name: "Redmi 10", ram: 4 }, { name: "Redmi 10C", ram: 4 }, { name: "Redmi 10A", ram: 3 },
-                    { name: "Redmi 10 Prime", ram: 4 }, { name: "Redmi 9T", ram: 4 }, { name: "Redmi 9C NFC", ram: 2 },
-                    { name: "Redmi 9C", ram: 2 }, { name: "Redmi 9A", ram: 2 }, { name: "Redmi 9", ram: 3 },
-                    { name: "Redmi 9 Prime", ram: 4 }, { name: "Redmi 9i", ram: 4 }, { name: "Redmi 9 Power", ram: 4 },
-                    { name: "Redmi 8", ram: 3 }, { name: "Redmi 8A Dual", ram: 2 }, { name: "Redmi 8A Pro", ram: 2 },
-                    { name: "Redmi 8A", ram: 2 }, { name: "Redmi 7", ram: 2 }, { name: "Redmi 7A", ram: 2 },
-                    { name: "Redmi 6 Pro", ram: 3 }, { name: "Redmi 6", ram: 3 }, { name: "Redmi 6A", ram: 2 },
-                    { name: "Redmi 5 Plus", ram: 3 }, { name: "Redmi 5", ram: 2 }, { name: "Redmi 5A", ram: 2 },
-                    { name: "Redmi 4X", ram: 2 }, { name: "Redmi 4A", ram: 2 }, { name: "Redmi 3S", ram: 2 },
-                    { name: "Redmi A3", ram: 3 }, { name: "Redmi A3x", ram: 3 }, { name: "Redmi A2+", ram: 2 },
-                    { name: "Redmi A2", ram: 2 }, { name: "Redmi A1+", ram: 2 }, { name: "Redmi A1", ram: 2 }
+                    { name: "Redmi 14", ram: 8 }, { name: "Redmi 14C", ram: 6 }, { name: "Redmi 14R", ram: 6 },
+                    { name: "Redmi 13", ram: 6 }, { name: "Redmi 13 5G", ram: 6 }, { name: "Redmi 13C", ram: 4 },
+                    { name: "Redmi 13C 5G", ram: 4 }, { name: "Redmi 13R", ram: 4 }, { name: "Redmi 12", ram: 4 },
+                    { name: "Redmi 12 5G", ram: 4 }, { name: "Redmi 12C", ram: 4 }, { name: "Redmi 12R", ram: 4 },
+                    { name: "Redmi 11", ram: 4 }, { name: "Redmi 11 Prime", ram: 4 }, { name: "Redmi 11 Prime 5G", ram: 6 },
+                    { name: "Redmi 10", ram: 4 }, { name: "Redmi 10 (2022)", ram: 4 }, { name: "Redmi 10 5G", ram: 4 },
+                    { name: "Redmi 10C", ram: 4 }, { name: "Redmi 10A", ram: 3 }, { name: "Redmi 10 Prime", ram: 4 },
+                    { name: "Redmi 10 Prime 2022", ram: 4 }, { name: "Redmi 9", ram: 3 }, { name: "Redmi 9 5G", ram: 4 },
+                    { name: "Redmi 9C", ram: 2 }, { name: "Redmi 9C NFC", ram: 2 }, { name: "Redmi 9A", ram: 2 },
+                    { name: "Redmi 9A Sport", ram: 2 }, { name: "Redmi 9T", ram: 4 }, { name: "Redmi 9 Power", ram: 4 },
+                    { name: "Redmi 9 Prime", ram: 4 }, { name: "Redmi 9i", ram: 4 }, { name: "Redmi 9i Sport", ram: 4 },
+                    { name: "Redmi 8", ram: 3 }, { name: "Redmi 8A", ram: 2 }, { name: "Redmi 8A Pro", ram: 2 },
+                    { name: "Redmi 8A Dual", ram: 2 }, { name: "Redmi 7", ram: 2 }, { name: "Redmi 7A", ram: 2 },
+                    { name: "Redmi 6", ram: 3 }, { name: "Redmi 6 Pro", ram: 3 }, { name: "Redmi 6A", ram: 2 },
+                    { name: "Redmi 5", ram: 2 }, { name: "Redmi 5 Plus", ram: 3 }, { name: "Redmi 5A", ram: 2 },
+                    { name: "Redmi 4", ram: 2 }, { name: "Redmi 4X", ram: 2 }, { name: "Redmi 4A", ram: 2 },
+                    { name: "Redmi 3", ram: 2 }, { name: "Redmi 3S", ram: 2 }, { name: "Redmi 3X", ram: 2 },
+                    { name: "Redmi 3 Pro", ram: 2 }, { name: "Redmi 2", ram: 1 }, { name: "Redmi 2 Prime", ram: 2 },
+                    { name: "Redmi 2 Pro", ram: 2 }, { name: "Redmi 1", ram: 1 }, { name: "Redmi 1S", ram: 1 },
+                    { name: "Redmi 1S LTE", ram: 1 }, { name: "Redmi Note", ram: 1 }, { name: "Redmi S2", ram: 4 },
+                    { name: "Redmi S3", ram: 4 }
+                ]
+            },
+            {
+                name: "Redmi A Series",
+                models: [
+                    { name: "Redmi A4", ram: 4 }, { name: "Redmi A4x", ram: 4 }, { name: "Redmi A3", ram: 3 },
+                    { name: "Redmi A3x", ram: 3 }, { name: "Redmi A2+", ram: 2 }, { name: "Redmi A2", ram: 2 },
+                    { name: "Redmi A1+", ram: 2 }, { name: "Redmi A1", ram: 2 }
+                ]
+            },
+            {
+                name: "Redmi Y Series",
+                models: [
+                    { name: "Redmi Y3", ram: 3 }, { name: "Redmi Y2", ram: 3 }, { name: "Redmi Y1", ram: 3 },
+                    { name: "Redmi Y1 Lite", ram: 2 }
+                ]
+            },
+            {
+                name: "Redmi Go Series",
+                models: [
+                    { name: "Redmi Go", ram: 1 }
+                ]
+            },
+            {
+                name: "Redmi Pad Series",
+                models: [
+                    { name: "Redmi Pad Pro 5G", ram: 12 }, { name: "Redmi Pad Pro", ram: 8 }, { name: "Redmi Pad SE", ram: 6 },
+                    { name: "Redmi Pad 2", ram: 8 }, { name: "Redmi Pad", ram: 4 }
+                ]
+            },
+            {
+                name: "Redmi Watch Series",
+                models: [
+                    { name: "Redmi Watch 5", ram: 2 }, { name: "Redmi Watch 5 Lite", ram: 1 }, { name: "Redmi Watch 4", ram: 1 },
+                    { name: "Redmi Watch 3", ram: 1 }, { name: "Redmi Watch 3 Active", ram: 1 }, { name: "Redmi Watch 3 Lite", ram: 1 },
+                    { name: "Redmi Watch 2", ram: 1 }, { name: "Redmi Watch 2 Lite", ram: 1 }, { name: "Redmi Watch", ram: 1 }
+                ]
+            },
+            {
+                name: "Redmi Buds Series",
+                models: [
+                    { name: "Redmi Buds 6 Pro", ram: 0 }, { name: "Redmi Buds 6", ram: 0 }, { name: "Redmi Buds 5 Pro", ram: 0 },
+                    { name: "Redmi Buds 5", ram: 0 }, { name: "Redmi Buds 4 Pro", ram: 0 }, { name: "Redmi Buds 4", ram: 0 },
+                    { name: "Redmi Buds 3 Pro", ram: 0 }, { name: "Redmi Buds 3 Lite", ram: 0 }, { name: "Redmi Buds 3", ram: 0 },
+                    { name: "Redmi Buds 2 Pro", ram: 0 }, { name: "Redmi Buds 2", ram: 0 }, { name: "Redmi AirDots 3 Pro", ram: 0 },
+                    { name: "Redmi AirDots 3", ram: 0 }, { name: "Redmi AirDots 2", ram: 0 }, { name: "Redmi AirDots S", ram: 0 },
+                    { name: "Redmi AirDots", ram: 0 }
+                ]
+            },
+            {
+                name: "Redmi TV Series",
+                models: [
+                    { name: "Redmi Smart TV X Pro", ram: 4 }, { name: "Redmi Smart TV X", ram: 2 }, { name: "Redmi Smart TV Max", ram: 4 },
+                    { name: "Redmi Smart TV Pro", ram: 2 }, { name: "Redmi Smart TV A Pro", ram: 2 }, { name: "Redmi Smart TV A", ram: 1 },
+                    { name: "Redmi Smart Fire TV", ram: 2 }
+                ]
+            },
+            {
+                name: "Redmi Book Series",
+                models: [
+                    { name: "Redmi Book Pro 16", ram: 32 }, { name: "Redmi Book Pro 15", ram: 32 }, { name: "Redmi Book Pro 14", ram: 32 },
+                    { name: "Redmi Book 16", ram: 16 }, { name: "Redmi Book 15", ram: 16 }, { name: "Redmi Book 14", ram: 16 },
+                    { name: "RedmiBook Air", ram: 16 }, { name: "Redmi G Gaming Laptop", ram: 32 }, { name: "Redmi G Pro", ram: 32 }
                 ]
             }
         ]
