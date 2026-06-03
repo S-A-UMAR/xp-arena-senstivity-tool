@@ -81,20 +81,20 @@ window.devices = [
             {
                 name: "Galaxy S Series",
                 models: [
-                    { name: "Galaxy S26 Ultra (Concept)", ram: 16 }, { name: "Galaxy S26+", ram: 12 }, { name: "Galaxy S26", ram: 12 },
+                    { name: "Galaxy S26 Ultra", ram: 16 }, { name: "Galaxy S26+", ram: 12 }, { name: "Galaxy S26", ram: 12 },
                     { name: "Galaxy S25 Ultra", ram: 16 }, { name: "Galaxy S25+", ram: 12 }, { name: "Galaxy S25", ram: 12 },
                     { name: "Galaxy S24 Ultra", ram: 12 }, { name: "Galaxy S24+", ram: 12 }, { name: "Galaxy S24", ram: 8 },
                     { name: "Galaxy S23 Ultra", ram: 12 }, { name: "Galaxy S23+", ram: 8 }, { name: "Galaxy S23", ram: 8 },
-                    { name: "Galaxy S22 Ultra", ram: 12 }, { name: "Galaxy S22+", ram: 8 }, { name: "Galaxy S22", ram: 8 },
-                    { name: "Galaxy S21 Ultra", ram: 12 }, { name: "Galaxy S21+", ram: 8 }, { name: "Galaxy S21", ram: 8 },
-                    { name: "Galaxy S21 FE", ram: 8 }, { name: "Galaxy S20 Ultra", ram: 12 }, { name: "Galaxy S20+", ram: 8 },
-                    { name: "Galaxy S20", ram: 8 }, { name: "Galaxy S20 FE", ram: 6 }, { name: "Galaxy S10+", ram: 8 },
-                    { name: "Galaxy S10", ram: 8 }, { name: "Galaxy S10e", ram: 6 }, { name: "Galaxy S10 Lite", ram: 6 },
-                    { name: "Galaxy S9+", ram: 6 }, { name: "Galaxy S9", ram: 4 }, { name: "Galaxy S8+", ram: 4 },
-                    { name: "Galaxy S8", ram: 4 }, { name: "Galaxy S7 Edge", ram: 4 }, { name: "Galaxy S7", ram: 4 },
-                    { name: "Galaxy S6 Edge+", ram: 4 }, { name: "Galaxy S6 Edge", ram: 3 }, { name: "Galaxy S6", ram: 3 },
-                    { name: "Galaxy S5", ram: 2 }, { name: "Galaxy S4", ram: 2 }, { name: "Galaxy S3", ram: 1 },
-                    { name: "Galaxy S2", ram: 1 }, { name: "Galaxy S", ram: 0.5 }
+                    { name: "Galaxy S23 FE", ram: 8 }, { name: "Galaxy S22 Ultra", ram: 12 }, { name: "Galaxy S22+", ram: 8 },
+                    { name: "Galaxy S22", ram: 8 }, { name: "Galaxy S21 Ultra", ram: 12 }, { name: "Galaxy S21+", ram: 8 },
+                    { name: "Galaxy S21", ram: 8 }, { name: "Galaxy S21 FE", ram: 8 }, { name: "Galaxy S20 Ultra", ram: 12 },
+                    { name: "Galaxy S20+", ram: 8 }, { name: "Galaxy S20", ram: 8 }, { name: "Galaxy S20 FE", ram: 6 },
+                    { name: "Galaxy S10+", ram: 8 }, { name: "Galaxy S10", ram: 8 }, { name: "Galaxy S10e", ram: 6 },
+                    { name: "Galaxy S10 Lite", ram: 6 }, { name: "Galaxy S9+", ram: 6 }, { name: "Galaxy S9", ram: 4 },
+                    { name: "Galaxy S8+", ram: 4 }, { name: "Galaxy S8", ram: 4 }, { name: "Galaxy S7 Edge", ram: 4 },
+                    { name: "Galaxy S7", ram: 4 }, { name: "Galaxy S6 Edge+", ram: 4 }, { name: "Galaxy S6 Edge", ram: 3 },
+                    { name: "Galaxy S6", ram: 3 }, { name: "Galaxy S5", ram: 2 }, { name: "Galaxy S4", ram: 2 },
+                    { name: "Galaxy S3", ram: 1 }, { name: "Galaxy S2", ram: 1 }, { name: "Galaxy S", ram: 0.5 }
                 ]
             },
             {
@@ -209,7 +209,8 @@ window.devices = [
                     { name: "Mi Mix 3", ram: 6 }, { name: "Mi Mix 2S", ram: 6 }, { name: "Mi Mix 2", ram: 6 },
                     { name: "Mi Mix", ram: 4 }, { name: "Mi Mix Alpha", ram: 12 }, { name: "Mi Note 10 Pro", ram: 8 },
                     { name: "Mi Note 10", ram: 6 }, { name: "Mi Note 10 Lite", ram: 6 }, { name: "Mi Note 3", ram: 6 },
-                    { name: "Mi Note 2", ram: 4 }
+                    { name: "Mi Note 2", ram: 4 }, { name: "Xiaomi Civi 3", ram: 12 }, { name: "Xiaomi Civi 2", ram: 8 },
+                    { name: "Xiaomi Civi", ram: 8 }
                 ]
             },
             {
@@ -285,6 +286,41 @@ window.devices = [
         ]
     },
     {
+        brand: "Poco",
+        series: [
+            {
+                name: "Poco F Series",
+                models: [
+                    { name: "Poco F7 Pro", ram: 12 }, { name: "Poco F7", ram: 8 }, { name: "Poco F6 Pro", ram: 12 },
+                    { name: "Poco F6", ram: 8 }, { name: "Poco F5 Pro", ram: 12 }, { name: "Poco F5", ram: 8 },
+                    { name: "Poco F4 GT", ram: 12 }, { name: "Poco F4", ram: 8 }, { name: "Poco F3 GT", ram: 8 },
+                    { name: "Poco F3", ram: 6 }, { name: "Poco F2 Pro", ram: 8 }, { name: "Poco F1", ram: 6 }
+                ]
+            },
+            {
+                name: "Poco X Series",
+                models: [
+                    { name: "Poco X7 Pro", ram: 12 }, { name: "Poco X7", ram: 8 }, { name: "Poco X6 Pro", ram: 12 },
+                    { name: "Poco X6", ram: 8 }, { name: "Poco X6 Neo", ram: 8 }, { name: "Poco X5 Pro", ram: 8 },
+                    { name: "Poco X5", ram: 6 }, { name: "Poco X4 Pro", ram: 8 }, { name: "Poco X4 GT", ram: 8 },
+                    { name: "Poco X4", ram: 6 }, { name: "Poco X3 Pro", ram: 8 }, { name: "Poco X3 GT", ram: 8 },
+                    { name: "Poco X3", ram: 6 }, { name: "Poco X3 NFC", ram: 6 }, { name: "Poco X2", ram: 6 }
+                ]
+            },
+            {
+                name: "Poco M/C Series",
+                models: [
+                    { name: "Poco M7 Pro", ram: 8 }, { name: "Poco M7", ram: 6 }, { name: "Poco M6 Pro", ram: 8 },
+                    { name: "Poco M6", ram: 6 }, { name: "Poco M5", ram: 4 }, { name: "Poco M5s", ram: 6 },
+                    { name: "Poco M4 Pro 5G", ram: 6 }, { name: "Poco M4 Pro", ram: 6 }, { name: "Poco M4 5G", ram: 4 },
+                    { name: "Poco M3 Pro 5G", ram: 6 }, { name: "Poco M3", ram: 4 }, { name: "Poco C75", ram: 6 },
+                    { name: "Poco C65", ram: 4 }, { name: "Poco C55", ram: 4 }, { name: "Poco C40", ram: 3 },
+                    { name: "Poco C3", ram: 3 }
+                ]
+            }
+        ]
+    },
+    {
         brand: "Oppo",
         series: [
             {
@@ -311,7 +347,8 @@ window.devices = [
                     { name: "Reno 6", ram: 8 }, { name: "Reno 5 Pro", ram: 8 }, { name: "Reno 5", ram: 8 },
                     { name: "Reno 4 Pro", ram: 8 }, { name: "Reno 4", ram: 8 }, { name: "Reno 3 Pro", ram: 8 },
                     { name: "Reno 3", ram: 8 }, { name: "Reno 2", ram: 8 }, { name: "Reno 2Z", ram: 8 },
-                    { name: "Reno 2F", ram: 8 }, { name: "Reno Ace", ram: 8 }, { name: "Reno Ace 2", ram: 8 }
+                    { name: "Reno 2F", ram: 8 }, { name: "Reno Ace", ram: 8 }, { name: "Reno Ace 2", ram: 8 },
+                    { name: "Reno 10x Zoom", ram: 8 }, { name: "Reno Z", ram: 6 }, { name: "Reno A", ram: 6 }
                 ]
             },
             {
@@ -326,7 +363,9 @@ window.devices = [
                     { name: "Oppo A53", ram: 4 }, { name: "Oppo A52", ram: 4 }, { name: "Oppo A31", ram: 4 },
                     { name: "Oppo A92", ram: 8 }, { name: "Oppo A72", ram: 4 }, { name: "Oppo A91", ram: 8 },
                     { name: "Oppo A9 (2020)", ram: 4 }, { name: "Oppo A5 (2020)", ram: 3 }, { name: "Oppo A7", ram: 3 },
-                    { name: "Oppo A5s", ram: 2 }, { name: "Oppo A3s", ram: 2 }
+                    { name: "Oppo A5s", ram: 2 }, { name: "Oppo A3s", ram: 2 }, { name: "Oppo A12", ram: 3 },
+                    { name: "Oppo A11k", ram: 3 }, { name: "Oppo A9x", ram: 8 }, { name: "Oppo A8", ram: 4 },
+                    { name: "Oppo A31 (2020)", ram: 4 }
                 ]
             },
             {
@@ -339,7 +378,7 @@ window.devices = [
                     { name: "Oppo F9 Pro", ram: 6 }, { name: "Oppo F9", ram: 4 }, { name: "Oppo F7", ram: 4 },
                     { name: "Oppo F5", ram: 4 }, { name: "Oppo K12", ram: 8 }, { name: "Oppo K11", ram: 8 },
                     { name: "Oppo K10", ram: 8 }, { name: "Oppo K9 Pro", ram: 8 }, { name: "Oppo K7x", ram: 6 },
-                    { name: "Oppo K5", ram: 6 }, { name: "Oppo K3", ram: 6 }
+                    { name: "Oppo K5", ram: 6 }, { name: "Oppo K3", ram: 6 }, { name: "Oppo K1", ram: 6 }
                 ]
             }
         ]
@@ -355,7 +394,8 @@ window.devices = [
                     { name: "Realme GT Neo 6 SE", ram: 8 }, { name: "Realme GT Neo 5", ram: 12 }, { name: "Realme GT Neo 5 SE", ram: 8 },
                     { name: "Realme GT 2 Pro", ram: 8 }, { name: "Realme GT 2", ram: 8 }, { name: "Realme GT Neo 3", ram: 8 },
                     { name: "Realme GT Neo 3T", ram: 8 }, { name: "Realme GT Neo 2", ram: 8 }, { name: "Realme GT Master Edition", ram: 6 },
-                    { name: "Realme GT Explorer Master", ram: 8 }, { name: "Realme GT", ram: 8 }
+                    { name: "Realme GT Explorer Master", ram: 8 }, { name: "Realme GT", ram: 8 }, { name: "Realme GT Neo", ram: 6 },
+                    { name: "Realme GT Neo Flash", ram: 8 }, { name: "Realme GT Neo 2T", ram: 8 }
                 ]
             },
             {
@@ -371,7 +411,9 @@ window.devices = [
                     { name: "Realme 8i", ram: 4 }, { name: "Realme 7 Pro", ram: 6 }, { name: "Realme 7", ram: 6 },
                     { name: "Realme 7i", ram: 4 }, { name: "Realme 6 Pro", ram: 6 }, { name: "Realme 6", ram: 4 },
                     { name: "Realme 6i", ram: 4 }, { name: "Realme 5 Pro", ram: 4 }, { name: "Realme 5", ram: 3 },
-                    { name: "Realme 3 Pro", ram: 4 }, { name: "Realme 2 Pro", ram: 4 }
+                    { name: "Realme 5s", ram: 3 }, { name: "Realme 5i", ram: 3 }, { name: "Realme 3 Pro", ram: 4 },
+                    { name: "Realme 3", ram: 3 }, { name: "Realme 3i", ram: 3 }, { name: "Realme 2 Pro", ram: 4 },
+                    { name: "Realme 2", ram: 3 }
                 ]
             },
             {
@@ -380,26 +422,32 @@ window.devices = [
                     { name: "Narzo 70 Pro", ram: 8 }, { name: "Narzo 70 Turbo", ram: 8 }, { name: "Narzo 70x", ram: 6 },
                     { name: "Narzo 60 Pro", ram: 8 }, { name: "Narzo 60", ram: 8 }, { name: "Narzo 50 Pro", ram: 6 },
                     { name: "Narzo 50", ram: 4 }, { name: "Narzo 50A", ram: 4 }, { name: "Narzo 50i", ram: 2 },
-                    { name: "Narzo 30 Pro", ram: 6 }, { name: "Narzo 30", ram: 4 }, { name: "Narzo 20 Pro", ram: 6 },
-                    { name: "Narzo 20", ram: 4 }, { name: "Narzo 10", ram: 4 }
+                    { name: "Narzo 50i Prime", ram: 4 }, { name: "Narzo 30 Pro", ram: 6 }, { name: "Narzo 30", ram: 4 },
+                    { name: "Narzo 30 5G", ram: 6 }, { name: "Narzo 30A", ram: 3 }, { name: "Narzo 20 Pro", ram: 6 },
+                    { name: "Narzo 20", ram: 4 }, { name: "Narzo 20A", ram: 3 }, { name: "Narzo 10", ram: 4 },
+                    { name: "Narzo 10A", ram: 3 }
                 ]
             },
             {
-                name: "Realme C/P Series",
+                name: "Realme C/P/Q/V Series",
                 models: [
                     { name: "Realme C67", ram: 8 }, { name: "Realme C65", ram: 6 }, { name: "Realme C63", ram: 4 },
-                    { name: "Realme C55", ram: 4 }, { name: "Realme C53", ram: 4 }, { name: "Realme C51", ram: 4 },
-                    { name: "Realme C35", ram: 4 }, { name: "Realme C33", ram: 3 }, { name: "Realme C31", ram: 3 },
-                    { name: "Realme C30", ram: 2 }, { name: "Realme C25", ram: 4 }, { name: "Realme C21", ram: 3 },
-                    { name: "Realme C11", ram: 2 }, { name: "Realme C3", ram: 2 }, { name: "Realme C2", ram: 2 },
-                    { name: "Realme P1 Pro", ram: 8 }, { name: "Realme P1", ram: 6 }
-                ]
-            },
-            {
-                name: "Realme Q/i/V Series",
-                models: [
-                    { name: "Realme Q5 Pro", ram: 8 }, { name: "Realme Q3s", ram: 6 }, { name: "Realme 9i 5G", ram: 4 },
-                    { name: "Realme 8i", ram: 4 }, { name: "Realme V25", ram: 12 }, { name: "Realme V15 5G", ram: 6 }
+                    { name: "Realme C61", ram: 4 }, { name: "Realme C55", ram: 4 }, { name: "Realme C53", ram: 4 },
+                    { name: "Realme C51", ram: 4 }, { name: "Realme C35", ram: 4 }, { name: "Realme C33", ram: 3 },
+                    { name: "Realme C31", ram: 3 }, { name: "Realme C30", ram: 2 }, { name: "Realme C30s", ram: 2 },
+                    { name: "Realme C25", ram: 4 }, { name: "Realme C25s", ram: 4 }, { name: "Realme C25y", ram: 4 },
+                    { name: "Realme C21", ram: 3 }, { name: "Realme C21y", ram: 3 }, { name: "Realme C20", ram: 2 },
+                    { name: "Realme C20A", ram: 2 }, { name: "Realme C15", ram: 3 }, { name: "Realme C12", ram: 3 },
+                    { name: "Realme C11", ram: 2 }, { name: "Realme C11 (2021)", ram: 2 }, { name: "Realme C3", ram: 2 },
+                    { name: "Realme C2", ram: 2 }, { name: "Realme C1", ram: 2 }, { name: "Realme P1 Pro", ram: 8 },
+                    { name: "Realme P1", ram: 6 }, { name: "Realme Q5 Pro", ram: 8 }, { name: "Realme Q5", ram: 6 },
+                    { name: "Realme Q5i", ram: 4 }, { name: "Realme Q3 Pro", ram: 8 }, { name: "Realme Q3s", ram: 6 },
+                    { name: "Realme Q3t", ram: 6 }, { name: "Realme Q3", ram: 6 }, { name: "Realme Q3i", ram: 4 },
+                    { name: "Realme Q2 Pro", ram: 8 }, { name: "Realme Q2", ram: 6 }, { name: "Realme Q2i", ram: 4 },
+                    { name: "Realme V60", ram: 8 }, { name: "Realme V50", ram: 6 }, { name: "Realme V30", ram: 4 },
+                    { name: "Realme V25", ram: 12 }, { name: "Realme V23", ram: 8 }, { name: "Realme V20", ram: 6 },
+                    { name: "Realme V15 5G", ram: 6 }, { name: "Realme V13", ram: 6 }, { name: "Realme V11", ram: 4 },
+                    { name: "Realme V5", ram: 6 }
                 ]
             }
         ]
@@ -414,9 +462,13 @@ window.devices = [
                     { name: "Vivo X100 Ultra", ram: 16 }, { name: "Vivo X100 Pro", ram: 12 }, { name: "Vivo X100", ram: 12 },
                     { name: "Vivo X100s", ram: 12 }, { name: "Vivo X90 Pro+", ram: 12 }, { name: "Vivo X90 Pro", ram: 8 },
                     { name: "Vivo X90", ram: 8 }, { name: "Vivo X80 Pro", ram: 8 }, { name: "Vivo X80", ram: 8 },
-                    { name: "Vivo X70 Pro+", ram: 12 }, { name: "Vivo X70 Pro", ram: 8 }, { name: "Vivo X60 Pro+", ram: 12 },
-                    { name: "Vivo X60 Pro", ram: 8 }, { name: "Vivo X50 Pro", ram: 8 }, { name: "Vivo X21", ram: 6 },
-                    { name: "Vivo Xplay6", ram: 6 }
+                    { name: "Vivo X70 Pro+", ram: 12 }, { name: "Vivo X70 Pro", ram: 8 }, { name: "Vivo X70", ram: 8 },
+                    { name: "Vivo X70t", ram: 8 }, { name: "Vivo X60 Pro+", ram: 12 }, { name: "Vivo X60 Pro", ram: 8 },
+                    { name: "Vivo X60", ram: 8 }, { name: "Vivo X60t", ram: 8 }, { name: "Vivo X50 Pro+", ram: 12 },
+                    { name: "Vivo X50 Pro", ram: 8 }, { name: "Vivo X50", ram: 6 }, { name: "Vivo X30 Pro", ram: 8 },
+                    { name: "Vivo X30", ram: 8 }, { name: "Vivo X27 Pro", ram: 8 }, { name: "Vivo X27", ram: 8 },
+                    { name: "Vivo X23", ram: 6 }, { name: "Vivo X21", ram: 6 }, { name: "Vivo X20", ram: 4 },
+                    { name: "Vivo Xplay6", ram: 6 }, { name: "Vivo Xplay5 Elite", ram: 6 }
                 ]
             },
             {
@@ -426,38 +478,67 @@ window.devices = [
                     { name: "Vivo V30 Pro", ram: 12 }, { name: "Vivo V30", ram: 8 }, { name: "Vivo V30e", ram: 8 },
                     { name: "Vivo V29 Pro", ram: 12 }, { name: "Vivo V29", ram: 8 }, { name: "Vivo V29e", ram: 8 },
                     { name: "Vivo V27 Pro", ram: 12 }, { name: "Vivo V27", ram: 8 }, { name: "Vivo V27e", ram: 8 },
-                    { name: "Vivo V25 Pro", ram: 8 }, { name: "Vivo V25", ram: 8 }, { name: "Vivo V23 Pro", ram: 8 },
-                    { name: "Vivo V23", ram: 8 }, { name: "Vivo V21", ram: 8 }, { name: "Vivo V20 Pro", ram: 8 },
-                    { name: "Vivo V20", ram: 8 }, { name: "Vivo V19", ram: 8 }, { name: "Vivo V17 Pro", ram: 8 },
-                    { name: "Vivo V15 Pro", ram: 6 }, { name: "Vivo V11 Pro", ram: 6 }, { name: "Vivo V9", ram: 4 }
+                    { name: "Vivo V25 Pro", ram: 8 }, { name: "Vivo V25", ram: 8 }, { name: "Vivo V25e", ram: 6 },
+                    { name: "Vivo V23 Pro", ram: 8 }, { name: "Vivo V23", ram: 8 }, { name: "Vivo V23e", ram: 6 },
+                    { name: "Vivo V21", ram: 8 }, { name: "Vivo V21e", ram: 6 }, { name: "Vivo V20 Pro", ram: 8 },
+                    { name: "Vivo V20", ram: 8 }, { name: "Vivo V20 SE", ram: 6 }, { name: "Vivo V19", ram: 8 },
+                    { name: "Vivo V17 Pro", ram: 8 }, { name: "Vivo V17", ram: 6 }, { name: "Vivo V15 Pro", ram: 6 },
+                    { name: "Vivo V15", ram: 4 }, { name: "Vivo V11 Pro", ram: 6 }, { name: "Vivo V11", ram: 4 },
+                    { name: "Vivo V9 Pro", ram: 6 }, { name: "Vivo V9", ram: 4 }, { name: "Vivo V7+", ram: 4 },
+                    { name: "Vivo V7", ram: 3 }
                 ]
             },
             {
                 name: "Y/T Series",
                 models: [
                     { name: "Vivo Y300 Pro", ram: 8 }, { name: "Vivo Y200 Pro", ram: 8 }, { name: "Vivo Y200", ram: 8 },
-                    { name: "Vivo Y100", ram: 8 }, { name: "Vivo Y78+", ram: 8 }, { name: "Vivo Y56", ram: 8 },
-                    { name: "Vivo Y35", ram: 8 }, { name: "Vivo Y22", ram: 4 }, { name: "Vivo Y16", ram: 3 },
-                    { name: "Vivo Y02", ram: 2 }, { name: "Vivo Y21", ram: 4 }, { name: "Vivo Y20", ram: 4 },
-                    { name: "Vivo Y19", ram: 4 }, { name: "Vivo Y17", ram: 4 }, { name: "Vivo Y15", ram: 4 },
-                    { name: "Vivo Y12", ram: 3 }, { name: "Vivo Y91", ram: 2 }, { name: "Vivo T3 Pro", ram: 8 },
-                    { name: "Vivo T3", ram: 8 }, { name: "Vivo T3x", ram: 6 }, { name: "Vivo T2 Pro", ram: 8 },
-                    { name: "Vivo T2x", ram: 6 }, { name: "Vivo T1 Pro", ram: 6 }, { name: "Vivo T1", ram: 4 }
+                    { name: "Vivo Y200 GT", ram: 8 }, { name: "Vivo Y200e", ram: 6 }, { name: "Vivo Y100", ram: 8 },
+                    { name: "Vivo Y100A", ram: 8 }, { name: "Vivo Y100i", ram: 8 }, { name: "Vivo Y78+", ram: 8 },
+                    { name: "Vivo Y78", ram: 6 }, { name: "Vivo Y78t", ram: 6 }, { name: "Vivo Y77", ram: 8 },
+                    { name: "Vivo Y77e", ram: 6 }, { name: "Vivo Y76s", ram: 8 }, { name: "Vivo Y76", ram: 6 },
+                    { name: "Vivo Y74s", ram: 6 }, { name: "Vivo Y73", ram: 6 }, { name: "Vivo Y72t", ram: 6 },
+                    { name: "Vivo Y71t", ram: 6 }, { name: "Vivo Y70t", ram: 6 }, { name: "Vivo Y56", ram: 8 },
+                    { name: "Vivo Y55s", ram: 8 }, { name: "Vivo Y55", ram: 6 }, { name: "Vivo Y53s", ram: 8 },
+                    { name: "Vivo Y52t", ram: 6 }, { name: "Vivo Y51 (2020)", ram: 8 }, { name: "Vivo Y51a", ram: 8 },
+                    { name: "Vivo Y50", ram: 8 }, { name: "Vivo Y35", ram: 8 }, { name: "Vivo Y35m", ram: 6 },
+                    { name: "Vivo Y33t", ram: 6 }, { name: "Vivo Y33s", ram: 8 }, { name: "Vivo Y33e", ram: 4 },
+                    { name: "Vivo Y32", ram: 4 }, { name: "Vivo Y32t", ram: 4 }, { name: "Vivo Y31 (2021)", ram: 8 },
+                    { name: "Vivo Y30", ram: 8 }, { name: "Vivo Y30g", ram: 6 }, { name: "Vivo Y22", ram: 4 },
+                    { name: "Vivo Y22s", ram: 4 }, { name: "Vivo Y21", ram: 4 }, { name: "Vivo Y21e", ram: 4 },
+                    { name: "Vivo Y21s", ram: 6 }, { name: "Vivo Y21t", ram: 4 }, { name: "Vivo Y21a", ram: 4 },
+                    { name: "Vivo Y21G", ram: 4 }, { name: "Vivo Y20", ram: 4 }, { name: "Vivo Y20i", ram: 3 },
+                    { name: "Vivo Y20s", ram: 6 }, { name: "Vivo Y20g", ram: 4 }, { name: "Vivo Y20a", ram: 4 },
+                    { name: "Vivo Y19", ram: 4 }, { name: "Vivo Y17s", ram: 4 }, { name: "Vivo Y17", ram: 4 },
+                    { name: "Vivo Y15c", ram: 3 }, { name: "Vivo Y15s", ram: 3 }, { name: "Vivo Y15a", ram: 3 },
+                    { name: "Vivo Y15", ram: 4 }, { name: "Vivo Y12a", ram: 3 }, { name: "Vivo Y12s", ram: 3 },
+                    { name: "Vivo Y12", ram: 3 }, { name: "Vivo Y11", ram: 3 }, { name: "Vivo Y10", ram: 3 },
+                    { name: "Vivo Y02s", ram: 2 }, { name: "Vivo Y02", ram: 2 }, { name: "Vivo Y01", ram: 2 },
+                    { name: "Vivo T3 Pro", ram: 8 }, { name: "Vivo T3", ram: 8 }, { name: "Vivo T3x", ram: 6 },
+                    { name: "Vivo T2 Pro", ram: 8 }, { name: "Vivo T2x", ram: 6 }, { name: "Vivo T2", ram: 6 },
+                    { name: "Vivo T1 Pro", ram: 6 }, { name: "Vivo T1", ram: 4 }, { name: "Vivo T1x", ram: 4 },
+                    { name: "Vivo Z6", ram: 6 }, { name: "Vivo Z5x", ram: 6 }, { name: "Vivo Z5i", ram: 6 },
+                    { name: "Vivo Z5", ram: 6 }, { name: "Vivo Z3x", ram: 4 }, { name: "Vivo Z3i", ram: 6 }
                 ]
             },
             {
                 name: "iQOO Series",
                 models: [
                     { name: "iQOO 13", ram: 16 }, { name: "iQOO 12 Pro", ram: 16 }, { name: "iQOO 12", ram: 12 },
-                    { name: "iQOO 11 Pro", ram: 12 }, { name: "iQOO 11", ram: 8 }, { name: "iQOO 11S", ram: 12 },
+                    { name: "iQOO 11S", ram: 16 }, { name: "iQOO 11 Pro", ram: 12 }, { name: "iQOO 11", ram: 8 },
                     { name: "iQOO 10 Pro", ram: 12 }, { name: "iQOO 10", ram: 8 }, { name: "iQOO 9 Pro", ram: 8 },
                     { name: "iQOO 9", ram: 8 }, { name: "iQOO 9 SE", ram: 8 }, { name: "iQOO 8 Pro", ram: 8 },
-                    { name: "iQOO 8", ram: 8 }, { name: "iQOO 7", ram: 8 }, { name: "iQOO Neo 9 Pro", ram: 12 },
-                    { name: "iQOO Neo 9", ram: 8 }, { name: "iQOO Neo 8 Pro", ram: 12 }, { name: "iQOO Neo 8", ram: 8 },
-                    { name: "iQOO Neo 7 Pro", ram: 8 }, { name: "iQOO Neo 7", ram: 8 }, { name: "iQOO Neo 6", ram: 8 },
-                    { name: "iQOO Z9 Turbo", ram: 12 }, { name: "iQOO Z9", ram: 8 }, { name: "iQOO Z8", ram: 8 },
-                    { name: "iQOO Z7 Pro", ram: 8 }, { name: "iQOO Z7", ram: 6 }, { name: "iQOO Z6 Pro", ram: 6 },
-                    { name: "iQOO Z6", ram: 4 }
+                    { name: "iQOO 8", ram: 8 }, { name: "iQOO 7 Legend", ram: 12 }, { name: "iQOO 7", ram: 8 },
+                    { name: "iQOO Neo 9S Pro", ram: 16 }, { name: "iQOO Neo 9 Pro", ram: 12 }, { name: "iQOO Neo 9", ram: 8 },
+                    { name: "iQOO Neo 8 Pro", ram: 12 }, { name: "iQOO Neo 8", ram: 8 }, { name: "iQOO Neo 7 Pro", ram: 8 },
+                    { name: "iQOO Neo 7", ram: 8 }, { name: "iQOO Neo 7 SE", ram: 8 }, { name: "iQOO Neo 6 SE", ram: 8 },
+                    { name: "iQOO Neo 6", ram: 8 }, { name: "iQOO Neo 5 SE", ram: 8 }, { name: "iQOO Neo 5S", ram: 8 },
+                    { name: "iQOO Neo 5", ram: 8 }, { name: "iQOO Neo 3", ram: 8 }, { name: "iQOO Z9 Turbo", ram: 12 },
+                    { name: "iQOO Z9x", ram: 8 }, { name: "iQOO Z9", ram: 8 }, { name: "iQOO Z8x", ram: 8 },
+                    { name: "iQOO Z8", ram: 8 }, { name: "iQOO Z7x", ram: 6 }, { name: "iQOO Z7 Pro", ram: 8 },
+                    { name: "iQOO Z7", ram: 6 }, { name: "iQOO Z6 Pro", ram: 6 }, { name: "iQOO Z6x", ram: 6 },
+                    { name: "iQOO Z6", ram: 4 }, { name: "iQOO Z5x", ram: 8 }, { name: "iQOO Z5", ram: 8 },
+                    { name: "iQOO U5x", ram: 4 }, { name: "iQOO U5", ram: 4 }, { name: "iQOO U3x", ram: 4 },
+                    { name: "iQOO U3", ram: 4 }, { name: "iQOO U1x", ram: 4 }
                 ]
             }
         ]
@@ -469,38 +550,53 @@ window.devices = [
                 name: "Edge Series",
                 models: [
                     { name: "Motorola Edge 50 Ultra", ram: 16 }, { name: "Motorola Edge 50 Pro", ram: 12 }, { name: "Motorola Edge 50 Fusion", ram: 8 },
-                    { name: "Motorola Edge 40 Pro", ram: 12 }, { name: "Motorola Edge 40", ram: 8 }, { name: "Motorola Edge 40 Neo", ram: 8 },
-                    { name: "Motorola Edge 30 Ultra", ram: 12 }, { name: "Motorola Edge 30 Pro", ram: 8 }, { name: "Motorola Edge 30 Fusion", ram: 8 },
-                    { name: "Motorola Edge 30 Neo", ram: 8 }, { name: "Motorola Edge 20 Pro", ram: 8 }, { name: "Motorola Edge 20", ram: 8 },
-                    { name: "Motorola Edge (2023)", ram: 8 }, { name: "Motorola Edge (2022)", ram: 8 }
+                    { name: "Motorola Edge 50 Neo", ram: 8 }, { name: "Motorola Edge 40 Pro", ram: 12 }, { name: "Motorola Edge 40", ram: 8 },
+                    { name: "Motorola Edge 40 Neo", ram: 8 }, { name: "Motorola Edge 30 Ultra", ram: 12 }, { name: "Motorola Edge 30 Pro", ram: 8 },
+                    { name: "Motorola Edge 30 Fusion", ram: 8 }, { name: "Motorola Edge 30 Neo", ram: 8 }, { name: "Motorola Edge 20 Pro", ram: 8 },
+                    { name: "Motorola Edge 20", ram: 8 }, { name: "Motorola Edge 20 Lite", ram: 6 }, { name: "Motorola Edge (2023)", ram: 8 },
+                    { name: "Motorola Edge (2022)", ram: 8 }, { name: "Motorola Edge (2021)", ram: 6 }, { name: "Motorola Edge+", ram: 12 }
                 ]
             },
             {
                 name: "Razr Series",
                 models: [
                     { name: "Motorola Razr 50 Ultra", ram: 12 }, { name: "Motorola Razr 50", ram: 8 }, { name: "Motorola Razr 40 Ultra", ram: 8 },
-                    { name: "Motorola Razr 40", ram: 8 }, { name: "Motorola Razr 2022", ram: 8 }, { name: "Motorola Razr 5G", ram: 8 },
-                    { name: "Motorola Razr (2019)", ram: 6 }
+                    { name: "Motorola Razr 40", ram: 8 }, { name: "Motorola Razr (2023)", ram: 8 }, { name: "Motorola Razr 2022", ram: 8 },
+                    { name: "Motorola Razr 5G", ram: 8 }, { name: "Motorola Razr (2020)", ram: 6 }, { name: "Motorola Razr (2019)", ram: 6 }
                 ]
             },
             {
                 name: "Moto G Series",
                 models: [
                     { name: "Moto G85", ram: 8 }, { name: "Moto G84", ram: 12 }, { name: "Moto G75", ram: 8 },
-                    { name: "Moto G73", ram: 8 }, { name: "Moto G64", ram: 8 }, { name: "Moto G54", ram: 8 },
-                    { name: "Moto G34", ram: 4 }, { name: "Moto G24", ram: 4 }, { name: "Moto G14", ram: 4 },
-                    { name: "Moto G200", ram: 8 }, { name: "Moto G100", ram: 8 }, { name: "Moto G82", ram: 6 },
-                    { name: "Moto G72", ram: 6 }, { name: "Moto G62", ram: 4 }, { name: "Moto G52", ram: 4 },
-                    { name: "Moto G42", ram: 4 }, { name: "Moto G32", ram: 4 }, { name: "Moto G22", ram: 4 },
-                    { name: "Moto G Power (2024)", ram: 8 }, { name: "Moto G Stylus (2024)", ram: 8 }
+                    { name: "Moto G73", ram: 8 }, { name: "Moto G64", ram: 8 }, { name: "Moto G62", ram: 4 },
+                    { name: "Moto G60", ram: 6 }, { name: "Moto G55", ram: 6 }, { name: "Moto G54", ram: 8 },
+                    { name: "Moto G53", ram: 8 }, { name: "Moto G52j", ram: 6 }, { name: "Moto G52", ram: 4 },
+                    { name: "Moto G51 5G", ram: 4 }, { name: "Moto G42", ram: 4 }, { name: "Moto G41", ram: 4 },
+                    { name: "Moto G40 Fusion", ram: 6 }, { name: "Moto G34", ram: 4 }, { name: "Moto G32", ram: 4 },
+                    { name: "Moto G31", ram: 4 }, { name: "Moto G24", ram: 4 }, { name: "Moto G23", ram: 4 },
+                    { name: "Moto G22", ram: 4 }, { name: "Moto G200 5G", ram: 8 }, { name: "Moto G100", ram: 8 },
+                    { name: "Moto G14", ram: 4 }, { name: "Moto G13", ram: 4 }, { name: "Moto G Power (2024)", ram: 8 },
+                    { name: "Moto G Power (2023)", ram: 4 }, { name: "Moto G Stylus (2024)", ram: 8 }, { name: "Moto G Stylus (2023)", ram: 6 },
+                    { name: "Moto G 5G (2024)", ram: 6 }, { name: "Moto G Play (2024)", ram: 3 }
                 ]
             },
             {
-                name: "Moto E/ThinkPhone",
+                name: "Moto E/ThinkPhone/Defy",
                 models: [
-                    { name: "Moto E14", ram: 2 }, { name: "Moto E13", ram: 2 }, { name: "Moto E40", ram: 4 },
-                    { name: "Moto E32", ram: 4 }, { name: "Moto E22", ram: 3 }, { name: "Motorola ThinkPhone 25", ram: 12 },
-                    { name: "Motorola ThinkPhone", ram: 8 }
+                    { name: "Moto E14", ram: 2 }, { name: "Moto E13", ram: 2 }, { name: "Moto E22s", ram: 3 },
+                    { name: "Moto E22", ram: 3 }, { name: "Moto E20", ram: 2 }, { name: "Moto E7 Power", ram: 2 },
+                    { name: "Moto E7 Plus", ram: 4 }, { name: "Moto E7", ram: 2 }, { name: "Moto E6s", ram: 2 },
+                    { name: "Moto E6 Plus", ram: 2 }, { name: "Motorola ThinkPhone 25", ram: 12 }, { name: "Motorola ThinkPhone 2", ram: 12 },
+                    { name: "Motorola ThinkPhone", ram: 8 }, { name: "Motorola Defy 2", ram: 8 }, { name: "Motorola Defy", ram: 4 }
+                ]
+            },
+            {
+                name: "Motorola One Series",
+                models: [
+                    { name: "Motorola One Hyper", ram: 6 }, { name: "Motorola One Fusion+", ram: 6 }, { name: "Motorola One Fusion", ram: 4 },
+                    { name: "Motorola One 5G Ace", ram: 4 }, { name: "Motorola One 5G UW", ram: 6 }, { name: "Motorola One Action", ram: 4 },
+                    { name: "Motorola One Vision", ram: 4 }, { name: "Motorola One Zoom", ram: 6 }
                 ]
             }
         ]
@@ -512,11 +608,12 @@ window.devices = [
                 name: "ROG Phone Series",
                 models: [
                     { name: "ROG Phone 9 Pro", ram: 24 }, { name: "ROG Phone 9", ram: 16 }, { name: "ROG Phone 8 Pro", ram: 16 },
-                    { name: "ROG Phone 8", ram: 12 }, { name: "ROG Phone 7 Ultimate", ram: 16 }, { name: "ROG Phone 7", ram: 12 },
-                    { name: "ROG Phone 6D Ultimate", ram: 16 }, { name: "ROG Phone 6 Pro", ram: 18 }, { name: "ROG Phone 6", ram: 12 },
-                    { name: "ROG Phone 5s Pro", ram: 18 }, { name: "ROG Phone 5s", ram: 12 }, { name: "ROG Phone 5 Ultimate", ram: 18 },
-                    { name: "ROG Phone 5", ram: 8 }, { name: "ROG Phone 3", ram: 12 }, { name: "ROG Phone II", ram: 12 },
-                    { name: "ROG Phone", ram: 8 }
+                    { name: "ROG Phone 8", ram: 12 }, { name: "ROG Phone 8 Pro Edition", ram: 24 }, { name: "ROG Phone 7 Ultimate", ram: 16 },
+                    { name: "ROG Phone 7", ram: 12 }, { name: "ROG Phone 6D Ultimate", ram: 16 }, { name: "ROG Phone 6 Pro", ram: 18 },
+                    { name: "ROG Phone 6", ram: 12 }, { name: "ROG Phone 5s Pro", ram: 18 }, { name: "ROG Phone 5s", ram: 12 },
+                    { name: "ROG Phone 5 Ultimate", ram: 18 }, { name: "ROG Phone 5 Pro", ram: 16 }, { name: "ROG Phone 5", ram: 8 },
+                    { name: "ROG Phone 3 Strix", ram: 8 }, { name: "ROG Phone 3", ram: 12 }, { name: "ROG Phone II Ultimate", ram: 12 },
+                    { name: "ROG Phone II", ram: 12 }, { name: "ROG Phone", ram: 8 }
                 ]
             },
             {
@@ -524,8 +621,9 @@ window.devices = [
                 models: [
                     { name: "Zenfone 11 Ultra", ram: 12 }, { name: "Zenfone 10", ram: 8 }, { name: "Zenfone 9", ram: 8 },
                     { name: "Zenfone 8 Flip", ram: 8 }, { name: "Zenfone 8", ram: 8 }, { name: "Zenfone 7 Pro", ram: 8 },
-                    { name: "Zenfone 7", ram: 6 }, { name: "Zenfone 6", ram: 6 }, { name: "Zenfone 5z", ram: 6 },
-                    { name: "Zenfone 4 Pro", ram: 6 }
+                    { name: "Zenfone 7", ram: 6 }, { name: "Zenfone 6 Edition 30", ram: 8 }, { name: "Zenfone 6", ram: 6 },
+                    { name: "Zenfone 5z", ram: 6 }, { name: "Zenfone 5", ram: 4 }, { name: "Zenfone 4 Pro", ram: 6 },
+                    { name: "Zenfone Max Pro (M2)", ram: 4 }, { name: "Zenfone Max Pro M1", ram: 4 }, { name: "Zenfone Max (M2)", ram: 3 }
                 ]
             }
         ]
@@ -557,9 +655,11 @@ window.devices = [
             {
                 name: "Xperia Pro/Legacy",
                 models: [
-                    { name: "Xperia Pro-I", ram: 12 }, { name: "Xperia Pro", ram: 12 }, { name: "Xperia XZ3", ram: 4 },
-                    { name: "Xperia XZ2 Premium", ram: 6 }, { name: "Xperia XZ1", ram: 4 }, { name: "Xperia Z5 Premium", ram: 3 },
-                    { name: "Xperia Z3+", ram: 3 }
+                    { name: "Xperia Pro-I", ram: 12 }, { name: "Xperia Pro", ram: 12 }, { name: "Xperia Z5 Premium", ram: 3 },
+                    { name: "Xperia Z5", ram: 3 }, { name: "Xperia Z3+", ram: 3 }, { name: "Xperia Z3", ram: 3 },
+                    { name: "Xperia Z2", ram: 2 }, { name: "Xperia Z1", ram: 2 }, { name: "Xperia XZ3", ram: 4 },
+                    { name: "Xperia XZ2 Premium", ram: 6 }, { name: "Xperia XZ2", ram: 4 }, { name: "Xperia XZ1 Compact", ram: 4 },
+                    { name: "Xperia XZ1", ram: 4 }, { name: "Xperia X Performance", ram: 3 }
                 ]
             }
         ]
@@ -571,25 +671,26 @@ window.devices = [
                 name: "Pixel Pro/Ultra Series",
                 models: [
                     { name: "Pixel 9 Pro XL", ram: 16 }, { name: "Pixel 9 Pro", ram: 16 }, { name: "Pixel 9 Pro Fold", ram: 16 },
-                    { name: "Pixel 8 Pro", ram: 12 }, { name: "Pixel 7 Pro", ram: 12 }, { name: "Pixel 6 Pro", ram: 12 }
+                    { name: "Pixel 8 Pro", ram: 12 }, { name: "Pixel Fold", ram: 12 }, { name: "Pixel 7 Pro", ram: 12 },
+                    { name: "Pixel 6 Pro", ram: 12 }, { name: "Pixel 5", ram: 8 }, { name: "Pixel 4 XL", ram: 6 },
+                    { name: "Pixel 3 XL", ram: 4 }, { name: "Pixel 2 XL", ram: 4 }
                 ]
             },
             {
                 name: "Pixel Standard Series",
                 models: [
-                    { name: "Pixel 9", ram: 12 }, { name: "Pixel 8", ram: 8 }, { name: "Pixel 7", ram: 8 },
-                    { name: "Pixel 6", ram: 8 }, { name: "Pixel 5", ram: 8 }, { name: "Pixel 4 XL", ram: 6 },
-                    { name: "Pixel 4", ram: 6 }, { name: "Pixel 3 XL", ram: 4 }, { name: "Pixel 3", ram: 4 },
-                    { name: "Pixel 2 XL", ram: 4 }, { name: "Pixel 2", ram: 4 }, { name: "Pixel XL", ram: 4 },
-                    { name: "Pixel", ram: 4 }
+                    { name: "Pixel 9", ram: 12 }, { name: "Pixel 8", ram: 8 }, { name: "Pixel 7a", ram: 8 },
+                    { name: "Pixel 7", ram: 8 }, { name: "Pixel 6a", ram: 6 }, { name: "Pixel 6", ram: 8 },
+                    { name: "Pixel 5a", ram: 6 }, { name: "Pixel 4a 5G", ram: 6 }, { name: "Pixel 4a", ram: 6 },
+                    { name: "Pixel 4", ram: 6 }, { name: "Pixel 3a XL", ram: 4 }, { name: "Pixel 3a", ram: 4 },
+                    { name: "Pixel 3", ram: 4 }, { name: "Pixel 2", ram: 4 }, { name: "Pixel", ram: 4 },
+                    { name: "Pixel XL", ram: 4 }
                 ]
             },
             {
-                name: "Pixel A/Fold Series",
+                name: "Pixel Tablet Series",
                 models: [
-                    { name: "Pixel 8a", ram: 8 }, { name: "Pixel 7a", ram: 8 }, { name: "Pixel 6a", ram: 6 },
-                    { name: "Pixel 5a 5G", ram: 6 }, { name: "Pixel 4a 5G", ram: 6 }, { name: "Pixel 4a", ram: 6 },
-                    { name: "Pixel 3a XL", ram: 4 }, { name: "Pixel 3a", ram: 4 }, { name: "Pixel Fold", ram: 12 }
+                    { name: "Pixel Tablet", ram: 8 }, { name: "Pixel C", ram: 3 }
                 ]
             }
         ]
@@ -598,103 +699,39 @@ window.devices = [
         brand: "OnePlus",
         series: [
             {
-                name: "Number/R Series",
+                name: "OnePlus 12/11/10 Series",
                 models: [
-                    { name: "OnePlus 13", ram: 16 }, { name: "OnePlus 12", ram: 12 }, { name: "OnePlus 12R", ram: 8 },
-                    { name: "OnePlus 11", ram: 8 }, { name: "OnePlus 11R", ram: 8 }, { name: "OnePlus 10 Pro", ram: 8 },
-                    { name: "OnePlus 10T", ram: 8 }, { name: "OnePlus 10R", ram: 8 }, { name: "OnePlus 9 Pro", ram: 8 },
-                    { name: "OnePlus 9RT", ram: 8 }, { name: "OnePlus 9", ram: 8 }, { name: "OnePlus 8 Pro", ram: 8 },
-                    { name: "OnePlus 8T", ram: 8 }, { name: "OnePlus 8", ram: 6 }, { name: "OnePlus 7T Pro", ram: 8 },
-                    { name: "OnePlus 7 Pro", ram: 6 }, { name: "OnePlus 7T", ram: 8 }, { name: "OnePlus 7", ram: 6 },
-                    { name: "OnePlus 6T McLaren", ram: 10 }, { name: "OnePlus 6T", ram: 6 }, { name: "OnePlus 6", ram: 6 },
-                    { name: "OnePlus 5T", ram: 6 }, { name: "OnePlus 5", ram: 6 }, { name: "OnePlus 3T", ram: 6 },
+                    { name: "OnePlus 13", ram: 16 }, { name: "OnePlus 12", ram: 16 }, { name: "OnePlus 12R", ram: 12 },
+                    { name: "OnePlus 11", ram: 16 }, { name: "OnePlus 11R", ram: 8 }, { name: "OnePlus 10 Pro", ram: 12 },
+                    { name: "OnePlus 10R", ram: 8 }, { name: "OnePlus 10T", ram: 12 }
+                ]
+            },
+            {
+                name: "OnePlus 9/8/7 Series",
+                models: [
+                    { name: "OnePlus 9 Pro", ram: 12 }, { name: "OnePlus 9", ram: 8 }, { name: "OnePlus 9RT", ram: 12 },
+                    { name: "OnePlus 9R", ram: 8 }, { name: "OnePlus 8 Pro", ram: 12 }, { name: "OnePlus 8", ram: 8 },
+                    { name: "OnePlus 8T", ram: 12 }, { name: "OnePlus 7T Pro McLaren", ram: 12 }, { name: "OnePlus 7T Pro", ram: 12 },
+                    { name: "OnePlus 7T", ram: 8 }, { name: "OnePlus 7 Pro", ram: 12 }, { name: "OnePlus 7", ram: 8 },
+                    { name: "OnePlus 6T McLaren", ram: 10 }, { name: "OnePlus 6T", ram: 8 }, { name: "OnePlus 6", ram: 8 },
+                    { name: "OnePlus 5T", ram: 8 }, { name: "OnePlus 5", ram: 8 }, { name: "OnePlus 3T", ram: 6 },
                     { name: "OnePlus 3", ram: 6 }, { name: "OnePlus 2", ram: 4 }, { name: "OnePlus One", ram: 3 }
                 ]
             },
             {
-                name: "Nord Series",
+                name: "OnePlus Nord Series",
                 models: [
-                    { name: "OnePlus Nord 4", ram: 12 }, { name: "OnePlus Nord 3", ram: 8 }, { name: "OnePlus Nord CE 4", ram: 8 },
-                    { name: "OnePlus Nord CE 4 Lite", ram: 8 }, { name: "OnePlus Nord CE 3", ram: 8 }, { name: "OnePlus Nord CE 3 Lite", ram: 8 },
-                    { name: "OnePlus Nord 2T", ram: 8 }, { name: "OnePlus Nord 2", ram: 8 }, { name: "OnePlus Nord CE 2", ram: 8 },
-                    { name: "OnePlus Nord CE 2 Lite", ram: 6 }, { name: "OnePlus Nord", ram: 6 }, { name: "OnePlus Nord CE", ram: 6 },
-                    { name: "OnePlus Nord N30", ram: 8 }, { name: "OnePlus Nord N300", ram: 4 }, { name: "OnePlus Nord N20", ram: 6 },
-                    { name: "OnePlus Nord N200", ram: 4 }, { name: "OnePlus Nord N10", ram: 6 }, { name: "OnePlus Nord N100", ram: 4 }
+                    { name: "OnePlus Nord 4", ram: 16 }, { name: "OnePlus Nord 3", ram: 16 }, { name: "OnePlus Nord 2T", ram: 12 },
+                    { name: "OnePlus Nord 2", ram: 12 }, { name: "OnePlus Nord", ram: 12 }, { name: "OnePlus Nord CE 4", ram: 12 },
+                    { name: "OnePlus Nord CE 3 Lite", ram: 8 }, { name: "OnePlus Nord CE 3", ram: 12 }, { name: "OnePlus Nord CE 2 Lite", ram: 6 },
+                    { name: "OnePlus Nord CE 2", ram: 8 }, { name: "OnePlus Nord CE 5G", ram: 8 }, { name: "OnePlus Nord N300", ram: 4 },
+                    { name: "OnePlus Nord N200", ram: 4 }, { name: "OnePlus Nord N10 5G", ram: 6 }, { name: "OnePlus Nord N100", ram: 4 }
                 ]
             },
             {
-                name: "OnePlus Open/Pad",
+                name: "OnePlus Pad Series",
                 models: [
-                    { name: "OnePlus Open", ram: 16 }, { name: "OnePlus Pad 2", ram: 8 }, { name: "OnePlus Pad Go", ram: 8 },
-                    { name: "OnePlus Pad", ram: 8 }
-                ]
-            }
-        ]
-    },
-    {
-        brand: "Huawei",
-        series: [
-            {
-                name: "P/Pura Series",
-                models: [
-                    { name: "Pura 70 Ultra", ram: 16 }, { name: "Pura 70 Pro+", ram: 16 }, { name: "Pura 70 Pro", ram: 12 },
-                    { name: "Pura 70", ram: 12 }, { name: "P60 Pro", ram: 8 }, { name: "P60 Art", ram: 12 },
-                    { name: "P50 Pro", ram: 8 }, { name: "P50 Pocket", ram: 8 }, { name: "P40 Pro+", ram: 8 },
-                    { name: "P40 Pro", ram: 8 }, { name: "P40", ram: 8 }, { name: "P30 Pro", ram: 8 },
-                    { name: "P30", ram: 6 }, { name: "P20 Pro", ram: 6 }, { name: "P20", ram: 4 },
-                    { name: "P10 Plus", ram: 4 }
-                ]
-            },
-            {
-                name: "Mate Series",
-                models: [
-                    { name: "Mate 60 RS Ultimate", ram: 16 }, { name: "Mate 60 Pro+", ram: 16 }, { name: "Mate 60 Pro", ram: 12 },
-                    { name: "Mate 60", ram: 12 }, { name: "Mate X5", ram: 16 }, { name: "Mate 50 Pro", ram: 8 },
-                    { name: "Mate 50", ram: 8 }, { name: "Mate Xs 2", ram: 8 }, { name: "Mate 40 Pro+", ram: 12 },
-                    { name: "Mate 40 Pro", ram: 8 }, { name: "Mate 30 Pro", ram: 8 }, { name: "Mate 20 Pro", ram: 6 },
-                    { name: "Mate 10 Pro", ram: 6 }, { name: "Mate RS Porsche Design", ram: 6 }
-                ]
-            },
-            {
-                name: "Nova Series",
-                models: [
-                    { name: "Nova 13 Pro", ram: 12 }, { name: "Nova 13", ram: 12 }, { name: "Nova 12 Ultra", ram: 12 },
-                    { name: "Nova 12 Pro", ram: 12 }, { name: "Nova 12", ram: 8 }, { name: "Nova 11 Ultra", ram: 12 },
-                    { name: "Nova 11 Pro", ram: 8 }, { name: "Nova 11", ram: 8 }, { name: "Nova 10 Pro", ram: 8 },
-                    { name: "Nova 10", ram: 8 }, { name: "Nova 9 Pro", ram: 8 }, { name: "Nova 9", ram: 8 },
-                    { name: "Nova 8 Pro", ram: 8 }, { name: "Nova 7 Pro", ram: 8 }
-                ]
-            }
-        ]
-    },
-    {
-        brand: "Honor",
-        series: [
-            {
-                name: "Magic Series",
-                models: [
-                    { name: "Magic 7 Pro", ram: 16 }, { name: "Magic 7", ram: 12 }, { name: "Magic 6 Pro", ram: 12 },
-                    { name: "Magic 6", ram: 12 }, { name: "Magic 6 Ultimate", ram: 16 }, { name: "Magic 6 Lite", ram: 8 },
-                    { name: "Magic 5 Pro", ram: 12 }, { name: "Magic 5", ram: 8 }, { name: "Magic 4 Pro", ram: 8 },
-                    { name: "Magic V3", ram: 12 }, { name: "Magic V2", ram: 16 }, { name: "Magic Vs2", ram: 12 },
-                    { name: "Magic V Flip", ram: 12 }
-                ]
-            },
-            {
-                name: "Honor Number Series",
-                models: [
-                    { name: "Honor 200 Pro", ram: 12 }, { name: "Honor 200", ram: 8 }, { name: "Honor 200 Lite", ram: 8 },
-                    { name: "Honor 100 Pro", ram: 12 }, { name: "Honor 100", ram: 12 }, { name: "Honor 90 Pro", ram: 12 },
-                    { name: "Honor 90", ram: 8 }, { name: "Honor 80 Pro", ram: 12 }, { name: "Honor 70 Pro", ram: 8 },
-                    { name: "Honor 60 Pro", ram: 8 }, { name: "Honor 50 Pro", ram: 8 }
-                ]
-            },
-            {
-                name: "Honor X Series",
-                models: [
-                    { name: "Honor X9c", ram: 8 }, { name: "Honor X9b", ram: 8 }, { name: "Honor X8b", ram: 8 },
-                    { name: "Honor X7b", ram: 6 }, { name: "Honor X50", ram: 8 }, { name: "Honor X40", ram: 6 },
-                    { name: "Honor X30", ram: 6 }, { name: "Honor X10", ram: 6 }
+                    { name: "OnePlus Pad 2", ram: 12 }, { name: "OnePlus Pad Go", ram: 8 }, { name: "OnePlus Pad", ram: 12 }
                 ]
             }
         ]
@@ -703,73 +740,144 @@ window.devices = [
         brand: "Nothing",
         series: [
             {
-                name: "Phone Series",
+                name: "Nothing Phone Series",
                 models: [
-                    { name: "Nothing Phone (2a) Plus", ram: 12 }, { name: "Nothing Phone (2a)", ram: 8 },
-                    { name: "Nothing Phone (2)", ram: 8 }, { name: "Nothing Phone (1)", ram: 8 },
-                    { name: "CMF Phone 1", ram: 6 }
+                    { name: "Nothing Phone 2a Plus", ram: 12 }, { name: "Nothing Phone 2a", ram: 8 }, { name: "Nothing Phone 2", ram: 12 },
+                    { name: "Nothing Phone 1", ram: 8 }
+                ]
+            },
+            {
+                name: "Nothing CMF Series",
+                models: [
+                    { name: "CMF Phone 1", ram: 8 }
                 ]
             }
         ]
     },
     {
-        brand: "Nubia / RedMagic",
+        brand: "Honor",
         series: [
             {
-                name: "RedMagic Series",
+                name: "Honor Magic Series",
                 models: [
-                    { name: "RedMagic 10 Pro+", ram: 24 }, { name: "RedMagic 10 Pro", ram: 16 }, { name: "RedMagic 9S Pro+", ram: 16 },
-                    { name: "RedMagic 9S Pro", ram: 12 }, { name: "RedMagic 9 Pro+", ram: 16 }, { name: "RedMagic 9 Pro", ram: 8 },
-                    { name: "RedMagic 8S Pro", ram: 12 }, { name: "RedMagic 8 Pro", ram: 8 }, { name: "RedMagic 7S Pro", ram: 12 },
-                    { name: "RedMagic 7 Pro", ram: 8 }, { name: "RedMagic 6S Pro", ram: 12 }, { name: "RedMagic 6 Pro", ram: 12 },
-                    { name: "RedMagic 5G", ram: 8 }, { name: "RedMagic 3S", ram: 8 }
+                    { name: "Honor Magic 7 Pro", ram: 16 }, { name: "Honor Magic 7", ram: 12 }, { name: "Honor Magic 6 Pro", ram: 16 },
+                    { name: "Honor Magic 6", ram: 12 }, { name: "Honor Magic 5 Ultimate", ram: 16 }, { name: "Honor Magic 5 Pro", ram: 12 },
+                    { name: "Honor Magic 5", ram: 8 }, { name: "Honor Magic 4 Ultimate", ram: 12 }, { name: "Honor Magic 4 Pro", ram: 12 },
+                    { name: "Honor Magic 4", ram: 8 }, { name: "Honor Magic 3 Pro+", ram: 12 }, { name: "Honor Magic 3 Pro", ram: 12 },
+                    { name: "Honor Magic 3", ram: 8 }, { name: "Honor Magic 2", ram: 8 }, { name: "Honor Magic", ram: 6 }
                 ]
             },
             {
-                name: "Nubia Z Series",
+                name: "Honor X/Numeric Series",
                 models: [
-                    { name: "Nubia Z70 Ultra", ram: 16 }, { name: "Nubia Z60 Ultra Leading", ram: 16 }, { name: "Nubia Z60 Ultra", ram: 12 },
-                    { name: "Nubia Z50 Ultra", ram: 8 }, { name: "Nubia Z50S Pro", ram: 12 }, { name: "Nubia Z40 Pro", ram: 8 },
-                    { name: "Nubia Z30 Pro", ram: 8 }
+                    { name: "Honor X60 Pro", ram: 12 }, { name: "Honor X60", ram: 8 }, { name: "Honor X50 Pro", ram: 12 },
+                    { name: "Honor X50", ram: 8 }, { name: "Honor X40 GT", ram: 12 }, { name: "Honor X40i", ram: 8 },
+                    { name: "Honor X40", ram: 8 }, { name: "Honor X30 Max", ram: 8 }, { name: "Honor X30i", ram: 8 },
+                    { name: "Honor X30", ram: 8 }, { name: "Honor 200 Pro", ram: 16 }, { name: "Honor 200", ram: 12 },
+                    { name: "Honor 100 Pro", ram: 16 }, { name: "Honor 100", ram: 12 }, { name: "Honor 90 Pro", ram: 16 },
+                    { name: "Honor 90", ram: 12 }, { name: "Honor 80 Pro", ram: 12 }, { name: "Honor 80", ram: 8 },
+                    { name: "Honor 70 Pro+", ram: 12 }, { name: "Honor 70 Pro", ram: 12 }, { name: "Honor 70", ram: 8 }
+                ]
+            },
+            {
+                name: "Honor Pad Series",
+                models: [
+                    { name: "Honor Pad 9 Pro", ram: 16 }, { name: "Honor Pad 9", ram: 12 }, { name: "Honor Pad 8", ram: 8 },
+                    { name: "Honor Pad V7 Pro", ram: 8 }, { name: "Honor Pad V7", ram: 6 }
                 ]
             }
         ]
     },
     {
-        brand: "Infinix",
+        brand: "Huawei",
         series: [
             {
-                name: "Zero Series",
+                name: "Mate Series",
                 models: [
-                    { name: "Zero 40 5G", ram: 12 }, { name: "Zero 30 5G", ram: 12 }, { name: "Zero Ultra", ram: 8 },
-                    { name: "Zero 20", ram: 8 }, { name: "Zero X Pro", ram: 8 }
+                    { name: "Huawei Mate 70 RS Porsche", ram: 24 }, { name: "Huawei Mate 70 Pro+", ram: 16 }, { name: "Huawei Mate 70 Pro", ram: 12 },
+                    { name: "Huawei Mate 70", ram: 8 }, { name: "Huawei Mate 60 RS Porsche", ram: 16 }, { name: "Huawei Mate 60 Pro+", ram: 16 },
+                    { name: "Huawei Mate 60 Pro", ram: 12 }, { name: "Huawei Mate 60", ram: 8 }, { name: "Huawei Mate 50 RS Porsche", ram: 12 },
+                    { name: "Huawei Mate 50 Pro", ram: 8 }, { name: "Huawei Mate 50", ram: 8 }, { name: "Huawei Mate 40 RS Porsche", ram: 12 },
+                    { name: "Huawei Mate 40 Pro+", ram: 12 }, { name: "Huawei Mate 40 Pro", ram: 8 }, { name: "Huawei Mate 40", ram: 8 },
+                    { name: "Huawei Mate 30 Pro 5G", ram: 8 }, { name: "Huawei Mate 30 Pro", ram: 8 }, { name: "Huawei Mate 30", ram: 6 },
+                    { name: "Huawei Mate 20 Pro", ram: 6 }, { name: "Huawei Mate 20", ram: 6 }, { name: "Huawei Mate 10 Pro", ram: 6 },
+                    { name: "Huawei Mate 10", ram: 4 }, { name: "Huawei Mate 9 Pro", ram: 6 }, { name: "Huawei Mate 9", ram: 4 }
                 ]
             },
             {
-                name: "Note Series",
+                name: "P Series",
                 models: [
-                    { name: "Note 40 Pro+", ram: 12 }, { name: "Note 40 Pro", ram: 8 }, { name: "Note 40", ram: 8 },
-                    { name: "Note 30 VIP", ram: 12 }, { name: "Note 30 Pro", ram: 8 }, { name: "Note 30", ram: 8 },
-                    { name: "Note 12 Pro", ram: 8 }, { name: "Note 12", ram: 8 }, { name: "Note 11 Pro", ram: 8 },
-                    { name: "Note 10 Pro", ram: 8 }
+                    { name: "Huawei P70 Ultra", ram: 16 }, { name: "Huawei P70 Pro", ram: 12 }, { name: "Huawei P70 Art", ram: 12 },
+                    { name: "Huawei P60 Pro", ram: 12 }, { name: "Huawei P60 Art", ram: 12 }, { name: "Huawei P60", ram: 8 },
+                    { name: "Huawei P50 Pro", ram: 12 }, { name: "Huawei P50 Pocket", ram: 12 }, { name: "Huawei P50", ram: 8 },
+                    { name: "Huawei P40 Pro+", ram: 12 }, { name: "Huawei P40 Pro", ram: 8 }, { name: "Huawei P40", ram: 8 },
+                    { name: "Huawei P30 Pro", ram: 8 }, { name: "Huawei P30", ram: 6 }, { name: "Huawei P20 Pro", ram: 6 },
+                    { name: "Huawei P20", ram: 4 }, { name: "Huawei P10 Plus", ram: 6 }, { name: "Huawei P10", ram: 4 }
                 ]
             },
             {
-                name: "GT/Hot Series",
+                name: "Nova Series",
                 models: [
-                    { name: "GT 20 Pro", ram: 12 }, { name: "GT 10 Pro", ram: 8 }, { name: "Hot 50 Pro+", ram: 8 },
-                    { name: "Hot 50", ram: 8 }, { name: "Hot 40 Pro", ram: 8 }, { name: "Hot 40", ram: 8 },
-                    { name: "Hot 30", ram: 8 }, { name: "Hot 30i", ram: 8 }, { name: "Hot 20", ram: 6 },
-                    { name: "Hot 20s", ram: 8 }, { name: "Hot 12", ram: 4 }, { name: "Hot 12 Play", ram: 4 },
-                    { name: "Hot 11", ram: 4 }, { name: "Hot 11s", ram: 4 }, { name: "Hot 10", ram: 4 },
-                    { name: "Hot 10 Play", ram: 4 }, { name: "Hot 9", ram: 4 }, { name: "Hot 8", ram: 4 }
+                    { name: "Huawei Nova 13 Ultra", ram: 16 }, { name: "Huawei Nova 13 Pro", ram: 12 }, { name: "Huawei Nova 13", ram: 8 },
+                    { name: "Huawei Nova 12 Ultra", ram: 12 }, { name: "Huawei Nova 12 Pro", ram: 12 }, { name: "Huawei Nova 12", ram: 8 },
+                    { name: "Huawei Nova 11 Ultra", ram: 12 }, { name: "Huawei Nova 11 Pro", ram: 12 }, { name: "Huawei Nova 11", ram: 8 },
+                    { name: "Huawei Nova 10 Pro", ram: 8 }, { name: "Huawei Nova 10", ram: 8 }, { name: "Huawei Nova 9 Pro", ram: 8 },
+                    { name: "Huawei Nova 9", ram: 8 }, { name: "Huawei Nova 8 Pro", ram: 8 }, { name: "Huawei Nova 8", ram: 8 },
+                    { name: "Huawei Nova 7 Pro", ram: 8 }, { name: "Huawei Nova 7", ram: 8 }, { name: "Huawei Nova 6 5G", ram: 8 }
                 ]
             },
             {
-                name: "Smart Series (Budget)",
+                name: "MatePad Series",
                 models: [
-                    { name: "Smart 8 Pro", ram: 4 }, { name: "Smart 8", ram: 4 }, { name: "Smart 7 Plus", ram: 4 },
-                    { name: "Smart 7", ram: 3 }, { name: "Smart 6", ram: 2 }, { name: "Smart 5", ram: 2 }
+                    { name: "Huawei MatePad Pro 13.2", ram: 16 }, { name: "Huawei MatePad Pro 12.2", ram: 12 }, { name: "Huawei MatePad Pro 11", ram: 12 },
+                    { name: "Huawei MatePad 11.5", ram: 8 }, { name: "Huawei MatePad 11", ram: 6 }
+                ]
+            }
+        ]
+    },
+    {
+        brand: "Samsung Galaxy Z Series",
+        series: [
+            {
+                name: "Z Fold",
+                models: [
+                    { name: "Galaxy Z Fold Special Edition", ram: 16 }, { name: "Galaxy Z Fold 7", ram: 16 }, { name: "Galaxy Z Fold 6", ram: 12 },
+                    { name: "Galaxy Z Fold 5", ram: 12 }, { name: "Galaxy Z Fold 4", ram: 12 }, { name: "Galaxy Z Fold 3", ram: 12 },
+                    { name: "Galaxy Z Fold 2", ram: 12 }, { name: "Galaxy Z Fold", ram: 12 }, { name: "Galaxy W25", ram: 16 },
+                    { name: "Galaxy W24", ram: 16 }, { name: "Galaxy W23", ram: 16 }, { name: "Galaxy W22", ram: 12 },
+                    { name: "Galaxy W21", ram: 12 }, { name: "Galaxy W20", ram: 12 }
+                ]
+            },
+            {
+                name: "Z Flip",
+                models: [
+                    { name: "Galaxy Z Flip 7", ram: 12 }, { name: "Galaxy Z Flip 6", ram: 12 }, { name: "Galaxy Z Flip 5", ram: 8 },
+                    { name: "Galaxy Z Flip 4", ram: 8 }, { name: "Galaxy Z Flip 3", ram: 8 }, { name: "Galaxy Z Flip 5G", ram: 8 },
+                    { name: "Galaxy Z Flip", ram: 8 }
+                ]
+            }
+        ]
+    },
+    {
+        brand: "Lenovo",
+        series: [
+            {
+                name: "Legion Phone Series",
+                models: [
+                    { name: "Lenovo Legion Phone Duel 3", ram: 18 }, { name: "Lenovo Legion Phone Duel 2", ram: 16 }, { name: "Lenovo Legion Phone Duel", ram: 16 },
+                    { name: "Lenovo Legion Y70", ram: 12 }, { name: "Lenovo Legion Y90", ram: 18 }
+                ]
+            },
+            {
+                name: "Legion Tab Series",
+                models: [
+                    { name: "Lenovo Legion Tab Pro", ram: 16 }, { name: "Lenovo Legion Tab", ram: 12 }
+                ]
+            },
+            {
+                name: "Tab Series",
+                models: [
+                    { name: "Lenovo Tab P12 Pro", ram: 8 }, { name: "Lenovo Tab P11 Pro Gen 2", ram: 8 }, { name: "Lenovo Tab P11", ram: 6 }
                 ]
             }
         ]
@@ -780,35 +888,68 @@ window.devices = [
             {
                 name: "Phantom Series",
                 models: [
-                    { name: "Phantom V Fold 2", ram: 12 }, { name: "Phantom V Flip 2", ram: 8 }, { name: "Phantom V Fold", ram: 12 },
-                    { name: "Phantom V Flip", ram: 8 }, { name: "Phantom X2 Pro", ram: 12 }, { name: "Phantom X2", ram: 8 },
-                    { name: "Phantom X", ram: 8 }
+                    { name: "Tecno Phantom X2 Pro", ram: 12 }, { name: "Tecno Phantom X2", ram: 8 }, { name: "Tecno Phantom X", ram: 8 },
+                    { name: "Tecno Phantom V Fold2", ram: 12 }, { name: "Tecno Phantom V Fold", ram: 12 }, { name: "Tecno Phantom V Flip2", ram: 8 },
+                    { name: "Tecno Phantom V Flip", ram: 8 }
                 ]
             },
             {
                 name: "Camon Series",
                 models: [
-                    { name: "Camon 30 Premier", ram: 12 }, { name: "Camon 30 Pro", ram: 12 }, { name: "Camon 30", ram: 8 },
-                    { name: "Camon 20 Premier", ram: 8 }, { name: "Camon 20 Pro", ram: 8 }, { name: "Camon 19 Pro", ram: 8 },
-                    { name: "Camon 18 Premier", ram: 8 }, { name: "Camon 17 Pro", ram: 8 }
+                    { name: "Tecno Camon 30 Premier", ram: 16 }, { name: "Tecno Camon 30 Pro", ram: 12 }, { name: "Tecno Camon 30", ram: 8 },
+                    { name: "Tecno Camon 20 Premier", ram: 12 }, { name: "Tecno Camon 20 Pro", ram: 8 }, { name: "Tecno Camon 20", ram: 6 },
+                    { name: "Tecno Camon 19 Pro", ram: 8 }, { name: "Tecno Camon 19", ram: 6 }, { name: "Tecno Camon 18 Premier", ram: 8 },
+                    { name: "Tecno Camon 18 Pro", ram: 6 }, { name: "Tecno Camon 18", ram: 4 }
                 ]
             },
             {
-                name: "Pova/Spark Series",
+                name: "Spark Series",
                 models: [
-                    { name: "Pova 6 Pro", ram: 12 }, { name: "Pova 6", ram: 8 }, { name: "Pova 6 Neo", ram: 8 },
-                    { name: "Pova 5 Pro", ram: 8 }, { name: "Pova 5", ram: 8 }, { name: "Pova Neo 3", ram: 4 },
-                    { name: "Pova 4 Pro", ram: 8 }, { name: "Pova 4", ram: 8 }, { name: "Pova Neo 2", ram: 4 },
-                    { name: "Pova 3", ram: 6 }, { name: "Pova 2", ram: 4 }, { name: "Spark 30 Pro", ram: 8 },
-                    { name: "Spark 20 Pro+", ram: 8 }, { name: "Spark 20 Pro", ram: 8 }, { name: "Spark 20", ram: 4 },
-                    { name: "Spark 10 Pro", ram: 8 }, { name: "Spark 10", ram: 4 }, { name: "Spark 9 Pro", ram: 4 },
-                    { name: "Spark 8 Pro", ram: 4 }, { name: "Spark 7 Pro", ram: 4 }
+                    { name: "Tecno Spark 30 Pro", ram: 12 }, { name: "Tecno Spark 30", ram: 8 }, { name: "Tecno Spark 20 Pro+", ram: 12 },
+                    { name: "Tecno Spark 20 Pro", ram: 8 }, { name: "Tecno Spark 20", ram: 6 }, { name: "Tecno Spark 10 Pro", ram: 8 },
+                    { name: "Tecno Spark 10", ram: 4 }
                 ]
             },
             {
-                name: "Pop Series (Entry)",
+                name: "Pova Series",
                 models: [
-                    { name: "Pop 8", ram: 4 }, { name: "Pop 7 Pro", ram: 3 }, { name: "Pop 6", ram: 2 }
+                    { name: "Tecno Pova 6 Pro", ram: 12 }, { name: "Tecno Pova 6", ram: 8 }, { name: "Tecno Pova 5 Pro", ram: 12 },
+                    { name: "Tecno Pova 5", ram: 8 }, { name: "Tecno Pova 4 Pro", ram: 8 }, { name: "Tecno Pova 4", ram: 6 }
+                ]
+            }
+        ]
+    },
+    {
+        brand: "Infinix",
+        series: [
+            {
+                name: "Zero Series",
+                models: [
+                    { name: "Infinix Zero 40 Pro", ram: 16 }, { name: "Infinix Zero 40", ram: 12 }, { name: "Infinix Zero 30 5G", ram: 12 },
+                    { name: "Infinix Zero 20", ram: 8 }, { name: "Infinix Zero X Pro", ram: 8 }, { name: "Infinix Zero X", ram: 6 },
+                    { name: "Infinix Zero 8i", ram: 8 }, { name: "Infinix Zero 8", ram: 8 }
+                ]
+            },
+            {
+                name: "Note Series",
+                models: [
+                    { name: "Infinix Note 40 Pro+", ram: 12 }, { name: "Infinix Note 40 Pro", ram: 12 }, { name: "Infinix Note 40", ram: 8 },
+                    { name: "Infinix Note 30 VIP", ram: 12 }, { name: "Infinix Note 30 Pro", ram: 8 }, { name: "Infinix Note 30", ram: 8 },
+                    { name: "Infinix Note 30i", ram: 4 }, { name: "Infinix Note 12 Pro+", ram: 8 }, { name: "Infinix Note 12 Pro", ram: 8 }
+                ]
+            },
+            {
+                name: "Hot Series",
+                models: [
+                    { name: "Infinix Hot 50 Pro+", ram: 12 }, { name: "Infinix Hot 50 Pro", ram: 8 }, { name: "Infinix Hot 50", ram: 6 },
+                    { name: "Infinix Hot 40 Pro", ram: 8 }, { name: "Infinix Hot 40", ram: 6 }, { name: "Infinix Hot 30 Pro", ram: 8 },
+                    { name: "Infinix Hot 30", ram: 6 }, { name: "Infinix Hot 20s", ram: 8 }, { name: "Infinix Hot 20", ram: 4 }
+                ]
+            },
+            {
+                name: "GT Series",
+                models: [
+                    { name: "Infinix GT 20 Pro", ram: 12 }, { name: "Infinix GT 10 Pro", ram: 8 }
                 ]
             }
         ]
@@ -817,135 +958,18 @@ window.devices = [
         brand: "Meizu",
         series: [
             {
-                name: "Meizu Number Series",
+                name: "Meizu 21/20 Series",
                 models: [
-                    { name: "Meizu 21 Pro", ram: 12 }, { name: "Meizu 21", ram: 8 }, { name: "Meizu 21 Note", ram: 16 },
-                    { name: "Meizu 20 Pro", ram: 12 }, { name: "Meizu 20 Infinity", ram: 12 }, { name: "Meizu 20", ram: 12 },
-                    { name: "Meizu 18s Pro", ram: 8 }, { name: "Meizu 18 Pro", ram: 8 }, { name: "Meizu 17 Pro", ram: 8 },
-                    { name: "Meizu 16s Pro", ram: 6 }
-                ]
-            }
-        ]
-    },
-    {
-        brand: "Poco",
-        series: [
-            {
-                name: "Poco F Series",
-                models: [
-                    { name: "Poco F6 Pro", ram: 12 }, { name: "Poco F6", ram: 8 }, { name: "Poco F5 Pro", ram: 12 },
-                    { name: "Poco F5", ram: 8 }, { name: "Poco F4 GT", ram: 8 }, { name: "Poco F4", ram: 6 },
-                    { name: "Poco F3 GT", ram: 6 }, { name: "Poco F3", ram: 6 }, { name: "Poco F2 Pro", ram: 6 },
-                    { name: "Poco F1", ram: 6 }
+                    { name: "Meizu 22 Pro", ram: 16 }, { name: "Meizu 22", ram: 12 }, { name: "Meizu 21 Pro", ram: 16 },
+                    { name: "Meizu 21", ram: 12 }, { name: "Meizu 20 INFINITY", ram: 16 }, { name: "Meizu 20 Pro", ram: 12 },
+                    { name: "Meizu 20 Classic", ram: 8 }, { name: "Meizu 20", ram: 8 }
                 ]
             },
             {
-                name: "Poco X Series",
+                name: "Meizu 18/17 Series",
                 models: [
-                    { name: "Poco X6 Pro", ram: 8 }, { name: "Poco X6", ram: 8 }, { name: "Poco X6 Neo", ram: 8 },
-                    { name: "Poco X5 Pro", ram: 6 }, { name: "Poco X5", ram: 6 }, { name: "Poco X4 Pro 5G", ram: 6 },
-                    { name: "Poco X4 GT", ram: 8 }, { name: "Poco X3 Pro", ram: 6 }, { name: "Poco X3 NFC", ram: 6 },
-                    { name: "Poco X3", ram: 6 }, { name: "Poco X2", ram: 6 }
-                ]
-            },
-            {
-                name: "Poco M/C Series",
-                models: [
-                    { name: "Poco M6 Pro", ram: 8 }, { name: "Poco M6 5G", ram: 4 }, { name: "Poco M5s", ram: 4 },
-                    { name: "Poco M5", ram: 4 }, { name: "Poco M4 Pro 5G", ram: 4 }, { name: "Poco M4 Pro", ram: 6 },
-                    { name: "Poco M4 5G", ram: 4 }, { name: "Poco M3 Pro 5G", ram: 4 }, { name: "Poco M3", ram: 4 },
-                    { name: "Poco M2 Pro", ram: 4 }, { name: "Poco M2 Reloaded", ram: 4 }, { name: "Poco M2", ram: 6 },
-                    { name: "Poco C65", ram: 6 }, { name: "Poco C61", ram: 4 }, { name: "Poco C55", ram: 4 },
-                    { name: "Poco C51", ram: 4 }, { name: "Poco C50", ram: 2 }, { name: "Poco C40", ram: 3 },
-                    { name: "Poco C31", ram: 3 }, { name: "Poco C3", ram: 3 }
-                ]
-            }
-        ]
-    },
-    {
-        brand: "Black Shark",
-        series: [
-            {
-                name: "Black Shark 5 Series",
-                models: [
-                    { name: "Black Shark 5 Pro", ram: 8 }, { name: "Black Shark 5", ram: 8 }, { name: "Black Shark 5 RS", ram: 8 }
-                ]
-            },
-            {
-                name: "Black Shark 4 Series",
-                models: [
-                    { name: "Black Shark 4 Pro", ram: 8 }, { name: "Black Shark 4S Pro", ram: 12 }, { name: "Black Shark 4S", ram: 8 },
-                    { name: "Black Shark 4", ram: 6 }
-                ]
-            },
-            {
-                name: "Black Shark 3 Series",
-                models: [
-                    { name: "Black Shark 3 Pro", ram: 8 }, { name: "Black Shark 3", ram: 8 }, { name: "Black Shark 3S", ram: 12 }
-                ]
-            },
-            {
-                name: "Black Shark 2 Series",
-                models: [
-                    { name: "Black Shark 2 Pro", ram: 8 }, { name: "Black Shark 2", ram: 6 }
-                ]
-            },
-            {
-                name: "Black Shark 1 Series",
-                models: [
-                    { name: "Black Shark Helo", ram: 6 }, { name: "Black Shark", ram: 6 }
-                ]
-            }
-        ]
-    },
-    {
-        brand: "Lenovo",
-        series: [
-            {
-                name: "Legion Phone Duel Series",
-                models: [
-                    { name: "Lenovo Legion Phone Duel 2", ram: 12 }, { name: "Lenovo Legion Phone Duel", ram: 12 }
-                ]
-            },
-            {
-                name: "Lenovo Z/K Series",
-                models: [
-                    { name: "Lenovo Z6 Pro", ram: 6 }, { name: "Lenovo Z6", ram: 6 }, { name: "Lenovo Z5 Pro GT", ram: 8 },
-                    { name: "Lenovo Z5", ram: 6 }, { name: "K13 Note", ram: 4 }, { name: "K12 Note", ram: 4 },
-                    { name: "K10 Note", ram: 4 }, { name: "K10 Plus", ram: 4 }
-                ]
-            },
-            {
-                name: "Lenovo Vibe/P Series",
-                models: [
-                    { name: "Vibe K5", ram: 2 }, { name: "Vibe K4 Note", ram: 3 }, { name: "P2", ram: 3 },
-                    { name: "P1", ram: 2 }, { name: "P1ma40", ram: 2 }
-                ]
-            }
-        ]
-    },
-    {
-        brand: "ZTE",
-        series: [
-            {
-                name: "Axon Series (Flagship)",
-                models: [
-                    { name: "Axon 60 Ultra", ram: 12 }, { name: "Axon 60", ram: 8 }, { name: "Axon 50 Ultra", ram: 12 },
-                    { name: "Axon 50", ram: 8 }, { name: "Axon 40 Ultra", ram: 8 }, { name: "Axon 40 Pro", ram: 8 },
-                    { name: "Axon 40 SE", ram: 4 }, { name: "Axon 30 Ultra", ram: 8 }, { name: "Axon 30 Pro", ram: 6 },
-                    { name: "Axon 30", ram: 6 }, { name: "Axon 30IE", ram: 8 }, { name: "Axon 20 5G", ram: 6 },
-                    { name: "Axon 11", ram: 6 }, { name: "Axon 10 Pro", ram: 6 }, { name: "Axon 9 Pro", ram: 6 },
-                    { name: "Axon 7", ram: 4 }
-                ]
-            },
-            {
-                name: "Blade Series (Budget)",
-                models: [
-                    { name: "Blade V50 Design", ram: 8 }, { name: "Blade V50", ram: 4 }, { name: "Blade V40 Design", ram: 4 },
-                    { name: "Blade V40s", ram: 6 }, { name: "Blade V40 Vita", ram: 4 }, { name: "Blade V30", ram: 4 },
-                    { name: "Blade V2020", ram: 4 }, { name: "Blade V10", ram: 3 }, { name: "Blade A73", ram: 4 },
-                    { name: "A72", ram: 3 }, { name: "A53", ram: 2 }, { name: "A52", ram: 2 },
-                    { name: "A51", ram: 2 }, { name: "A34", ram: 2 }, { name: "A31", ram: 2 }
+                    { name: "Meizu 18s Pro", ram: 12 }, { name: "Meizu 18s", ram: 8 }, { name: "Meizu 18 Pro", ram: 12 },
+                    { name: "Meizu 18", ram: 8 }, { name: "Meizu 17 Pro", ram: 8 }, { name: "Meizu 17", ram: 8 }
                 ]
             }
         ]
@@ -954,337 +978,32 @@ window.devices = [
         brand: "Nokia",
         series: [
             {
-                name: "Nokia X/G Series (5G)",
+                name: "Nokia X Series",
                 models: [
-                    { name: "Nokia XR21", ram: 6 }, { name: "Nokia XR20", ram: 4 }, { name: "Nokia X30", ram: 6 },
-                    { name: "Nokia X20", ram: 6 }, { name: "Nokia X10", ram: 6 }, { name: "G60", ram: 4 },
-                    { name: "G42", ram: 4 }, { name: "G22", ram: 4 }, { name: "G21", ram: 3 },
-                    { name: "G11 Plus", ram: 3 }, { name: "G11", ram: 3 }, { name: "G50", ram: 4 },
-                    { name: "G20", ram: 4 }, { name: "G10", ram: 3 }
+                    { name: "Nokia X30 5G", ram: 8 }, { name: "Nokia X20", ram: 8 }, { name: "Nokia X10", ram: 6 },
+                    { name: "Nokia X71", ram: 6 }, { name: "Nokia X6", ram: 4 }, { name: "Nokia X7", ram: 6 }
                 ]
             },
             {
-                name: "Nokia C Series (Budget)",
+                name: "Nokia G Series",
                 models: [
-                    { name: "Nokia C32", ram: 3 }, { name: "C22", ram: 2 }, { name: "C31", ram: 3 },
-                    { name: "C21 Plus", ram: 2 }, { name: "C21", ram: 2 }, { name: "C12 Pro", ram: 2 },
-                    { name: "C12", ram: 2 }, { name: "C10", ram: 1 }, { name: "C3", ram: 2 },
-                    { name: "C2", ram: 1 }, { name: "C1", ram: 1 }
+                    { name: "Nokia G42 5G", ram: 8 }, { name: "Nokia G310", ram: 4 }, { name: "Nokia G22", ram: 4 },
+                    { name: "Nokia G21", ram: 4 }, { name: "Nokia G20", ram: 4 }, { name: "Nokia G11 Plus", ram: 3 },
+                    { name: "Nokia G11", ram: 3 }, { name: "Nokia G10", ram: 3 }, { name: "Nokia G50", ram: 4 }
                 ]
             },
             {
-                name: "Legacy Android",
+                name: "Nokia T Series",
                 models: [
-                    { name: "Nokia 9 PureView", ram: 6 }, { name: "8.3 5G", ram: 6 }, { name: "8.1", ram: 4 },
-                    { name: "7.2", ram: 4 }, { name: "6.2", ram: 3 }, { name: "5.4", ram: 4 },
-                    { name: "4.2", ram: 2 }, { name: "3.4", ram: 3 }, { name: "2.4", ram: 2 },
-                    { name: "1.4", ram: 1 }, { name: "Nokia 8", ram: 4 }, { name: "7", ram: 4 },
-                    { name: "6", ram: 3 }, { name: "5", ram: 2 }, { name: "3", ram: 2 }
-                ]
-            }
-        ]
-    },
-    {
-        brand: "HTC",
-        series: [
-            {
-                name: "U Series (Modern)",
-                models: [
-                    { name: "HTC U23 Pro", ram: 8 }, { name: "U23", ram: 8 }, { name: "U20 5G", ram: 8 },
-                    { name: "U19e", ram: 6 }, { name: "U12+", ram: 6 }, { name: "U12 Life", ram: 4 },
-                    { name: "U11+", ram: 4 }, { name: "U11", ram: 4 }, { name: "U11 Life", ram: 3 }
+                    { name: "Nokia T21", ram: 4 }, { name: "Nokia T20", ram: 4 }, { name: "Nokia T10", ram: 3 }
                 ]
             },
             {
-                name: "Desire Series",
+                name: "Nokia C Series",
                 models: [
-                    { name: "HTC Desire 22 Pro", ram: 8 }, { name: "21 Pro 5G", ram: 8 }, { name: "20+", ram: 6 },
-                    { name: "20 Pro", ram: 6 }, { name: "19+", ram: 4 }, { name: "12s", ram: 3 },
-                    { name: "12+", ram: 3 }, { name: "12", ram: 3 }, { name: "Desire 10 Pro", ram: 3 }
-                ]
-            },
-            {
-                name: "Legacy Flagships",
-                models: [
-                    { name: "HTC One M9", ram: 3 }, { name: "One M8", ram: 2 }, { name: "One M7", ram: 2 },
-                    { name: "HTC 10", ram: 4 }, { name: "One X", ram: 1 }
-                ]
-            }
-        ]
-    },
-    {
-        brand: "Blackview",
-        series: [
-            {
-                name: "BV/BL Series (Rugged)",
-                models: [
-                    { name: "Blackview BL9000 Pro", ram: 12 }, { name: "BL9000", ram: 12 }, { name: "BL8000", ram: 12 },
-                    { name: "BL6000 Pro", ram: 8 }, { name: "BV9300", ram: 12 }, { name: "BV9200", ram: 8 },
-                    { name: "BV8900", ram: 8 }, { name: "BV8800", ram: 8 }, { name: "BV7200", ram: 6 },
-                    { name: "BV7100", ram: 6 }, { name: "BV6600", ram: 4 }, { name: "BV5300", ram: 4 },
-                    { name: "BV5200", ram: 4 }, { name: "BV4900", ram: 3 }
-                ]
-            },
-            {
-                name: "A Series (Regular)",
-                models: [
-                    { name: "Blackview A200 Pro", ram: 12 }, { name: "A100", ram: 6 }, { name: "A96", ram: 8 },
-                    { name: "A95", ram: 8 }, { name: "A85", ram: 8 }, { name: "A80 Pro", ram: 4 },
-                    { name: "A70", ram: 3 }, { name: "A60", ram: 2 }, { name: "A55", ram: 3 }
-                ]
-            }
-        ]
-    },
-    {
-        brand: "Ulefone",
-        series: [
-            {
-                name: "Armor/Armor X Series",
-                models: [
-                    { name: "Ulefone Armor 26 Ultra", ram: 12 }, { name: "25 Pro", ram: 8 }, { name: "24", ram: 12 },
-                    { name: "23 Ultra", ram: 12 }, { name: "22", ram: 8 }, { name: "21", ram: 8 },
-                    { name: "20WT", ram: 12 }, { name: "19T", ram: 12 }, { name: "18T", ram: 12 },
-                    { name: "17 Pro", ram: 8 }, { name: "16 Pro", ram: 4 }, { name: "15", ram: 6 },
-                    { name: "14 Pro", ram: 6 }, { name: "13", ram: 8 }, { name: "12 5G", ram: 8 },
-                    { name: "11 5G", ram: 8 }, { name: "Armor X13", ram: 6 }, { name: "X12", ram: 3 },
-                    { name: "X11", ram: 4 }, { name: "X10", ram: 4 }, { name: "X9", ram: 3 },
-                    { name: "X8", ram: 4 }, { name: "X7", ram: 2 }
-                ]
-            },
-            {
-                name: "Note Series",
-                models: [
-                    { name: "Ulefone Note 18 Ultra", ram: 6 }, { name: "17", ram: 4 }, { name: "16 Pro", ram: 4 },
-                    { name: "15", ram: 2 }, { name: "14", ram: 3 }, { name: "13P", ram: 4 },
-                    { name: "12P", ram: 4 }, { name: "11P", ram: 8 }, { name: "10", ram: 2 },
-                    { name: "9P", ram: 4 }
-                ]
-            }
-        ]
-    },
-    {
-        brand: "Doogee",
-        series: [
-            {
-                name: "V/S Series (Rugged)",
-                models: [
-                    { name: "Doogee V31 GT", ram: 12 }, { name: "V30T", ram: 12 }, { name: "V20 Pro", ram: 12 },
-                    { name: "V11", ram: 8 }, { name: "V10", ram: 8 }, { name: "Doogee S110", ram: 12 },
-                    { name: "S100 Pro", ram: 12 }, { name: "S99", ram: 8 }, { name: "S98 Pro", ram: 8 },
-                    { name: "S97 Pro", ram: 8 }, { name: "S96 GT", ram: 8 }, { name: "S89 Pro", ram: 8 },
-                    { name: "S88 Pro", ram: 6 }, { name: "S61", ram: 6 }, { name: "S51", ram: 4 },
-                    { name: "S41", ram: 3 }
-                ]
-            },
-            {
-                name: "N Series (Regular)",
-                models: [
-                    { name: "Doogee N50", ram: 8 }, { name: "N40 Pro", ram: 6 }, { name: "N30", ram: 4 },
-                    { name: "N20 Pro", ram: 6 }
-                ]
-            }
-        ]
-    },
-    {
-        brand: "Itel",
-        series: [
-            {
-                name: "S/P Series (Mid-Range)",
-                models: [
-                    { name: "Itel S24", ram: 8 }, { name: "S23+", ram: 8 }, { name: "S23", ram: 8 },
-                    { name: "S18 Pro", ram: 4 }, { name: "Itel P55+", ram: 8 }, { name: "P55", ram: 4 },
-                    { name: "P40+", ram: 4 }, { name: "P40", ram: 2 }, { name: "P38", ram: 2 },
-                    { name: "P37 Pro", ram: 2 }
-                ]
-            },
-            {
-                name: "A Series (Entry-Level)",
-                models: [
-                    { name: "Itel A70", ram: 3 }, { name: "A60s", ram: 2 }, { name: "A60", ram: 2 },
-                    { name: "A05s", ram: 2 }, { name: "A04", ram: 2 }, { name: "A58", ram: 1 },
-                    { name: "A56", ram: 1 }, { name: "A48", ram: 2 }, { name: "A47", ram: 2 }
-                ]
-            }
-        ]
-    },
-    {
-        brand: "Sharp",
-        series: [
-            {
-                name: "AQUOS R Series",
-                models: [
-                    { name: "Sharp AQUOS R9", ram: 12 }, { name: "R8 Pro", ram: 12 }, { name: "R8", ram: 8 },
-                    { name: "R7", ram: 12 }, { name: "R6", ram: 12 }, { name: "R5G", ram: 12 },
-                    { name: "R3", ram: 6 }, { name: "R2 Compact", ram: 4 }, { name: "R2", ram: 4 },
-                    { name: "R", ram: 4 }
-                ]
-            },
-            {
-                name: "AQUOS sense/wish Series",
-                models: [
-                    { name: "Sharp AQUOS sense8", ram: 6 }, { name: "sense7", ram: 6 }, { name: "sense6", ram: 4 },
-                    { name: "sense5G", ram: 4 }, { name: "sense4", ram: 4 }, { name: "Sharp AQUOS wish4", ram: 4 },
-                    { name: "wish3", ram: 4 }, { name: "wish2", ram: 2 }, { name: "wish", ram: 2 }
-                ]
-            },
-            {
-                name: "AQUOS zero/V Series",
-                models: [
-                    { name: "Sharp AQUOS zero6", ram: 8 }, { name: "zero2", ram: 8 }, { name: "zero", ram: 6 },
-                    { name: "Sharp AQUOS V7", ram: 4 }, { name: "V6", ram: 3 }, { name: "V", ram: 4 }
-                ]
-            }
-        ]
-    },
-    {
-        brand: "Lava",
-        series: [
-            {
-                name: "Agni/Blaze Series (Modern)",
-                models: [
-                    { name: "Lava Agni 3", ram: 8 }, { name: "Agni 2", ram: 8 }, { name: "Blaze Curve 5G", ram: 8 },
-                    { name: "Blaze 2 5G", ram: 6 }, { name: "Blaze Pro 5G", ram: 8 }, { name: "Blaze 3", ram: 6 }
-                ]
-            },
-            {
-                name: "Storm/Yuva/Z Series",
-                models: [
-                    { name: "Lava Storm 5G", ram: 8 }, { name: "Yuva 3 Pro", ram: 8 }, { name: "Yuva 2 Pro", ram: 4 },
-                    { name: "Z3", ram: 3 }, { name: "Z2 Premium", ram: 2 }, { name: "Z1", ram: 2 }
-                ]
-            }
-        ]
-    },
-    {
-        brand: "Micromax",
-        series: [
-            {
-                name: "In Note/In Series",
-                models: [
-                    { name: "Micromax In Note 2", ram: 4 }, { name: "In Note 1 Pro", ram: 6 }, { name: "In 2b", ram: 4 },
-                    { name: "In 1b", ram: 2 }, { name: "In Note 1", ram: 4 }
-                ]
-            },
-            {
-                name: "Canvas/Bharat Series (Legacy)",
-                models: [
-                    { name: "Canvas Infinity", ram: 3 }, { name: "Canvas 5", ram: 3 }, { name: "Bharat 5 Pro", ram: 3 },
-                    { name: "Bharat 2", ram: 1 }
-                ]
-            }
-        ]
-    },
-    {
-        brand: "Oukitel",
-        series: [
-            {
-                name: "WP Series (Rugged)",
-                models: [
-                    { name: "Oukitel WP30 Pro", ram: 12 }, { name: "WP33 Pro", ram: 8 }, { name: "WP27", ram: 12 },
-                    { name: "WP19", ram: 8 }, { name: "WP21", ram: 12 }, { name: "WP15", ram: 8 },
-                    { name: "WP10", ram: 8 }, { name: "WP13", ram: 8 }, { name: "WP12", ram: 4 }
-                ]
-            },
-            {
-                name: "C Series (Regular)",
-                models: [
-                    { name: "Oukitel C36", ram: 4 }, { name: "C35", ram: 12 }, { name: "C33", ram: 8 },
-                    { name: "C32", ram: 8 }, { name: "C21 Pro", ram: 4 }
-                ]
-            }
-        ]
-    },
-    {
-        brand: "Cubot",
-        series: [
-            {
-                name: "KingKong Series (Rugged)",
-                models: [
-                    { name: "Cubot KingKong Star", ram: 12 }, { name: "KingKong 9", ram: 12 }, { name: "KingKong Power", ram: 8 },
-                    { name: "KingKong 7", ram: 8 }, { name: "KingKong Mini 3", ram: 6 }
-                ]
-            },
-            {
-                name: "X/Note/P Series",
-                models: [
-                    { name: "Cubot X70", ram: 12 }, { name: "X50", ram: 8 }, { name: "Note 50", ram: 8 },
-                    { name: "P80", ram: 8 }, { name: "P60", ram: 6 }
-                ]
-            }
-        ]
-    },
-    {
-        brand: "LG",
-        series: [
-            {
-                name: "V/G Series (Flagship)",
-                models: [
-                    { name: "LG V60 ThinQ", ram: 8 }, { name: "LG V50 ThinQ", ram: 6 }, { name: "LG V40 ThinQ", ram: 6 },
-                    { name: "LG V30", ram: 4 }, { name: "LG G8 ThinQ", ram: 6 }, { name: "LG G7 ThinQ", ram: 4 },
-                    { name: "LG G6", ram: 4 }, { name: "LG G5", ram: 4 }, { name: "LG G4", ram: 3 }
-                ]
-            },
-            {
-                name: "Wing/Velvet/K Series",
-                models: [
-                    { name: "LG Wing", ram: 8 }, { name: "LG Velvet", ram: 6 }, { name: "LG K92", ram: 6 },
-                    { name: "LG K62", ram: 4 }, { name: "LG K52", ram: 4 }, { name: "LG K42", ram: 3 }
-                ]
-            }
-        ]
-    },
-    {
-        brand: "Kyocera",
-        series: [
-            {
-                name: "DuraForce Series (Rugged)",
-                models: [
-                    { name: "Kyocera DuraForce Pro 3", ram: 6 }, { name: "DuraForce Pro 2", ram: 4 },
-                    { name: "DuraForce Ultra 5G", ram: 6 }
-                ]
-            },
-            {
-                name: "Torque/DIGNO (Japan)",
-                models: [
-                    { name: "Kyocera Torque G06", ram: 6 }, { name: "Torque 5G", ram: 6 },
-                    { name: "DIGNO SX3", ram: 4 }, { name: "DIGNO BX2", ram: 4 }
-                ]
-            }
-        ]
-    },
-    {
-        brand: "Fujitsu",
-        series: [
-            {
-                name: "Arrows Series (Japan)",
-                models: [
-                    { name: "Fujitsu Arrows N", ram: 8 }, { name: "Arrows We", ram: 4 }, { name: "Arrows Be4 Plus", ram: 4 },
-                    { name: "Arrows 5G", ram: 8 }, { name: "Arrows Be3", ram: 3 }, { name: "Arrows NX", ram: 4 }
-                ]
-            }
-        ]
-    },
-    {
-        brand: "Symphony",
-        series: [
-            {
-                name: "Z/V/Atom Series (Bangladesh)",
-                models: [
-                    { name: "Symphony Z70", ram: 4 }, { name: "Z60 Plus", ram: 6 }, { name: "Z47", ram: 4 },
-                    { name: "Symphony Atom 4", ram: 4 }, { name: "Atom 3", ram: 3 }, { name: "V135", ram: 1 },
-                    { name: "Innova 10", ram: 4 }, { name: "Helio 50", ram: 4 }
-                ]
-            }
-        ]
-    },
-    {
-        brand: "Walton",
-        series: [
-            {
-                name: "Primo S/R/N Series",
-                models: [
-                    { name: "Walton Primo S8 Mini", ram: 4 }, { name: "Primo R10", ram: 4 }, { name: "Primo N5", ram: 4 },
-                    { name: "Primo RM4", ram: 4 }, { name: "Primo H10", ram: 4 }
+                    { name: "Nokia C32", ram: 4 }, { name: "Nokia C31", ram: 4 }, { name: "Nokia C30", ram: 2 },
+                    { name: "Nokia C22", ram: 3 }, { name: "Nokia C21 Plus", ram: 3 }, { name: "Nokia C21", ram: 3 },
+                    { name: "Nokia C20 Plus", ram: 2 }, { name: "Nokia C20", ram: 2 }, { name: "Nokia C02", ram: 2 }
                 ]
             }
         ]
@@ -1293,128 +1012,95 @@ window.devices = [
         brand: "Black Shark",
         series: [
             {
-                name: "Black Shark 5/6 Series",
+                name: "Black Shark Series",
                 models: [
-                    { name: "Black Shark 6 Pro", ram: 18 }, { name: "Black Shark 6", ram: 16 },
-                    { name: "Black Shark 5 Pro", ram: 16 }, { name: "Black Shark 5 RS", ram: 12 },
-                    { name: "Black Shark 5", ram: 12 }
-                ]
-            },
-            {
-                name: "Black Shark 4 Series",
-                models: [
-                    { name: "Black Shark 4 Pro", ram: 12 }, { name: "Black Shark 4S Pro", ram: 16 },
-                    { name: "Black Shark 4S", ram: 12 }, { name: "Black Shark 4", ram: 12 }
-                ]
-            },
-            {
-                name: "Black Shark 3 Series",
-                models: [
-                    { name: "Black Shark 3 Pro", ram: 12 }, { name: "Black Shark 3S", ram: 12 },
-                    { name: "Black Shark 3", ram: 12 }
+                    { name: "Black Shark 5 Pro", ram: 16 }, { name: "Black Shark 5", ram: 12 }, { name: "Black Shark 5 RS", ram: 12 },
+                    { name: "Black Shark 4 Pro", ram: 16 }, { name: "Black Shark 4", ram: 8 }, { name: "Black Shark 4S Pro", ram: 16 },
+                    { name: "Black Shark 4S", ram: 12 }, { name: "Black Shark 3 Pro", ram: 12 }, { name: "Black Shark 3S", ram: 12 },
+                    { name: "Black Shark 3", ram: 8 }, { name: "Black Shark 2 Pro", ram: 12 }, { name: "Black Shark 2", ram: 8 },
+                    { name: "Black Shark Helo", ram: 8 }, { name: "Black Shark", ram: 8 }
                 ]
             }
         ]
     },
     {
-        brand: "Meizu",
-        series: [
-            {
-                name: "Meizu 20/21 Series",
-                models: [
-                    { name: "Meizu 21 Pro", ram: 16 }, { name: "Meizu 21", ram: 12 },
-                    { name: "Meizu 21 Note", ram: 16 }, { name: "Meizu 20 Pro", ram: 12 },
-                    { name: "Meizu 20", ram: 12 }, { name: "Meizu 20 Classic", ram: 16 }
-                ]
-            },
-            {
-                name: "Meizu 18 Series",
-                models: [
-                    { name: "Meizu 18s Pro", ram: 12 }, { name: "Meizu 18s", ram: 12 },
-                    { name: "Meizu 18 Pro", ram: 12 }, { name: "Meizu 18", ram: 8 },
-                    { name: "Meizu 18X", ram: 8 }
-                ]
-            }
-        ]
-    },
-    {
-        brand: "ZTE",
+        brand: "ZTE/Axon",
         series: [
             {
                 name: "Axon Series",
                 models: [
-                    { name: "Axon 60 Ultra", ram: 16 }, { name: "Axon 50 Ultra", ram: 12 },
-                    { name: "Axon 40 Ultra", ram: 12 }, { name: "Axon 30 Ultra", ram: 12 },
-                    { name: "Axon 30 Pro", ram: 8 }
+                    { name: "ZTE Axon 60 Pro", ram: 16 }, { name: "ZTE Axon 60", ram: 12 }, { name: "ZTE Axon 50 Ultra", ram: 16 },
+                    { name: "ZTE Axon 50 Pro", ram: 12 }, { name: "ZTE Axon 40 Ultra Space Edition", ram: 16 }, { name: "ZTE Axon 40 Ultra", ram: 12 },
+                    { name: "ZTE Axon 40 Pro", ram: 8 }, { name: "ZTE Axon 30 Ultra", ram: 16 }, { name: "ZTE Axon 30 Pro", ram: 8 },
+                    { name: "ZTE Axon 30", ram: 8 }, { name: "ZTE Axon 20 5G", ram: 8 }, { name: "ZTE Axon 11", ram: 6 },
+                    { name: "ZTE Axon 10 Pro 5G", ram: 8 }, { name: "ZTE Axon 10 Pro", ram: 8 }
                 ]
             },
             {
-                name: "Nubia / RedMagic",
+                name: "Nubia RedMagic",
                 models: [
-                    { name: "Nubia Z60 Ultra", ram: 16 }, { name: "Nubia Z50S Pro", ram: 12 },
-                    { name: "RedMagic 9S Pro+", ram: 16 }, { name: "RedMagic 9 Pro", ram: 12 },
-                    { name: "RedMagic 8 Pro+", ram: 16 }, { name: "RedMagic 7 Pro", ram: 12 }
+                    { name: "RedMagic 10 Pro+", ram: 24 }, { name: "RedMagic 10 Pro", ram: 16 }, { name: "RedMagic 10", ram: 12 },
+                    { name: "RedMagic 9 Pro+", ram: 24 }, { name: "RedMagic 9 Pro", ram: 16 }, { name: "RedMagic 9", ram: 12 },
+                    { name: "RedMagic 8 Pro+", ram: 16 }, { name: "RedMagic 8 Pro", ram: 12 }, { name: "RedMagic 8S Pro+", ram: 16 },
+                    { name: "RedMagic 8S Pro", ram: 12 }, { name: "RedMagic 7S Pro", ram: 16 }, { name: "RedMagic 7S", ram: 12 },
+                    { name: "RedMagic 7 Pro", ram: 16 }, { name: "RedMagic 7", ram: 12 }, { name: "RedMagic 6R", ram: 8 },
+                    { name: "RedMagic 6 Pro", ram: 16 }, { name: "RedMagic 6", ram: 12 }, { name: "RedMagic 5S", ram: 12 },
+                    { name: "RedMagic 5G", ram: 12 }, { name: "RedMagic 3S", ram: 12 }, { name: "RedMagic 3", ram: 12 },
+                    { name: "RedMagic Mars", ram: 10 }, { name: "RedMagic", ram: 8 }
                 ]
             }
         ]
     },
     {
-        brand: "Poco",
+        brand: "LG",
         series: [
             {
-                name: "Poco F Series",
+                name: "LG Wing/Rotary",
                 models: [
-                    { name: "Poco F6 Pro", ram: 16 }, { name: "Poco F6", ram: 12 },
-                    { name: "Poco F5 Pro", ram: 12 }, { name: "Poco F5", ram: 12 },
-                    { name: "Poco F4 GT", ram: 12 }, { name: "Poco F4", ram: 8 },
-                    { name: "Poco F3 GT", ram: 8 }, { name: "Poco F3", ram: 8 }
+                    { name: "LG Wing 5G", ram: 8 }
                 ]
             },
             {
-                name: "Poco X/M Series",
+                name: "LG V Series",
                 models: [
-                    { name: "Poco X6 Pro", ram: 12 }, { name: "Poco X6", ram: 12 },
-                    { name: "Poco X5 Pro", ram: 8 }, { name: "Poco X5", ram: 8 },
-                    { name: "Poco X4 GT", ram: 8 }, { name: "Poco X4 Pro", ram: 8 },
-                    { name: "Poco M6 Pro", ram: 12 }, { name: "Poco M5", ram: 6 }
+                    { name: "LG V60 ThinQ 5G", ram: 8 }, { name: "LG V50 ThinQ 5G", ram: 6 }, { name: "LG V40 ThinQ", ram: 6 },
+                    { name: "LG V35 ThinQ", ram: 6 }, { name: "LG V30+", ram: 4 }, { name: "LG V30", ram: 4 },
+                    { name: "LG V20", ram: 4 }, { name: "LG V10", ram: 4 }
+                ]
+            },
+            {
+                name: "LG G Series",
+                models: [
+                    { name: "LG G8X ThinQ", ram: 6 }, { name: "LG G8 ThinQ", ram: 6 }, { name: "LG G7 ThinQ", ram: 4 },
+                    { name: "LG G6", ram: 4 }, { name: "LG G5", ram: 4 }, { name: "LG G4", ram: 3 },
+                    { name: "LG G3", ram: 2 }, { name: "LG G2", ram: 2 }, { name: "LG G Flex 2", ram: 2 },
+                    { name: "LG G Flex", ram: 2 }
+                ]
+            },
+            {
+                name: "LG Velvet/Stylo",
+                models: [
+                    { name: "LG Velvet 5G", ram: 6 }, { name: "LG Velvet", ram: 6 }, { name: "LG Stylo 6", ram: 3 },
+                    { name: "LG Stylo 5", ram: 3 }
                 ]
             }
         ]
     },
     {
-        brand: "Lenovo",
+        brand: "HTC",
         series: [
             {
-                name: "Legion Gaming Series",
+                name: "HTC U Series",
                 models: [
-                    { name: "Legion Y70", ram: 16 }, { name: "Legion Duel 2", ram: 18 },
-                    { name: "Legion Duel", ram: 16 }, { name: "Legion Y90", ram: 18 }
+                    { name: "HTC U23 Pro", ram: 8 }, { name: "HTC U23", ram: 8 }, { name: "HTC U20 5G", ram: 8 },
+                    { name: "HTC U12+", ram: 6 }, { name: "HTC U11+", ram: 6 }, { name: "HTC U11", ram: 4 }
                 ]
-            }
-        ]
-    },
-    {
-        brand: "iTel",
-        series: [
+            },
             {
-                name: "S/P Series",
+                name: "HTC Desire Series",
                 models: [
-                    { name: "iTel S24", ram: 8 }, { name: "iTel S23+", ram: 8 },
-                    { name: "iTel P55+", ram: 8 }, { name: "iTel P40", ram: 4 },
-                    { name: "iTel A70", ram: 4 }, { name: "iTel Vision 5", ram: 4 }
-                ]
-            }
-        ]
-    },
-    {
-        brand: "HMD / Nokia",
-        series: [
-            {
-                name: "Nokia X/G/C Series",
-                models: [
-                    { name: "Nokia XR21", ram: 6 }, { name: "Nokia X30", ram: 8 },
-                    { name: "Nokia G60", ram: 6 }, { name: "Nokia G42", ram: 6 },
-                    { name: "HMD Skyline", ram: 12 }, { name: "HMD Pulse Pro", ram: 8 }
+                    { name: "HTC Desire 22 Pro", ram: 8 }, { name: "HTC Desire 21 Pro 5G", ram: 8 }, { name: "HTC Desire 20+", ram: 6 },
+                    { name: "HTC Desire 20 Pro", ram: 6 }, { name: "HTC Desire 19+", ram: 6 }
                 ]
             }
         ]
@@ -1423,146 +1109,323 @@ window.devices = [
         brand: "Fairphone",
         series: [
             {
-                name: "Sustainable Series",
+                name: "Fairphone Series",
                 models: [
-                    { name: "Fairphone 5", ram: 8 }, { name: "Fairphone 4", ram: 6 }
+                    { name: "Fairphone 5", ram: 8 }, { name: "Fairphone 4", ram: 8 }, { name: "Fairphone 3+", ram: 4 },
+                    { name: "Fairphone 3", ram: 4 }, { name: "Fairphone 2", ram: 2 }
                 ]
             }
         ]
     },
     {
-        brand: "Sharp",
+        brand: "SHARP",
         series: [
             {
-                name: "Aquos Series",
+                name: "AQUOS R Series",
                 models: [
-                    { name: "Aquos R8 Pro", ram: 12 }, { name: "Aquos R7", ram: 12 },
-                    { name: "Aquos sense8", ram: 6 }, { name: "Aquos wish3", ram: 4 }
+                    { name: "AQUOS R9 Pro", ram: 12 }, { name: "AQUOS R9", ram: 8 }, { name: "AQUOS R8 Pro", ram: 12 },
+                    { name: "AQUOS R8", ram: 8 }, { name: "AQUOS R7", ram: 12 }, { name: "AQUOS R6", ram: 12 },
+                    { name: "AQUOS R5G", ram: 12 }, { name: "AQUOS R3", ram: 6 }, { name: "AQUOS R2", ram: 4 }
+                ]
+            },
+            {
+                name: "AQUOS Sense Series",
+                models: [
+                    { name: "AQUOS Sense9", ram: 8 }, { name: "AQUOS Sense8", ram: 8 }, { name: "AQUOS Sense7 Plus", ram: 8 },
+                    { name: "AQUOS Sense7", ram: 6 }, { name: "AQUOS Sense6s", ram: 6 }, { name: "AQUOS Sense6", ram: 6 },
+                    { name: "AQUOS Sense5G", ram: 6 }, { name: "AQUOS Sense4 Plus", ram: 6 }, { name: "AQUOS Sense4", ram: 4 }
+                ]
+            },
+            {
+                name: "AQUOS zero Series",
+                models: [
+                    { name: "AQUOS zero6", ram: 8 }, { name: "AQUOS zero5G basic", ram: 6 }, { name: "AQUOS zero2", ram: 8 }
+                ]
+            }
+        ]
+    },
+    {
+        brand: "Panasonic",
+        series: [
+            {
+                name: "Eluga Series",
+                models: [
+                    { name: "Eluga X Pro", ram: 8 }, { name: "Eluga X", ram: 6 }, { name: "Eluga X2", ram: 4 },
+                    { name: "Eluga I9", ram: 3 }, { name: "Eluga I8", ram: 2 }
+                ]
+            }
+        ]
+    },
+    {
+        brand: "OPPO Find N",
+        series: [
+            {
+                name: "Find N Series",
+                models: [
+                    { name: "OPPO Find N5", ram: 16 }, { name: "OPPO Find N3", ram: 16 }, { name: "OPPO Find N3 Flip", ram: 12 },
+                    { name: "OPPO Find N2", ram: 16 }, { name: "OPPO Find N2 Flip", ram: 8 }, { name: "OPPO Find N", ram: 12 }
+                ]
+            }
+        ]
+    },
+    {
+        brand: "Samsung Galaxy Tab Active",
+        series: [
+            {
+                name: "Tab Active",
+                models: [
+                    { name: "Galaxy Tab Active5", ram: 6 }, { name: "Galaxy Tab Active4 Pro", ram: 6 }, { name: "Galaxy Tab Active3", ram: 4 },
+                    { name: "Galaxy Tab Active Pro", ram: 4 }, { name: "Galaxy Tab Active 2", ram: 3 }, { name: "Galaxy Tab Active", ram: 2 }
+                ]
+            }
+        ]
+    },
+    {
+        brand: "Xiaomi Pad Pro",
+        series: [
+            {
+                name: "Pad Pro",
+                models: [
+                    { name: "Xiaomi Pad 7 Pro", ram: 16 }, { name: "Xiaomi Pad 6S Pro", ram: 12 }, { name: "Xiaomi Pad 6 Pro", ram: 8 },
+                    { name: "Xiaomi Pad 5 Pro", ram: 6 }
+                ]
+            }
+        ]
+    },
+    {
+        brand: "Realme Pad",
+        series: [
+            {
+                name: "Pad Series",
+                models: [
+                    { name: "Realme Pad 3 Pro", ram: 12 }, { name: "Realme Pad 3", ram: 8 }, { name: "Realme Pad 2 Pro", ram: 12 },
+                    { name: "Realme Pad 2", ram: 8 }, { name: "Realme Pad X", ram: 6 }, { name: "Realme Pad Mini", ram: 4 },
+                    { name: "Realme Pad", ram: 4 }
+                ]
+            }
+        ]
+    },
+    {
+        brand: "Xiaomi Black Shark",
+        series: [
+            {
+                name: "Black Shark",
+                models: [
+                    { name: "Black Shark 5 Pro", ram: 16 }, { name: "Black Shark 5 RS", ram: 12 }, { name: "Black Shark 5", ram: 12 },
+                    { name: "Black Shark 4 Pro", ram: 16 }, { name: "Black Shark 4S Pro", ram: 16 }, { name: "Black Shark 4S", ram: 12 },
+                    { name: "Black Shark 4", ram: 8 }, { name: "Black Shark 3 Pro", ram: 12 }, { name: "Black Shark 3S", ram: 12 },
+                    { name: "Black Shark 3", ram: 8 }, { name: "Black Shark 2 Pro", ram: 12 }, { name: "Black Shark 2", ram: 8 },
+                    { name: "Black Shark Helo", ram: 8 }, { name: "Black Shark", ram: 8 }
+                ]
+            }
+        ]
+    },
+    {
+        brand: "ROG Ally",
+        series: [
+            {
+                name: "Ally Series",
+                models: [
+                    { name: "ROG Ally X", ram: 24 }, { name: "ROG Ally", ram: 16 }
+                ]
+            }
+        ]
+    },
+    {
+        brand: "Legion Go",
+        series: [
+            {
+                name: "Legion Go",
+                models: [
+                    { name: "Legion Go 2", ram: 32 }, { name: "Legion Go", ram: 16 }
+                ]
+            }
+        ]
+    },
+    {
+        brand: "OnePlus Open",
+        series: [
+            {
+                name: "Open Series",
+                models: [
+                    { name: "OnePlus Open 2", ram: 24 }, { name: "OnePlus Open", ram: 16 }
+                ]
+            }
+        ]
+    },
+    {
+        brand: "Google Pixel Watch",
+        series: [
+            {
+                name: "Watch Series",
+                models: [
+                    { name: "Pixel Watch 3", ram: 2 }, { name: "Pixel Watch 2", ram: 2 }, { name: "Pixel Watch", ram: 2 }
+                ]
+            }
+        ]
+    },
+    {
+        brand: "Galaxy Watch",
+        series: [
+            {
+                name: "Galaxy Watch",
+                models: [
+                    { name: "Galaxy Watch Ultra 3", ram: 4 }, { name: "Galaxy Watch 7 Ultra", ram: 4 }, { name: "Galaxy Watch 7 Classic", ram: 4 },
+                    { name: "Galaxy Watch 7", ram: 2 }, { name: "Galaxy Watch 6 Classic", ram: 4 }, { name: "Galaxy Watch 6", ram: 2 },
+                    { name: "Galaxy Watch 5 Pro", ram: 2 }, { name: "Galaxy Watch 5", ram: 2 }, { name: "Galaxy Watch 4 Classic", ram: 2 },
+                    { name: "Galaxy Watch 4", ram: 2 }, { name: "Galaxy Watch 3", ram: 1 }, { name: "Galaxy Watch Active 2", ram: 1 },
+                    { name: "Galaxy Watch Active", ram: 0.75 }, { name: "Galaxy Watch", ram: 0.75 }
+                ]
+            }
+        ]
+    },
+    {
+        brand: "Xiaomi Watch",
+        series: [
+            {
+                name: "Watch Series",
+                models: [
+                    { name: "Xiaomi Watch S4 Sport", ram: 4 }, { name: "Xiaomi Watch S4", ram: 4 }, { name: "Xiaomi Watch S3", ram: 2 },
+                    { name: "Xiaomi Watch S1 Pro", ram: 2 }, { name: "Xiaomi Watch S1 Active", ram: 1 }, { name: "Xiaomi Watch S1", ram: 2 },
+                    { name: "Xiaomi Watch Color 2", ram: 1 }, { name: "Xiaomi Watch Color Sport", ram: 1 }, { name: "Redmi Watch 5 Lite", ram: 1 },
+                    { name: "Redmi Watch 5", ram: 2 }, { name: "Redmi Watch 4", ram: 1 }, { name: "Redmi Watch 3 Active", ram: 1 },
+                    { name: "Redmi Watch 3 Lite", ram: 1 }, { name: "Redmi Watch 3", ram: 1 }, { name: "Redmi Watch 2 Lite", ram: 1 },
+                    { name: "Redmi Watch 2", ram: 1 }, { name: "Redmi Watch", ram: 1 }
+                ]
+            }
+        ]
+    },
+    {
+        brand: "Apple Watch",
+        series: [
+            {
+                name: "Apple Watch Ultra",
+                models: [
+                    { name: "Apple Watch Ultra 3", ram: 2 }, { name: "Apple Watch Ultra 2", ram: 2 }, { name: "Apple Watch Ultra", ram: 1 }
+                ]
+            },
+            {
+                name: "Apple Watch Series",
+                models: [
+                    { name: "Apple Watch Series 10", ram: 2 }, { name: "Apple Watch Series 9", ram: 1 }, { name: "Apple Watch Series 8", ram: 1 },
+                    { name: "Apple Watch Series 7", ram: 1 }, { name: "Apple Watch Series 6", ram: 1 }, { name: "Apple Watch Series 5", ram: 1 },
+                    { name: "Apple Watch Series 4", ram: 1 }, { name: "Apple Watch Series 3", ram: 0.75 }, { name: "Apple Watch Series 2", ram: 0.5 },
+                    { name: "Apple Watch Series 1", ram: 0.5 }, { name: "Apple Watch (1st gen)", ram: 0.5 }
+                ]
+            }
+        ]
+    },
+    {
+        brand: "iPad Mini",
+        series: [
+            {
+                name: "iPad Mini",
+                models: [
+                    { name: "iPad Mini (7th generation)", ram: 8 }, { name: "iPad Mini (6th generation)", ram: 4 }, { name: "iPad Mini (5th generation)", ram: 3 },
+                    { name: "iPad Mini 4", ram: 2 }, { name: "iPad Mini 3", ram: 1 }, { name: "iPad Mini 2", ram: 1 },
+                    { name: "iPad Mini", ram: 0.5 }
+                ]
+            }
+        ]
+    },
+    {
+        brand: "iPad Air",
+        series: [
+            {
+                name: "iPad Air",
+                models: [
+                    { name: "iPad Air (M2)", ram: 8 }, { name: "iPad Air (5th generation)", ram: 8 }, { name: "iPad Air (4th generation)", ram: 4 },
+                    { name: "iPad Air (3rd generation)", ram: 3 }, { name: "iPad Air 2", ram: 2 }, { name: "iPad Air", ram: 1 }
+                ]
+            }
+        ]
+    },
+    {
+        brand: "iPad Standard",
+        series: [
+            {
+                name: "iPad",
+                models: [
+                    { name: "iPad (11th generation)", ram: 4 }, { name: "iPad (10th generation)", ram: 4 }, { name: "iPad (9th generation)", ram: 3 },
+                    { name: "iPad (8th generation)", ram: 3 }, { name: "iPad (7th generation)", ram: 3 }, { name: "iPad (6th generation)", ram: 2 },
+                    { name: "iPad (5th generation)", ram: 2 }, { name: "iPad (4th generation)", ram: 1 }, { name: "iPad (3rd generation)", ram: 1 },
+                    { name: "iPad 2", ram: 0.5 }, { name: "iPad", ram: 0.25 }
+                ]
+            }
+        ]
+    },
+    {
+        brand: "Amazon Fire",
+        series: [
+            {
+                name: "Fire Tablets",
+                models: [
+                    { name: "Fire HD 10 (2023)", ram: 4 }, { name: "Fire HD 8 (2022)", ram: 2 }, { name: "Fire 7 (2022)", ram: 2 },
+                    { name: "Fire HD 10 Plus (2021)", ram: 4 }, { name: "Fire HD 8 Plus (2020)", ram: 3 }, { name: "Fire HD 10 Kids Pro (2023)", ram: 4 },
+                    { name: "Fire Max 11", ram: 4 }
+                ]
+            }
+        ]
+    },
+    {
+        brand: "Samsung Galaxy Book",
+        series: [
+            {
+                name: "Galaxy Book",
+                models: [
+                    { name: "Galaxy Book 4 Ultra", ram: 64 }, { name: "Galaxy Book 4 Pro 360", ram: 32 }, { name: "Galaxy Book 4 Pro", ram: 32 },
+                    { name: "Galaxy Book 3 Ultra", ram: 32 }, { name: "Galaxy Book 3 Pro 360", ram: 32 }, { name: "Galaxy Book 3 Pro", ram: 32 },
+                    { name: "Galaxy Book 3 360", ram: 16 }, { name: "Galaxy Book 2 Pro 360", ram: 32 }, { name: "Galaxy Book 2 Pro", ram: 32 },
+                    { name: "Galaxy Book 2 360", ram: 16 }, { name: "Galaxy Book Pro 360", ram: 32 }, { name: "Galaxy Book Pro", ram: 16 }
+                ]
+            }
+        ]
+    },
+    {
+        brand: "Microsoft Surface",
+        series: [
+            {
+                name: "Surface Pro",
+                models: [
+                    { name: "Surface Pro 11", ram: 64 }, { name: "Surface Pro 10", ram: 64 }, { name: "Surface Pro 9", ram: 32 },
+                    { name: "Surface Pro 8", ram: 32 }, { name: "Surface Pro 7+", ram: 16 }, { name: "Surface Pro 7", ram: 16 },
+                    { name: "Surface Pro 6", ram: 16 }, { name: "Surface Pro 5", ram: 16 }, { name: "Surface Pro 4", ram: 16 },
+                    { name: "Surface Pro 3", ram: 8 }, { name: "Surface Pro 2", ram: 8 }, { name: "Surface Pro", ram: 4 }
+                ]
+            },
+            {
+                name: "Surface Laptop",
+                models: [
+                    { name: "Surface Laptop 7", ram: 64 }, { name: "Surface Laptop 6", ram: 64 }, { name: "Surface Laptop 5", ram: 32 },
+                    { name: "Surface Laptop 4", ram: 32 }, { name: "Surface Laptop 3", ram: 32 }, { name: "Surface Laptop 2", ram: 16 },
+                    { name: "Surface Laptop", ram: 16 }
+                ]
+            },
+            {
+                name: "Surface Laptop Studio",
+                models: [
+                    { name: "Surface Laptop Studio 2", ram: 64 }, { name: "Surface Laptop Studio", ram: 32 }
+                ]
+            },
+            {
+                name: "Surface Laptop Go",
+                models: [
+                    { name: "Surface Laptop Go 3", ram: 16 }, { name: "Surface Laptop Go 2", ram: 16 }, { name: "Surface Laptop Go", ram: 8 }
+                ]
+            },
+            {
+                name: "Surface Go",
+                models: [
+                    { name: "Surface Go 4", ram: 8 }, { name: "Surface Go 3", ram: 8 }, { name: "Surface Go 2", ram: 8 },
+                    { name: "Surface Go", ram: 8 }
+                ]
+            },
+            {
+                name: "Surface Book",
+                models: [
+                    { name: "Surface Book 3", ram: 32 }, { name: "Surface Book 2", ram: 16 }, { name: "Surface Book", ram: 16 }
                 ]
             }
         ]
     }
 ];
-
-/**
- * Device Registry Utility
- * Consolidates population logic for all device selects across the platform.
- */
-class DeviceRegistry {
-    constructor() {
-        this.registry = window.devices || [];
-    }
-
-    /**
-     * Wait for registry to load if not available.
-     */
-    async ensureReady() {
-        if (this.registry.length > 0) return true;
-        if (window.devices && window.devices.length > 0) {
-            this.registry = window.devices;
-            return true;
-        }
-        
-        if (this.initAttempts > 50) return false; // Fail after 10s
-        
-        this.initAttempts++;
-        await new Promise(r => setTimeout(r, 200));
-        return this.ensureReady();
-    }
-
-    /**
-     * Initialize a brand select element.
-     * Synchronous if data is ready; polls if not yet loaded.
-     */
-    initSelection(brandSelectId, seriesSelectId, modelSelectId) {
-        // If data is already available, populate immediately (synchronous path)
-        if (this.registry.length > 0) {
-            this._doInit(brandSelectId, seriesSelectId, modelSelectId);
-            return;
-        }
-        // If not ready yet, poll until available (async path)
-        const poll = setInterval(() => {
-            if (window.devices && window.devices.length > 0) {
-                this.registry = window.devices;
-                clearInterval(poll);
-                this._doInit(brandSelectId, seriesSelectId, modelSelectId);
-            }
-        }, 100);
-        // Stop polling after 10 seconds
-        setTimeout(() => clearInterval(poll), 10000);
-    }
-
-    _doInit(brandSelectId, seriesSelectId, modelSelectId) {
-        const brandSelect = document.getElementById(brandSelectId);
-        if (!brandSelect) return;
-
-        // Populate Brands immediately
-        brandSelect.innerHTML = '<option value="" disabled selected>SELECT_BRAND</option>' + 
-            this.registry.map(b => `<option value="${b.brand}">${b.brand.toUpperCase()}</option>`).join('');
-        brandSelect.disabled = false;
-
-        // Attach cascade listeners
-        brandSelect.onchange = () => this.populateSeries(brandSelectId, seriesSelectId, modelSelectId);
-        if (seriesSelectId) {
-            const seriesSelect = document.getElementById(seriesSelectId);
-            if (seriesSelect) {
-                seriesSelect.onchange = () => this.populateModels(brandSelectId, seriesSelectId, modelSelectId);
-            }
-        }
-    }
-
-    populateSeries(brandSelectId, seriesSelectId, modelSelectId) {
-        const brand = document.getElementById(brandSelectId).value;
-        const seriesSelect = document.getElementById(seriesSelectId);
-        if (!seriesSelect) return;
-
-        const data = this.registry.find(b => b.brand === brand);
-        seriesSelect.innerHTML = '<option value="" disabled selected>SELECT_SERIES</option>';
-        
-        if (data && data.series) {
-            data.series.forEach((s, i) => {
-                seriesSelect.innerHTML += `<option value="${i}">${s.name.toUpperCase()}</option>`;
-            });
-            seriesSelect.disabled = false;
-        } else {
-            seriesSelect.disabled = true;
-        }
-
-        if (modelSelectId) {
-            const modelSelect = document.getElementById(modelSelectId);
-            if (modelSelect) {
-                modelSelect.innerHTML = '<option value="" disabled selected>SELECT_MODEL</option>';
-                modelSelect.disabled = true;
-            }
-        }
-    }
-
-    populateModels(brandSelectId, seriesSelectId, modelSelectId) {
-        const brand = document.getElementById(brandSelectId).value;
-        const sIdx = document.getElementById(seriesSelectId).value;
-        const modelSelect = document.getElementById(modelSelectId);
-        if (!modelSelect) return;
-
-        const brandData = this.registry.find(b => b.brand === brand);
-        const seriesData = brandData && brandData.series ? brandData.series[sIdx] : null;
-
-        modelSelect.innerHTML = '<option value="" disabled selected>SELECT_MODEL</option>';
-        
-        if (seriesData && seriesData.models) {
-            seriesData.models.forEach(m => {
-                // Store data-ram so pages can read it for auto-selection
-                modelSelect.innerHTML += `<option value="${m.name}" data-ram="${m.ram}">${m.name.toUpperCase()}</option>`;
-            });
-            modelSelect.disabled = false;
-        } else {
-            modelSelect.disabled = true;
-        }
-    }
-}
-
-window.DeviceRegistry = new DeviceRegistry();
-
-// Export for use in other scripts
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = window.devices;
-}
