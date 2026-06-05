@@ -166,41 +166,142 @@
 
   <!-- Action Sheet (Vendor Card Generated) -->
   <div id="cardSheet" class="admin-sheet" style="padding-bottom: 2rem;">
-    <h3 style="color:var(--cyan); font-size:1rem; font-weight:900; margin-bottom:1.5rem; letter-spacing:0.05em; text-align:center;">NODE_PROVISIONED</h3>
+    <!-- Header -->
+    <div style="text-align:center; margin-bottom:1.5rem;">
+      <div style="font-size:0.6rem; color:rgba(255,215,0,0.7); letter-spacing:0.25em; margin-bottom:4px;">NODE_PROVISIONED</div>
+      <div style="font-size:1.1rem; font-weight:900; color:#fff; letter-spacing:0.05em;">IDENTITY_CARD_READY</div>
+    </div>
     
     <!-- The physical card element to capture -->
-    <div id="vendorCardContainer" style="background: linear-gradient(135deg, #0a0a0f, #13141c); border: 2px solid var(--gold); border-radius: 12px; padding: 2rem; position: relative; overflow: hidden; margin-bottom: 2rem; box-shadow: 0 0 30px rgba(245, 158, 11, 0.2);">
-      <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: repeating-linear-gradient(0deg, rgba(0, 242, 254, 0.03) 0px, rgba(0, 242, 254, 0.03) 2px, transparent 4px); pointer-events: none;"></div>
-      
-      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; position: relative; z-index: 2;">
-        <div>
-          <div style="font-family: monospace; font-size: 0.6rem; color: rgba(255,255,255,0.5); letter-spacing: 0.1em; margin-bottom: 0.2rem;">AXP_NEURAL_NETWORK</div>
-          <div style="font-weight: 900; font-size: 1.5rem; color: #fff; letter-spacing: 0.02em;">VENDOR_ID_CARD</div>
+    <div id="vendorCardContainer" style="
+      background: linear-gradient(155deg, #050a14 0%, #07101e 55%, #080f1c 100%);
+      border: 1.5px solid rgba(255,180,0,0.5);
+      border-radius: 20px;
+      padding: 0;
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 1.5rem;
+      box-shadow:
+        0 0 0 1px rgba(255,180,0,0.1),
+        0 0 40px rgba(255,180,0,0.08),
+        0 30px 80px rgba(0,0,0,0.8);
+      font-family: 'JetBrains Mono', 'Courier New', monospace;
+    ">
+      <!-- Dot-grid overlay -->
+      <div style="position:absolute; inset:0; background-image: radial-gradient(circle, rgba(255,255,255,0.055) 1px, transparent 1px); background-size:22px 22px; pointer-events:none; z-index:0;"></div>
+      <!-- Top glow orb -->
+      <div style="position:absolute; top:-50px; right:-40px; width:220px; height:220px; background:radial-gradient(circle, rgba(255,180,0,0.18) 0%, rgba(0,229,255,0.05) 50%, transparent 70%); pointer-events:none; z-index:0;"></div>
+
+      <!-- Gold shimmer top edge -->
+      <div style="height:2.5px; background:linear-gradient(90deg, transparent, #ffd700, #00e5ff, #ffd700, transparent); position:relative; z-index:2;"></div>
+
+      <div style="padding:1.5rem 1.5rem 1.25rem; position:relative; z-index:2;">
+
+        <!-- ── HEADER ROW ── -->
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1rem;">
+          <div style="display:flex; align-items:center; gap:0.75rem;">
+            <!-- Key icon badge -->
+            <div style="width:46px; height:46px; background:rgba(255,180,0,0.1); border:1.5px solid rgba(255,180,0,0.45); border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0; box-shadow:0 0 16px rgba(255,180,0,0.12);">🔑</div>
+            <div>
+              <div style="font-size:0.55rem; color:rgba(255,180,0,0.8); letter-spacing:0.2em; margin-bottom:2px;">AXP_NEURAL_NETWORK</div>
+              <div style="font-size:1.1rem; font-weight:900; color:#fff; letter-spacing:0.04em; line-height:1;">VENDOR_ID_CARD</div>
+            </div>
+          </div>
+          <!-- Tier badge -->
+          <div id="cardTierBadge" style="
+            font-size:0.6rem; font-weight:900; letter-spacing:0.15em;
+            padding:5px 12px; border-radius:50px;
+            background:rgba(255,180,0,0.12);
+            color:#ffd700;
+            border:1px solid rgba(255,180,0,0.45);
+            box-shadow:0 0 12px rgba(255,180,0,0.15);
+          ">PREMIUM</div>
         </div>
-        <div id="cardTierBadge" class="badge-gold" style="font-size: 0.7rem; padding: 0.3rem 0.6rem;">PREMIUM</div>
-      </div>
-      
-      <div style="background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem; position: relative; z-index: 2;">
-        <div style="font-family: monospace; font-size: 0.6rem; color: var(--gold); margin-bottom: 0.2rem;">ASSIGNED_NODE_ID</div>
-        <div id="cardVendorId" style="font-family: monospace; font-size: 1.2rem; color: #fff; letter-spacing: 0.05em;">AX-PRO-99</div>
-      </div>
-      
-      <div style="background: rgba(0, 242, 254, 0.05); border: 1px solid var(--cyan); border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem; position: relative; z-index: 2;">
-        <div style="font-family: monospace; font-size: 0.6rem; color: var(--cyan); margin-bottom: 0.2rem;">SECURE_ACCESS_PHRASE</div>
-        <div id="cardAccessKey" style="font-family: monospace; font-size: 1.2rem; color: #fff; letter-spacing: 0.05em;">SECURE_PHRASE_HERE</div>
+
+        <!-- Gold divider -->
+        <div style="height:1px; background:linear-gradient(90deg, transparent, rgba(255,180,0,0.5), rgba(0,229,255,0.2), transparent); margin-bottom:1rem;"></div>
+
+        <!-- ── ASSIGNED NODE ID ── -->
+        <div style="
+          background:rgba(255,255,255,0.03);
+          border:1px solid rgba(255,180,0,0.2);
+          border-radius:12px;
+          padding:0.85rem 1rem;
+          margin-bottom:0.75rem;
+        ">
+          <div style="font-size:0.52rem; color:rgba(255,180,0,0.75); letter-spacing:0.18em; margin-bottom:4px;">ASSIGNED_NODE_ID</div>
+          <div id="cardVendorId" style="font-size:1.2rem; font-weight:900; color:#fff; letter-spacing:0.06em;">AX-PRO-99</div>
+        </div>
+
+        <!-- ── SECURE ACCESS PHRASE ── -->
+        <div style="
+          background:linear-gradient(135deg, rgba(255,180,0,0.15) 0%, rgba(0,229,255,0.08) 100%);
+          border:1.5px solid rgba(255,180,0,0.45);
+          border-radius:12px;
+          padding:0.85rem 1rem;
+          margin-bottom:1rem;
+        ">
+          <div style="font-size:0.52rem; color:rgba(0,0,0,0.45); letter-spacing:0.18em; font-weight:700; margin-bottom:4px;">SECURE_ACCESS_PHRASE</div>
+          <div id="cardAccessKey" style="
+            font-size:1.25rem; font-weight:900; letter-spacing:0.06em;
+            background:linear-gradient(90deg,#ffd700,#00e5ff);
+            -webkit-background-clip:text;
+            -webkit-text-fill-color:transparent;
+            background-clip:text;
+          ">SECURE_PHRASE_HERE</div>
+        </div>
+
+        <!-- ── FOOTER META ── -->
+        <div style="display:flex; justify-content:space-between; align-items:flex-end;">
+          <div style="font-size:0.48rem; color:rgba(255,255,255,0.3); line-height:1.7; letter-spacing:0.06em;">
+            ISSUED_ON: <span id="cardDate" style="color:rgba(255,255,255,0.5);">2026-06-05</span><br>
+            AUTH_LEVEL: <span style="color:rgba(0,229,255,0.7);">VENDOR_PORTAL</span>
+          </div>
+          <!-- Styled barcode -->
+          <div style="display:flex; align-items:flex-end; gap:1px; height:28px; opacity:0.45;">
+            <!-- barcode bars of varying heights -->
+            <div style="width:2px; height:100%; background:#fff;"></div>
+            <div style="width:1px; height:70%; background:#fff;"></div>
+            <div style="width:3px; height:100%; background:#fff;"></div>
+            <div style="width:1px; height:55%; background:#fff;"></div>
+            <div style="width:2px; height:85%; background:#fff;"></div>
+            <div style="width:1px; height:100%; background:#fff;"></div>
+            <div style="width:1px; height:60%; background:#fff;"></div>
+            <div style="width:3px; height:100%; background:#fff;"></div>
+            <div style="width:1px; height:75%; background:#fff;"></div>
+            <div style="width:2px; height:100%; background:#fff;"></div>
+            <div style="width:1px; height:50%; background:#fff;"></div>
+            <div style="width:2px; height:90%; background:#fff;"></div>
+            <div style="width:1px; height:100%; background:#fff;"></div>
+            <div style="width:3px; height:65%; background:#fff;"></div>
+            <div style="width:1px; height:100%; background:#fff;"></div>
+            <div style="width:2px; height:80%; background:#fff;"></div>
+          </div>
+        </div>
+
       </div>
 
-      <div style="display: flex; justify-content: space-between; align-items: flex-end; position: relative; z-index: 2;">
-        <div style="font-family: monospace; font-size: 0.5rem; color: rgba(255,255,255,0.3);">
-          ISSUED_ON: <span id="cardDate">2026-05-01</span><br>
-          AUTH_LEVEL: VENDOR_PORTAL
-        </div>
-        <div style="width: 80px; height: 30px; background: repeating-linear-gradient(90deg, #fff 0px, #fff 2px, transparent 2px, transparent 4px, #fff 4px, #fff 5px, transparent 5px, transparent 8px); opacity: 0.5;"></div>
-      </div>
+      <!-- Gold shimmer bottom edge -->
+      <div style="height:2.5px; background:linear-gradient(90deg, transparent, #00e5ff, #ffd700, transparent); position:relative; z-index:2;"></div>
     </div>
 
-    <button id="downloadCardBtn" class="btn-cta gold w-full" style="background: var(--cyan); border-color: var(--cyan); color: #000;" onclick="downloadVendorCard()">DOWNLOAD_IDENTITY_CARD</button>
-    <button class="btn-ghost auto w-full mt-3" onclick="toggleCardSheet(false)">CLOSE</button>
+    <button id="downloadCardBtn"
+      style="
+        display:block; width:100%; padding:1rem;
+        border-radius:14px; border:none; cursor:pointer;
+        font-family:'JetBrains Mono','Courier New',monospace;
+        font-size:0.8rem; font-weight:900; letter-spacing:0.15em;
+        background:linear-gradient(135deg,#ffd700,#f59e0b);
+        color:#070d1a;
+        box-shadow:0 8px 28px rgba(255,180,0,0.4), 0 0 0 1px rgba(255,180,0,0.3);
+        transition:filter 0.2s, box-shadow 0.2s;
+        margin-bottom:0.75rem;
+      "
+      onmouseover="this.style.filter='brightness(1.08)'; this.style.boxShadow='0 12px 36px rgba(255,180,0,0.55), 0 0 0 1px rgba(255,180,0,0.5)';"
+      onmouseout="this.style.filter=''; this.style.boxShadow='0 8px 28px rgba(255,180,0,0.4), 0 0 0 1px rgba(255,180,0,0.3)';"
+      onclick="downloadVendorCard()"
+    >⬇ DOWNLOAD_IDENTITY_CARD</button>
+    <button class="btn-ghost auto w-full" onclick="toggleCardSheet(false)">CLOSE</button>
   </div>
 
   <script src="../theme-manager.js"></script>
@@ -433,7 +534,7 @@
       
       document.getElementById('cardVendorId').textContent = v.vendor_id;
       document.getElementById('cardAccessKey').textContent = 'HIDDEN_FOR_SECURITY';
-      document.getElementById('cardTierBadge').textContent = v.tier.toUpperCase();
+      applyTierBadge(v.tier);
       document.getElementById('cardDate').textContent = new Date(v.created_at || Date.now()).toISOString().split('T')[0];
       toggleCardSheet(true);
     }
@@ -475,6 +576,22 @@
       document.getElementById('sheetOverlay').classList.toggle('active', show);
     }
 
+    function applyTierBadge(tier) {
+      const badge = document.getElementById('cardTierBadge');
+      const styles = {
+        gold:    { bg: 'rgba(245,158,11,0.15)', color: '#fbbf24', border: 'rgba(245,158,11,0.5)',  shadow: 'rgba(245,158,11,0.2)' },
+        premium: { bg: 'rgba(168,85,247,0.15)', color: '#c084fc', border: 'rgba(168,85,247,0.5)', shadow: 'rgba(168,85,247,0.2)' },
+        normal:  { bg: 'rgba(148,163,184,0.1)', color: '#94a3b8', border: 'rgba(148,163,184,0.3)', shadow: 'rgba(148,163,184,0.1)' },
+        nexus:   { bg: 'rgba(0,229,255,0.12)',  color: '#00e5ff', border: 'rgba(0,229,255,0.45)',  shadow: 'rgba(0,229,255,0.15)' },
+      };
+      const s = styles[tier] || styles.normal;
+      badge.textContent = tier.toUpperCase();
+      badge.style.background = s.bg;
+      badge.style.color = s.color;
+      badge.style.border = `1px solid ${s.border}`;
+      badge.style.boxShadow = `0 0 12px ${s.shadow}`;
+    }
+
     async function addVendor() {
       const vid = document.getElementById('v_id').value.trim();
       const vkey = document.getElementById('v_key').value.trim();
@@ -499,7 +616,7 @@
         // 🛡️ SYNC_CARD: Use the actual data returned by the server
         document.getElementById('cardVendorId').textContent = result.vendorId;
         document.getElementById('cardAccessKey').textContent = result.accessKey;
-        document.getElementById('cardTierBadge').textContent = result.tier.toUpperCase();
+        applyTierBadge(result.tier);
         document.getElementById('cardDate').textContent = new Date().toISOString().split('T')[0];
         toggleCardSheet(true);
 
