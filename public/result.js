@@ -292,34 +292,80 @@
             const area = document.getElementById('shareCaptureArea');
             if (!area) throw new Error('CAPTURE_AREA_NOT_FOUND');
 
-            // Detach from hidden parent so html2canvas can render it
-            const originalParent = area.parentNode;
-            const originalNextSibling = area.nextSibling;
-            const originalStyle = area.getAttribute('style') || '';
+            const EXPORT_SCALE = 3;
 
-            // Move to body, off-screen but visible
-            document.body.appendChild(area);
-            area.style.cssText = `
-                position: fixed !important;
-                top: -9999px !important;
-                left: -9999px !important;
-                display: block !important;
-                visibility: visible !important;
-                opacity: 1 !important;
-                pointer-events: none !important;
-                z-index: -1 !important;
-                transform: none !important;
+            // Measure the natural card size before touching anything
+            const rect = area.getBoundingClientRect();
+            const cardW = Math.max(Math.round(rect.width), area.scrollWidth, 320);
+            const cardH = Math.max(Math.round(rect.height), area.scrollHeight, 200);
+
+            // Build an off-screen host
+            const host = document.createElement('div');
+            host.style.cssText = `
+                position: fixed;
+                left: -99999px;
+                top: 0;
+                width: ${cardW}px;
+                height: ${cardH}px;
+                overflow: visible;
+                z-index: -1;
+                pointer-events: none;
+                background: #070d1a;
             `;
 
+            // Deep-clone so we never touch the live card
+            const clone = area.cloneNode(true);
+            clone.style.cssText = `
+                width: ${cardW}px;
+                height: ${cardH}px;
+                overflow: hidden;
+                position: relative;
+                transform: none !important;
+                animation: none !important;
+                transition: none !important;
+                box-sizing: border-box;
+                ${area.getAttribute('style') || ''}
+                transform: none !important;
+                animation: none !important;
+            `;
+
+            // Freeze all descendant animations & transforms
+            clone.querySelectorAll('*').forEach(el => {
+                el.style.animation = 'none';
+                el.style.transition = 'none';
+                el.style.transform = 'none';
+                const cs = window.getComputedStyle(el);
+                if (cs.backgroundImage && cs.backgroundImage.includes('gradient')) {
+                    el.style.backgroundPosition = '0% 0%';
+                }
+            });
+
+            // Kill any @keyframes scoped to descendants
+            const styleKill = document.createElement('style');
+            styleKill.textContent = `* { animation: none !important; transition: none !important; }`;
+            clone.prepend(styleKill);
+
+            host.appendChild(clone);
+            document.body.appendChild(host);
+
+            // Let DOM settle before capture
+            await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+
             try {
-                const canvas = await window.html2canvas(area, {
-                    scale: 2,
+                const canvas = await window.html2canvas(clone, {
+                    scale: EXPORT_SCALE,
                     backgroundColor: '#070d1a',
                     useCORS: true,
                     allowTaint: true,
                     logging: false,
-                    windowWidth: area.scrollWidth,
-                    windowHeight: area.scrollHeight
+                    width: cardW,
+                    height: cardH,
+                    windowWidth: cardW,
+                    windowHeight: cardH,
+                    scrollX: 0,
+                    scrollY: 0,
+                    x: 0,
+                    y: 0,
                 });
 
                 const link = document.createElement('a');
@@ -327,15 +373,7 @@
                 link.href = canvas.toDataURL('image/png', 1.0);
                 link.click();
             } finally {
-                // Restore original position
-                area.setAttribute('style', originalStyle);
-                if (originalParent) {
-                    if (originalNextSibling) {
-                        originalParent.insertBefore(area, originalNextSibling);
-                    } else {
-                        originalParent.appendChild(area);
-                    }
-                }
+                document.body.removeChild(host);
             }
             return;
         }

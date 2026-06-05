@@ -365,6 +365,76 @@ const VendorLogic = {
         const data = this.state.vendorData;
         if (!data) return;
         const tier = data.tier || 'normal';
+        const isExpired = data.active_until && new Date(data.active_until) < new Date();
+        
+        const expiryText = data.active_until
+            ? new Date(data.active_until).toLocaleDateString('en-GB', {day:'2-digit',month:'short',year:'numeric'}).toUpperCase()
+            : 'NEVER';
+        const usageText = data.usage_limit
+            ? `${data.total_hits || 0} / ${data.usage_limit}`.toUpperCase()
+            : 'UNLIMITED';
+        
+        let statusLabel = '● ACTIVE';
+        let statusClr = '#34d399';
+        let statusBgClr = 'rgba(52,211,153,0.03)';
+        let statusBorderClr = 'rgba(52,211,153,0.15)';
+        let statusTopBorder = 'rgba(52,211,153,0.6)';
+        
+        if (isExpired) {
+            statusLabel = '✕ EXPIRED';
+            statusClr = '#f87171';
+            statusBgClr = 'rgba(248,113,113,0.03)';
+            statusBorderClr = 'rgba(248,113,113,0.15)';
+            statusTopBorder = 'rgba(248,113,113,0.6)';
+        } else if (data.status === 'suspended') {
+            statusLabel = '⏸ SUSPENDED';
+            statusClr = '#fbbf24';
+            statusBgClr = 'rgba(251,191,36,0.03)';
+            statusBorderClr = 'rgba(251,191,36,0.15)';
+            statusTopBorder = 'rgba(251,191,36,0.6)';
+        }
+        
+        const networkName = (data.brand_config?.display_name || data.display_name || data.vendor_id || 'AXP_NEXUS').toUpperCase();
+        const createdDate = data.created_at ? new Date(data.created_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
+
+        // Dynamic theme styling per tier
+        let cardBorder = 'rgba(255,180,0,0.5)';
+        let cardGlow = 'rgba(255,180,0,0.08)';
+        let badgeBg = 'rgba(255,180,0,0.12)';
+        let badgeClr = '#ffd700';
+        let badgeBorder = 'rgba(255,180,0,0.45)';
+        let badgeGlow = 'rgba(255,180,0,0.15)';
+        
+        if (tier === 'gold') {
+            cardBorder = 'rgba(255,215,0,0.5)';
+            cardGlow = 'rgba(255,215,0,0.08)';
+            badgeBg = 'rgba(255,215,0,0.12)';
+            badgeClr = '#ffd700';
+            badgeBorder = 'rgba(255,215,0,0.45)';
+            badgeGlow = 'rgba(255,215,0,0.15)';
+        } else if (tier === 'premium') {
+            cardBorder = 'rgba(167,139,250,0.5)';
+            cardGlow = 'rgba(167,139,250,0.08)';
+            badgeBg = 'rgba(167,139,250,0.12)';
+            badgeClr = '#a78bfa';
+            badgeBorder = 'rgba(167,139,250,0.45)';
+            badgeGlow = 'rgba(167,139,250,0.15)';
+        } else if (tier === 'pro') {
+            cardBorder = 'rgba(0,229,255,0.5)';
+            cardGlow = 'rgba(0,229,255,0.08)';
+            badgeBg = 'rgba(0,229,255,0.12)';
+            badgeClr = '#00e5ff';
+            badgeBorder = 'rgba(0,229,255,0.45)';
+            badgeGlow = 'rgba(0,229,255,0.15)';
+        } else if (tier === 'nexus' || tier === 'elite') {
+            cardBorder = 'rgba(236,72,153,0.5)';
+            cardGlow = 'rgba(236,72,153,0.08)';
+            badgeBg = 'rgba(236,72,153,0.12)';
+            badgeClr = '#ec4899';
+            badgeBorder = 'rgba(236,72,153,0.45)';
+            badgeGlow = 'rgba(236,72,153,0.15)';
+        }
+
         const overlay = document.createElement('div');
         overlay.className = 'quick-action-overlay active';
         overlay.style.cssText = `
@@ -374,61 +444,143 @@ const VendorLogic = {
         `;
         
         overlay.innerHTML = `
-            <div class="glass-panel" style="width: min(90vw, 280px); text-align: center; background: transparent; border: none; box-shadow: none;">
+            <div class="glass-panel" style="width: min(90vw, 340px); text-align: center; background: transparent; border: none; box-shadow: none; display: flex; flex-direction: column; align-items: center;">
                 <div id="captureArea" class="holo-card-vertical" onmousemove="VendorLogic.handleHoloMove(event, this)" style="
-                    background: linear-gradient(165deg, #0f172a 0%, #020617 100%);
-                    border: 2px solid var(--accent-primary);
-                    border-radius: 40px;
-                    padding: 1.25rem;
+                    background: linear-gradient(155deg, #050a14 0%, #07101e 55%, #080f1c 100%);
+                    border: 1.5px solid ${cardBorder};
+                    border-radius: 24px;
+                    padding: 1.5rem 1.5rem 1.25rem;
                     margin-bottom: 1.25rem;
                     position: relative;
                     overflow: hidden;
-                    aspect-ratio: 2 / 2.6;
                     display: flex;
                     flex-direction: column;
                     align-items: center;
-                    box-shadow: 0 30px 60px rgba(0,0,0,0.8), inset 0 0 30px var(--accent-primary-dim);
+                    width: 100%;
+                    box-sizing: border-box;
+                    box-shadow: 0 0 0 1px ${cardGlow}, 0 0 40px ${cardGlow}, 0 30px 80px rgba(0,0,0,0.8);
                     transition: transform 0.1s ease-out;
                 ">
                     <!-- Tech Background Elements -->
-                    <div style="position: absolute; inset: 0; opacity: 0.05; background-image: radial-gradient(var(--accent-primary) 1px, transparent 1px); background-size: 20px 20px;"></div>
-                    <div style="position: absolute; top:0; left:0; width: 100%; height: 4px; background: var(--accent-primary); opacity: 0.3;"></div>
+                    <div style="position: absolute; inset: 0; opacity: 0.055; background-image: radial-gradient(circle, rgba(255,255,255,0.055) 1px, transparent 1px); background-size: 22px 22px; pointer-events: none; z-index: 0;"></div>
+                    <div style="position: absolute; top:-50px; right:-40px; width: 220px; height: 220px; background: radial-gradient(circle, ${cardBorder.replace('0.5', '0.18')} 0%, rgba(0,229,255,0.05) 50%, transparent 70%); pointer-events: none; z-index: 0;"></div>
+                    <div style="height: 2.5px; width: 100%; background: linear-gradient(90deg, transparent, #ffd700, #00e5ff, #ffd700, transparent); position: absolute; top: 0; left: 0; z-index: 2;"></div>
                     
-                    <div style="width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                        <div style="font-family: var(--font-mono); font-size: 0.5rem; color: var(--accent-primary); letter-spacing: 0.2em; font-weight: 900;">OPERATOR_ID</div>
-                        <div style="background: var(--accent-primary); color: #000; font-size: 0.45rem; padding: 2px 6px; border-radius: 4px; font-weight: 900;">AUTH</div>
+                    <!-- Header Row -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 1rem; position: relative; z-index: 2;">
+                        <div style="display: flex; align-items: center; gap: 0.6rem;">
+                            <div style="width: 40px; height: 40px; background: rgba(255,180,0,0.1); border: 1.5px solid rgba(255,180,0,0.45); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; box-shadow: 0 0 12px rgba(255,180,0,0.12);">🛡️</div>
+                            <div style="text-align: left;">
+                                <div style="font-size: 0.5rem; color: rgba(255,180,0,0.8); letter-spacing: 0.18em; font-family: var(--font-mono); font-weight: 700; line-height: 1.2;">AXP_IDENTITY</div>
+                                <div style="font-size: 0.95rem; font-weight: 900; color: #fff; letter-spacing: 0.04em; font-family: var(--font-mono); line-height: 1.2;">OPERATOR_CARD</div>
+                            </div>
+                        </div>
+                        <div style="font-size: 0.55rem; font-weight: 900; letter-spacing: 0.15em; padding: 4px 10px; border-radius: 50px; background: ${badgeBg}; color: ${badgeClr}; border: 1px solid ${badgeBorder}; box-shadow: 0 0 10px ${badgeGlow}; font-family: var(--font-mono);">${tier.toUpperCase()}</div>
                     </div>
 
-                    <!-- Main Identity -->
-                    <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%;">
-                        <div style="width: 60px; height: 60px; border: 1px dashed var(--accent-primary); border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 2rem; background: rgba(255,255,255,0.02); margin-bottom: 1rem; box-shadow: 0 0 20px var(--accent-primary-dim);">🛡️</div>
-                        <div style="font-size: 0.45rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.5rem; font-weight: 800; opacity: 0.6;">SIGNATURE</div>
-                        <div style="font-size: 1.25rem; font-weight: 950; color: white; text-transform: uppercase; letter-spacing: -0.01em; text-align: center; line-height: 1.1; margin-bottom: 0.5rem;">
+                    <!-- Divider -->
+                    <div style="height: 1px; width: 100%; background: linear-gradient(90deg, transparent, rgba(255,180,0,0.4), rgba(0,229,255,0.15), transparent); margin-bottom: 1rem; position: relative; z-index: 2;"></div>
+
+                    <!-- Main Identity Section -->
+                    <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; position: relative; z-index: 2; margin-bottom: 1rem;">
+                        <div style="width: 58px; height: 58px; border: 2px dashed ${cardBorder}; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.5); box-shadow: 0 0 20px ${cardGlow}; animation: goldPulse 2s infinite alternate; margin-bottom: 0.75rem; flex-shrink: 0;">
+                            <div style="font-size: 1.6rem; animation: keyRotate 4s ease-in-out infinite;">🔑</div>
+                        </div>
+                        
+                        <div style="font-size: 0.48rem; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 4px; font-weight: 800; font-family: var(--font-mono);">OPERATOR_SIGNATURE</div>
+                        <div style="font-size: 1.35rem; font-weight: 950; color: #fff; text-transform: uppercase; letter-spacing: -0.01em; text-align: center; line-height: 1.2; margin-bottom: 4px; font-family: var(--font-mono); text-shadow: 0 0 16px rgba(255,255,255,0.25);">
                             ${data.display_name}
                         </div>
-                        <div style="font-family: var(--font-mono); font-size: 0.55rem; color: var(--accent-primary); font-weight: 800; opacity: 0.8;">UID: ${data.vendor_id}</div>
+                        <div style="font-family: var(--font-mono); font-size: 0.58rem; color: ${badgeClr}; font-weight: 800; opacity: 0.9; letter-spacing: 0.05em;">UID: ${data.vendor_id}</div>
                     </div>
 
-                    <!-- Authorization Stats -->
-                    <div style="width: 100%; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; padding: 1rem; display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1rem;">
-                        <div style="text-align: left;">
-                            <div style="font-size: 0.4rem; color: var(--text-muted); font-family: var(--font-mono); margin-bottom: 2px;">CLEARANCE</div>
-                            <div style="font-size: 0.6rem; font-weight: 900; color: white; text-transform: uppercase;">${tier.toUpperCase()}</div>
+                    <!-- Secure Access Token Strip -->
+                    <div style="background: linear-gradient(135deg, rgba(255,180,0,0.15) 0%, rgba(0,229,255,0.08) 100%); border: 1.5px solid rgba(255,180,0,0.45); border-radius: 12px; padding: 0.6rem 0.8rem; margin-bottom: 0.75rem; width: 100%; text-align: left; box-sizing: border-box; position: relative; z-index: 2;">
+                        <div style="font-size: 0.48rem; color: rgba(0,0,0,0.45); letter-spacing: 0.18em; font-weight: 700; margin-bottom: 3px; font-family: var(--font-mono);">SECURE_ACCESS_PHRASE</div>
+                        <div style="font-size: 1.15rem; font-weight: 900; letter-spacing: 0.06em; background: linear-gradient(90deg, #ffd700, #00e5ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-family: var(--font-mono);">OP-${data.vendor_id}</div>
+                    </div>
+
+                    <!-- 2x2 Stats Grid -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; margin-bottom: 1rem; width: 100%; text-align: left; position: relative; z-index: 2;">
+                        <!-- EXPIRY -->
+                        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,215,0,0.15); border-top: 2px solid rgba(255,215,0,0.6); border-radius: 10px; padding: 0.6rem 0.7rem;">
+                            <div style="font-size: 0.45rem; color: rgba(255,255,255,0.35); letter-spacing: 0.15em; margin-bottom: 4px; font-family: var(--font-mono);">EXPIRY_DATE</div>
+                            <div style="font-size: 0.8rem; font-weight: 900; color: #ffd700; letter-spacing: 0.04em; font-family: var(--font-mono);">${expiryText}</div>
                         </div>
-                        <div style="text-align: left;">
-                            <div style="font-size: 0.4rem; color: var(--text-muted); font-family: var(--font-mono); margin-bottom: 2px;">STATUS</div>
-                            <div style="font-size: 0.6rem; font-weight: 900; color: #10b981; text-transform: uppercase;">READY</div>
+
+                        <!-- GEN LIMIT -->
+                        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(0,229,255,0.15); border-top: 2px solid rgba(0,229,255,0.6); border-radius: 10px; padding: 0.6rem 0.7rem;">
+                            <div style="font-size: 0.45rem; color: rgba(255,255,255,0.35); letter-spacing: 0.15em; margin-bottom: 4px; font-family: var(--font-mono);">GEN_LIMIT</div>
+                            <div style="font-size: 0.8rem; font-weight: 900; color: #00e5ff; letter-spacing: 0.04em; font-family: var(--font-mono);">${usageText}</div>
+                        </div>
+
+                        <!-- STATUS -->
+                        <div style="background: rgba(255,255,255,0.03); border: 1px solid ${statusBorderClr}; border-top: 2px solid ${statusTopBorder}; border-radius: 10px; padding: 0.6rem 0.7rem;">
+                            <div style="font-size: 0.45rem; color: rgba(255,255,255,0.35); letter-spacing: 0.15em; margin-bottom: 4px; font-family: var(--font-mono);">NODE_STATUS</div>
+                            <div style="font-size: 0.8rem; font-weight: 900; color: ${statusClr}; letter-spacing: 0.04em; font-family: var(--font-mono);">${statusLabel}</div>
+                        </div>
+
+                        <!-- NETWORK -->
+                        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(167,139,250,0.15); border-top: 2px solid rgba(167,139,250,0.6); border-radius: 10px; padding: 0.6rem 0.7rem;">
+                            <div style="font-size: 0.45rem; color: rgba(255,255,255,0.35); letter-spacing: 0.15em; margin-bottom: 4px; font-family: var(--font-mono);">NETWORK_ID</div>
+                            <div style="font-size: 0.8rem; font-weight: 900; color: #a78bfa; letter-spacing: 0.04em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: var(--font-mono);">${networkName}</div>
                         </div>
                     </div>
 
-                    <div style="width: 100%; text-align: right;">
-                        <div style="font-size: 0.4rem; color: var(--accent-primary); opacity: 0.3; font-family: var(--font-mono);">SYSTEM_CREDENTIAL_V2</div>
+                    <!-- Footer Barcode Row -->
+                    <div style="display: flex; justify-content: space-between; align-items: flex-end; width: 100%; position: relative; z-index: 2;">
+                        <div style="font-size: 0.45rem; color: rgba(255,255,255,0.3); line-height: 1.7; letter-spacing: 0.06em; text-align: left; font-family: var(--font-mono);">
+                            ISSUED_BY: AXP_NEXUS<br>
+                            ISSUED_ON: ${createdDate}
+                        </div>
+                        <!-- Styled barcode -->
+                        <div style="display: flex; align-items: flex-end; gap: 1px; height: 28px; opacity: 0.45;">
+                            <div style="width: 2px; height: 100%; background: #fff;"></div>
+                            <div style="width: 1px; height: 70%; background: #fff;"></div>
+                            <div style="width: 3px; height: 100%; background: #fff;"></div>
+                            <div style="width: 1px; height: 40%; background: #fff;"></div>
+                            <div style="width: 2px; height: 85%; background: #fff;"></div>
+                            <div style="width: 1px; height: 100%; background: #fff;"></div>
+                            <div style="width: 4px; height: 60%; background: #fff;"></div>
+                            <div style="width: 2px; height: 90%; background: #fff;"></div>
+                            <div style="width: 1px; height: 30%; background: #fff;"></div>
+                            <div style="width: 3px; height: 100%; background: #fff;"></div>
+                        </div>
                     </div>
                 </div>
 
-                <div style="display: grid; grid-template-columns: 1fr; gap: 0.75rem;">
-                    <button class="btn-cta" style="padding: 0.75rem; border-radius: 12px; font-size: 0.65rem; font-weight: 900; background: var(--accent-primary); color: #000;" onclick="VendorLogic.captureAndDownloadResult('OPERATOR_${data.vendor_id}')">EXPORT_ID</button>
-                    <button class="btn-ghost auto w-full" style="padding: 0.5rem; border-radius: 8px; font-size: 0.6rem; opacity: 0.4;" onclick="this.closest('.quick-action-overlay').remove()">DISMISS</button>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; width: 100%; box-sizing: border-box;">
+                    <button class="btn-cta" style="
+                        padding: 0.85rem;
+                        border-radius: 14px;
+                        font-size: 0.72rem;
+                        font-weight: 950;
+                        background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
+                        color: #000;
+                        border: none;
+                        letter-spacing: 0.05em;
+                        box-shadow: 0 8px 20px rgba(217, 119, 6, 0.35);
+                        cursor: pointer;
+                        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+                        font-family: var(--font-mono);
+                    " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 12px 25px rgba(217, 119, 6, 0.55)';" onmouseout="this.style.transform='none'; this.style.boxShadow='0 8px 20px rgba(217, 119, 6, 0.35)';" onclick="VendorLogic.captureAndDownloadResult('OPERATOR_${data.vendor_id}')">
+                        DOWNLOAD_ID
+                    </button>
+                    <button class="btn-ghost auto" style="
+                        padding: 0.85rem;
+                        border-radius: 14px;
+                        font-size: 0.72rem;
+                        font-weight: 950;
+                        background: rgba(255,255,255,0.02);
+                        color: #fbbf24;
+                        border: 1.5px solid rgba(251, 191, 36, 0.35);
+                        letter-spacing: 0.05em;
+                        cursor: pointer;
+                        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+                        font-family: var(--font-mono);
+                    " onmouseover="this.style.transform='translateY(-2px)'; this.style.background='rgba(251, 191, 36, 0.1)'; this.style.borderColor='#fbbf24';" onmouseout="this.style.transform='none'; this.style.background='rgba(255,255,255,0.02)'; this.style.borderColor='rgba(251, 191, 36, 0.35)';" onclick="this.closest('.quick-action-overlay').remove()">
+                        CLOSE
+                    </button>
                 </div>
             </div>
         `;
@@ -439,30 +591,97 @@ const VendorLogic = {
         const area = document.getElementById('captureArea');
         if (!area) return window.notify('SYSTEM_NOT_READY', 'error');
 
-        try {
-            if (window.html2canvas) {
-                // Remove mouse move tilt before capture for clean export
-                const originalTransform = area.style.transform;
-                area.style.transform = 'none';
-                
-                const canvas = await html2canvas(area, {
-                    backgroundColor: '#020617',
-                    scale: 3, // Higher scale for premium look
-                    useCORS: true,
-                    borderRadius: 40
-                });
-                
-                // Restore tilt
-                area.style.transform = originalTransform;
+        if (!window.html2canvas) {
+            return window.notify('ENGINE_FALLBACK_ACTIVE', 'warning');
+        }
 
-                const link = document.createElement('a');
-                link.download = `AXP_CARD_${code}.png`;
-                link.href = canvas.toDataURL('image/png', 1.0);
-                link.click();
-            } else {
-                // Minimal fallback
-                window.notify('ENGINE_FALLBACK_ACTIVE', 'warning');
-            }
+        try {
+            // --- Compute the natural card dimensions ---
+            const rect = area.getBoundingClientRect();
+            const cardW = Math.round(rect.width);
+            const cardH = Math.round(rect.height);
+            const EXPORT_SCALE = 3; // 3x for crisp retina-quality output
+
+            // --- Build an off-screen host that exactly matches the card size ---
+            const host = document.createElement('div');
+            host.style.cssText = `
+                position: fixed;
+                left: -99999px;
+                top: 0;
+                width: ${cardW}px;
+                height: ${cardH}px;
+                overflow: visible;
+                z-index: -1;
+                pointer-events: none;
+                background: #020617;
+            `;
+
+            // --- Deep-clone the card and scrub all motion / transform state ---
+            const clone = area.cloneNode(true);
+            clone.style.cssText = `
+                width: ${cardW}px;
+                height: ${cardH}px;
+                border-radius: 24px;
+                overflow: hidden;
+                position: relative;
+                transform: none !important;
+                animation: none !important;
+                transition: none !important;
+                box-sizing: border-box;
+                /* preserve original card visuals */
+                ${area.getAttribute('style') || ''}
+                transform: none !important;
+                animation: none !important;
+            `;
+
+            // Freeze all descendant animations & transforms
+            clone.querySelectorAll('*').forEach(el => {
+                el.style.animation = 'none';
+                el.style.transition = 'none';
+                el.style.transform = 'none';
+                // Freeze animated background-position (shimmer)
+                const cs = window.getComputedStyle(el);
+                if (cs.backgroundImage && cs.backgroundImage.includes('gradient')) {
+                    el.style.backgroundPosition = '0% 0%';
+                }
+            });
+
+            // Inject a minimal style block to kill @keyframes within this clone
+            const styleKill = document.createElement('style');
+            styleKill.textContent = `
+                * { animation: none !important; transition: none !important; }
+            `;
+            clone.prepend(styleKill);
+
+            host.appendChild(clone);
+            document.body.appendChild(host);
+
+            // Allow one paint tick so the DOM settles
+            await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+
+            const canvas = await html2canvas(clone, {
+                backgroundColor: '#020617',
+                scale: EXPORT_SCALE,
+                useCORS: true,
+                allowTaint: true,
+                width: cardW,
+                height: cardH,
+                windowWidth: cardW,
+                windowHeight: cardH,
+                scrollX: 0,
+                scrollY: 0,
+                x: 0,
+                y: 0,
+                logging: false,
+            });
+
+            document.body.removeChild(host);
+
+            const link = document.createElement('a');
+            link.download = `AXP_CARD_${code}.png`;
+            link.href = canvas.toDataURL('image/png', 1.0);
+            link.click();
+
             window.notify('PREMIUM_CARD_EXPORTED', 'success');
         } catch (e) {
             window.notify('EXPORT_FAILED', 'error');
