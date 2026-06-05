@@ -294,9 +294,22 @@
 
             const EXPORT_SCALE = 3;
 
-            // Measure the natural card size before touching anything
+            // The shareCaptureArea lives inside a display:none shell.
+            // We need to make the shell temporarily visible (off-screen) so the
+            // browser computes real layout dimensions before we clone.
+            const shell = area.closest('.share-card-export-shell') || area.parentElement;
+            const shellWasHidden = shell && getComputedStyle(shell).display === 'none';
+            if (shellWasHidden) {
+                shell.style.cssText += ';position:fixed!important;left:-99999px!important;top:0!important;display:block!important;visibility:visible!important;';
+            }
+
+            // Allow layout to compute
+            await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+
             const rect = area.getBoundingClientRect();
-            const cardW = Math.max(Math.round(rect.width), area.scrollWidth, 320);
+            // Prefer explicit inline width (860px on shareCaptureArea), fall back to measured
+            const inlineW = parseInt(area.style.width) || 0;
+            const cardW = Math.max(inlineW, Math.round(rect.width), area.scrollWidth, 320);
             const cardH = Math.max(Math.round(rect.height), area.scrollHeight, 200);
 
             // Build an off-screen host
@@ -374,6 +387,14 @@
                 link.click();
             } finally {
                 document.body.removeChild(host);
+                // Restore shell to hidden state
+                if (shellWasHidden && shell) {
+                    shell.style.position = '';
+                    shell.style.left = '';
+                    shell.style.top = '';
+                    shell.style.display = 'none';
+                    shell.style.visibility = '';
+                }
             }
             return;
         }

@@ -689,7 +689,7 @@
       const btn = document.getElementById('downloadCardBtn');
       const container = document.getElementById('vendorCardContainer');
       const vid = document.getElementById('cardVendorId').textContent;
-      
+
       btn.textContent = 'GENERATING_IMAGE...';
       btn.disabled = true;
 
@@ -698,15 +698,82 @@
           throw new Error('Image generator library is still loading. Please try again in a moment.');
         }
 
-        const canvas = await html2canvas(container, {
-          backgroundColor: '#0a0a0f',
-          scale: 2, // High resolution
-          logging: false
+        const EXPORT_SCALE = 3;
+
+        // Measure natural card dimensions
+        const rect = container.getBoundingClientRect();
+        const cardW = Math.max(Math.round(rect.width), container.scrollWidth, 280);
+        const cardH = Math.max(Math.round(rect.height), container.scrollHeight, 200);
+
+        // Off-screen host
+        const host = document.createElement('div');
+        host.style.cssText = `
+          position: fixed;
+          left: -99999px;
+          top: 0;
+          width: ${cardW}px;
+          height: ${cardH}px;
+          overflow: visible;
+          z-index: -1;
+          pointer-events: none;
+          background: #0a0a0f;
+        `;
+
+        // Deep-clone the card
+        const clone = container.cloneNode(true);
+        clone.style.cssText = `
+          width: ${cardW}px;
+          height: ${cardH}px;
+          overflow: hidden;
+          position: relative;
+          transform: none !important;
+          animation: none !important;
+          transition: none !important;
+          box-sizing: border-box;
+          ${container.getAttribute('style') || ''}
+          transform: none !important;
+          animation: none !important;
+        `;
+
+        // Freeze all descendant animations & transforms
+        clone.querySelectorAll('*').forEach(el => {
+          el.style.animation = 'none';
+          el.style.transition = 'none';
+          el.style.transform = 'none';
         });
+
+        // Kill @keyframes within clone
+        const styleKill = document.createElement('style');
+        styleKill.textContent = `* { animation: none !important; transition: none !important; }`;
+        clone.prepend(styleKill);
+
+        host.appendChild(clone);
+        document.body.appendChild(host);
+
+        // Let DOM settle
+        await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+
+        const canvas = await html2canvas(clone, {
+          backgroundColor: '#0a0a0f',
+          scale: EXPORT_SCALE,
+          useCORS: true,
+          allowTaint: true,
+          logging: false,
+          width: cardW,
+          height: cardH,
+          windowWidth: cardW,
+          windowHeight: cardH,
+          scrollX: 0,
+          scrollY: 0,
+          x: 0,
+          y: 0,
+        });
+
+        document.body.removeChild(host);
 
         const link = document.createElement('a');
         link.download = `AXP_NODE_${vid}.png`;
-        link.href = canvas.toDataURL('image/png');
+        link.href = canvas.toDataURL('image/png', 1.0);
         link.click();
 
         btn.textContent = 'DOWNLOAD_SUCCESSFUL';
