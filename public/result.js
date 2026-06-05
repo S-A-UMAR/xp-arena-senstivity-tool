@@ -240,12 +240,12 @@
         document.getElementById('shareLogo').src = details.logo;
         document.getElementById('shareFooterLogo').src = details.logo;
         document.getElementById('shareDevicePreview').src = details.logo;
-        document.getElementById('shareUtc').textContent = `${t('currentUtcLabel', 'CURRENT UTC')}: ${new Date().toISOString().replace('T', ' ').slice(0, 16)} UTC`;
-        document.getElementById('shareExpiry').textContent = `${t('expiryLabel', 'EXPIRY')}: ${details.expiry}`;
+        document.getElementById('shareUtc').textContent = `UTC: ${new Date().toISOString().slice(0,16).replace('T',' ')}`;
+        document.getElementById('shareExpiry').textContent = `EXP: ${details.expiry}`;
         document.getElementById('shareEfficiencyBar').style.width = `${details.efficiency}%`;
-        document.getElementById('shareEfficiencyLabel').textContent = `${t('profileEfficiencyText', 'PROFILE_EFFICIENCY')}: ${details.efficiency}%`;
+        document.getElementById('shareEfficiencyLabel').textContent = `EFFICIENCY: ${details.efficiency}%`;
         document.getElementById('shareDeviceModel').textContent = details.model;
-        document.getElementById('shareCreatorName').textContent = `${t('unitIdLabel', 'UNIT_ID')}: ${details.creator}`;
+        document.getElementById('shareCreatorName').textContent = `OPERATOR: ${details.creator}`;
         document.getElementById('shareAccessCode').textContent = details.code;
         document.getElementById('shareGeneral').textContent = details.general;
         document.getElementById('shareRedDot').textContent = details.redDot;
@@ -255,8 +255,8 @@
         document.getElementById('shareFreeLook').textContent = details.freeLook;
         document.getElementById('shareDpi').textContent = details.dpi;
         document.getElementById('shareFireButton').textContent = details.fireButton;
-        document.getElementById('shareAdvice').textContent = `${t('settingsByLabel', 'SETTINGS_BY')} ${details.creator}: ${details.advice}`;
-        document.getElementById('shareVerified').textContent = `${t('verifiedLabel', 'VERIFIED')} ${details.efficiency}%`;
+        document.getElementById('shareAdvice').textContent = details.advice || 'OPTIMIZED FOR COMPETITIVE PLAY';
+        document.getElementById('shareVerified').textContent = `\u2713 VERIFIED ${details.efficiency}%`;
     }
 
     function formatAccessCode(vendor, code) {
@@ -291,152 +291,266 @@
         if (window.html2canvas) {
             const area = document.getElementById('shareCaptureArea');
             if (!area) throw new Error('CAPTURE_AREA_NOT_FOUND');
-            
-            // Temporary styles to ensure clean capture
+
+            // Detach from hidden parent so html2canvas can render it
+            const originalParent = area.parentNode;
+            const originalNextSibling = area.nextSibling;
             const originalStyle = area.getAttribute('style') || '';
-            area.style.transform = 'none';
-            area.style.position = 'fixed';
-            area.style.top = '-9999px';
-            area.style.left = '-9999px';
-            area.style.display = 'block';
-            
+
+            // Move to body, off-screen but visible
+            document.body.appendChild(area);
+            area.style.cssText = `
+                position: fixed !important;
+                top: -9999px !important;
+                left: -9999px !important;
+                display: block !important;
+                visibility: visible !important;
+                opacity: 1 !important;
+                pointer-events: none !important;
+                z-index: -1 !important;
+                transform: none !important;
+            `;
+
             try {
-                const canvas = await window.html2canvas(area, { 
-                    scale: 2, 
-                    backgroundColor: '#0b1421',
+                const canvas = await window.html2canvas(area, {
+                    scale: 2,
+                    backgroundColor: '#070d1a',
                     useCORS: true,
                     allowTaint: true,
-                    logging: false
+                    logging: false,
+                    windowWidth: area.scrollWidth,
+                    windowHeight: area.scrollHeight
                 });
-                
+
                 const link = document.createElement('a');
                 link.download = filename;
                 link.href = canvas.toDataURL('image/png', 1.0);
                 link.click();
             } finally {
+                // Restore original position
                 area.setAttribute('style', originalStyle);
+                if (originalParent) {
+                    if (originalNextSibling) {
+                        originalParent.insertBefore(area, originalNextSibling);
+                    } else {
+                        originalParent.appendChild(area);
+                    }
+                }
             }
             return;
         }
 
+        // === PREMIUM CANVAS FALLBACK: Master Key Card ===
+        const W = 1200, H = 900;
         const canvas = document.createElement('canvas');
-        canvas.width = 1600;
-        canvas.height = 1600;
+        canvas.width = W;
+        canvas.height = H;
         const ctx = canvas.getContext('2d');
         if (!ctx) throw new Error('CARD_EXPORT_UNAVAILABLE');
 
-        ctx.fillStyle = '#09131c';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        const drawRoundedRect = (x, y, w, h, r, fill, stroke = null) => {
+        const drawRR = (x, y, w, h, r, fill, strokeClr = null, strokeW = 1) => {
             ctx.beginPath();
             ctx.moveTo(x + r, y);
-            ctx.lineTo(x + w - r, y);
-            ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-            ctx.lineTo(x + w, y + h - r);
-            ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-            ctx.lineTo(x + r, y + h);
-            ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-            ctx.lineTo(x, y + r);
-            ctx.quadraticCurveTo(x, y, x + r, y);
+            ctx.arcTo(x + w, y, x + w, y + h, r);
+            ctx.arcTo(x + w, y + h, x, y + h, r);
+            ctx.arcTo(x, y + h, x, y, r);
+            ctx.arcTo(x, y, x + w, y, r);
             ctx.closePath();
-            ctx.fillStyle = fill;
-            ctx.fill();
-            if (stroke) {
-                ctx.strokeStyle = stroke;
-                ctx.lineWidth = 2;
-                ctx.stroke();
-            }
+            if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+            if (strokeClr) { ctx.strokeStyle = strokeClr; ctx.lineWidth = strokeW; ctx.stroke(); }
         };
 
-        drawRoundedRect(26, 26, 1548, 1548, 42, '#0b1722', '#152635');
-        drawRoundedRect(42, 42, 1516, 1516, 36, '#0c1824', '#132434');
+        // Background – deep dark with subtle blue tint
+        const bg = ctx.createLinearGradient(0, 0, W, H);
+        bg.addColorStop(0, '#050a14');
+        bg.addColorStop(1, '#08101f');
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, W, H);
 
-        ctx.fillStyle = '#f4f7fb';
-        ctx.font = '700 64px "JetBrains Mono", monospace';
-        ctx.fillText('AXP HUB', 225, 105);
-        ctx.fillStyle = '#90a4b7';
-        ctx.font = '600 24px "JetBrains Mono", monospace';
-        ctx.fillText('PREMIUM SHARE CARD', 225, 165);
+        // Glowing orb top-right
+        const orb = ctx.createRadialGradient(W - 120, 120, 0, W - 120, 120, 300);
+        orb.addColorStop(0, 'rgba(255,180,0,0.18)');
+        orb.addColorStop(0.5, 'rgba(0,229,255,0.06)');
+        orb.addColorStop(1, 'transparent');
+        ctx.fillStyle = orb;
+        ctx.fillRect(0, 0, W, H);
 
+        // Outer card border
+        drawRR(12, 12, W - 24, H - 24, 28, null, 'rgba(255,180,0,0.4)', 1.5);
+        drawRR(16, 16, W - 32, H - 32, 24, null, 'rgba(0,229,255,0.08)', 1);
+
+        // Subtle grid lines
+        ctx.strokeStyle = 'rgba(255,255,255,0.025)';
+        ctx.lineWidth = 1;
+        for (let x = 40; x < W; x += 60) {
+            ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
+        }
+        for (let y = 40; y < H; y += 60) {
+            ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+        }
+
+        // === HEADER SECTION ===
+        // Gold key icon area (top-left)
+        drawRR(36, 36, 72, 72, 16, 'rgba(255,180,0,0.12)', 'rgba(255,180,0,0.5)', 1.5);
+        ctx.font = 'bold 36px serif';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = '#ffd700';
+        ctx.fillText('🔑', 72, 84);
+
+        ctx.textAlign = 'left';
+        ctx.font = 'bold 28px "Courier New", monospace';
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText('AXP_NEXUS', 124, 65);
+        ctx.font = '13px "Courier New", monospace';
+        ctx.fillStyle = 'rgba(255,180,0,0.9)';
+        ctx.fillText('MASTER CALIBRATION CARD', 124, 90);
+
+        // Right side UTC / expiry
         ctx.textAlign = 'right';
-        ctx.fillStyle = '#dce7f2';
-        ctx.font = '600 26px "JetBrains Mono", monospace';
-        ctx.fillText(`${t('currentUtcLabel', 'CURRENT UTC')}: ${new Date().toISOString().replace('T', ' ').slice(0, 16)} UTC`, 1510, 105);
-        ctx.fillText(`${t('expiryLabel', 'EXPIRY')}: ${details.expiry}`, 1510, 155);
-        drawRoundedRect(890, 185, 620, 26, 13, '#213547');
-        const efficiencyWidth = Math.max(0, Math.min(620, (620 * (details.efficiency || 0)) / 100));
-        drawRoundedRect(890, 185, efficiencyWidth, 26, 13, '#6fd9ff');
-        ctx.fillText(`${t('profileEfficiencyText', 'PROFILE_EFFICIENCY')}: ${details.efficiency}%`, 1510, 255);
+        ctx.font = '12px "Courier New", monospace';
+        ctx.fillStyle = 'rgba(255,255,255,0.4)';
+        ctx.fillText(`UTC: ${new Date().toISOString().slice(0, 16).replace('T',' ')}`, W - 36, 60);
+        ctx.fillText(`EXP: ${details.expiry}`, W - 36, 80);
+
+        // Efficiency bar
+        const effX = W - 260, effY = 94, effW = 220, effH = 6;
+        drawRR(effX, effY, effW, effH, 3, 'rgba(255,255,255,0.08)');
+        const effFill = ctx.createLinearGradient(effX, effY, effX + effW, effY);
+        effFill.addColorStop(0, '#ffd700');
+        effFill.addColorStop(1, '#00e5ff');
+        ctx.fillStyle = effFill;
+        drawRR(effX, effY, effW * (details.efficiency / 100), effH, 3, effFill);
+        ctx.font = '11px "Courier New", monospace';
+        ctx.fillStyle = 'rgba(255,255,255,0.35)';
+        ctx.fillText(`EFFICIENCY: ${details.efficiency}%`, W - 36, 116);
         ctx.textAlign = 'left';
 
-        drawRoundedRect(84, 296, 1432, 294, 36, '#1a2938', '#24384c');
-        drawRoundedRect(90, 332, 208, 220, 28, '#ffffff', '#dce8f4');
-        ctx.fillStyle = '#95aabd';
-        ctx.font = '600 24px "JetBrains Mono", monospace';
-        ctx.fillText('DEVICE_PROFILE', 326, 390);
-        ctx.fillStyle = '#ffffff';
-        ctx.font = '700 62px "JetBrains Mono", monospace';
-        ctx.fillText(details.model, 326, 468);
-        ctx.font = '600 34px "JetBrains Mono", monospace';
-        ctx.fillText(`${t('unitIdLabel', 'UNIT_ID')}: ${details.creator}`, 326, 530);
+        // Divider
+        const divGrad = ctx.createLinearGradient(36, 0, W - 36, 0);
+        divGrad.addColorStop(0, 'transparent');
+        divGrad.addColorStop(0.2, 'rgba(255,180,0,0.5)');
+        divGrad.addColorStop(0.8, 'rgba(0,229,255,0.3)');
+        divGrad.addColorStop(1, 'transparent');
+        ctx.strokeStyle = divGrad;
+        ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(36, 128); ctx.lineTo(W - 36, 128); ctx.stroke();
 
-        drawRoundedRect(84, 626, 1432, 168, 30, '#1d2d3d', '#26394d');
-        ctx.fillStyle = '#8ea2b6';
-        ctx.font = '600 22px "JetBrains Mono", monospace';
-        ctx.fillText('ACCESS_CODE', 120, 684);
-        ctx.fillStyle = '#ffffff';
-        ctx.font = '700 42px "JetBrains Mono", monospace';
-        ctx.fillText(details.code, 120, 748);
-        drawRoundedRect(1218, 676, 282, 70, 35, '#1f423c', '#2b5f57');
-        ctx.fillStyle = '#8cf1ca';
-        ctx.font = '600 24px "JetBrains Mono", monospace';
-        ctx.fillText(t('syncedProfile', 'SYNCED_PROFILE'), 1260, 722);
+        // === DEVICE + CREATOR ZONE ===
+        drawRR(36, 140, W - 72, 115, 18, 'rgba(255,255,255,0.03)', 'rgba(255,180,0,0.15)', 1);
 
-        const cards = [
-            { x: 84, y: 822, title: 'GENERAL_SENS', value: details.general, trend: details.trendGeneral, icon: '↑', accent: '#8ff0cf' },
-            { x: 816, y: 822, title: 'RED_DOT \\ 2X \\ 4X', value: `${details.redDot}\\${details.scope2x}\\${details.scope4x}`, trend: details.trendRed, icon: '↑', accent: '#ff8ca0' },
-            { x: 84, y: 1102, title: 'SNIPER \\ FREE_LOOK', value: `${details.sniper} \\ ${details.freeLook}`, trend: details.trendScope, icon: '↘', accent: '#87dfff' },
-            { x: 816, y: 1102, title: 'DPI \\ FIRE_BUTTON', value: `${details.dpi} \\ ${details.fireButton}`, trend: 'TREND: LIVE_SYNCED', icon: '◎', accent: '#9df0e1' }
+        // Device icon frame
+        drawRR(52, 155, 80, 80, 14, 'rgba(255,180,0,0.08)', 'rgba(255,180,0,0.3)', 1);
+        ctx.font = 'bold 32px serif';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = 'rgba(255,180,0,0.8)';
+        ctx.fillText('📱', 92, 202);
+
+        ctx.textAlign = 'left';
+        ctx.font = '11px "Courier New", monospace';
+        ctx.fillStyle = 'rgba(255,255,255,0.35)';
+        ctx.fillText('UNIT_MODEL', 148, 172);
+        ctx.font = 'bold 22px "Courier New", monospace';
+        ctx.fillStyle = '#ffffff';
+        const modelDisplay = details.model.length > 22 ? details.model.slice(0, 22) + '…' : details.model;
+        ctx.fillText(modelDisplay, 148, 200);
+        ctx.font = '13px "Courier New", monospace';
+        ctx.fillStyle = 'rgba(0,229,255,0.9)';
+        ctx.fillText(`OPERATOR: ${details.creator}`, 148, 224);
+
+        // === ACCESS TOKEN STRIP ===
+        const tokenGrad = ctx.createLinearGradient(36, 270, W - 36, 270);
+        tokenGrad.addColorStop(0, 'rgba(255,180,0,0.22)');
+        tokenGrad.addColorStop(1, 'rgba(0,229,255,0.10)');
+        drawRR(36, 268, W - 72, 60, 14, tokenGrad, 'rgba(255,180,0,0.5)', 1);
+
+        ctx.font = '11px "Courier New", monospace';
+        ctx.fillStyle = 'rgba(0,0,0,0.5)';
+        ctx.fillText('ACCESS_TOKEN', 60, 292);
+        ctx.font = 'bold 24px "Courier New", monospace';
+        const codeGrad = ctx.createLinearGradient(60, 300, 400, 300);
+        codeGrad.addColorStop(0, '#ffd700');
+        codeGrad.addColorStop(1, '#00e5ff');
+        ctx.fillStyle = codeGrad;
+        ctx.fillText(details.code, 60, 316);
+
+        ctx.textAlign = 'right';
+        drawRR(W - 200, 276, 148, 42, 21, 'rgba(0,229,255,0.12)', 'rgba(0,229,255,0.4)', 1);
+        ctx.font = 'bold 11px "Courier New", monospace';
+        ctx.fillStyle = '#00e5ff';
+        ctx.fillText('✓ SYNCED_PROFILE', W - 60, 303);
+        ctx.textAlign = 'left';
+
+        // === STATS GRID (8 tiles, 4x2) ===
+        const stats = [
+            { label: 'GENERAL_SENS', val: details.general, icon: '↑', clr: '#00e5ff' },
+            { label: 'RED_DOT', val: details.redDot, icon: '🔴', clr: '#ff6b8a' },
+            { label: '2X_SCOPE', val: details.scope2x, icon: '↑', clr: '#a78bfa' },
+            { label: '4X_SCOPE', val: details.scope4x, icon: '↑', clr: '#a78bfa' },
+            { label: 'SNIPER', val: details.sniper, icon: '↘', clr: '#ffd700' },
+            { label: 'FREE_LOOK', val: details.freeLook, icon: '↗', clr: '#34d399' },
+            { label: 'DPI', val: details.dpi, icon: '◎', clr: '#00e5ff' },
+            { label: 'FIRE_BTN', val: details.fireButton, icon: '✦', clr: '#f97316' }
         ];
+        const cols = 4, rows = 2;
+        const tileW = (W - 72 - (cols - 1) * 12) / cols;
+        const tileH = 116;
+        const gridStartX = 36, gridStartY = 345;
 
-        cards.forEach((card) => {
-            drawRoundedRect(card.x, card.y, 700, 212, 30, '#101820', '#1b2d40');
-            ctx.fillStyle = '#91a7bc';
-            ctx.font = '600 24px "JetBrains Mono", monospace';
-            ctx.fillText(card.title, card.x + 36, card.y + 56);
-            
-            let fontSize = 74;
-            if (card.value.length > 20) fontSize = 36;
-            else if (card.value.length > 12) fontSize = 50;
+        stats.forEach((s, i) => {
+            const col = i % cols, row = Math.floor(i / cols);
+            const tx = gridStartX + col * (tileW + 12);
+            const ty = gridStartY + row * (tileH + 12);
+            drawRR(tx, ty, tileW, tileH, 14, 'rgba(255,255,255,0.03)', 'rgba(255,255,255,0.08)', 1);
 
+            // Subtle accent top border
+            ctx.strokeStyle = s.clr;
+            ctx.globalAlpha = 0.5;
+            ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.moveTo(tx + 14, ty); ctx.lineTo(tx + tileW - 14, ty); ctx.stroke();
+            ctx.globalAlpha = 1;
+
+            ctx.font = '10px "Courier New", monospace';
+            ctx.fillStyle = 'rgba(255,255,255,0.35)';
+            ctx.fillText(s.label, tx + 14, ty + 22);
+
+            ctx.font = `bold ${String(s.val).length > 6 ? 20 : 28}px "Courier New", monospace`;
             ctx.fillStyle = '#ffffff';
-            ctx.font = `700 ${fontSize}px "JetBrains Mono", monospace`;
-            ctx.fillText(card.value, card.x + 36, card.y + 150);
-            
-            ctx.fillStyle = '#96a9bc';
-            ctx.font = '600 24px "JetBrains Mono", monospace';
-            ctx.fillText(card.trend, card.x + 36, card.y + 196);
-            ctx.fillStyle = card.accent;
-            ctx.font = '700 56px "JetBrains Mono", monospace';
-            ctx.fillText(card.icon, card.x + 620, card.y + 90);
+            ctx.fillText(String(s.val || '--'), tx + 14, ty + 64);
+
+            ctx.textAlign = 'right';
+            ctx.font = 'bold 22px serif';
+            ctx.fillStyle = s.clr;
+            ctx.fillText(s.icon, tx + tileW - 14, ty + 40);
+            ctx.textAlign = 'left';
+
+            ctx.font = '9px "Courier New", monospace';
+            ctx.fillStyle = s.clr;
+            ctx.globalAlpha = 0.7;
+            ctx.fillText('● LIVE', tx + 14, ty + tileH - 14);
+            ctx.globalAlpha = 1;
         });
 
-        drawRoundedRect(84, 1380, 1432, 156, 30, '#111b24', '#203344');
-        ctx.fillStyle = '#90a4b7';
-        ctx.font = '600 22px "JetBrains Mono", monospace';
-        ctx.fillText(t('settingsByLabel', 'SETTINGS BY'), 298, 1444);
-        ctx.fillStyle = '#ffffff';
-        ctx.font = '600 34px "JetBrains Mono", monospace';
-        ctx.fillText(`${t('settingsByLabel', 'SETTINGS BY')} ${details.creator}: ${details.advice}`, 298, 1496);
-        drawRoundedRect(1240, 1434, 228, 72, 36, '#173b36', '#295f57');
-        ctx.fillStyle = '#8af0c7';
-        ctx.font = '600 24px "JetBrains Mono", monospace';
-        ctx.fillText(`${t('verifiedLabel', 'VERIFIED')} ${details.efficiency}%`, 1274, 1480);
+        // === FOOTER ===
+        const footerY = gridStartY + rows * (tileH + 12) + 8;
+        drawRR(36, footerY, W - 72, 52, 14, 'rgba(255,255,255,0.025)', 'rgba(255,255,255,0.06)', 1);
+        ctx.font = '10px "Courier New", monospace';
+        ctx.fillStyle = 'rgba(255,255,255,0.3)';
+        ctx.fillText('OPERATOR_ADVICE:', 56, footerY + 20);
+        ctx.font = 'bold 12px "Courier New", monospace';
+        ctx.fillStyle = 'rgba(255,255,255,0.8)';
+        const adviceShort = (details.advice || 'OPTIMIZED FOR COMPETITIVE PLAY').slice(0, 70);
+        ctx.fillText(adviceShort, 56, footerY + 39);
+
+        ctx.textAlign = 'right';
+        drawRR(W - 190, footerY + 8, 142, 34, 17, 'rgba(0,229,255,0.1)', 'rgba(0,229,255,0.4)', 1);
+        ctx.font = 'bold 11px "Courier New", monospace';
+        ctx.fillStyle = '#00e5ff';
+        ctx.fillText(`✓ VERIFIED ${details.efficiency}%`, W - 56, footerY + 30);
+        ctx.textAlign = 'left';
 
         const link = document.createElement('a');
         link.download = filename;
-        link.href = canvas.toDataURL('image/png');
+        link.href = canvas.toDataURL('image/png', 1.0);
         link.click();
     }
 

@@ -15,45 +15,76 @@
   <link rel="stylesheet" href="mobile-polish.css">
   <link rel="stylesheet" href="result.css">
   <style>
-    /* Page-specific profile card refinements */
+    /* ── MASTER KEY CARD — Premium Redesign ── */
     .hologram-card {
       position: relative;
-      background: var(--bg-surface);
-      border: 1px solid var(--violet-border);
+      background: linear-gradient(160deg, #070d1c 0%, #090f1e 60%, #07101f 100%);
+      border: 1.5px solid rgba(255, 180, 0, 0.45);
       border-radius: var(--r-xl);
       padding: 0;
       overflow: hidden;
-      box-shadow: 0 30px 80px rgba(0,0,0,0.6);
+      box-shadow:
+        0 0 0 1px rgba(255,180,0,0.12),
+        0 0 40px rgba(255,180,0,0.07),
+        0 40px 100px rgba(0,0,0,0.75);
       font-family: var(--font-mono);
       animation: scaleIn 0.8s var(--ease) both;
     }
 
-    /* Holographic shimmer effect */
+    /* Subtle dot-grid overlay */
+    .hologram-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px);
+      background-size: 28px 28px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Gold shimmer sweep */
     .hologram-card::after {
       content: '';
       position: absolute;
       inset: 0;
       background: linear-gradient(
         135deg,
-        rgba(255, 255, 255, 0) 0%,
-        rgba(255, 255, 255, 0) 45%,
-        rgba(255, 255, 255, 0.05) 50%,
-        rgba(255, 255, 255, 0) 55%,
-        rgba(255, 255, 255, 0) 100%
+        transparent 0%,
+        transparent 40%,
+        rgba(255, 200, 60, 0.06) 50%,
+        rgba(0, 229, 255, 0.03) 55%,
+        transparent 65%,
+        transparent 100%
       );
-      background-size: 250% 250%;
-      animation: holoPulse 5s infinite linear;
+      background-size: 300% 300%;
+      animation: holoPulse 6s infinite linear;
       pointer-events: none;
+      z-index: 1;
+    }
+
+    /* Gold top shimmer stripe */
+    .hologram-card > *:first-child {
+      position: relative;
+      z-index: 2;
+    }
+
+    /* Gold top edge line */
+    .hologram-card .card-gold-edge {
+      height: 2.5px;
+      background: linear-gradient(90deg, transparent, #ffd700, #00e5ff, #ffd700, transparent);
     }
 
     .card-meta-top {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      padding: 1.5rem;
-      background: rgba(168, 85, 247, 0.04);
-      border-bottom: 1px solid var(--bd-subtle);
+      padding: 1.25rem 1.5rem;
+      background: rgba(255, 180, 0, 0.04);
+      border-bottom: 1px solid rgba(255, 180, 0, 0.12);
       gap: 1rem;
+      position: relative;
+      z-index: 2;
     }
 
     .brand-id {
@@ -64,13 +95,14 @@
     .brand-logo-frame {
       width: 44px;
       height: 44px;
-      background: #fff;
+      background: rgba(255, 180, 0, 0.1);
+      border: 1.5px solid rgba(255, 180, 0, 0.4);
       border-radius: 12px;
-      padding: 4px;
+      padding: 6px;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 0 20px rgba(168, 85, 247, 0.2);
+      box-shadow: 0 0 18px rgba(255, 180, 0, 0.15);
     }
     .brand-logo-frame img {
       width: 100%;
@@ -79,15 +111,15 @@
     }
     .brand-text .primary {
       font-size: 1.1rem;
-      font-weight: 800;
+      font-weight: 900;
       color: var(--tx-hero);
-      letter-spacing: 0.05em;
+      letter-spacing: 0.06em;
     }
     .brand-text .secondary {
-      font-size: 0.6rem;
+      font-size: 0.55rem;
       font-weight: 700;
-      color: var(--tx-muted);
-      letter-spacing: 0.1em;
+      color: rgba(255, 180, 0, 0.7);
+      letter-spacing: 0.15em;
       text-transform: uppercase;
     }
 
@@ -102,7 +134,7 @@
     .eff-bar-wrap {
       width: 110px;
       height: 4px;
-      background: rgba(255,255,255,0.05);
+      background: rgba(255,255,255,0.06);
       border-radius: 2px;
       margin: 0.4rem 0 0.2rem auto;
       overflow: hidden;
@@ -110,21 +142,23 @@
     .eff-bar-fill {
       display: block;
       height: 100%;
-      background: linear-gradient(90deg, var(--violet), var(--cyan));
+      background: linear-gradient(90deg, #ffd700, #00e5ff);
       width: 0%;
       transition: width 1.5s var(--ease);
     }
 
     .device-zone {
-      padding: 1.5rem;
+      padding: 1.25rem 1.5rem;
       background: rgba(255,255,255,0.02);
-      border-bottom: 1px solid var(--bd-subtle);
+      border-bottom: 1px solid rgba(255, 180, 0, 0.08);
+      position: relative;
+      z-index: 2;
     }
     .device-header {
-      font-size: 0.6rem;
+      font-size: 0.55rem;
       font-weight: 800;
-      color: var(--tx-muted);
-      letter-spacing: 0.12em;
+      color: rgba(255, 180, 0, 0.6);
+      letter-spacing: 0.18em;
       text-transform: uppercase;
       margin-bottom: 0.75rem;
     }
@@ -134,9 +168,10 @@
       gap: 1.25rem;
     }
     .device-preview-frame {
-      width: 72px;
-      height: 72px;
-      background: #fff;
+      width: 68px;
+      height: 68px;
+      background: rgba(255, 180, 0, 0.07);
+      border: 1px solid rgba(255, 180, 0, 0.25);
       border-radius: 16px;
       padding: 6px;
       flex-shrink: 0;
@@ -144,7 +179,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 0 15px rgba(0,0,0,0.3);
+      box-shadow: 0 0 20px rgba(255, 180, 0, 0.1);
     }
     .device-preview-frame img {
       width: 100%;
@@ -152,8 +187,8 @@
       object-fit: contain;
     }
     .device-info-main .model {
-      font-size: 1.4rem;
-      font-weight: 800;
+      font-size: 1.35rem;
+      font-weight: 900;
       color: var(--tx-hero);
       line-height: 1.1;
       letter-spacing: -0.01em;
@@ -161,30 +196,44 @@
     }
     .device-info-main .operator {
       font-size: 0.65rem;
-      font-weight: 600;
-      color: var(--tx-muted);
-      letter-spacing: 0.05em;
+      font-weight: 700;
+      color: #00e5ff;
+      letter-spacing: 0.06em;
+    }
+    .device-info-main .section-eyebrow {
+      font-size: 0.55rem;
+      color: rgba(255,255,255,0.3);
+      letter-spacing: 0.15em;
+      margin-bottom: 4px;
     }
 
+    /* ── Access Token Strip — Gold gradient ── */
     .code-zone {
-      padding: 1rem 1.5rem;
-      background: rgba(168, 85, 247, 0.06);
+      padding: 0.9rem 1.5rem;
+      background: linear-gradient(135deg, rgba(255,180,0,0.14) 0%, rgba(0,229,255,0.07) 100%);
+      border: none;
+      border-top: 1px solid rgba(255, 180, 0, 0.2);
+      border-bottom: 1px solid rgba(255, 180, 0, 0.2);
       display: flex;
       justify-content: space-between;
       align-items: center;
-      border-bottom: 1px solid var(--bd-subtle);
+      position: relative;
+      z-index: 2;
     }
     .code-display .label {
-      font-size: 0.55rem;
+      font-size: 0.52rem;
       font-weight: 800;
-      color: var(--violet);
-      letter-spacing: 0.12em;
+      color: rgba(0,0,0,0.4);
+      letter-spacing: 0.18em;
       margin-bottom: 2px;
     }
     .code-display .value {
-      font-size: 1.2rem;
-      font-weight: 800;
-      color: var(--tx-hero);
+      font-size: 1.15rem;
+      font-weight: 900;
+      background: linear-gradient(90deg, #ffd700, #00e5ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
       letter-spacing: 0.08em;
     }
     .code-actions {
@@ -193,84 +242,114 @@
       gap: 10px;
     }
     .code-copy-btn {
-      min-width: 42px;
-      min-height: 42px;
-      border-radius: 12px;
-      border: 1px solid rgba(168, 85, 247, 0.42);
-      background: linear-gradient(145deg, rgba(168, 85, 247, 0.2), rgba(0, 229, 255, 0.08));
-      color: var(--tx-hero);
+      min-width: 40px;
+      min-height: 40px;
+      border-radius: 11px;
+      border: 1px solid rgba(0, 229, 255, 0.4);
+      background: rgba(0, 229, 255, 0.08);
+      color: #00e5ff;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 10px 26px rgba(0, 0, 0, 0.35);
-      transition: transform 0.2s var(--ease), box-shadow 0.2s var(--ease), border-color 0.2s;
+      transition: transform 0.2s, box-shadow 0.2s;
     }
     .code-copy-btn:hover {
       transform: translateY(-1px);
-      border-color: rgba(0, 229, 255, 0.48);
-      box-shadow: 0 16px 30px rgba(0, 0, 0, 0.42);
+      box-shadow: 0 6px 20px rgba(0, 229, 255, 0.2);
     }
 
+    /* ── Stats Hub — Color-coded tiles ── */
     .stats-hub {
       padding: 1rem;
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 0.7rem;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0.6rem;
+      position: relative;
+      z-index: 2;
+    }
+    @media (max-width: 500px) {
+      .stats-hub { grid-template-columns: repeat(2, 1fr); gap: 0.55rem; }
     }
     .stat-module {
-      background: rgba(0,0,0,0.25);
-      border: 1px solid var(--bd-subtle);
-      border-radius: 16px;
-      padding: 0.85rem 0.8rem;
+      background: rgba(0,0,0,0.3);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-top-width: 2px;
+      border-radius: 14px;
+      padding: 0.75rem 0.7rem;
       position: relative;
-      transition: border-color 0.2s;
+      transition: border-color 0.2s, box-shadow 0.2s;
     }
-    .stat-module:hover { border-color: var(--violet-border); }
+    /* Color accent borders per index */
+    .stat-module:nth-child(1) { border-top-color: #00e5ff; }
+    .stat-module:nth-child(2) { border-top-color: #ff6b8a; }
+    .stat-module:nth-child(3) { border-top-color: #a78bfa; }
+    .stat-module:nth-child(4) { border-top-color: #a78bfa; }
+    .stat-module:nth-child(5) { border-top-color: #ffd700; }
+    .stat-module:nth-child(6) { border-top-color: #34d399; }
+    .stat-module:nth-child(7) { border-top-color: #00e5ff; }
+    .stat-module:nth-child(8) { border-top-color: #f97316; }
+
+    .stat-module:hover {
+      border-color: rgba(255,255,255,0.12);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+    }
     .stat-module .label {
-      font-size: 0.55rem;
+      font-size: 0.5rem;
       font-weight: 800;
-      color: var(--tx-muted);
-      margin-bottom: 0.5rem;
+      color: rgba(255,255,255,0.35);
+      margin-bottom: 0.4rem;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.06em;
     }
     .stat-module .value {
-      font-size: 1.25rem;
-      font-weight: 800;
+      font-size: 1.2rem;
+      font-weight: 900;
       color: var(--tx-hero);
-      line-height: 1.2;
+      line-height: 1.1;
     }
     .stat-module .trend {
-      font-size: 0.5rem;
+      font-size: 0.42rem;
       font-weight: 700;
-      color: var(--tx-ghost);
-      margin-top: 6px;
+      color: rgba(255,255,255,0.2);
+      margin-top: 5px;
       text-transform: uppercase;
     }
     .stat-module .glyph {
       position: absolute;
-      top: 1rem;
-      right: 1rem;
-      font-size: 1.1rem;
-      opacity: 0.4;
-      color: var(--violet);
+      top: 0.65rem;
+      right: 0.65rem;
+      font-size: 0.9rem;
+      opacity: 0.55;
     }
+    /* Glyph colors per index */
+    .stat-module:nth-child(1) .glyph { color: #00e5ff; }
+    .stat-module:nth-child(2) .glyph { color: #ff6b8a; }
+    .stat-module:nth-child(3) .glyph { color: #a78bfa; }
+    .stat-module:nth-child(4) .glyph { color: #a78bfa; }
+    .stat-module:nth-child(5) .glyph { color: #ffd700; }
+    .stat-module:nth-child(6) .glyph { color: #34d399; }
+    .stat-module:nth-child(7) .glyph { color: #00e5ff; }
+    .stat-module:nth-child(8) .glyph { color: #f97316; }
 
+    /* ── Advisor / Footer Zone ── */
     .advisor-zone {
-      padding: 1.25rem 1.5rem;
-      background: rgba(0,0,0,0.3);
+      padding: 1.1rem 1.5rem;
+      background: rgba(0,0,0,0.35);
+      border-top: 1px solid rgba(255, 180, 0, 0.08);
       display: flex;
       align-items: center;
       gap: 1rem;
+      position: relative;
+      z-index: 2;
     }
     .advisor-avatar-frame {
-      width: 48px;
-      height: 48px;
-      background: #fff;
-      border-radius: 12px;
+      width: 44px;
+      height: 44px;
+      background: rgba(255, 180, 0, 0.08);
+      border: 1px solid rgba(255, 180, 0, 0.25);
+      border-radius: 11px;
       overflow: hidden;
       flex-shrink: 0;
-      box-shadow: 0 0 10px rgba(168,85,247,0.2);
     }
     .advisor-avatar-frame img {
       width: 100%;
@@ -278,9 +357,9 @@
       object-fit: cover;
     }
     .advisor-text { flex: 1; min-width: 0; }
-    .advisor-text .label { font-size: 0.55rem; font-weight: 800; color: var(--tx-muted); }
+    .advisor-text .label { font-size: 0.5rem; font-weight: 800; color: rgba(255,255,255,0.3); letter-spacing: 0.1em; }
     .advisor-text .quote { 
-      font-size: 0.75rem; 
+      font-size: 0.72rem; 
       font-weight: 800; 
       color: var(--tx-body); 
       line-height: 1.3;
@@ -288,41 +367,66 @@
       overflow: hidden;
       text-overflow: ellipsis;
     }
+    /* Verified badge */
+    .badge-violet {
+      background: rgba(0,229,255,0.1);
+      color: #00e5ff;
+      border: 1px solid rgba(0,229,255,0.35);
+    }
 
+    /* ── Action Strip ── */
     .action-strip {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 0.75rem;
-      margin: 2rem 0;
+      margin: 1.5rem 0;
     }
     .action-strip .btn-cta,
     .action-strip .btn-ghost {
       min-height: 50px;
       border-radius: 14px;
-      font-size: 0.78rem;
+      font-size: 0.76rem;
       letter-spacing: 0.08em;
       font-weight: 900;
-      box-shadow: 0 14px 28px rgba(0,0,0,0.35);
+      box-shadow: 0 10px 24px rgba(0,0,0,0.35);
       border-width: 1px;
     }
+    /* Download button — gold glow */
+    .action-strip .btn-cta {
+      background: linear-gradient(135deg, #ffd700, #f59e0b);
+      color: #070d1a;
+      box-shadow: 0 8px 28px rgba(255,180,0,0.35), 0 0 0 1px rgba(255,180,0,0.3);
+    }
+    .action-strip .btn-cta:hover {
+      box-shadow: 0 12px 36px rgba(255,180,0,0.5), 0 0 0 1px rgba(255,180,0,0.5);
+      filter: brightness(1.05);
+    }
     .action-strip .btn-ghost {
-      border-color: rgba(168, 85, 247, 0.38);
-      background: linear-gradient(145deg, rgba(17,24,39,0.95), rgba(9,14,28,0.92));
+      border-color: rgba(0, 229, 255, 0.35);
+      background: linear-gradient(145deg, rgba(0,229,255,0.06), rgba(9,14,28,0.92));
+      color: #00e5ff;
+    }
+
+    /* Bottom gold edge */
+    .hologram-card-bottom-edge {
+      height: 2.5px;
+      background: linear-gradient(90deg, transparent, #00e5ff, #ffd700, transparent);
     }
 
     .share-card-export-shell {
       position: fixed;
       left: -9999px;
       top: -9999px;
-      width: 800px;
+      width: 900px;
     }
 
     @media (max-width: 720px) {
-      .stats-hub { grid-template-columns: 1fr 1fr; }
+      .stats-hub { grid-template-columns: repeat(2, 1fr); }
     }
     @media (max-width: 420px) {
-      .stats-hub { grid-template-columns: 1fr; gap: 0.75rem; }
-      .device-info-main .model { font-size: 1.2rem; }
+      .stats-hub { grid-template-columns: repeat(2, 1fr); gap: 0.5rem; }
+      .device-info-main .model { font-size: 1.1rem; }
+      .stat-module .value { font-size: 1rem; }
     }
   </style>
 </head>
@@ -366,6 +470,8 @@
     <!-- MAIN HOLOGRAPHIC CARD -->
     <main class="anim-up">
       <section id="captureArea" class="hologram-card">
+        <!-- Gold top edge -->
+        <div class="card-gold-edge"></div>
         
         <!-- Top Bar -->
         <div class="card-meta-top">
@@ -374,8 +480,8 @@
               <img id="creatorLogo" src="favicon.svg" alt="Creator logo">
             </div>
             <div class="brand-text">
-              <div class="primary">AXP_HUB</div>
-              <div class="secondary" data-i18n="premiumShareCard">PREMIUM PROFILE CARD</div>
+              <div class="primary">AXP_NEXUS</div>
+              <div class="secondary">MASTER CALIBRATION CARD</div>
             </div>
           </div>
           <div class="telemetry-node">
@@ -476,8 +582,11 @@
             <div class="label">OPERATOR_ADVICE</div>
             <div class="quote" id="creatorAdvice">NO_EXTRA_ADVICE_PROVIDED</div>
           </div>
-          <div class="badge-violet" style="font-size: 0.5rem;">VERIFIED <span id="verifiedEfficiency">--%</span></div>
+          <div class="badge-violet" style="font-size: 0.5rem;">✓ VERIFIED <span id="verifiedEfficiency">--%</span></div>
         </div>
+
+        <!-- Gold bottom edge -->
+        <div class="hologram-card-bottom-edge"></div>
 
       </section>
 
@@ -543,95 +652,150 @@
     </a>
   </nav>
 
-  <!-- HIDDEN EXPORT AREA (FOR HTML2CANVAS) -->
+  <!-- HIDDEN EXPORT AREA (FOR HTML2CANVAS) — MASTER KEY CARD DESIGN -->
   <div class="share-card-export-shell" aria-hidden="true" style="display: none;">
-    <section id="shareCaptureArea" style="width: 800px; background: #080d18; padding: 40px; font-family: 'JetBrains Mono'; border: 2px solid #a855f7; border-radius: 40px;">
-      <div style="display:flex; justify-content:space-between; margin-bottom: 40px;">
-        <div style="display:flex; align-items:center; gap:20px;">
-          <div style="width:80px; height:80px; background:#fff; border-radius:20px; padding:8px; display:flex; align-items:center; justify-content:center;">
-            <img id="shareLogo" src="favicon.svg" style="width:100%; height:100%; object-fit:contain;">
+    <section id="shareCaptureArea" style="
+      width: 860px;
+      background: linear-gradient(135deg, #050a14 0%, #07101e 60%, #08131f 100%);
+      padding: 0;
+      font-family: 'JetBrains Mono', 'Courier New', monospace;
+      border-radius: 32px;
+      overflow: hidden;
+      position: relative;
+      box-shadow: 0 0 0 1.5px rgba(255,180,0,0.5), 0 0 0 3px rgba(0,229,255,0.08), 0 40px 120px rgba(0,0,0,0.9);
+    ">
+      <!-- Gold shimmer top edge -->
+      <div style="height:3px; background: linear-gradient(90deg, transparent, #ffd700, #00e5ff, #ffd700, transparent);"></div>
+
+      <!-- Grid overlay -->
+      <div style="position:absolute; inset:0; background-image: linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px); background-size:50px 50px; pointer-events:none; border-radius:32px;"></div>
+
+      <!-- Top glow orb -->
+      <div style="position:absolute; top:-60px; right:-60px; width:300px; height:300px; background:radial-gradient(circle, rgba(255,180,0,0.2) 0%, rgba(0,229,255,0.06) 50%, transparent 70%); pointer-events:none;"></div>
+
+      <div style="padding: 36px 40px 32px; position:relative;">
+
+        <!-- ── HEADER ── -->
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:24px;">
+          <div style="display:flex; align-items:center; gap:16px;">
+            <!-- Key icon -->
+            <div style="width:60px; height:60px; background:rgba(255,180,0,0.1); border:1.5px solid rgba(255,180,0,0.5); border-radius:16px; display:flex; align-items:center; justify-content:center; font-size:28px; flex-shrink:0;">🔑</div>
+            <div>
+              <div style="font-size:1.6rem; font-weight:900; color:#fff; letter-spacing:0.08em; line-height:1;">AXP_NEXUS</div>
+              <div style="font-size:0.65rem; color:rgba(255,180,0,0.9); letter-spacing:0.2em; margin-top:4px;">MASTER CALIBRATION CARD</div>
+            </div>
           </div>
+          <div style="text-align:right;">
+            <div id="shareUtc" style="font-size:0.65rem; color:rgba(255,255,255,0.35); letter-spacing:0.05em; margin-bottom:2px;">UTC: --:--</div>
+            <div id="shareExpiry" style="font-size:0.65rem; color:rgba(255,255,255,0.35); letter-spacing:0.05em; margin-bottom:10px;">EXP: NEVER</div>
+            <div style="width:180px; height:5px; background:rgba(255,255,255,0.08); border-radius:3px; overflow:hidden; margin-left:auto; margin-bottom:6px;">
+              <span id="shareEfficiencyBar" style="display:block; height:100%; background:linear-gradient(90deg, #ffd700, #00e5ff); border-radius:3px; width:94%;"></span>
+            </div>
+            <div id="shareEfficiencyLabel" style="font-size:0.6rem; color:rgba(255,255,255,0.4); letter-spacing:0.08em;">EFFICIENCY: --%</div>
+          </div>
+        </div>
+
+        <!-- Gold divider line -->
+        <div style="height:1px; background:linear-gradient(90deg, transparent, rgba(255,180,0,0.6), rgba(0,229,255,0.3), transparent); margin-bottom:22px;"></div>
+
+        <!-- ── DEVICE / OPERATOR ZONE ── -->
+        <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,180,0,0.18); border-radius:20px; padding:20px 24px; margin-bottom:18px; display:flex; align-items:center; gap:20px;">
+          <div style="width:72px; height:72px; background:rgba(255,180,0,0.08); border:1px solid rgba(255,180,0,0.3); border-radius:16px; display:flex; align-items:center; justify-content:center; font-size:32px; flex-shrink:0;">
+            <img id="shareDevicePreview" src="favicon.svg" style="width:52px; height:52px; object-fit:contain; border-radius:8px;">
+          </div>
+          <div style="flex:1;">
+            <div style="font-size:0.6rem; color:rgba(255,255,255,0.35); letter-spacing:0.2em; margin-bottom:6px;">UNIT_MODEL</div>
+            <div id="shareDeviceModel" style="font-size:1.5rem; font-weight:900; color:#fff; line-height:1.1; letter-spacing:-0.01em;">UNKNOWN_HARDWARE</div>
+            <div id="shareCreatorName" style="font-size:0.8rem; color:#00e5ff; font-weight:700; margin-top:6px; letter-spacing:0.06em;">OPERATOR: AXP_CORE</div>
+          </div>
+          <!-- Logo -->
+          <div style="width:48px; height:48px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); border-radius:12px; display:flex; align-items:center; justify-content:center;">
+            <img id="shareLogo" src="favicon.svg" style="width:36px; height:36px; object-fit:contain;">
+          </div>
+        </div>
+
+        <!-- ── ACCESS TOKEN STRIP ── -->
+        <div style="background:linear-gradient(135deg, rgba(255,180,0,0.2) 0%, rgba(0,229,255,0.1) 100%); border:1.5px solid rgba(255,180,0,0.5); border-radius:16px; padding:16px 22px; margin-bottom:18px; display:flex; justify-content:space-between; align-items:center;">
           <div>
-            <div style="font-size: 2.2rem; font-weight: 800; color:#fff; letter-spacing:0.1em;">AXP_HUB</div>
-            <div style="font-size: 1rem; color:#94a3b8; letter-spacing:0.15em;" data-i18n="premiumShareCard">PREMIUM PROFILE CARD</div>
+            <div style="font-size:0.6rem; color:rgba(0,0,0,0.5); letter-spacing:0.2em; font-weight:700; margin-bottom:4px;">ACCESS_TOKEN</div>
+            <div id="shareAccessCode" style="font-size:1.6rem; font-weight:900; background:linear-gradient(90deg,#ffd700,#00e5ff); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; letter-spacing:0.08em;">AXP-0000-0000</div>
+          </div>
+          <div style="background:rgba(0,229,255,0.12); color:#00e5ff; border:1px solid rgba(0,229,255,0.4); border-radius:50px; padding:7px 18px; font-size:0.65rem; font-weight:900; letter-spacing:0.1em;" data-i18n="syncedProfile">✓ SYNCED</div>
+        </div>
+
+        <!-- ── STATS GRID (4×2) ── -->
+        <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:18px;">
+          <!-- GENERAL -->
+          <div style="background:rgba(0,229,255,0.04); border:1px solid rgba(0,229,255,0.15); border-top:2px solid #00e5ff; border-radius:14px; padding:14px 12px; position:relative;">
+            <div style="font-size:0.55rem; color:rgba(255,255,255,0.4); letter-spacing:0.1em; margin-bottom:6px;">GENERAL_SENS</div>
+            <div id="shareGeneral" style="font-size:1.6rem; font-weight:900; color:#fff; line-height:1;">--</div>
+            <div style="position:absolute; top:12px; right:12px; font-size:1rem; color:#00e5ff; opacity:0.7;">↑</div>
+            <div style="font-size:0.45rem; color:#00e5ff; opacity:0.6; margin-top:4px; letter-spacing:0.08em;">● LIVE</div>
+          </div>
+          <!-- RED DOT -->
+          <div style="background:rgba(255,107,138,0.04); border:1px solid rgba(255,107,138,0.15); border-top:2px solid #ff6b8a; border-radius:14px; padding:14px 12px; position:relative;">
+            <div style="font-size:0.55rem; color:rgba(255,255,255,0.4); letter-spacing:0.1em; margin-bottom:6px;">RED_DOT</div>
+            <div id="shareRedDot" style="font-size:1.6rem; font-weight:900; color:#fff; line-height:1;">--</div>
+            <div style="position:absolute; top:12px; right:12px; font-size:1rem; color:#ff6b8a; opacity:0.7;">↑</div>
+            <div style="font-size:0.45rem; color:#ff6b8a; opacity:0.6; margin-top:4px; letter-spacing:0.08em;">● LIVE</div>
+          </div>
+          <!-- 2X -->
+          <div style="background:rgba(167,139,250,0.04); border:1px solid rgba(167,139,250,0.15); border-top:2px solid #a78bfa; border-radius:14px; padding:14px 12px; position:relative;">
+            <div style="font-size:0.55rem; color:rgba(255,255,255,0.4); letter-spacing:0.1em; margin-bottom:6px;">2X_SCOPE</div>
+            <div id="share2x" style="font-size:1.6rem; font-weight:900; color:#fff; line-height:1;">--</div>
+            <div style="position:absolute; top:12px; right:12px; font-size:1rem; color:#a78bfa; opacity:0.7;">↑</div>
+            <div style="font-size:0.45rem; color:#a78bfa; opacity:0.6; margin-top:4px; letter-spacing:0.08em;">● LIVE</div>
+          </div>
+          <!-- 4X -->
+          <div style="background:rgba(167,139,250,0.04); border:1px solid rgba(167,139,250,0.15); border-top:2px solid #a78bfa; border-radius:14px; padding:14px 12px; position:relative;">
+            <div style="font-size:0.55rem; color:rgba(255,255,255,0.4); letter-spacing:0.1em; margin-bottom:6px;">4X_SCOPE</div>
+            <div id="share4x" style="font-size:1.6rem; font-weight:900; color:#fff; line-height:1;">--</div>
+            <div style="position:absolute; top:12px; right:12px; font-size:1rem; color:#a78bfa; opacity:0.7;">↑</div>
+            <div style="font-size:0.45rem; color:#a78bfa; opacity:0.6; margin-top:4px; letter-spacing:0.08em;">● LIVE</div>
+          </div>
+          <!-- SNIPER -->
+          <div style="background:rgba(255,215,0,0.04); border:1px solid rgba(255,215,0,0.15); border-top:2px solid #ffd700; border-radius:14px; padding:14px 12px; position:relative;">
+            <div style="font-size:0.55rem; color:rgba(255,255,255,0.4); letter-spacing:0.1em; margin-bottom:6px;">SNIPER</div>
+            <div id="shareSniper" style="font-size:1.6rem; font-weight:900; color:#fff; line-height:1;">--</div>
+            <div style="position:absolute; top:12px; right:12px; font-size:1rem; color:#ffd700; opacity:0.7;">↘</div>
+            <div style="font-size:0.45rem; color:#ffd700; opacity:0.6; margin-top:4px; letter-spacing:0.08em;">● LIVE</div>
+          </div>
+          <!-- FREE LOOK -->
+          <div style="background:rgba(52,211,153,0.04); border:1px solid rgba(52,211,153,0.15); border-top:2px solid #34d399; border-radius:14px; padding:14px 12px; position:relative;">
+            <div style="font-size:0.55rem; color:rgba(255,255,255,0.4); letter-spacing:0.1em; margin-bottom:6px;">FREE_LOOK</div>
+            <div id="shareFreeLook" style="font-size:1.6rem; font-weight:900; color:#fff; line-height:1;">--</div>
+            <div style="position:absolute; top:12px; right:12px; font-size:1rem; color:#34d399; opacity:0.7;">↗</div>
+            <div style="font-size:0.45rem; color:#34d399; opacity:0.6; margin-top:4px; letter-spacing:0.08em;">● LIVE</div>
+          </div>
+          <!-- DPI -->
+          <div style="background:rgba(0,229,255,0.04); border:1px solid rgba(0,229,255,0.15); border-top:2px solid #00e5ff; border-radius:14px; padding:14px 12px; position:relative;">
+            <div style="font-size:0.55rem; color:rgba(255,255,255,0.4); letter-spacing:0.1em; margin-bottom:6px;">DPI</div>
+            <div id="shareDpi" style="font-size:1.6rem; font-weight:900; color:#fff; line-height:1;">--</div>
+            <div style="position:absolute; top:12px; right:12px; font-size:1rem; color:#00e5ff; opacity:0.7;">◎</div>
+            <div style="font-size:0.45rem; color:#00e5ff; opacity:0.6; margin-top:4px; letter-spacing:0.08em;">● LIVE</div>
+          </div>
+          <!-- FIRE BUTTON -->
+          <div style="background:rgba(249,115,22,0.04); border:1px solid rgba(249,115,22,0.15); border-top:2px solid #f97316; border-radius:14px; padding:14px 12px; position:relative;">
+            <div style="font-size:0.55rem; color:rgba(255,255,255,0.4); letter-spacing:0.1em; margin-bottom:6px;">FIRE_BTN</div>
+            <div id="shareFireButton" style="font-size:1.6rem; font-weight:900; color:#fff; line-height:1;">--</div>
+            <div style="position:absolute; top:12px; right:12px; font-size:1rem; color:#f97316; opacity:0.7;">✦</div>
+            <div style="font-size:0.45rem; color:#f97316; opacity:0.6; margin-top:4px; letter-spacing:0.08em;">● LIVE</div>
           </div>
         </div>
-        <div style="text-align:right; font-size: 0.9rem; color:#94a3b8;">
-          <div id="shareUtc">UTC: --:--</div>
-          <div id="shareExpiry">EXP: NEVER</div>
-          <div style="width:200px; height:8px; background:rgba(255,255,255,0.1); border-radius:4px; margin: 15px 0 10px auto; overflow:hidden;">
-            <span id="shareEfficiencyBar" style="display:block; height:100%; background:linear-gradient(90deg, #a855f7, #00e5ff);"></span>
+
+        <!-- ── FOOTER / ADVICE ── -->
+        <div style="background:rgba(255,255,255,0.025); border:1px solid rgba(255,255,255,0.07); border-radius:16px; padding:16px 20px; display:flex; align-items:center; gap:16px;">
+          <img id="shareFooterLogo" src="favicon.svg" style="width:44px; height:44px; border-radius:10px; background:rgba(255,255,255,0.05); flex-shrink:0;">
+          <div style="flex:1; min-width:0;">
+            <div style="font-size:0.55rem; color:rgba(255,255,255,0.3); letter-spacing:0.15em; margin-bottom:4px;">OPERATOR_ADVICE</div>
+            <div id="shareAdvice" style="font-size:0.8rem; font-weight:700; color:rgba(255,255,255,0.85); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">NO_EXTRA_ADVICE_PROVIDED</div>
           </div>
-          <div id="shareEfficiencyLabel">EFFICIENCY: --%</div>
+          <div id="shareVerified" style="background:rgba(0,229,255,0.1); color:#00e5ff; border:1px solid rgba(0,229,255,0.4); border-radius:50px; padding:8px 16px; font-size:0.65rem; font-weight:900; letter-spacing:0.1em; white-space:nowrap; flex-shrink:0;">✓ VERIFIED 94%</div>
         </div>
+
       </div>
-      <div style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:30px; padding:30px; margin-bottom:30px; display:flex; align-items:center; gap:30px;">
-        <div style="width:120px; height:120px; background:#fff; border-radius:24px; padding:10px; display:flex; align-items:center; justify-content:center;">
-          <img id="shareDevicePreview" src="favicon.svg" style="width:100%; height:100%; object-fit:contain;">
-        </div>
-        <div>
-          <div style="font-size:0.9rem; color:#94a3b8; letter-spacing:0.2em; margin-bottom:8px;">UNIT_MODEL</div>
-          <div id="shareDeviceModel" style="font-size:2.8rem; font-weight:800; color:#fff; line-height:1.1;">UNKNOWN_HARDWARE</div>
-          <div id="shareCreatorName" style="font-size:1.1rem; color:#a855f7; font-weight:800; margin-top:10px;">OPERATOR: AXP_CORE</div>
-        </div>
-      </div>
-      <div style="background:#a855f7; border-radius:20px; padding:20px 30px; margin-bottom:30px; display:flex; justify-content:space-between; align-items:center;">
-        <div>
-          <div style="font-size:0.8rem; font-weight:800; color:rgba(0,0,0,0.6); margin-bottom:4px;">ACCESS_TOKEN</div>
-          <div id="shareAccessCode" style="font-size:2rem; font-weight:800; color:var(--cyan); letter-spacing:0.1em; text-shadow: 0 0 20px var(--cyan-glow);">AXP-0000-0000</div>
-        </div>
-        <div style="background:rgba(255,255,255,0.05); color:var(--tx-sub); padding:8px 20px; border-radius:50px; font-size:0.9rem; font-weight:900; border: 1px solid rgba(255,255,255,0.1);" data-i18n="syncedProfile">SYNCED_PROFILE</div>
-      </div>
-      <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:20px; margin-bottom:30px;">
-        <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:25px; padding:25px; position:relative;">
-          <div style="font-size:1rem; color:#94a3b8; margin-bottom:10px;">GENERAL_SENS</div>
-          <div id="shareGeneral" style="font-size:3rem; font-weight:800; color:#fff;">--</div>
-          <div style="position:absolute; top:25px; right:25px; font-size:2rem; color:#a855f7;">↑</div>
-        </div>
-        <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:25px; padding:25px; position:relative;">
-          <div style="font-size:1rem; color:#94a3b8; margin-bottom:10px;">RED_DOT</div>
-          <div style="font-size:2rem; font-weight:800; color:#fff;"><span id="shareRedDot">--</span></div>
-          <div style="position:absolute; top:25px; right:25px; font-size:2rem; color:#a855f7;">↑</div>
-        </div>
-        <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:25px; padding:25px; position:relative;">
-          <div style="font-size:1rem; color:#94a3b8; margin-bottom:10px;">2X_SCOPE</div>
-          <div style="font-size:2rem; font-weight:800; color:#fff;"><span id="share2x">--</span></div>
-          <div style="position:absolute; top:25px; right:25px; font-size:2rem; color:#a855f7;">↑</div>
-        </div>
-        <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:25px; padding:25px; position:relative;">
-          <div style="font-size:1rem; color:#94a3b8; margin-bottom:10px;">4X_SCOPE</div>
-          <div style="font-size:2rem; font-weight:800; color:#fff;"><span id="share4x">--</span></div>
-          <div style="position:absolute; top:25px; right:25px; font-size:2rem; color:#a855f7;">↑</div>
-        </div>
-        <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:25px; padding:25px; position:relative;">
-          <div style="font-size:1rem; color:#94a3b8; margin-bottom:10px;">SNIPER</div>
-          <div style="font-size:2rem; font-weight:800; color:#fff;"><span id="shareSniper">--</span></div>
-          <div style="position:absolute; top:25px; right:25px; font-size:2rem; color:#a855f7;">↘</div>
-        </div>
-        <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:25px; padding:25px; position:relative;">
-          <div style="font-size:1rem; color:#94a3b8; margin-bottom:10px;">FREE_LOOK</div>
-          <div style="font-size:2rem; font-weight:800; color:#fff;"><span id="shareFreeLook">--</span></div>
-          <div style="position:absolute; top:25px; right:25px; font-size:2rem; color:#a855f7;">↗</div>
-        </div>
-        <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:25px; padding:25px; position:relative;">
-          <div style="font-size:1rem; color:#94a3b8; margin-bottom:10px;">DPI</div>
-          <div style="font-size:2rem; font-weight:800; color:#fff;"><span id="shareDpi">--</span></div>
-          <div style="position:absolute; top:25px; right:25px; font-size:2rem; color:#a855f7;">◎</div>
-        </div>
-        <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:25px; padding:25px; position:relative;">
-          <div style="font-size:1rem; color:#94a3b8; margin-bottom:10px;">FIRE_BUTTON</div>
-          <div style="font-size:2rem; font-weight:800; color:#fff;"><span id="shareFireButton">--</span></div>
-          <div style="position:absolute; top:25px; right:25px; font-size:2rem; color:#a855f7;">✦</div>
-        </div>
-      </div>
-      <div style="background:rgba(255,255,255,0.03); border-radius:25px; padding:25px; display:flex; align-items:center; gap:20px;">
-        <img id="shareFooterLogo" src="favicon.svg" style="width:70px; height:70px; border-radius:15px; background:#fff;">
-        <div style="flex:1;">
-          <div style="font-size:0.8rem; color:#94a3b8; margin-bottom:4px;">OPERATOR_ADVICE</div>
-          <div id="shareAdvice" style="font-size:1.2rem; font-weight:800; color:#fff;">NO_EXTRA_ADVICE_PROVIDED</div>
-        </div>
-        <div id="shareVerified" style="background:rgba(168,85,247,0.15); color:#a855f7; border:1px solid #a855f7; border-radius:50px; padding:10px 25px; font-size:1rem; font-weight:900;">VERIFIED 94%</div>
-      </div>
+      <!-- Gold shimmer bottom edge -->
+      <div style="height:3px; background: linear-gradient(90deg, transparent, #00e5ff, #ffd700, transparent);"></div>
     </section>
   </div>
 
