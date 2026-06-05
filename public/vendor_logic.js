@@ -202,7 +202,7 @@ const VendorLogic = {
         overlay.innerHTML = `
             <div class="glass-panel" style="width: min(90vw, 260px); text-align: center; background: transparent; border: none; box-shadow: none;">
                 <div id="captureArea" class="holo-card-vertical" onmousemove="VendorLogic.handleHoloMove(event, this)" style="
-                    background: linear-gradient(165deg, #0f172a 0%, #020617 100%);
+                    background: linear-gradient(165deg, #0f172a 0%, #020617 100%;
                     border: 1px solid var(--accent-primary);
                     border-radius: 20px;
                     padding: 1rem;
@@ -251,10 +251,11 @@ const VendorLogic = {
                     </div>
                 </div>
 
-                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem;">
                     <button class="btn-cta" style="padding: 0.6rem; border-radius: 10px; font-size: 0.6rem; font-weight: 950; background: var(--accent-primary); color: #000;" onclick="VendorLogic.copyToClipboard('${code}')">COPY</button>
                     <button class="btn-ghost auto" style="padding: 0.6rem; border-radius: 10px; font-size: 0.6rem; font-weight: 950; background: rgba(255,255,255,0.05); color: white;" onclick="VendorLogic.captureAndDownloadResult('${code}')">SAVE</button>
                 </div>
+                <button class="btn-cta violet" style="width:100%; padding:0.6rem; border-radius:10px; font-size:0.6rem; font-weight:950;" onclick="VendorLogic.viewResultCard('${code}')">VIEW</button>
                 <button class="btn-ghost auto w-full mt-2" style="font-size: 0.55rem; opacity: 0.3; border-radius: 6px; padding: 0.25rem;" onclick="this.closest('.quick-action-overlay').remove()">[DISMISS_UPLINK]</button>
             </div>
         `;
@@ -397,6 +398,10 @@ const VendorLogic = {
             document.body.removeChild(el);
             window.notify('COPIED_TO_CLIPBOARD', 'success');
         });
+    },
+
+    viewResultCard(code) {
+        window.location.href = `result.html?code=${encodeURIComponent(code)}`;
     },
 
     async fetchDiagnostic() {
