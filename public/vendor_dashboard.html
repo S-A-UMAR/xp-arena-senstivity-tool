@@ -20,7 +20,7 @@
     }
     .profile-hero {
       padding: 2.5rem 2rem;
-      background: linear-gradient(145deg, rgba(168, 85, 247, 0.12), rgba(8, 13, 24, 0.95));
+      background: linear-gradient(145deg, rgba(168, 85, 247, 0.2), rgba(8, 13, 24, 0.98));
       border: 1px solid var(--violet-border);
       position: relative;
       overflow: hidden;
@@ -30,7 +30,7 @@
       position: absolute;
       top: -20%; right: -10%;
       width: 200px; height: 200px;
-      background: radial-gradient(circle, rgba(168, 85, 247, 0.15) 0%, transparent 70%);
+      background: radial-gradient(circle, rgba(168, 85, 247, 0.25) 0%, transparent 70%);
       filter: blur(30px);
     }
     .vendor-header-btn {
@@ -49,8 +49,8 @@
       align-items: center;
       gap: 6px;
       padding: 4px 12px;
-      background: rgba(168, 85, 247, 0.1);
-      border: 1px solid rgba(168, 85, 247, 0.2);
+      background: rgba(168, 85, 247, 0.15);
+      border: 1px solid rgba(168, 85, 247, 0.3);
       border-radius: var(--r-pill);
       color: var(--violet);
       font-size: 0.6rem;
@@ -63,7 +63,7 @@
     .expiry-row {
       margin-top: 1.5rem;
       padding-top: 1.25rem;
-      border-top: 1px solid rgba(255,255,255,0.06);
+      border-top: 1px solid rgba(255,255,255,0.1);
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -71,7 +71,7 @@
     .hero-copy {
       margin-top: 1rem;
       max-width: 28rem;
-      color: var(--tx-sub);
+      color: #cbd5e1;
       font-size: 0.82rem;
       line-height: 1.6;
     }
@@ -82,8 +82,8 @@
       margin-top: 1.5rem;
     }
     .hero-summary-item {
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.06);
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
       border-radius: 16px;
       padding: 0.9rem 1rem;
     }
@@ -91,13 +91,13 @@
       font-size: 0.58rem;
       letter-spacing: 0.12em;
       text-transform: uppercase;
-      color: var(--tx-muted);
+      color: #94a3b8;
       font-weight: 800;
       margin-bottom: 0.3rem;
     }
     .hero-summary-value {
       font-size: 0.88rem;
-      color: var(--tx-hero);
+      color: #ffffff;
       font-weight: 800;
     }
     .section-kicker {
@@ -105,7 +105,7 @@
       font-size: 0.62rem;
       letter-spacing: 0.14em;
       text-transform: uppercase;
-      color: var(--tx-muted);
+      color: #94a3b8;
       font-weight: 800;
     }
     
@@ -118,7 +118,7 @@
     
     .action-card {
       background: var(--bg-surface);
-      border: 1px solid var(--bd-subtle);
+      border: 1px solid rgba(255,255,255,0.12);
       border-radius: var(--r-lg);
       padding: 1.25rem;
       display: flex;
@@ -169,13 +169,13 @@
     .action-card-title {
       font-size: 0.75rem;
       font-weight: 800;
-      color: var(--tx-hero);
+      color: #ffffff;
       text-transform: uppercase;
       letter-spacing: 0.05em;
     }
     .action-card-desc {
       font-size: 0.6rem;
-      color: var(--tx-muted);
+      color: #94a3b8;
       line-height: 1.4;
     }
     .badge-meta-sync {
@@ -185,8 +185,8 @@
       font-size: 0.55rem;
       font-weight: 900;
       color: var(--cyan);
-      background: rgba(0, 242, 254, 0.1);
-      border: 1px solid rgba(0, 242, 254, 0.2);
+      background: rgba(0, 242, 254, 0.15);
+      border: 1px solid rgba(0, 242, 254, 0.3);
       padding: 4px 10px;
       border-radius: var(--r-pill);
       letter-spacing: 0.05em;
@@ -202,13 +202,13 @@
       margin-top: 0.35rem;
       font-size: 0.78rem;
       line-height: 1.6;
-      color: var(--tx-sub);
+      color: #cbd5e1;
     }
     .micro-note {
       margin-top: 0.9rem;
       font-size: 0.7rem;
       line-height: 1.5;
-      color: var(--tx-muted);
+      color: #94a3b8;
     }
     .inline-field-row {
       display: flex;
@@ -223,7 +223,7 @@
     }
     .section-note {
       margin-bottom: 1rem;
-      color: var(--tx-sub);
+      color: #cbd5e1;
       font-size: 0.75rem;
       line-height: 1.5;
     }
@@ -243,6 +243,17 @@
       .action-card {
         min-height: 92px;
       }
+    }
+
+    /* Make form elements bright */
+    .form-label {
+      color: #cbd5e1 !important;
+    }
+    .xp-select {
+      color: #ffffff !important;
+    }
+    .xp-select option {
+      color: #000000;
     }
   </style>
 </head>
@@ -442,7 +453,7 @@
       <span class="xp-nav-label">Stats</span>
     </a>
     <a href="vendor_settings.html" class="xp-nav-item">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2Z"/><circle cx="12" cy="12" r="3"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 0 0 1-1 1.74l-.15.09a2 0 0 0-.73 2.73l.22.38a2 0 0 0 2.73.73l.15-.08a2 0 0 1 2 0l.43.25a2 0 0 1 1 1.73V20a2 0 0 0 2 2h.44a2 0 0 0 2-2v-.18a2 0 0 1 1-1.73l.43-.25a2 0 0 1 2 0l.15.08a2 0 0 0 2.73-.73l.22-.39a2 0 0 0-.73-2.73l-.15-.08a2 0 0 1-1-1.74v-.5a2 0 0 1 1-1.74l.15-.09a2 0 0 0 .73-2.73l-.22-.38a2 0 0 0-2.73-.73l-.15.08a2 0 0 1-2 0l-.43-.25a2 0 0 1-1-1.73V4a2 0 0 0-2-2Z"/><circle cx="12" cy="12" r="3"/></svg>
       <span class="xp-nav-label">Elite</span>
     </a>
   </nav>
