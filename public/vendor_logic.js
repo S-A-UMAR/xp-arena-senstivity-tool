@@ -590,92 +590,52 @@ const VendorLogic = {
     async captureAndDownloadResult(code) {
         const area = document.getElementById('captureArea');
         if (!area) return window.notify('SYSTEM_NOT_READY', 'error');
-
-        if (!window.html2canvas) {
-            return window.notify('ENGINE_FALLBACK_ACTIVE', 'warning');
-        }
+        if (!window.html2canvas) return window.notify('ENGINE_FALLBACK_ACTIVE', 'warning');
 
         try {
-            // --- Compute the natural card dimensions ---
-            const rect = area.getBoundingClientRect();
-            const cardW = Math.round(rect.width);
-            const cardH = Math.round(rect.height);
-            const EXPORT_SCALE = 3; // 3x for crisp retina-quality output
+            const EXPORT_SCALE = 3;
 
-            // --- Build an off-screen host that exactly matches the card size ---
-            const host = document.createElement('div');
-            host.style.cssText = `
-                position: fixed;
-                left: -99999px;
-                top: 0;
-                width: ${cardW}px;
-                height: ${cardH}px;
-                overflow: visible;
-                z-index: -1;
-                pointer-events: none;
-                background: #020617;
-            `;
-
-            // --- Deep-clone the card and scrub all motion / transform state ---
-            const clone = area.cloneNode(true);
-            clone.style.cssText = `
-                width: ${cardW}px;
-                height: ${cardH}px;
-                border-radius: 24px;
-                overflow: hidden;
-                position: relative;
-                transform: none !important;
-                animation: none !important;
-                transition: none !important;
-                box-sizing: border-box;
-                /* preserve original card visuals */
-                ${area.getAttribute('style') || ''}
-                transform: none !important;
-                animation: none !important;
-            `;
-
-            // Freeze all descendant animations & transforms
-            clone.querySelectorAll('*').forEach(el => {
-                el.style.animation = 'none';
+            // Snapshot & freeze every element's motion state so we capture
+            // exactly what's visible — no mid-animation blur or tilt offset.
+            const frozen = [];
+            [area, ...area.querySelectorAll('*')].forEach(el => {
+                frozen.push({
+                    el,
+                    animation:  el.style.animation,
+                    transition: el.style.transition,
+                    transform:  el.style.transform,
+                });
+                el.style.animation  = 'none';
                 el.style.transition = 'none';
-                el.style.transform = 'none';
-                // Freeze animated background-position (shimmer)
-                const cs = window.getComputedStyle(el);
-                if (cs.backgroundImage && cs.backgroundImage.includes('gradient')) {
-                    el.style.backgroundPosition = '0% 0%';
-                }
+                el.style.transform  = 'none';
             });
 
-            // Inject a minimal style block to kill @keyframes within this clone
-            const styleKill = document.createElement('style');
-            styleKill.textContent = `
-                * { animation: none !important; transition: none !important; }
-            `;
-            clone.prepend(styleKill);
-
-            host.appendChild(clone);
-            document.body.appendChild(host);
-
-            // Allow one paint tick so the DOM settles
+            // Wait two frames so the browser paints the frozen state
             await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
 
-            const canvas = await html2canvas(clone, {
-                backgroundColor: '#020617',
+            const rect = area.getBoundingClientRect();
+            const canvas = await html2canvas(area, {
+                backgroundColor: null,   // use the element's own background exactly
                 scale: EXPORT_SCALE,
                 useCORS: true,
                 allowTaint: true,
-                width: cardW,
-                height: cardH,
-                windowWidth: cardW,
-                windowHeight: cardH,
-                scrollX: 0,
-                scrollY: 0,
-                x: 0,
-                y: 0,
+                width:  Math.round(rect.width),
+                height: Math.round(rect.height),
+                x: rect.left,
+                y: rect.top,
+                scrollX: -window.scrollX,
+                scrollY: -window.scrollY,
+                windowWidth:  window.innerWidth,
+                windowHeight: window.innerHeight,
                 logging: false,
             });
 
-            document.body.removeChild(host);
+            // Restore all motion state
+            frozen.forEach(({ el, animation, transition, transform }) => {
+                el.style.animation  = animation;
+                el.style.transition = transition;
+                el.style.transform  = transform;
+            });
 
             const link = document.createElement('a');
             link.download = `AXP_CARD_${code}.png`;

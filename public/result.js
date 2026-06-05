@@ -295,90 +295,47 @@
             const EXPORT_SCALE = 3;
 
             // The shareCaptureArea lives inside a display:none shell.
-            // We need to make the shell temporarily visible (off-screen) so the
-            // browser computes real layout dimensions before we clone.
+            // Make it visible off-screen so the browser computes real layout.
             const shell = area.closest('.share-card-export-shell') || area.parentElement;
             const shellWasHidden = shell && getComputedStyle(shell).display === 'none';
-            if (shellWasHidden) {
-                shell.style.cssText += ';position:fixed!important;left:-99999px!important;top:0!important;display:block!important;visibility:visible!important;';
+            const origShellStyle = shell ? shell.getAttribute('style') || '' : '';
+            if (shellWasHidden && shell) {
+                shell.style.cssText = `${origShellStyle}; position: fixed !important; left: -99999px !important; top: 0 !important; display: block !important; visibility: visible !important; pointer-events: none !important;`;
             }
 
-            // Allow layout to compute
-            await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
-
-            const rect = area.getBoundingClientRect();
-            // Prefer explicit inline width (860px on shareCaptureArea), fall back to measured
-            const inlineW = parseInt(area.style.width) || 0;
-            const cardW = Math.max(inlineW, Math.round(rect.width), area.scrollWidth, 320);
-            const cardH = Math.max(Math.round(rect.height), area.scrollHeight, 200);
-
-            // Build an off-screen host
-            const host = document.createElement('div');
-            host.style.cssText = `
-                position: fixed;
-                left: -99999px;
-                top: 0;
-                width: ${cardW}px;
-                height: ${cardH}px;
-                overflow: visible;
-                z-index: -1;
-                pointer-events: none;
-                background: #070d1a;
-            `;
-
-            // Deep-clone so we never touch the live card
-            const clone = area.cloneNode(true);
-            clone.style.cssText = `
-                width: ${cardW}px;
-                height: ${cardH}px;
-                overflow: hidden;
-                position: relative;
-                transform: none !important;
-                animation: none !important;
-                transition: none !important;
-                box-sizing: border-box;
-                ${area.getAttribute('style') || ''}
-                transform: none !important;
-                animation: none !important;
-            `;
-
-            // Freeze all descendant animations & transforms
-            clone.querySelectorAll('*').forEach(el => {
-                el.style.animation = 'none';
+            // Freeze animations on the original element (not a clone) so
+            // the captured image is pixel-perfect to what you see in the browser.
+            const frozen = [];
+            [area, ...area.querySelectorAll('*')].forEach(el => {
+                frozen.push({ el, animation: el.style.animation, transition: el.style.transition, transform: el.style.transform });
+                el.style.animation  = 'none';
                 el.style.transition = 'none';
-                el.style.transform = 'none';
-                const cs = window.getComputedStyle(el);
-                if (cs.backgroundImage && cs.backgroundImage.includes('gradient')) {
-                    el.style.backgroundPosition = '0% 0%';
-                }
+                el.style.transform  = 'none';
             });
 
-            // Kill any @keyframes scoped to descendants
-            const styleKill = document.createElement('style');
-            styleKill.textContent = `* { animation: none !important; transition: none !important; }`;
-            clone.prepend(styleKill);
-
-            host.appendChild(clone);
-            document.body.appendChild(host);
-
-            // Let DOM settle before capture
+            // Let the browser settle with the new state
             await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
 
+            const inlineW = parseInt(area.style.width) || 0;
+            const rect = area.getBoundingClientRect();
+            const cardW = Math.max(inlineW, Math.round(rect.width), 320);
+            const cardH = Math.max(Math.round(rect.height), 200);
+
             try {
-                const canvas = await window.html2canvas(clone, {
+                const canvas = await window.html2canvas(area, {
                     scale: EXPORT_SCALE,
-                    backgroundColor: '#070d1a',
+                    backgroundColor: null,   // let the element's own background show exactly
                     useCORS: true,
                     allowTaint: true,
                     logging: false,
-                    width: cardW,
+                    width:  cardW,
                     height: cardH,
-                    windowWidth: cardW,
-                    windowHeight: cardH,
-                    scrollX: 0,
-                    scrollY: 0,
-                    x: 0,
-                    y: 0,
+                    x: rect.left,
+                    y: rect.top,
+                    scrollX: -window.scrollX,
+                    scrollY: -window.scrollY,
+                    windowWidth:  window.innerWidth,
+                    windowHeight: window.innerHeight,
                 });
 
                 const link = document.createElement('a');
@@ -386,14 +343,15 @@
                 link.href = canvas.toDataURL('image/png', 1.0);
                 link.click();
             } finally {
-                document.body.removeChild(host);
-                // Restore shell to hidden state
+                // Restore animation state on original element
+                frozen.forEach(({ el, animation, transition, transform }) => {
+                    el.style.animation  = animation;
+                    el.style.transition = transition;
+                    el.style.transform  = transform;
+                });
+                // Restore shell visibility
                 if (shellWasHidden && shell) {
-                    shell.style.position = '';
-                    shell.style.left = '';
-                    shell.style.top = '';
-                    shell.style.display = 'none';
-                    shell.style.visibility = '';
+                    shell.setAttribute('style', origShellStyle);
                 }
             }
             return;
