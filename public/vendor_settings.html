@@ -17,8 +17,8 @@
     }
     .profile-hero-card {
       padding: 3rem 2rem 2.5rem;
-      background: linear-gradient(145deg, rgba(168, 85, 247, 0.15), rgba(8, 13, 24, 0.98));
-      border: 1px solid var(--violet-border);
+      background: linear-gradient(145deg, rgba(168, 85, 247, 0.2), rgba(8, 13, 24, 0.98));
+      border: 1px solid rgba(255,255,255,0.12);
       text-align: center;
       position: relative;
     }
@@ -46,7 +46,7 @@
       transform: translateX(-50%);
       background: var(--bg-void);
       border: 1px solid var(--violet);
-      color: var(--violet);
+      color: #a855f7;
       font-size: 0.6rem;
       font-weight: 800;
       padding: 4px 14px;
@@ -65,20 +65,20 @@
 
     .settings-card {
       background: var(--bg-surface);
-      border: 1px solid var(--bd-subtle);
+      border: 1px solid rgba(255,255,255,0.12);
       border-radius: var(--r-lg);
       overflow: hidden;
       transition: all 0.3s var(--ease);
     }
     .settings-card:hover { 
-      border-color: var(--bd-soft); 
+      border-color: rgba(168, 85, 247, 0.3); 
       transform: translateY(-2px);
     }
 
     .card-header-alt {
       padding: 1.25rem 1.5rem;
       background: rgba(255,255,255,0.02);
-      border-bottom: 1px solid var(--bd-subtle);
+      border-bottom: 1px solid rgba(255,255,255,0.12);
       display: flex;
       align-items: center;
       gap: 12px;
@@ -93,7 +93,7 @@
       align-items: center;
       justify-content: center;
       font-size: 1.2rem;
-      color: var(--violet);
+      color: #a855f7;
     }
 
     .card-body-alt {
@@ -108,6 +108,14 @@
       border-radius: var(--r-lg);
       text-align: center;
     }
+
+    /* Brighten all elements */
+    .stat-hero-val { color: #ffffff !important; }
+    .section-eyebrow { color: #94a3b8 !important; }
+    .text-hero { color: #ffffff !important; }
+    .text-muted { color: #94a3b8 !important; }
+    .form-label { color: #cbd5e1 !important; }
+    .xp-input-box { color: #ffffff !important; }
   </style>
 </head>
 <body class="page-vendor">

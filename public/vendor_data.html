@@ -21,7 +21,7 @@
     
     .chart-box {
       background: var(--bg-surface);
-      border: 1px solid var(--bd-subtle);
+      border: 1px solid rgba(255,255,255,0.12);
       border-radius: var(--r-lg);
       padding: 1.75rem 1.5rem;
       margin-bottom: 2rem;
@@ -60,7 +60,7 @@
       transform: translateX(-50%);
       font-size: 0.6rem;
       font-weight: 800;
-      color: var(--cyan);
+      color: #00f0ff;
       font-family: var(--font-mono);
       white-space: nowrap;
       opacity: 0;
@@ -69,7 +69,7 @@
     .bar:hover .bar-tooltip { opacity: 1; }
     .bar-date {
       font-size: 0.5rem;
-      color: var(--tx-ghost);
+      color: #94a3b8;
       font-family: var(--font-mono);
       white-space: nowrap;
     }
@@ -79,12 +79,12 @@
       justify-content: space-between;
       align-items: center;
       padding: 0.75rem 0;
-      border-bottom: 1px solid rgba(255,255,255,0.03);
+      border-bottom: 1px solid rgba(255,255,255,0.12);
     }
     .segment-label {
       font-size: 0.7rem;
       font-weight: 800;
-      color: var(--tx-hero);
+      color: #cbd5e1;
       min-width: 80px;
     }
     .segment-bar-bg {
@@ -105,13 +105,13 @@
     .segment-val {
       font-family: var(--font-mono);
       font-size: 0.7rem;
-      color: var(--cyan);
+      color: #00f0ff;
       font-weight: 800;
     }
 
     .log-stack {
       background: var(--bg-surface);
-      border: 1px solid var(--bd-subtle);
+      border: 1px solid rgba(255,255,255,0.12);
       border-radius: var(--r-lg);
       overflow: hidden;
     }
@@ -120,13 +120,21 @@
       justify-content: space-between;
       align-items: center;
       padding: 1.25rem 1.5rem;
-      border-bottom: 1px solid var(--bd-subtle);
+      border-bottom: 1px solid rgba(255,255,255,0.12);
       transition: background 0.2s;
     }
     .log-entry:hover { background: rgba(255,255,255,0.01); }
-    .log-entry-info .user { font-size: 0.75rem; font-weight: 800; color: var(--tx-hero); margin-bottom: 2px; }
-    .log-entry-info .meta { font-size: 0.6rem; color: var(--tx-muted); }
-    .log-entry-status { font-size: 0.6rem; font-weight: 900; letter-spacing: 0.05em; color: var(--cyan); }
+    .log-entry-info .user { font-size: 0.75rem; font-weight: 800; color: #ffffff; margin-bottom: 2px; }
+    .log-entry-info .meta { font-size: 0.6rem; color: #94a3b8; }
+    .log-entry-status { font-size: 0.6rem; font-weight: 900; letter-spacing: 0.05em; color: #00f0ff; }
+
+    /* Brighten all elements */
+    .section-eyebrow { color: #94a3b8 !important; }
+    .section-title { color: #ffffff !important; }
+    .stat-tile-label { color: #94a3b8 !important; }
+    .stat-tile-val { color: #ffffff !important; }
+    .badge-violet { background: rgba(168, 85, 247, 0.15); border-color: rgba(168, 85, 247, 0.3); color: #a855f7 !important; }
+    .card { border-color: rgba(255,255,255,0.12) !important; }
   </style>
 </head>
 <body class="page-vendor">
