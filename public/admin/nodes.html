@@ -126,17 +126,20 @@
       <div class="input-wrap">
         <label>NETWORK_TIER</label>
         <div class="flex gap-2">
-          <label class="flex-1 flex items-center justify-center p-3 rounded-xl border border-white/10 bg-white/5 cursor-pointer hover:bg-white/10 transition-all peer-checked:border-gold peer-checked:bg-gold/5">
-            <input type="radio" name="tier" value="normal" checked class="hidden peer">
-            <span class="text-[0.6rem] font-bold opacity-60 peer-checked:opacity-100 peer-checked:text-white">NORMAL</span>
+          <label class="flex-1 flex flex-col items-center justify-center p-3 rounded-xl border border-white/10 bg-white/5 cursor-pointer hover:bg-white/10 transition-all" id="tier-normal-label">
+            <input type="radio" name="tier" value="normal" checked class="hidden">
+            <div class="w-3 h-3 rounded-full mb-2 bg-gray-500 transition-all" id="tier-normal-dot"></div>
+            <span class="text-[0.6rem] font-bold opacity-60 transition-all" id="tier-normal-text">NORMAL</span>
           </label>
-          <label class="flex-1 flex items-center justify-center p-3 rounded-xl border border-white/10 bg-white/5 cursor-pointer hover:bg-white/10 transition-all peer-checked:border-gold peer-checked:bg-gold/5">
-            <input type="radio" name="tier" value="gold" class="hidden peer">
-            <span class="text-[0.6rem] font-bold opacity-60 peer-checked:opacity-100 peer-checked:text-white">GOLD</span>
+          <label class="flex-1 flex flex-col items-center justify-center p-3 rounded-xl border border-white/10 bg-white/5 cursor-pointer hover:bg-white/10 transition-all" id="tier-gold-label">
+            <input type="radio" name="tier" value="gold" class="hidden">
+            <div class="w-3 h-3 rounded-full mb-2 bg-gray-500 transition-all" id="tier-gold-dot"></div>
+            <span class="text-[0.6rem] font-bold opacity-60 transition-all" id="tier-gold-text">GOLD</span>
           </label>
-          <label class="flex-1 flex items-center justify-center p-3 rounded-xl border border-white/10 bg-white/5 cursor-pointer hover:bg-white/10 transition-all peer-checked:border-gold peer-checked:bg-gold/5">
-            <input type="radio" name="tier" value="premium" class="hidden peer">
-            <span class="text-[0.6rem] font-bold opacity-60 peer-checked:opacity-100 peer-checked:text-white">PREMIUM</span>
+          <label class="flex-1 flex flex-col items-center justify-center p-3 rounded-xl border border-white/10 bg-white/5 cursor-pointer hover:bg-white/10 transition-all" id="tier-premium-label">
+            <input type="radio" name="tier" value="premium" class="hidden">
+            <div class="w-3 h-3 rounded-full mb-2 bg-gray-500 transition-all" id="tier-premium-dot"></div>
+            <span class="text-[0.6rem] font-bold opacity-60 transition-all" id="tier-premium-text">PREMIUM</span>
           </label>
         </div>
       </div>
@@ -204,6 +207,51 @@
   <script src="core.js"></script>
   <script>
     let allVendorsCache = [];
+    
+    // Setup tier selection UI
+    function setupTierSelection() {
+      const tiers = ['normal', 'gold', 'premium'];
+      const tierColors = {
+        normal: '#94a3b8',
+        gold: '#f59e0b',
+        premium: '#a855f7'
+      };
+      
+      tiers.forEach(tier => {
+        const label = document.getElementById(`tier-${tier}-label`);
+        const dot = document.getElementById(`tier-${tier}-dot`);
+        const text = document.getElementById(`tier-${tier}-text`);
+        const radio = label.querySelector('input[type="radio"]');
+        
+        function updateState() {
+          tiers.forEach(t => {
+            const tLabel = document.getElementById(`tier-${t}-label`);
+            const tDot = document.getElementById(`tier-${t}-dot`);
+            const tText = document.getElementById(`tier-${t}-text`);
+            const tRadio = tLabel.querySelector('input[type="radio"]');
+            
+            if (tRadio.checked) {
+              tLabel.style.borderColor = tierColors[t] + '44';
+              tLabel.style.backgroundColor = tierColors[t] + '11';
+              tDot.style.backgroundColor = tierColors[t];
+              tDot.style.boxShadow = `0 0 10px ${tierColors[t]}`;
+              tText.style.opacity = '1';
+              tText.style.color = tierColors[t];
+            } else {
+              tLabel.style.borderColor = 'rgba(255,255,255,0.1)';
+              tLabel.style.backgroundColor = 'rgba(255,255,255,0.05)';
+              tDot.style.backgroundColor = '#64748b';
+              tDot.style.boxShadow = 'none';
+              tText.style.opacity = '0.6';
+              tText.style.color = 'rgba(255,255,255,0.7)';
+            }
+          });
+        }
+        
+        radio.addEventListener('change', updateState);
+        updateState();
+      });
+    }
 
     async function loadVendors() {
       try {
@@ -517,6 +565,7 @@
     window.onload = async () => {
       renderAdminHeader('Neural Registry');
       renderAdminNav('nodes');
+      setupTierSelection();
       const ok = await checkSession();
       if (ok) {
         loadVendors();
