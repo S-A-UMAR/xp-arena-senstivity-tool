@@ -251,6 +251,35 @@
           ">SECURE_PHRASE_HERE</div>
         </div>
 
+        <!-- ── INFO STATS GRID ── -->
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.6rem; margin-bottom:1rem;">
+
+          <!-- EXPIRY -->
+          <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,215,0,0.15); border-top:2px solid rgba(255,215,0,0.6); border-radius:10px; padding:0.7rem 0.8rem;">
+            <div style="font-size:0.48rem; color:rgba(255,255,255,0.35); letter-spacing:0.15em; margin-bottom:4px;">EXPIRY_DATE</div>
+            <div id="cardExpiry" style="font-size:0.85rem; font-weight:900; color:#ffd700; letter-spacing:0.04em;">NEVER</div>
+          </div>
+
+          <!-- GEN LIMIT -->
+          <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(0,229,255,0.15); border-top:2px solid rgba(0,229,255,0.6); border-radius:10px; padding:0.7rem 0.8rem;">
+            <div style="font-size:0.48rem; color:rgba(255,255,255,0.35); letter-spacing:0.15em; margin-bottom:4px;">GEN_LIMIT</div>
+            <div id="cardGenLimit" style="font-size:0.85rem; font-weight:900; color:#00e5ff; letter-spacing:0.04em;">UNLIMITED</div>
+          </div>
+
+          <!-- STATUS -->
+          <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(52,211,153,0.15); border-top:2px solid rgba(52,211,153,0.6); border-radius:10px; padding:0.7rem 0.8rem;">
+            <div style="font-size:0.48rem; color:rgba(255,255,255,0.35); letter-spacing:0.15em; margin-bottom:4px;">NODE_STATUS</div>
+            <div id="cardStatus" style="font-size:0.85rem; font-weight:900; color:#34d399; letter-spacing:0.04em;">● ACTIVE</div>
+          </div>
+
+          <!-- NETWORK -->
+          <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(167,139,250,0.15); border-top:2px solid rgba(167,139,250,0.6); border-radius:10px; padding:0.7rem 0.8rem;">
+            <div style="font-size:0.48rem; color:rgba(255,255,255,0.35); letter-spacing:0.15em; margin-bottom:4px;">NETWORK_ID</div>
+            <div id="cardNetwork" style="font-size:0.85rem; font-weight:900; color:#a78bfa; letter-spacing:0.04em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">AXP_NEXUS</div>
+          </div>
+
+        </div>
+
         <!-- ── FOOTER META ── -->
         <div style="display:flex; justify-content:space-between; align-items:flex-end;">
           <div style="font-size:0.48rem; color:rgba(255,255,255,0.3); line-height:1.7; letter-spacing:0.06em;">
@@ -259,7 +288,6 @@
           </div>
           <!-- Styled barcode -->
           <div style="display:flex; align-items:flex-end; gap:1px; height:28px; opacity:0.45;">
-            <!-- barcode bars of varying heights -->
             <div style="width:2px; height:100%; background:#fff;"></div>
             <div style="width:1px; height:70%; background:#fff;"></div>
             <div style="width:3px; height:100%; background:#fff;"></div>
@@ -536,6 +564,28 @@
       document.getElementById('cardAccessKey').textContent = 'HIDDEN_FOR_SECURITY';
       applyTierBadge(v.tier);
       document.getElementById('cardDate').textContent = new Date(v.created_at || Date.now()).toISOString().split('T')[0];
+
+      // Extra fields
+      const isExpired = v.active_until && new Date(v.active_until) < new Date();
+      document.getElementById('cardExpiry').textContent = v.active_until
+        ? new Date(v.active_until).toLocaleDateString('en-GB', {day:'2-digit',month:'short',year:'numeric'})
+        : 'NEVER';
+      const usageText = v.usage_limit
+        ? `${v.current_usage || 0} / ${v.usage_limit}`
+        : 'UNLIMITED';
+      document.getElementById('cardGenLimit').textContent = usageText;
+      const statusEl = document.getElementById('cardStatus');
+      if (isExpired) {
+        statusEl.textContent = '✕ EXPIRED';
+        statusEl.style.color = '#f87171';
+      } else if (v.status === 'suspended') {
+        statusEl.textContent = '⏸ SUSPENDED';
+        statusEl.style.color = '#fbbf24';
+      } else {
+        statusEl.textContent = '● ACTIVE';
+        statusEl.style.color = '#34d399';
+      }
+      document.getElementById('cardNetwork').textContent = v.brand_config?.display_name || v.vendor_id;
       toggleCardSheet(true);
     }
 
@@ -618,6 +668,16 @@
         document.getElementById('cardAccessKey').textContent = result.accessKey;
         applyTierBadge(result.tier);
         document.getElementById('cardDate').textContent = new Date().toISOString().split('T')[0];
+        // Extra fields
+        const expiryDate = result.active_until || result.expiresAt || null;
+        document.getElementById('cardExpiry').textContent = expiryDate
+          ? new Date(expiryDate).toLocaleDateString('en-GB', {day:'2-digit',month:'short',year:'numeric'})
+          : 'NEVER';
+        const usageLimit = result.usage_limit || result.usageLimit || null;
+        document.getElementById('cardGenLimit').textContent = usageLimit ? `${usageLimit} USES` : 'UNLIMITED';
+        document.getElementById('cardStatus').textContent = '● ACTIVE';
+        document.getElementById('cardStatus').style.color = '#34d399';
+        document.getElementById('cardNetwork').textContent = result.vendorId || 'AXP_NEXUS';
         toggleCardSheet(true);
 
         adminNotify('NODE_PROVISIONED_SUCCESSFULLY', 'success');
