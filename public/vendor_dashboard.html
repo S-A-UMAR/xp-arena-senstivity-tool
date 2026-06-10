@@ -772,19 +772,18 @@
             return;
           }
 
-          // If a device was selected from autocomplete, use its data for RAM-based calc
-          // otherwise use the typed name as both brand and model (free-text mode)
-          let brand, series, model;
+          // For the API calculation: derive brand/series/model from selected device
+          // or split the typed text. The API uses these to look up RAM specs.
+          let apiBrand, apiSeries, apiModel;
           if (selectedDevice) {
-            brand  = selectedDevice.brand;
-            series = selectedDevice.series;
-            model  = selectedDevice.model;
+            apiBrand  = selectedDevice.brand;
+            apiSeries = selectedDevice.series;
+            apiModel  = selectedDevice.model;
           } else {
-            // Free-text: parse "Brand Model" or just use as model with brand "CUSTOM"
             const parts = rawInput.split(' ');
-            brand  = parts.length > 1 ? parts[0] : 'DEVICE';
-            series = '';
-            model  = rawInput;
+            apiBrand  = parts.length > 1 ? parts[0] : rawInput;
+            apiSeries = '';
+            apiModel  = rawInput;
           }
 
           const playstyle = document.getElementById('genPlaystyle')?.value || 'balanced';
@@ -798,7 +797,7 @@
             const res = await NexusAuth.fetch('/api/vault/vendor/generate/auto', {
               method: 'POST',
               body: JSON.stringify({
-                brand, series, model,
+                brand: apiBrand, series: apiSeries, model: apiModel,
                 speed: playstyle, claw,
                 diagnosticData: VendorLogic.state?.diagnosticData
               })
@@ -806,8 +805,8 @@
             const data = await res.json();
             if (data.code || data.accessKey) {
               const code = data.code || data.accessKey;
-              // Display name = what the vendor typed (natural readable form)
-              VendorLogic.showResultCard(code, brand, model, tier);
+              // ✅ Card shows EXACTLY what the vendor typed — nothing else
+              VendorLogic.showResultCard(code, '', rawInput, tier);
               window.notify('ACCESS_KEY_GENERATED', 'success');
             } else {
               window.notify(data.error || 'GENERATION_FAILED', 'error');

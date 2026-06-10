@@ -266,6 +266,7 @@ const VendorLogic = {
 
                     <!-- Bottom Specs Section -->
                     <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 0.85rem; z-index: 2;">
+                        ${brand ? `
                         <div style="text-align: left;">
                             <div style="font-size: 0.38rem; color: rgba(255,255,255,0.4); font-family: var(--font-mono); letter-spacing: 0.05em;">ARCH</div>
                             <div style="font-size: 0.6rem; font-weight: 900; color: #ffffff; text-transform: uppercase; margin-top: 2px;">${brand}</div>
@@ -274,6 +275,12 @@ const VendorLogic = {
                             <div style="font-size: 0.38rem; color: rgba(255,255,255,0.4); font-family: var(--font-mono); letter-spacing: 0.05em;">MODEL</div>
                             <div style="font-size: 0.6rem; font-weight: 900; color: #ffffff; text-transform: uppercase; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 110px;">${model.substring(0, 15)}</div>
                         </div>
+                        ` : `
+                        <div style="text-align: left; flex: 1;">
+                            <div style="font-size: 0.38rem; color: rgba(255,255,255,0.4); font-family: var(--font-mono); letter-spacing: 0.05em;">DEVICE</div>
+                            <div style="font-size: 0.6rem; font-weight: 900; color: #ffffff; text-transform: uppercase; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 180px;">${model}</div>
+                        </div>
+                        `}
                         <div style="text-align: right;">
                             <div style="font-size: 0.38rem; color: rgba(255,255,255,0.4); font-family: var(--font-mono); letter-spacing: 0.05em;">STATUS</div>
                             <div style="font-size: 0.58rem; font-weight: 900; color: #10b981; text-shadow: 0 0 8px rgba(16,185,129,0.4); text-transform: uppercase; margin-top: 2px;">VERIFIED</div>
@@ -613,20 +620,11 @@ const VendorLogic = {
             // Wait two frames so the browser paints the frozen state
             await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
 
-            const rect = area.getBoundingClientRect();
             const canvas = await html2canvas(area, {
-                backgroundColor: null,   // use the element's own background exactly
+                backgroundColor: '#050a14',
                 scale: EXPORT_SCALE,
                 useCORS: true,
                 allowTaint: true,
-                width:  Math.round(rect.width),
-                height: Math.round(rect.height),
-                x: rect.left,
-                y: rect.top,
-                scrollX: -window.scrollX,
-                scrollY: -window.scrollY,
-                windowWidth:  window.innerWidth,
-                windowHeight: window.innerHeight,
                 logging: false,
             });
 
