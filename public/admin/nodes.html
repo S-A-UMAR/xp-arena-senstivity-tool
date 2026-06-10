@@ -713,21 +713,12 @@
         // Let the browser paint the frozen frame
         await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
 
-        const rect = container.getBoundingClientRect();
         const canvas = await html2canvas(container, {
-          backgroundColor: null,   // use element's own background exactly
+          backgroundColor: '#050a14',   // match the card's base gradient dark color to ensure crisp background colors
           scale: EXPORT_SCALE,
           useCORS: true,
           allowTaint: true,
           logging: false,
-          width:  Math.round(rect.width),
-          height: Math.round(rect.height),
-          x: rect.left,
-          y: rect.top,
-          scrollX: -window.scrollX,
-          scrollY: -window.scrollY,
-          windowWidth:  window.innerWidth,
-          windowHeight: window.innerHeight,
         });
 
         // Restore animation state

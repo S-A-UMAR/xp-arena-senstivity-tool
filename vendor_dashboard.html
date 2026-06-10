@@ -2,10 +2,17 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon.svg">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon.svg">
+  <link rel="apple-touch-icon" sizes="180x180" href="favicon.svg">
+  <link rel="mask-icon" href="favicon.svg" color="#00f0ff">
   <title>AXP | COMMAND CENTER</title>
   <link rel="stylesheet" href="design-system.css">
+  <link rel="stylesheet" href="gaming-animations.css">
+  <link rel="stylesheet" href="gaming-components.css">
+  <link rel="stylesheet" href="mobile-polish.css">
   <style>
     /* Page-specific refinements */
     .hero-zone {
@@ -13,7 +20,7 @@
     }
     .profile-hero {
       padding: 2.5rem 2rem;
-      background: linear-gradient(145deg, rgba(168, 85, 247, 0.12), rgba(8, 13, 24, 0.95));
+      background: linear-gradient(145deg, rgba(168, 85, 247, 0.2), rgba(8, 13, 24, 0.98));
       border: 1px solid var(--violet-border);
       position: relative;
       overflow: hidden;
@@ -23,8 +30,18 @@
       position: absolute;
       top: -20%; right: -10%;
       width: 200px; height: 200px;
-      background: radial-gradient(circle, rgba(168, 85, 247, 0.15) 0%, transparent 70%);
+      background: radial-gradient(circle, rgba(168, 85, 247, 0.25) 0%, transparent 70%);
       filter: blur(30px);
+    }
+    .vendor-header-btn {
+      background: transparent;
+      border: none;
+      padding: 0;
+    }
+    .vendor-header-btn:focus-visible {
+      outline: 2px solid var(--cyan);
+      outline-offset: 3px;
+      border-radius: 10px;
     }
     
     .status-badge {
@@ -32,8 +49,8 @@
       align-items: center;
       gap: 6px;
       padding: 4px 12px;
-      background: rgba(168, 85, 247, 0.1);
-      border: 1px solid rgba(168, 85, 247, 0.2);
+      background: rgba(168, 85, 247, 0.15);
+      border: 1px solid rgba(168, 85, 247, 0.3);
       border-radius: var(--r-pill);
       color: var(--violet);
       font-size: 0.6rem;
@@ -46,10 +63,50 @@
     .expiry-row {
       margin-top: 1.5rem;
       padding-top: 1.25rem;
-      border-top: 1px solid rgba(255,255,255,0.06);
+      border-top: 1px solid rgba(255,255,255,0.1);
       display: flex;
       justify-content: space-between;
       align-items: center;
+    }
+    .hero-copy {
+      margin-top: 1rem;
+      max-width: 28rem;
+      color: #cbd5e1;
+      font-size: 0.82rem;
+      line-height: 1.6;
+    }
+    .hero-summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.75rem;
+      margin-top: 1.5rem;
+    }
+    .hero-summary-item {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 16px;
+      padding: 0.9rem 1rem;
+    }
+    .hero-summary-label {
+      font-size: 0.58rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #94a3b8;
+      font-weight: 800;
+      margin-bottom: 0.3rem;
+    }
+    .hero-summary-value {
+      font-size: 0.88rem;
+      color: #ffffff;
+      font-weight: 800;
+    }
+    .section-kicker {
+      margin-bottom: 0.35rem;
+      font-size: 0.62rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #94a3b8;
+      font-weight: 800;
     }
     
     .quick-grid {
@@ -61,7 +118,7 @@
     
     .action-card {
       background: var(--bg-surface);
-      border: 1px solid var(--bd-subtle);
+      border: 1px solid rgba(255,255,255,0.12);
       border-radius: var(--r-lg);
       padding: 1.25rem;
       display: flex;
@@ -75,6 +132,22 @@
       border-color: var(--cyan-border);
       transform: translateY(-4px);
       box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    }
+    .action-card-link,
+    .action-card-button {
+      width: 100%;
+      text-decoration: none;
+      text-align: left;
+      font: inherit;
+      color: inherit;
+    }
+    .action-card-button {
+      border: none;
+    }
+    .action-card-link:focus-visible,
+    .action-card-button:focus-visible {
+      outline: 2px solid var(--cyan);
+      outline-offset: 3px;
     }
     .action-card-icon {
       font-size: 1.5rem;
@@ -96,13 +169,13 @@
     .action-card-title {
       font-size: 0.75rem;
       font-weight: 800;
-      color: var(--tx-hero);
+      color: #ffffff;
       text-transform: uppercase;
       letter-spacing: 0.05em;
     }
     .action-card-desc {
       font-size: 0.6rem;
-      color: var(--tx-muted);
+      color: #94a3b8;
       line-height: 1.4;
     }
     .badge-meta-sync {
@@ -112,8 +185,8 @@
       font-size: 0.55rem;
       font-weight: 900;
       color: var(--cyan);
-      background: rgba(0, 242, 254, 0.1);
-      border: 1px solid rgba(0, 242, 254, 0.2);
+      background: rgba(0, 242, 254, 0.15);
+      border: 1px solid rgba(0, 242, 254, 0.3);
       padding: 4px 10px;
       border-radius: var(--r-pill);
       letter-spacing: 0.05em;
@@ -125,6 +198,147 @@
       border-radius: 50%;
       box-shadow: 0 0 8px var(--cyan);
     }
+    .generator-intro {
+      margin-top: 0.35rem;
+      font-size: 0.78rem;
+      line-height: 1.6;
+      color: #cbd5e1;
+    }
+    .micro-note {
+      margin-top: 0.9rem;
+      font-size: 0.7rem;
+      line-height: 1.5;
+      color: #94a3b8;
+    }
+    .inline-field-row {
+      display: flex;
+      gap: 0.75rem;
+      align-items: stretch;
+    }
+    .inline-field-row > * {
+      flex: 1;
+    }
+    .lab-fetch-btn {
+      min-width: 112px;
+    }
+    .section-note {
+      margin-bottom: 1rem;
+      color: #cbd5e1;
+      font-size: 0.75rem;
+      line-height: 1.5;
+    }
+    @media (max-width: 520px) {
+      .profile-hero {
+        padding: 2rem 1.25rem;
+      }
+      .hero-summary-grid,
+      .quick-grid {
+        grid-template-columns: 1fr;
+      }
+      .expiry-row,
+      .inline-field-row {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .action-card {
+        min-height: 92px;
+      }
+    }
+
+    /* Make form elements bright */
+    .form-label {
+      color: #cbd5e1 !important;
+    }
+    .xp-select {
+      color: #ffffff !important;
+    }
+    .xp-select option {
+      color: #000000;
+    }
+
+    /* ── Device Search Styles ── */
+    .device-search-wrap {
+      position: relative;
+    }
+    .device-search-input {
+      width: 100%;
+      background: rgba(255,255,255,0.05);
+      border: 1.5px solid rgba(255,255,255,0.12);
+      border-radius: 12px;
+      padding: 0.75rem 2.8rem 0.75rem 1rem;
+      color: #fff;
+      font-size: 0.82rem;
+      font-family: inherit;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      box-sizing: border-box;
+    }
+    .device-search-input:focus {
+      outline: none;
+      border-color: rgba(168,85,247,0.7);
+      box-shadow: 0 0 0 3px rgba(168,85,247,0.12);
+    }
+    .device-search-input::placeholder { color: rgba(255,255,255,0.3); }
+    .device-search-clear {
+      position: absolute;
+      right: 0.7rem;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: rgba(255,255,255,0.4);
+      cursor: pointer;
+      font-size: 1.1rem;
+      line-height: 1;
+      padding: 2px 4px;
+      display: none;
+    }
+    .device-search-clear.visible { display: block; }
+    .device-autocomplete {
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 0; right: 0;
+      background: #0d1424;
+      border: 1.5px solid rgba(168,85,247,0.35);
+      border-radius: 12px;
+      max-height: 220px;
+      overflow-y: auto;
+      z-index: 1000;
+      display: none;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.7);
+    }
+    .device-autocomplete.open { display: block; }
+    .device-autocomplete::-webkit-scrollbar { width: 4px; }
+    .device-autocomplete::-webkit-scrollbar-track { background: transparent; }
+    .device-autocomplete::-webkit-scrollbar-thumb { background: rgba(168,85,247,0.4); border-radius: 4px; }
+    .device-ac-item {
+      padding: 0.65rem 1rem;
+      cursor: pointer;
+      font-size: 0.78rem;
+      color: rgba(255,255,255,0.85);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      transition: background 0.15s;
+    }
+    .device-ac-item:last-child { border-bottom: none; }
+    .device-ac-item:hover, .device-ac-item.active { background: rgba(168,85,247,0.15); color: #fff; }
+    .device-ac-item .ac-brand { font-size: 0.58rem; color: rgba(168,85,247,0.8); font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
+    .device-ac-item .ac-model { font-weight: 700; }
+    .device-ac-item em { color: rgba(168,85,247,0.9); font-style: normal; font-weight: 900; }
+    .device-ac-empty { padding: 1rem; text-align: center; color: rgba(255,255,255,0.3); font-size: 0.75rem; }
+    .browse-toggle-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 0.6rem;
+      cursor: pointer;
+      width: fit-content;
+    }
+    .browse-toggle-row input[type=checkbox] { accent-color: #a855f7; width: 14px; height: 14px; }
+    .browse-toggle-row label { font-size: 0.68rem; color: rgba(255,255,255,0.45); cursor: pointer; user-select: none; }
+    .browse-dropdowns { margin-top: 1rem; display: none; }
+    .browse-dropdowns.open { display: block; }
   </style>
 </head>
 <body class="page-vendor">
@@ -132,11 +346,11 @@
   <!-- Fixed Header -->
   <header class="page-header">
     <div class="ph-logo">AXP_NEXUS</div>
-    <div class="ph-title">System Dashboard</div>
-    <div class="ph-action" onclick="NexusAuth.logout()">
+    <div class="ph-title">Vendor Dashboard</div>
+    <button type="button" class="ph-action vendor-header-btn" onclick="NexusAuth.logout()">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
       LOGOUT
-    </div>
+    </button>
   </header>
 
   <div class="page-wrap anim-stagger-in" id="section-home">
@@ -149,83 +363,130 @@
           UPLINK_STABLE
         </div>
         <div class="stat-hero">
-          <div class="section-eyebrow">Authenticated Operator</div>
+          <div class="section-eyebrow">Creator workspace</div>
           <div class="stat-hero-val" id="welcomeName">OPERATOR_AXP</div>
-          <div class="stat-hero-sub text-violet">Premium Tier Subscription Active</div>
+          <div class="stat-hero-sub text-violet" id="welcomeTierLabel">Premium access active</div>
+        </div>
+        <p class="hero-copy" id="dashboardHint">
+          Manage your brand, create access keys, and keep an eye on recent activity from one streamlined mobile workspace.
+        </p>
+        <div class="hero-summary-grid">
+          <div class="hero-summary-item">
+            <div class="hero-summary-label">Focus</div>
+            <div class="hero-summary-value">Keys & sharing</div>
+          </div>
+          <div class="hero-summary-item">
+            <div class="hero-summary-label">Mode</div>
+            <div class="hero-summary-value">Mobile ready</div>
+          </div>
+          <div class="hero-summary-item">
+            <div class="hero-summary-label">Status</div>
+            <div class="hero-summary-value">Secure session</div>
+          </div>
         </div>
         
         <div class="expiry-row">
-          <div class="stat-hero-label">Subscription Life</div>
+          <div class="stat-hero-label">Access expiry</div>
           <div class="countdown" id="expiryTimer">30D 23H 59M</div>
         </div>
         
         <button class="btn-cta violet auto mt-4" style="font-size: 0.65rem; padding: 0.6rem 1.25rem;" onclick="VendorLogic.showVendorCredentials()">
-            VIEW_MASTER_CREDENTIAL
+            VIEW VENDOR ID
         </button>
       </div>
     </div>
 
     <!-- Quick Navigation Grid -->
     <div class="quick-grid anim-up">
-      <div class="action-card" onclick="window.location.href='vendor_data.html'">
+      <div style="grid-column: 1 / -1; margin-bottom: 0.15rem;">
+        <div class="section-kicker">Quick actions</div>
+        <div class="section-note">Jump to the tasks vendors use most often on mobile: performance checks, key management, branding, and presets.</div>
+      </div>
+      <a href="vendor_data.html" class="action-card action-card-link">
         <div class="action-card-icon">📊</div>
         <div>
-          <div class="action-card-title">Analytics</div>
-          <div class="action-card-desc">Hits & User Engagement</div>
+          <div class="action-card-title">Performance</div>
+          <div class="action-card-desc">See profile views, engagement, and recent activity.</div>
         </div>
-      </div>
-      <div class="action-card" onclick="openVaultManager()">
+      </a>
+      <button type="button" class="action-card action-card-button" onclick="openVaultManager()">
         <div class="action-card-icon">🔑</div>
         <div>
           <div class="action-card-title">Key Vault</div>
-          <div class="action-card-desc">Manage Access Tokens</div>
+          <div class="action-card-desc">Review active keys and revoke old ones in seconds.</div>
         </div>
-      </div>
-      <div class="action-card" onclick="openBrandingEditor()">
+      </button>
+      <button type="button" class="action-card action-card-button" onclick="openBrandingEditor()">
         <div class="action-card-icon">🎨</div>
         <div>
           <div class="action-card-title">Branding</div>
-          <div class="action-card-desc">Visual Identity Profile</div>
+          <div class="action-card-desc">Update your display name, logo, and creator identity.</div>
         </div>
-      </div>
-      <div class="action-card" onclick="openMasterPresets()">
+      </button>
+      <button type="button" class="action-card action-card-button" onclick="openMasterPresets()">
         <div class="action-card-icon">📦</div>
         <div>
           <div class="action-card-title">Presets</div>
-          <div class="action-card-desc">Rapid Configuration Sets</div>
+          <div class="action-card-desc">Save repeatable setups for faster publishing.</div>
         </div>
-      </div>
+      </button>
     </div>
 
     <!-- Generator Module -->
     <div class="card glow mb-3 anim-up" style="padding: 2.5rem 2rem;">
       <div class="section-header">
         <div>
-          <div class="section-eyebrow">Fabrication Unit</div>
-          <h2 class="section-title">NEURAL_FABRICATOR</h2>
+          <div class="section-eyebrow">Create a new key</div>
+          <h2 class="section-title">Generate Access Key</h2>
+          <p class="generator-intro">Follow these simple steps to create share-ready calibration codes for your community:</p>
         </div>
         <div style="font-size: 1.5rem; opacity: 0.3;">🧪</div>
       </div>
-
-      <div class="form-group">
-        <label class="form-label">Brand_Architecture</label>
-        <select id="genBrand" class="xp-select">
-          <option value="" disabled selected>SELECT_BRAND</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Series_Logic</label>
-        <select id="genSeries" class="xp-select" disabled>
-          <option value="" disabled selected>SELECT_SERIES</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Model_Signature</label>
-        <select id="genModel" class="xp-select" disabled>
-          <option value="" disabled selected>SELECT_MODEL</option>
-        </select>
+      
+      <!-- ── DEVICE SELECTOR ── -->
+      <div class="form-group" style="margin-bottom: 0.5rem;">
+        <label class="form-label" style="display:flex; align-items:center; gap:0.5rem;">
+          Device
+          <span style="font-size:0.55rem; color:rgba(168,85,247,0.7); background:rgba(168,85,247,0.1); border:1px solid rgba(168,85,247,0.2); padding:1px 8px; border-radius:50px; letter-spacing:0.08em; font-weight:900;">SEARCH OR TYPE ANY NAME</span>
+        </label>
+        <div class="device-search-wrap">
+          <input
+            type="text"
+            id="deviceSearchInput"
+            class="device-search-input"
+            placeholder="e.g. iPhone 15 Pro, Samsung S24, Tecno Spark..."
+            autocomplete="off"
+            spellcheck="false"
+          >
+          <button type="button" id="deviceSearchClear" class="device-search-clear" aria-label="Clear">✕</button>
+          <div id="deviceAutocomplete" class="device-autocomplete" role="listbox"></div>
+        </div>
+        <!-- Browse by brand toggle -->
+        <div class="browse-toggle-row">
+          <input type="checkbox" id="browseToggle">
+          <label for="browseToggle">Browse by brand / series instead</label>
+        </div>
+        <!-- Hidden brand/series/model dropdowns (legacy browse mode) -->
+        <div class="browse-dropdowns" id="browseDropdowns">
+          <div class="form-group" style="margin-bottom:0.75rem;">
+            <label class="form-label" style="font-size:0.68rem;">Brand</label>
+            <select id="genBrand" class="xp-select">
+              <option value="" disabled selected>Select a brand</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom:0.75rem;">
+            <label class="form-label" style="font-size:0.68rem;">Series</label>
+            <select id="genSeries" class="xp-select" disabled>
+              <option value="" disabled selected>Select a series</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" style="font-size:0.68rem;">Model</label>
+            <select id="genModel" class="xp-select" disabled>
+              <option value="" disabled selected>Select a model</option>
+            </select>
+          </div>
+        </div>
       </div>
 
       <div class="form-grid-2">
@@ -238,7 +499,7 @@
           </select>
         </div>
         <div class="form-group">
-          <label class="form-label">Fingers</label>
+          <label class="form-label">Finger Layout</label>
           <select id="genClaw" class="xp-select">
             <option value="2">2-FINGER</option>
             <option value="3" selected>3-FINGER</option>
@@ -247,27 +508,19 @@
         </div>
       </div>
 
-      <!-- AXP Lab ID Input -->
-      <div class="form-group mb-4" style="background: rgba(168, 85, 247, 0.04); border: 1px solid rgba(168, 85, 247, 0.1); border-radius: 12px; padding: 1.25rem;">
-        <div class="flex justify-between items-center mb-2">
-            <label class="form-label mb-0" style="color: var(--violet);">AXP_LAB_ID</label>
-            <div id="labStatus" class="text-ghost" style="font-size: 0.55rem; font-family: var(--font-mono);">AWAITING_DATA...</div>
-        </div>
-        <div class="flex gap-2">
-            <input type="text" id="labIdInput" class="xp-input-box text-xs" style="text-transform: uppercase;" placeholder="e.g. LAB-A83BK">
-            <button class="btn-ghost auto py-2 px-3" onclick="fetchDiagnostic()" style="font-size: 0.6rem;">FETCH</button>
-        </div>
-      </div>
 
-      <button class="btn-cta violet" onclick="autoGenerate()">
+
+      <button class="btn-cta violet" id="generateKeyBtn" onclick="autoGenerate()">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 2v4"/><path d="m16.2 7.8 2.9-2.9"/><path d="M18 12h4"/><path d="m16.2 16.2 2.9 2.9"/><path d="M12 18v4"/><path d="m7.8 16.2-2.9 2.9"/><path d="M2 12h4"/><path d="m7.8 7.8-2.9-2.9"/><circle cx="12" cy="12" r="3"/></svg>
-        PROVISION_ACCESS_KEY
+        GENERATE ACCESS KEY
       </button>
+      <div class="micro-note">Your key will open a verified result card that can be shared with your audience immediately.</div>
     </div>
 
     <!-- Live Feed -->
     <div class="card anim-up" style="background: rgba(10, 15, 25, 0.4);">
-      <div class="section-eyebrow mb-2">Live Uplink Feed</div>
+      <div class="section-eyebrow mb-2">Recent activity</div>
+      <div class="section-note">A lightweight feed of the latest vendor-side actions so you can quickly confirm that publishing and updates are working.</div>
       <div id="activityFeed" class="flex flex-col">
         <div style="padding: 2rem; text-align: center;">
           <div class="skeleton-h sm w-full mb-1"></div>
@@ -295,23 +548,282 @@
       <span class="xp-nav-label">Stats</span>
     </a>
     <a href="vendor_settings.html" class="xp-nav-item">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2Z"/><circle cx="12" cy="12" r="3"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 0 0 1-1 1.74l-.15.09a2 0 0 0-.73 2.73l.22.38a2 0 0 0 2.73.73l.15-.08a2 0 0 1 2 0l.43.25a2 0 0 1 1 1.73V20a2 0 0 0 2 2h.44a2 0 0 0 2-2v-.18a2 0 0 1 1-1.73l.43-.25a2 0 0 1 2 0l.15.08a2 0 0 0 2.73-.73l.22-.39a2 0 0 0-.73-2.73l-.15-.08a2 0 0 1-1-1.74v-.5a2 0 0 1 1-1.74l.15-.09a2 0 0 0 .73-2.73l-.22-.38a2 0 0 0-2.73-.73l-.15.08a2 0 0 1-2 0l-.43-.25a2 0 0 1-1-1.73V4a2 0 0 0-2-2Z"/><circle cx="12" cy="12" r="3"/></svg>
       <span class="xp-nav-label">Elite</span>
     </a>
   </nav>
 
   <script src="nexus-auth.js"></script>
+  <script src="gaming-effects.js"></script>
   <script src="devices.js?v=3"></script>
   <script src="notifications.js"></script>
   <script src="translations.js"></script>
   <script src="settings.js"></script>
   <script src="theme-manager.js"></script>
+  <script src="vendor/html2canvas.min.js"></script>
   <script src="vendor_logic.js"></script>
-  
+
+  <!-- Device Search Module -->
   <script>
-    window.addEventListener('DOMContentLoaded', () => {
-      if(window.VendorLogic) VendorLogic.init();
+  (function () {
+    // ── Build a flat device list from DeviceData once it's ready ──────────────
+    let allDevices = [];  // { brand, series, model, ram, label }
+
+    function buildDeviceList() {
+      allDevices = [];
+      const data = window.DeviceData || window.deviceData || {};
+      try {
+        Object.keys(data).forEach(brand => {
+          const brandData = data[brand];
+          if (!brandData || typeof brandData !== 'object') return;
+          Object.keys(brandData).forEach(series => {
+            const seriesData = brandData[series];
+            if (!seriesData || typeof seriesData !== 'object') return;
+            Object.keys(seriesData).forEach(model => {
+              const spec = seriesData[model];
+              allDevices.push({
+                brand,
+                series,
+                model,
+                ram: spec?.ram || spec?.RAM || '',
+                label: `${brand} ${model}`.trim()
+              });
+            });
+          });
+        });
+      } catch (_) {}
+    }
+
+    // ── Highlight query matches inside text ───────────────────────────────────
+    function highlight(text, query) {
+      if (!query) return text;
+      const re = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'gi');
+      return text.replace(re, '<em>$1</em>');
+    }
+
+    // ── DOM refs ─────────────────────────────────────────────────────────────
+    const searchInput    = document.getElementById('deviceSearchInput');
+    const clearBtn       = document.getElementById('deviceSearchClear');
+    const acList         = document.getElementById('deviceAutocomplete');
+    const browseToggle   = document.getElementById('browseToggle');
+    const browseDropdowns= document.getElementById('browseDropdowns');
+
+    let activeIndex = -1;
+    let selectedDevice = null;  // { brand, series, model } when chosen from list
+
+    // ── Show / hide clear button ──────────────────────────────────────────────
+    function syncClear() {
+      clearBtn.classList.toggle('visible', searchInput.value.length > 0);
+    }
+
+    // ── Render autocomplete dropdown ──────────────────────────────────────────
+    function renderDropdown(query) {
+      activeIndex = -1;
+      if (!query || query.length < 1) { acList.classList.remove('open'); return; }
+
+      const q = query.toLowerCase();
+      const matches = allDevices.filter(d =>
+        d.label.toLowerCase().includes(q) ||
+        d.brand.toLowerCase().includes(q) ||
+        d.model.toLowerCase().includes(q)
+      ).slice(0, 40);
+
+      if (matches.length === 0) {
+        acList.innerHTML = `<div class="device-ac-empty">No match — your typed name will be used as-is ✓</div>`;
+      } else {
+        acList.innerHTML = matches.map((d, i) => `
+          <div class="device-ac-item" data-index="${i}" data-brand="${d.brand}" data-series="${d.series}" data-model="${d.model}" role="option">
+            <div>
+              <span class="ac-brand">${highlight(d.brand, query)}</span>
+              <span class="ac-model"> ${highlight(d.model, query)}</span>
+            </div>
+          </div>
+        `).join('');
+        acList.querySelectorAll('.device-ac-item').forEach(el => {
+          el.addEventListener('mousedown', e => {
+            e.preventDefault();
+            selectDevice(el.dataset.brand, el.dataset.series, el.dataset.model);
+          });
+        });
+      }
+      acList.classList.add('open');
+    }
+
+    function selectDevice(brand, series, model) {
+      selectedDevice = { brand, series, model };
+      searchInput.value = `${brand} ${model}`;
+      acList.classList.remove('open');
+      syncClear();
+      // Sync the hidden dropdowns too (for legacy code path)
+      syncDropdownsTo(brand, series, model);
+    }
+
+    function syncDropdownsTo(brand, series, model) {
+      const brandSel = document.getElementById('genBrand');
+      if (!brandSel) return;
+      // Fire the brand change to populate series
+      for (let o of brandSel.options) { if (o.value === brand) { brandSel.value = brand; break; } }
+      brandSel.dispatchEvent(new Event('change'));
+      setTimeout(() => {
+        const seriesSel = document.getElementById('genSeries');
+        if (seriesSel) {
+          for (let o of seriesSel.options) { if (o.value === series) { seriesSel.value = series; break; } }
+          seriesSel.dispatchEvent(new Event('change'));
+          setTimeout(() => {
+            const modelSel = document.getElementById('genModel');
+            if (modelSel) {
+              for (let o of modelSel.options) { if (o.value === model) { modelSel.value = model; break; } }
+            }
+          }, 60);
+        }
+      }, 60);
+    }
+
+    // ── Keyboard navigation ───────────────────────────────────────────────────
+    searchInput.addEventListener('keydown', e => {
+      const items = acList.querySelectorAll('.device-ac-item');
+      if (!items.length) return;
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        activeIndex = Math.min(activeIndex + 1, items.length - 1);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        activeIndex = Math.max(activeIndex - 1, 0);
+      } else if (e.key === 'Enter' && activeIndex >= 0) {
+        e.preventDefault();
+        const el = items[activeIndex];
+        selectDevice(el.dataset.brand, el.dataset.series, el.dataset.model);
+        return;
+      } else if (e.key === 'Escape') {
+        acList.classList.remove('open');
+        return;
+      }
+      items.forEach((el, i) => el.classList.toggle('active', i === activeIndex));
+      if (activeIndex >= 0) items[activeIndex].scrollIntoView({ block: 'nearest' });
     });
+
+    searchInput.addEventListener('input', () => {
+      selectedDevice = null;
+      syncClear();
+      renderDropdown(searchInput.value.trim());
+    });
+
+    searchInput.addEventListener('focus', () => {
+      if (searchInput.value.trim()) renderDropdown(searchInput.value.trim());
+    });
+
+    document.addEventListener('click', e => {
+      if (!e.target.closest('.device-search-wrap')) acList.classList.remove('open');
+    });
+
+    clearBtn.addEventListener('click', () => {
+      searchInput.value = '';
+      selectedDevice = null;
+      acList.classList.remove('open');
+      syncClear();
+      searchInput.focus();
+    });
+
+    // ── Browse toggle ─────────────────────────────────────────────────────────
+    browseToggle.addEventListener('change', () => {
+      browseDropdowns.classList.toggle('open', browseToggle.checked);
+      if (browseToggle.checked) {
+        // When browse mode opens, listen for model selection and fill search box
+        const modelSel = document.getElementById('genModel');
+        if (modelSel) {
+          modelSel.addEventListener('change', onBrowseModelChange);
+        }
+      }
+    });
+
+    function onBrowseModelChange() {
+      const brand = document.getElementById('genBrand')?.value || '';
+      const model = document.getElementById('genModel')?.value || '';
+      if (brand && model) {
+        selectedDevice = { brand, series: document.getElementById('genSeries')?.value || '', model };
+        searchInput.value = `${brand} ${model}`;
+        syncClear();
+      }
+    }
+
+    // ── Override autoGenerate to use search input ─────────────────────────────
+    window.addEventListener('DOMContentLoaded', () => {
+      // Wait for VendorLogic to load then wrap autoGenerate
+      const ORIG_INTERVAL = setInterval(() => {
+        if (!window.VendorLogic) return;
+        clearInterval(ORIG_INTERVAL);
+
+        // Build device list now that DeviceData should be available
+        buildDeviceList();
+        // Also rebuild whenever DeviceData might be loaded lazily
+        window.addEventListener('devicedata-ready', buildDeviceList);
+
+        const _origAutoGenerate = VendorLogic.autoGenerate.bind(VendorLogic);
+        VendorLogic.autoGenerate = async function () {
+          // In browse mode, use the dropdowns directly (original path)
+          if (browseToggle.checked) {
+            return _origAutoGenerate();
+          }
+
+          // Search mode: get device name from the text input
+          const rawInput = searchInput.value.trim();
+          if (!rawInput) {
+            window.notify('TYPE_A_DEVICE_NAME', 'warning');
+            return;
+          }
+
+          // If a device was selected from autocomplete, use its data for RAM-based calc
+          // otherwise use the typed name as both brand and model (free-text mode)
+          let brand, series, model;
+          if (selectedDevice) {
+            brand  = selectedDevice.brand;
+            series = selectedDevice.series;
+            model  = selectedDevice.model;
+          } else {
+            // Free-text: parse "Brand Model" or just use as model with brand "CUSTOM"
+            const parts = rawInput.split(' ');
+            brand  = parts.length > 1 ? parts[0] : 'DEVICE';
+            series = '';
+            model  = rawInput;
+          }
+
+          const playstyle = document.getElementById('genPlaystyle')?.value || 'balanced';
+          const claw      = document.getElementById('genClaw')?.value || '3';
+          const tier      = VendorLogic.state?.vendorData?.tier || 'normal';
+
+          const btn = document.getElementById('generateKeyBtn');
+          if (btn) { btn.textContent = 'PROVISIONING...'; btn.disabled = true; }
+
+          try {
+            const res = await NexusAuth.fetch('/api/vault/vendor/generate/auto', {
+              method: 'POST',
+              body: JSON.stringify({
+                brand, series, model,
+                speed: playstyle, claw,
+                diagnosticData: VendorLogic.state?.diagnosticData
+              })
+            });
+            const data = await res.json();
+            if (data.code || data.accessKey) {
+              const code = data.code || data.accessKey;
+              // Display name = what the vendor typed (natural readable form)
+              VendorLogic.showResultCard(code, brand, model, tier);
+              window.notify('ACCESS_KEY_GENERATED', 'success');
+            } else {
+              window.notify(data.error || 'GENERATION_FAILED', 'error');
+            }
+          } catch (err) {
+            window.notify('GENERATION_FAILED', 'error');
+          } finally {
+            if (btn) { btn.textContent = 'GENERATE ACCESS KEY'; btn.disabled = false; }
+          }
+        };
+
+        // Init VendorLogic
+        VendorLogic.init();
+      }, 80);
+    });
+  })();
   </script>
 </body>
 </html>

@@ -295,12 +295,13 @@
             const EXPORT_SCALE = 3;
 
             // The shareCaptureArea lives inside a display:none shell.
-            // Make it visible off-screen so the browser computes real layout.
+            // Make it visible off-screen at 0,0 (with z-index behind viewport) so the browser computes layout properly.
+            // Explicitly set width to 860px to match the card and prevent layout squishing on mobile.
             const shell = area.closest('.share-card-export-shell') || area.parentElement;
             const shellWasHidden = shell && getComputedStyle(shell).display === 'none';
             const origShellStyle = shell ? shell.getAttribute('style') || '' : '';
             if (shellWasHidden && shell) {
-                shell.style.cssText = `${origShellStyle}; position: fixed !important; left: -99999px !important; top: 0 !important; display: block !important; visibility: visible !important; pointer-events: none !important;`;
+                shell.style.cssText = `${origShellStyle}; position: fixed !important; left: 0 !important; top: 0 !important; width: 860px !important; z-index: -9999 !important; display: block !important; visibility: visible !important; opacity: 1 !important; pointer-events: none !important;`;
             }
 
             // Freeze animations on the original element (not a clone) so
@@ -316,26 +317,13 @@
             // Let the browser settle with the new state
             await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
 
-            const inlineW = parseInt(area.style.width) || 0;
-            const rect = area.getBoundingClientRect();
-            const cardW = Math.max(inlineW, Math.round(rect.width), 320);
-            const cardH = Math.max(Math.round(rect.height), 200);
-
             try {
                 const canvas = await window.html2canvas(area, {
                     scale: EXPORT_SCALE,
-                    backgroundColor: null,   // let the element's own background show exactly
+                    backgroundColor: '#050a14',   // match the card's base gradient dark color to ensure crisp background colors
                     useCORS: true,
                     allowTaint: true,
                     logging: false,
-                    width:  cardW,
-                    height: cardH,
-                    x: rect.left,
-                    y: rect.top,
-                    scrollX: -window.scrollX,
-                    scrollY: -window.scrollY,
-                    windowWidth:  window.innerWidth,
-                    windowHeight: window.innerHeight,
                 });
 
                 const link = document.createElement('a');

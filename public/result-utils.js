@@ -10,12 +10,12 @@
     }
 
     function parseRange(v) {
-        if (typeof v === 'number' && Number.isFinite(v)) return [Math.max(0, v - 4), Math.min(200, v + 4)];
+        if (typeof v === 'number' && Number.isFinite(v)) return [Math.max(0, v - 3), Math.min(200, v + 3)];
         if (typeof v === 'string') {
             const m = v.match(/^\s*(\d+)\s*-\s*(\d+)\s*$/);
             if (m) return [parseInt(m[1], 10), parseInt(m[2], 10)];
             const n = Number.parseFloat(v);
-            if (Number.isFinite(n)) return [Math.max(0, Math.round(n - 4)), Math.min(200, Math.round(n + 4))];
+            if (Number.isFinite(n)) return [Math.max(0, Math.round(n - 3)), Math.min(200, Math.round(n + 3))];
         }
         return ['--', '--'];
     }
