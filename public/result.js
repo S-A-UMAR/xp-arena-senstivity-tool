@@ -314,6 +314,29 @@
                 el.style.transform  = 'none';
             });
 
+            // Pre-load and convert all image elements inside the area to Base64 to bypass CORS tainting
+            const images = area.querySelectorAll('img');
+            await Promise.all(Array.from(images).map(async (img) => {
+                const src = img.src;
+                if (!src || src.startsWith('data:')) return;
+                try {
+                    const res = await fetch(src);
+                    if (!res.ok) throw new Error(`HTTP_${res.status}`);
+                    const blob = await res.blob();
+                    await new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                            img.src = reader.result;
+                            resolve();
+                        };
+                        reader.onerror = reject;
+                        reader.readAsDataURL(blob);
+                    });
+                } catch (e) {
+                    console.warn('Failed to convert image to base64 before export:', src, e);
+                }
+            }));
+
             // Let the browser settle with the new state
             await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
 
@@ -322,7 +345,7 @@
                     scale: EXPORT_SCALE,
                     backgroundColor: '#050a14',   // match the card's base gradient dark color to ensure crisp background colors
                     useCORS: true,
-                    allowTaint: true,
+                    allowTaint: false,
                     logging: false,
                 });
 
