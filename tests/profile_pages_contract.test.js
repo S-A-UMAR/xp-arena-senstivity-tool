@@ -21,11 +21,12 @@ describe('profile page contracts', () => {
 
   it('keeps vendor and admin core containers present', () => {
     const vendorHtml = read('public/vendor_dashboard.html');
-    const adminHtml = read('public/admin.html');
+    const adminIndexHtml = read('public/admin/index.html');
+    const adminNodesHtml = read('public/admin/nodes.html');
     expect(vendorHtml).toContain('id="section-home"');
     expect(vendorHtml).toContain('id="genResult"');
-    expect(adminHtml).toContain('id="mainPanel"');
-    expect(adminHtml).toContain('id="section-vendors"');
+    expect(adminIndexHtml).toContain('id="privateGate"');
+    expect(adminNodesHtml).toContain('id="vendorGrid"');
   });
 
   it('keeps root vendor_dashboard page aligned with public vendor dashboard', () => {

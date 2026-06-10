@@ -106,7 +106,7 @@ describe('Admin uplink flows', () => {
     expect(create.status).toBe(200);
     expect(create.body.success).toBe(true);
     expect(create.body.vendorId).toBe('CREATOR-ONE');
-    expect(create.body.accessKey).toMatch(/^XP-CREATOR-ONE-/);
+    expect(create.body.accessKey).toMatch(/^AXP-CREATOR-ONE-/);
   });
 
   it('allows admin to auto-generate a code with vendor-equivalent inputs', async () => {
@@ -130,7 +130,7 @@ describe('Admin uplink flows', () => {
 
     expect(generate.status).toBe(200);
     expect(generate.body.actor).toBe('admin');
-    expect(generate.body.accessKey).toMatch(/^XP-XP-ADMIN-/);
+    expect(generate.body.accessKey).toMatch(/^AXP-XP-ADMIN-/);
     expect(generate.body.results).toBeDefined();
     expect(generate.body.results.general).toBeDefined();
   });

@@ -39,18 +39,46 @@ function mockShareRecord(shareId) {
 }
 
 describe('POST /api/vault/feedback', () => {
+  let mockCodeData = null;
+  let mockActivityData = null;
+  let mockLikesData = { likes_count: 0 };
+  let mockShareData = null;
+
   beforeEach(() => {
     jest.clearAllMocks();
     db.getCache.mockResolvedValue(null);
     db.run.mockResolvedValue({ changes: 1, lastID: 77 });
     db.setCache.mockResolvedValue({ changes: 1 });
+    
+    mockCodeData = null;
+    mockActivityData = null;
+    mockLikesData = { likes_count: 0 };
+    mockShareData = null;
+
+    db.get.mockImplementation(async (sql, params) => {
+      if (sql.includes('maintenance_mode')) {
+        return { setting_value: 'false' };
+      }
+      if (sql.includes('FROM share_tokens')) {
+        return mockShareData;
+      }
+      if (sql.includes('FROM sensitivity_keys')) {
+        return mockCodeData;
+      }
+      if (sql.includes('FROM code_activity WHERE lookup_key = ? AND feedback_fingerprint = ?')) {
+        return mockActivityData;
+      }
+      if (sql.includes('COUNT(*) as likes_count')) {
+        return mockLikesData;
+      }
+      return null;
+    });
   });
 
   it('accepts code payload and updates an existing viewer feedback row', async () => {
-    db.get
-      .mockResolvedValueOnce(await mockCodeLookup('XP-1234-5678'))
-      .mockResolvedValueOnce({ id: 44, user_ign: 'Anon', user_region: 'Unknown' })
-      .mockResolvedValueOnce({ likes_count: 48 });
+    mockCodeData = await mockCodeLookup('XP-1234-5678');
+    mockActivityData = { id: 44, user_ign: 'Anon', user_region: 'Unknown' };
+    mockLikesData = { likes_count: 48 };
 
     const res = await request(app)
       .post('/api/vault/feedback')
@@ -66,10 +94,9 @@ describe('POST /api/vault/feedback', () => {
   });
 
   it('creates a feedback activity row when the code is valid but this viewer has no feedback row yet', async () => {
-    db.get
-      .mockResolvedValueOnce(await mockCodeLookup('XP-NEW-1000'))
-      .mockResolvedValueOnce(undefined)
-      .mockResolvedValueOnce({ likes_count: 1 });
+    mockCodeData = await mockCodeLookup('XP-NEW-1000');
+    mockActivityData = undefined;
+    mockLikesData = { likes_count: 1 };
 
     const res = await request(app)
       .post('/api/vault/feedback')
@@ -86,9 +113,8 @@ describe('POST /api/vault/feedback', () => {
   });
 
   it('rate limits duplicate fresh feedback attempts for the same viewer fingerprint', async () => {
-    db.get
-      .mockResolvedValueOnce(await mockCodeLookup('XP-NEW-1000'))
-      .mockResolvedValueOnce(undefined);
+    mockCodeData = await mockCodeLookup('XP-NEW-1000');
+    mockActivityData = undefined;
     db.getCache.mockResolvedValueOnce({ blocked: true });
 
     const res = await request(app)
@@ -101,7 +127,7 @@ describe('POST /api/vault/feedback', () => {
   });
 
   it('rejects unknown or invalid codes before inserting feedback', async () => {
-    db.get.mockResolvedValueOnce(undefined);
+    mockCodeData = undefined;
 
     const res = await request(app)
       .post('/api/vault/feedback')
@@ -112,14 +138,9 @@ describe('POST /api/vault/feedback', () => {
     expect(db.run).not.toHaveBeenCalled();
   });
 
-
   it('creates a feedback activity row when none exists yet', async () => {
-    db.get
-      .mockResolvedValueOnce(undefined)
-      .mockResolvedValueOnce({ likes_count: 1 });
-    db.run
-      .mockResolvedValueOnce({ lastID: 77, changes: 1 })
-      .mockResolvedValueOnce({ changes: 1 });
+    mockCodeData = undefined;
+    mockLikesData = { likes_count: 1 };
 
     const res = await request(app)
       .post('/api/vault/feedback')
@@ -140,22 +161,10 @@ describe('POST /api/vault/feedback', () => {
 
   it('accepts share-token payloads without requiring the raw access code', async () => {
     const shareToken = createShareToken();
-
-    db.get.mockImplementation(async (sql, params) => {
-      if (sql.includes('FROM share_tokens WHERE share_id = ?')) {
-        return mockShareRecord(params[0]);
-      }
-      if (sql.includes('FROM sensitivity_keys k')) {
-        return mockCodeLookup('XP-SHARE-7777');
-      }
-      if (sql.includes('SELECT id, user_ign, user_region FROM code_activity')) {
-        return undefined;
-      }
-      if (sql.includes('COUNT(*) as likes_count FROM code_activity')) {
-        return { likes_count: 7 };
-      }
-      return null;
-    });
+    mockShareData = mockShareRecord('share-demo-7777');
+    mockCodeData = await mockCodeLookup('XP-SHARE-7777');
+    mockActivityData = undefined;
+    mockLikesData = { likes_count: 7 };
 
     const res = await request(app)
       .post('/api/vault/feedback')

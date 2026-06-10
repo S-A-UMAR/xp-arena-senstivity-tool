@@ -339,6 +339,60 @@
     .browse-toggle-row label { font-size: 0.68rem; color: rgba(255,255,255,0.45); cursor: pointer; user-select: none; }
     .browse-dropdowns { margin-top: 1rem; display: none; }
     .browse-dropdowns.open { display: block; }
+
+    /* ── Locked Search Styles ── */
+    .device-search-input.locked {
+      border-color: var(--cyan) !important;
+      background: rgba(0, 242, 254, 0.08) !important;
+      box-shadow: 0 0 12px rgba(0, 242, 254, 0.2) !important;
+      color: var(--cyan) !important;
+      font-weight: 700;
+      padding-right: 6.5rem !important;
+    }
+    .lock-status-indicator {
+      position: absolute;
+      right: 4.8rem;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 0.65rem;
+      font-weight: 900;
+      color: var(--cyan);
+      letter-spacing: 0.05em;
+      display: none;
+      pointer-events: none;
+    }
+    .device-search-wrap.is-locked .lock-status-indicator {
+      display: block;
+    }
+    .device-search-wrap.is-locked .device-search-clear {
+      display: none !important;
+    }
+    .device-unlock-btn {
+      position: absolute;
+      right: 0.6rem;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(168, 85, 247, 0.2);
+      border: 1px solid rgba(168, 85, 247, 0.5);
+      border-radius: 8px;
+      color: #fff;
+      font-size: 0.6rem;
+      font-weight: 800;
+      padding: 4px 10px;
+      cursor: pointer;
+      display: none;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      transition: all 0.2s;
+    }
+    .device-unlock-btn:hover {
+      background: rgba(168, 85, 247, 0.4);
+      border-color: var(--cyan);
+      box-shadow: 0 0 8px rgba(0, 242, 254, 0.3);
+    }
+    .device-search-wrap.is-locked .device-unlock-btn {
+      display: block;
+    }
   </style>
 </head>
 <body class="page-vendor">
@@ -449,7 +503,7 @@
           Device
           <span style="font-size:0.55rem; color:rgba(168,85,247,0.7); background:rgba(168,85,247,0.1); border:1px solid rgba(168,85,247,0.2); padding:1px 8px; border-radius:50px; letter-spacing:0.08em; font-weight:900;">SEARCH OR TYPE ANY NAME</span>
         </label>
-        <div class="device-search-wrap">
+        <div class="device-search-wrap" id="deviceSearchWrap">
           <input
             type="text"
             id="deviceSearchInput"
@@ -458,7 +512,9 @@
             autocomplete="off"
             spellcheck="false"
           >
+          <span class="lock-status-indicator" id="lockStatusIndicator">🔒 LOCKED</span>
           <button type="button" id="deviceSearchClear" class="device-search-clear" aria-label="Clear">✕</button>
+          <button type="button" id="deviceUnlockBtn" class="device-unlock-btn">Change</button>
           <div id="deviceAutocomplete" class="device-autocomplete" role="listbox"></div>
         </div>
         <!-- Browse by brand toggle -->
@@ -566,32 +622,33 @@
   <!-- Device Search Module -->
   <script>
   (function () {
-    // ── Build a flat device list from DeviceData once it's ready ──────────────
+    // ── Build a flat device list from window.devices ──────────────────────────
     let allDevices = [];  // { brand, series, model, ram, label }
 
     function buildDeviceList() {
       allDevices = [];
-      const data = window.DeviceData || window.deviceData || {};
+      const data = window.devices || [];
       try {
-        Object.keys(data).forEach(brand => {
-          const brandData = data[brand];
-          if (!brandData || typeof brandData !== 'object') return;
-          Object.keys(brandData).forEach(series => {
-            const seriesData = brandData[series];
-            if (!seriesData || typeof seriesData !== 'object') return;
-            Object.keys(seriesData).forEach(model => {
-              const spec = seriesData[model];
+        data.forEach(brandObj => {
+          const brand = brandObj.brand;
+          if (!brandObj.series || !Array.isArray(brandObj.series)) return;
+          brandObj.series.forEach(seriesObj => {
+            const series = seriesObj.name;
+            if (!seriesObj.models || !Array.isArray(seriesObj.models)) return;
+            seriesObj.models.forEach(modelObj => {
               allDevices.push({
-                brand,
-                series,
-                model,
-                ram: spec?.ram || spec?.RAM || '',
-                label: `${brand} ${model}`.trim()
+                brand: brand,
+                series: series,
+                model: modelObj.name,
+                ram: modelObj.ram || '',
+                label: `${brand} ${modelObj.name}`.trim()
               });
             });
           });
         });
-      } catch (_) {}
+      } catch (e) {
+        console.error("Failed to build device list:", e);
+      }
     }
 
     // ── Highlight query matches inside text ───────────────────────────────────
@@ -607,6 +664,8 @@
     const acList         = document.getElementById('deviceAutocomplete');
     const browseToggle   = document.getElementById('browseToggle');
     const browseDropdowns= document.getElementById('browseDropdowns');
+    const searchWrap     = document.getElementById('deviceSearchWrap');
+    const unlockBtn      = document.getElementById('deviceUnlockBtn');
 
     let activeIndex = -1;
     let selectedDevice = null;  // { brand, series, model } when chosen from list
@@ -626,12 +685,25 @@
         d.label.toLowerCase().includes(q) ||
         d.brand.toLowerCase().includes(q) ||
         d.model.toLowerCase().includes(q)
-      ).slice(0, 40);
+      );
 
-      if (matches.length === 0) {
-        acList.innerHTML = `<div class="device-ac-empty">No match — your typed name will be used as-is ✓</div>`;
+      // Prioritize matches starting with the query
+      matches.sort((a, b) => {
+        const aLabel = a.label.toLowerCase();
+        const bLabel = b.label.toLowerCase();
+        const aStarts = aLabel.startsWith(q);
+        const bStarts = bLabel.startsWith(q);
+        if (aStarts && !bStarts) return -1;
+        if (!aStarts && bStarts) return 1;
+        return aLabel.localeCompare(bLabel);
+      });
+
+      const sliced = matches.slice(0, 40);
+
+      if (sliced.length === 0) {
+        acList.innerHTML = `<div class="device-ac-empty">No match — press Enter to confirm custom name ✓</div>`;
       } else {
-        acList.innerHTML = matches.map((d, i) => `
+        acList.innerHTML = sliced.map((d, i) => `
           <div class="device-ac-item" data-index="${i}" data-brand="${d.brand}" data-series="${d.series}" data-model="${d.model}" role="option">
             <div>
               <span class="ac-brand">${highlight(d.brand, query)}</span>
@@ -654,14 +726,61 @@
       searchInput.value = `${brand} ${model}`;
       acList.classList.remove('open');
       syncClear();
-      // Sync the hidden dropdowns too (for legacy code path)
       syncDropdownsTo(brand, series, model);
+      lockDevice();
+    }
+
+    function lockDevice() {
+      const val = searchInput.value.trim();
+      if (!val) {
+        if (window.notify) window.notify('TYPE_A_DEVICE_NAME', 'warning');
+        return;
+      }
+
+      // Check if it matches an item in allDevices (case-insensitive)
+      const matched = allDevices.find(d => d.label.toLowerCase() === val.toLowerCase());
+      if (matched) {
+        selectedDevice = { brand: matched.brand, series: matched.series, model: matched.model };
+        searchInput.value = matched.label; // normalize casing
+      } else {
+        // Parse custom device
+        const parts = val.split(' ');
+        const brand = parts[0];
+        const model = parts.slice(1).join(' ') || brand;
+        selectedDevice = { brand, series: '', model };
+      }
+
+      // Lock visually
+      searchInput.readOnly = true;
+      searchInput.classList.add('locked');
+      searchWrap.classList.add('is-locked');
+      acList.classList.remove('open');
+
+      // Sync dropdowns
+      syncDropdownsTo(selectedDevice.brand, selectedDevice.series, selectedDevice.model);
+
+      if (window.notify) window.notify('Device confirmed: ' + searchInput.value, 'success');
+    }
+
+    function unlockDevice() {
+      selectedDevice = null;
+      searchInput.readOnly = false;
+      searchInput.classList.remove('locked');
+      searchWrap.classList.remove('is-locked');
+      syncClear();
+      setTimeout(() => {
+        searchInput.focus();
+        searchInput.select();
+      }, 50);
+    }
+
+    if (unlockBtn) {
+      unlockBtn.addEventListener('click', unlockDevice);
     }
 
     function syncDropdownsTo(brand, series, model) {
       const brandSel = document.getElementById('genBrand');
       if (!brandSel) return;
-      // Fire the brand change to populate series
       for (let o of brandSel.options) { if (o.value === brand) { brandSel.value = brand; break; } }
       brandSel.dispatchEvent(new Event('change'));
       setTimeout(() => {
@@ -681,25 +800,32 @@
 
     // ── Keyboard navigation ───────────────────────────────────────────────────
     searchInput.addEventListener('keydown', e => {
+      if (searchInput.readOnly) return;
       const items = acList.querySelectorAll('.device-ac-item');
-      if (!items.length) return;
+      
       if (e.key === 'ArrowDown') {
+        if (!items.length) return;
         e.preventDefault();
         activeIndex = Math.min(activeIndex + 1, items.length - 1);
       } else if (e.key === 'ArrowUp') {
+        if (!items.length) return;
         e.preventDefault();
         activeIndex = Math.max(activeIndex - 1, 0);
-      } else if (e.key === 'Enter' && activeIndex >= 0) {
+      } else if (e.key === 'Enter') {
         e.preventDefault();
-        const el = items[activeIndex];
-        selectDevice(el.dataset.brand, el.dataset.series, el.dataset.model);
+        if (activeIndex >= 0 && items[activeIndex]) {
+          const el = items[activeIndex];
+          selectDevice(el.dataset.brand, el.dataset.series, el.dataset.model);
+        } else {
+          lockDevice();
+        }
         return;
       } else if (e.key === 'Escape') {
         acList.classList.remove('open');
         return;
       }
       items.forEach((el, i) => el.classList.toggle('active', i === activeIndex));
-      if (activeIndex >= 0) items[activeIndex].scrollIntoView({ block: 'nearest' });
+      if (activeIndex >= 0 && items[activeIndex]) items[activeIndex].scrollIntoView({ block: 'nearest' });
     });
 
     searchInput.addEventListener('input', () => {
@@ -709,7 +835,9 @@
     });
 
     searchInput.addEventListener('focus', () => {
-      if (searchInput.value.trim()) renderDropdown(searchInput.value.trim());
+      if (searchInput.value.trim() && !searchInput.readOnly) {
+        renderDropdown(searchInput.value.trim());
+      }
     });
 
     document.addEventListener('click', e => {
@@ -728,11 +856,11 @@
     browseToggle.addEventListener('change', () => {
       browseDropdowns.classList.toggle('open', browseToggle.checked);
       if (browseToggle.checked) {
-        // When browse mode opens, listen for model selection and fill search box
         const modelSel = document.getElementById('genModel');
         if (modelSel) {
           modelSel.addEventListener('change', onBrowseModelChange);
         }
+        unlockDevice();
       }
     });
 
@@ -747,81 +875,84 @@
     }
 
     // ── Override autoGenerate to use search input ─────────────────────────────
-    window.addEventListener('DOMContentLoaded', () => {
-      // Wait for VendorLogic to load then wrap autoGenerate
-      const ORIG_INTERVAL = setInterval(() => {
-        if (!window.VendorLogic) return;
-        clearInterval(ORIG_INTERVAL);
+    function initOverride() {
+      if (!window.VendorLogic) return;
 
-        // Build device list now that DeviceData should be available
-        buildDeviceList();
-        // Also rebuild whenever DeviceData might be loaded lazily
-        window.addEventListener('devicedata-ready', buildDeviceList);
+      buildDeviceList();
+      window.addEventListener('devicedata-ready', buildDeviceList);
 
-        const _origAutoGenerate = VendorLogic.autoGenerate.bind(VendorLogic);
-        VendorLogic.autoGenerate = async function () {
-          // In browse mode, use the dropdowns directly (original path)
-          if (browseToggle.checked) {
-            return _origAutoGenerate();
-          }
+      const _origAutoGenerate = VendorLogic.autoGenerate.bind(VendorLogic);
+      VendorLogic.autoGenerate = async function () {
+        if (browseToggle.checked) {
+          return _origAutoGenerate();
+        }
 
-          // Search mode: get device name from the text input
-          const rawInput = searchInput.value.trim();
-          if (!rawInput) {
-            window.notify('TYPE_A_DEVICE_NAME', 'warning');
-            return;
-          }
+        // Auto-lock if not already locked
+        if (!searchInput.classList.contains('locked')) {
+          lockDevice();
+        }
 
-          // For the API calculation: derive brand/series/model from selected device
-          // or split the typed text. The API uses these to look up RAM specs.
-          let apiBrand, apiSeries, apiModel;
-          if (selectedDevice) {
-            apiBrand  = selectedDevice.brand;
-            apiSeries = selectedDevice.series;
-            apiModel  = selectedDevice.model;
+        const rawInput = searchInput.value.trim();
+        if (!rawInput) {
+          if (window.notify) window.notify('TYPE_A_DEVICE_NAME', 'warning');
+          return;
+        }
+
+        let apiBrand, apiSeries, apiModel;
+        if (selectedDevice) {
+          apiBrand  = selectedDevice.brand;
+          apiSeries = selectedDevice.series;
+          apiModel  = selectedDevice.model;
+        } else {
+          const parts = rawInput.split(' ');
+          apiBrand  = parts.length > 1 ? parts[0] : rawInput;
+          apiSeries = '';
+          apiModel  = rawInput;
+        }
+
+        const playstyle = document.getElementById('genPlaystyle')?.value || 'balanced';
+        const claw      = document.getElementById('genClaw')?.value || '3';
+        const tier      = VendorLogic.state?.vendorData?.tier || 'normal';
+
+        const btn = document.getElementById('generateKeyBtn');
+        if (btn) { btn.textContent = 'PROVISIONING...'; btn.disabled = true; }
+
+        try {
+          const res = await NexusAuth.fetch('/api/vault/vendor/generate/auto', {
+            method: 'POST',
+            body: JSON.stringify({
+              brand: apiBrand, series: apiSeries, model: apiModel,
+              speed: playstyle, claw,
+              diagnosticData: VendorLogic.state?.diagnosticData
+            })
+          });
+          const data = await res.json();
+          if (data.code || data.accessKey) {
+            const code = data.code || data.accessKey;
+            VendorLogic.showResultCard(code, '', rawInput, tier);
+            if (window.notify) window.notify('ACCESS_KEY_GENERATED', 'success');
           } else {
-            const parts = rawInput.split(' ');
-            apiBrand  = parts.length > 1 ? parts[0] : rawInput;
-            apiSeries = '';
-            apiModel  = rawInput;
+            if (window.notify) window.notify(data.error || 'GENERATION_FAILED', 'error');
           }
+        } catch (err) {
+          if (window.notify) window.notify('GENERATION_FAILED', 'error');
+        } finally {
+          if (btn) { btn.textContent = 'GENERATE ACCESS KEY'; btn.disabled = false; }
+        }
+      };
+    }
 
-          const playstyle = document.getElementById('genPlaystyle')?.value || 'balanced';
-          const claw      = document.getElementById('genClaw')?.value || '3';
-          const tier      = VendorLogic.state?.vendorData?.tier || 'normal';
-
-          const btn = document.getElementById('generateKeyBtn');
-          if (btn) { btn.textContent = 'PROVISIONING...'; btn.disabled = true; }
-
-          try {
-            const res = await NexusAuth.fetch('/api/vault/vendor/generate/auto', {
-              method: 'POST',
-              body: JSON.stringify({
-                brand: apiBrand, series: apiSeries, model: apiModel,
-                speed: playstyle, claw,
-                diagnosticData: VendorLogic.state?.diagnosticData
-              })
-            });
-            const data = await res.json();
-            if (data.code || data.accessKey) {
-              const code = data.code || data.accessKey;
-              // ✅ Card shows EXACTLY what the vendor typed — nothing else
-              VendorLogic.showResultCard(code, '', rawInput, tier);
-              window.notify('ACCESS_KEY_GENERATED', 'success');
-            } else {
-              window.notify(data.error || 'GENERATION_FAILED', 'error');
-            }
-          } catch (err) {
-            window.notify('GENERATION_FAILED', 'error');
-          } finally {
-            if (btn) { btn.textContent = 'GENERATE ACCESS KEY'; btn.disabled = false; }
-          }
-        };
-
-        // Init VendorLogic
-        VendorLogic.init();
-      }, 80);
-    });
+    // Run override initialization
+    if (window.VendorLogic) {
+      initOverride();
+    } else {
+      const checkInterval = setInterval(() => {
+        if (window.VendorLogic) {
+          clearInterval(checkInterval);
+          initOverride();
+        }
+      }, 50);
+    }
   })();
   </script>
 </body>

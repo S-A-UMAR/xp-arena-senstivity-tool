@@ -2176,7 +2176,7 @@ router.get('/share/:token/status', async (req, res) => {
 router.get('/vendor/profile', authenticateVendor, async (req, res) => {
     try {
         const vendor = await db.get(`
-            SELECT vendor_id, status, active_until, brand_config, webhook_url, usage_limit, is_verified
+            SELECT vendor_id, status, active_until, brand_config, webhook_url, usage_limit, is_verified, tier, created_at
             FROM vendors WHERE vendor_id = ?
         `, [req.vendorId]);
         if (!vendor) return res.status(404).json({ error: 'VENDOR_NOT_FOUND' });
@@ -2213,7 +2213,9 @@ router.get('/vendor/profile', authenticateVendor, async (req, res) => {
             tiktok: config.tiktok || '',
             discord: config.discord || '',
             social_link: config.social_link || '',
-            brand_config: config
+            brand_config: config,
+            tier: vendor.tier || 'normal',
+            created_at: vendor.created_at || null
         });
     } catch (err) {
         console.error('VENDOR_PROFILE_ALIAS_ERR:', err);

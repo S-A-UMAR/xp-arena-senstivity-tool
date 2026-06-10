@@ -40,7 +40,7 @@ describe('Vendor generation routes', () => {
       });
 
     expect(res.status).toBe(200);
-    expect(res.body.accessKey).toMatch(/^XP-NNAYI-/);
+    expect(res.body.accessKey).toMatch(/^AXP-NNAYI-/);
   });
 
   it('accepts manual vendor payloads and returns an access key', async () => {
@@ -58,6 +58,6 @@ describe('Vendor generation routes', () => {
       });
 
     expect(res.status).toBe(200);
-    expect(res.body.accessKey).toMatch(/^XP-NNAYI-/);
+    expect(res.body.accessKey).toMatch(/^AXP-NNAYI-/);
   });
 });
