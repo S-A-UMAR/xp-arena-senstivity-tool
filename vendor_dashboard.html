@@ -876,7 +876,7 @@
 
     // ── Override autoGenerate to use search input ─────────────────────────────
     function initOverride() {
-      if (!window.VendorLogic) return;
+      if (typeof VendorLogic === 'undefined') return;
 
       buildDeviceList();
       window.addEventListener('devicedata-ready', buildDeviceList);
@@ -943,11 +943,11 @@
     }
 
     // Run override initialization
-    if (window.VendorLogic) {
+    if (typeof VendorLogic !== 'undefined') {
       initOverride();
     } else {
       const checkInterval = setInterval(() => {
-        if (window.VendorLogic) {
+        if (typeof VendorLogic !== 'undefined') {
           clearInterval(checkInterval);
           initOverride();
         }
