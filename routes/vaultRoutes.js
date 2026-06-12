@@ -138,9 +138,12 @@ async function getAdminSecret() {
     try {
         const row = await db.get("SELECT setting_value FROM system_settings WHERE setting_key = 'admin_secret'");
         if (row?.setting_value) return row.setting_value;
-    } catch (_err) {}
-    // 🛡️ EMERGENCY_FALLBACK: Always allow AXP-9090 if DB and ENV are unavailable
-    return process.env.ADMIN_SECRET || 'AXP-9090';
+    } catch (_err) {
+        // DB error - log but don't expose fallback
+        console.error('DB_ERROR: Failed to fetch admin_secret from database');
+    }
+    // Only use environment variable as fallback - never use hardcoded value
+    return process.env.ADMIN_SECRET || null;
 }
 
 async function getJwtSecret() {
