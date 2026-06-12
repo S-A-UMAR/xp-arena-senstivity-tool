@@ -2498,4 +2498,355 @@ router.get('/public/stats', async (_req, res) => {
     }
 });
 
+// ============================================================================
+// VENDOR PURCHASE SYSTEM (Premium/Paystack Integration)
+// ============================================================================
+
+// Get available vendor packages
+router.get('/public/packages', async (_req, res) => {
+    try {
+        const packages = await db.all(`
+            SELECT package_type, duration_days, price_naira, description
+            FROM vendor_packages
+            ORDER BY duration_days ASC
+        `);
+        return res.json(packages);
+    } catch (err) {
+        console.error('PACKAGES_FETCH_ERR:', err);
+        return res.status(500).json({ error: 'PACKAGES_UNAVAILABLE' });
+    }
+});
+
+// Create a new purchase record
+router.post('/purchase/create', async (req, res) => {
+    try {
+        const { buyerName, packageType, price } = req.body;
+
+        if (!buyerName || !packageType || !price) {
+            return fail(res, 'XP_INVALID_INPUT', 'Missing required fields', 400);
+        }
+
+        // Verify package exists
+        const pkg = await db.get('SELECT * FROM vendor_packages WHERE package_type = ?', [packageType]);
+        if (!pkg) {
+            return fail(res, 'XP_INVALID_PACKAGE', 'Invalid package type', 400);
+        }
+
+        // Generate unique IDs
+        const purchaseId = `PUR-${crypto.randomBytes(8).toString('hex').toUpperCase()}`;
+        const vendorId = `VND-${buyerName.toUpperCase().replace(/\s+/g, '-')}-${Date.now().toString().slice(-6)}`;
+
+        // Create purchase record (payment_status: pending initially)
+        await db.run(`
+            INSERT INTO vendor_purchases (
+                purchase_id, vendor_id, buyer_name, package_type, price_naira, payment_status
+            ) VALUES (?, ?, ?, ?, ?, 'pending')
+        `, [purchaseId, vendorId, buyerName, packageType, price]);
+
+        return res.json({ 
+            purchase_id: purchaseId,
+            vendor_id: vendorId,
+            amount: price
+        });
+    } catch (err) {
+        console.error('PURCHASE_CREATE_ERR:', err);
+        return fail(res, 'XP_PURCHASE_ERROR', 'Failed to create purchase', 500);
+    }
+});
+
+// Verify Paystack payment and activate vendor
+router.post('/purchase/verify', async (req, res) => {
+    try {
+        const { purchaseId, reference } = req.body;
+
+        if (!purchaseId || !reference) {
+            return fail(res, 'XP_INVALID_INPUT', 'Missing required fields', 400);
+        }
+
+        // Verify payment with Paystack API
+        const paystackResponse = await fetch(`https://api.paystack.co/transaction/verify/${reference}`, {
+            headers: { Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}` }
+        });
+
+        if (!paystackResponse.ok) {
+            return fail(res, 'XP_PAYSTACK_ERROR', 'Payment verification failed', 400);
+        }
+
+        const paystackData = await paystackResponse.json();
+        
+        if (paystackData.data.status !== 'success') {
+            return fail(res, 'XP_PAYMENT_FAILED', 'Payment was not successful', 400);
+        }
+
+        // Get purchase details
+        const purchase = await db.get(`
+            SELECT vp.*, vk.duration_days
+            FROM vendor_purchases vp
+            JOIN vendor_packages vk ON vp.package_type = vk.package_type
+            WHERE vp.purchase_id = ?
+        `, [purchaseId]);
+
+        if (!purchase) {
+            return fail(res, 'XP_PURCHASE_NOT_FOUND', 'Purchase not found', 404);
+        }
+
+        // Calculate expiration date
+        const expiresAt = new Date();
+        expiresAt.setDate(expiresAt.getDate() + purchase.duration_days);
+
+        // Update purchase as successful
+        await db.run(`
+            UPDATE vendor_purchases
+            SET payment_status = 'success', paystack_reference = ?, activated = TRUE
+            WHERE purchase_id = ?
+        `, [reference, purchaseId]);
+
+        // Create vendor record in vendors table
+        const vendorId = purchase.vendor_id;
+        const hashed = await bcrypt.hash(`${vendorId}-${reference}`.substring(0, 20), 10);
+        const lookupKey = getLookupKey(`${vendorId}:${reference}`).substring(0, 20);
+
+        await db.run(`
+            INSERT INTO vendors (
+                org_id, vendor_id, access_key, lookup_key, brand_config, active_until, status
+            ) VALUES (?, ?, ?, ?, ?, ?, 'active')
+        `, [
+            'XP-CORE-ORG',
+            vendorId,
+            hashed,
+            lookupKey,
+            JSON.stringify({
+                display_name: purchase.buyer_name,
+                logo_url: '',
+                socials: {}
+            }),
+            expiresAt
+        ]);
+
+        // Update purchase with expiration
+        await db.run(`
+            UPDATE vendor_purchases
+            SET expires_at = ?
+            WHERE purchase_id = ?
+        `, [expiresAt, purchaseId]);
+
+        // Log audit
+        await logAudit('system', vendorId, 'VENDOR_CREATED_FROM_PURCHASE', { purchaseId }, '0.0.0.0');
+
+        return res.json({
+            success: true,
+            purchaseId,
+            vendorId,
+            expiresAt: expiresAt.toISOString()
+        });
+    } catch (err) {
+        console.error('PURCHASE_VERIFY_ERR:', err);
+        return fail(res, 'XP_VERIFY_ERROR', 'Verification failed', 500);
+    }
+});
+
+// Get vendor card (for download)
+router.get('/purchase/card/:purchaseId', async (req, res) => {
+    try {
+        const { purchaseId } = req.params;
+
+        const purchase = await db.get(`
+            SELECT vp.*, vk.duration_days
+            FROM vendor_purchases vp
+            JOIN vendor_packages vk ON vp.package_type = vk.package_type
+            WHERE vp.purchase_id = ?
+        `, [purchaseId]);
+
+        if (!purchase || !purchase.activated) {
+            return fail(res, 'XP_CARD_NOT_FOUND', 'Vendor card not found or not activated', 404);
+        }
+
+        // Get full vendor details
+        const vendor = await db.get('SELECT * FROM vendors WHERE vendor_id = ?', [purchase.vendor_id]);
+        if (!vendor) {
+            return fail(res, 'XP_VENDOR_NOT_FOUND', 'Vendor profile not found', 404);
+        }
+
+        const brandConfig = jsonOrObject(vendor.brand_config, {});
+        const expiryDate = new Date(vendor.active_until).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        });
+
+        // Generate QR code URL (using QR code API)
+        const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(
+            `https://xp-arena.pro/verify?vendor=${purchase.vendor_id}`
+        )}`;
+
+        // Create HTML card
+        const cardHtml = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${purchase.buyer_name} - Vendor Card</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Outfit', 'Arial', sans-serif;
+            background: #020409;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .card {
+            width: 100%;
+            max-width: 500px;
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.1) 0%, rgba(0, 242, 254, 0.05) 100%);
+            border: 2px solid rgba(0, 242, 254, 0.3);
+            border-radius: 16px;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+        }
+        .card-header {
+            margin-bottom: 2rem;
+            border-bottom: 2px solid rgba(0, 242, 254, 0.2);
+            padding-bottom: 1.5rem;
+        }
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: #ffffff;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.02em;
+        }
+        .card-subtitle {
+            font-size: 0.85rem;
+            color: #a0aec0;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .card-body {
+            margin-bottom: 2rem;
+        }
+        .info-row {
+            margin-bottom: 1.5rem;
+        }
+        .info-label {
+            font-size: 0.7rem;
+            color: #718096;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+        .info-value {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: #00f0ff;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .divider {
+            height: 1px;
+            background: rgba(0, 242, 254, 0.2);
+            margin: 2rem 0;
+        }
+        .qr-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+        .qr-code {
+            width: 150px;
+            height: 150px;
+            border: 2px solid rgba(0, 242, 254, 0.3);
+            border-radius: 8px;
+            padding: 8px;
+            background: white;
+        }
+        .qr-label {
+            font-size: 0.7rem;
+            color: #718096;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .validity {
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1.5rem;
+            font-size: 0.85rem;
+            color: #22c55e;
+        }
+        .print-hint {
+            margin-top: 1.5rem;
+            font-size: 0.75rem;
+            color: #718096;
+        }
+        @media print {
+            body { background: white; }
+            .card { box-shadow: none; }
+            .print-hint { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title">AXP VENDOR</div>
+            <div class="card-subtitle">Premium Access Card</div>
+        </div>
+
+        <div class="card-body">
+            <div class="info-row">
+                <span class="info-label">Vendor Name</span>
+                <div class="info-value">${purchase.buyer_name}</div>
+            </div>
+
+            <div class="info-row">
+                <span class="info-label">Vendor ID</span>
+                <div class="info-value">${purchase.vendor_id}</div>
+            </div>
+
+            <div class="info-row">
+                <span class="info-label">Package</span>
+                <div class="info-value">${purchase.duration_days}-Day Access</div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="qr-section">
+                <span class="qr-label">Verification Code</span>
+                <img src="${qrCodeUrl}" alt="Vendor QR Code" class="qr-code">
+            </div>
+
+            <div class="validity">
+                <strong>Valid until:</strong> ${expiryDate}
+            </div>
+
+            <div class="print-hint">
+                Print or save this card for your records.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Auto-print on load (optional)
+        // window.print();
+    </script>
+</body>
+</html>
+        `;
+
+        res.setHeader('Content-Type', 'text/html; charset=utf-8');
+        res.setHeader('Content-Disposition', `inline; filename=vendor_card_${purchase.vendor_id}.html`);
+        res.send(cardHtml);
+    } catch (err) {
+        console.error('CARD_GENERATION_ERR:', err);
+        return fail(res, 'XP_CARD_ERROR', 'Failed to generate card', 500);
+    }
+});
+
 module.exports = router;
