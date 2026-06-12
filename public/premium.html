@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Vendor Access - XP Arena</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', 'Inter', 'Arial', sans-serif;
+            background: #020409;
+            color: #e0e0e0;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.1) 0%, rgba(0, 242, 254, 0.05) 100%);
+            border-bottom: 1px solid rgba(0, 242, 254, 0.2);
+            padding: 2rem;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            font-weight: 900;
+            background: linear-gradient(90deg, #a855f7, #00f0ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.02em;
+        }
+
+        header p {
+            color: #a0aec0;
+            font-size: 1rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+
+        .packages-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .package-card {
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.1) 0%, rgba(0, 242, 254, 0.05) 100%);
+            border: 2px solid rgba(0, 242, 254, 0.3);
+            border-radius: 16px;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            animation: slideInUp 0.6s ease-out forwards;
+            opacity: 0;
+        }
+
+        .package-card:nth-child(1) { animation-delay: 0.1s; }
+        .package-card:nth-child(2) { animation-delay: 0.2s; }
+        .package-card:nth-child(3) { animation-delay: 0.3s; }
+        .package-card:nth-child(4) { animation-delay: 0.4s; }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .package-card:hover {
+            transform: translateY(-8px);
+            border-color: #00f0ff;
+            box-shadow: 0 20px 60px rgba(0, 242, 254, 0.2);
+        }
+
+        .package-badge {
+            position: absolute;
+            top: -12px;
+            right: 20px;
+            background: linear-gradient(135deg, #a855f7, #00f0ff);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.7rem;
+            font-weight: 900;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            display: none;
+        }
+
+        .package-card.popular .package-badge {
+            display: block;
+        }
+
+        .package-card.popular {
+            border-color: #a855f7;
+        }
+
+        .package-duration {
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: #00f0ff;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.02em;
+        }
+
+        .package-name {
+            font-size: 1rem;
+            color: #a0aec0;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .package-price {
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: #ffffff;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.02em;
+        }
+
+        .package-currency {
+            font-size: 1rem;
+            color: #718096;
+        }
+
+        .package-features {
+            list-style: none;
+            margin: 1.5rem 0;
+            padding: 1.5rem 0;
+            border-top: 1px solid rgba(0, 242, 254, 0.2);
+            border-bottom: 1px solid rgba(0, 242, 254, 0.2);
+        }
+
+        .package-features li {
+            padding: 0.5rem 0;
+            color: #cbd5e1;
+            font-size: 0.9rem;
+        }
+
+        .package-features li:before {
+            content: '✓ ';
+            color: #22c55e;
+            font-weight: bold;
+            margin-right: 0.5rem;
+        }
+
+        .select-btn {
+            width: 100%;
+            padding: 0.85rem;
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.2) 0%, rgba(0, 242, 254, 0.1) 100%);
+            border: 2px solid rgba(0, 242, 254, 0.3);
+            color: #00f0ff;
+            border-radius: 8px;
+            font-weight: 800;
+            font-size: 0.85rem;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .select-btn:hover {
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.3) 0%, rgba(0, 242, 254, 0.15) 100%);
+            border-color: #00f0ff;
+            box-shadow: 0 0 20px rgba(0, 242, 254, 0.2);
+            transform: scale(1.02);
+        }
+
+        .checkout-section {
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.1) 0%, rgba(0, 242, 254, 0.05) 100%);
+            border: 2px solid rgba(0, 242, 254, 0.3);
+            border-radius: 16px;
+            padding: 2rem;
+            display: none;
+            animation: slideInUp 0.6s ease-out;
+        }
+
+        .checkout-section.active {
+            display: block;
+        }
+
+        .checkout-header {
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid rgba(0, 242, 254, 0.2);
+        }
+
+        .checkout-header h2 {
+            font-size: 1.5rem;
+            font-weight: 900;
+            margin-bottom: 0.5rem;
+        }
+
+        .checkout-header p {
+            color: #a0aec0;
+            font-size: 0.9rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+            color: #cbd5e1;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(0, 242, 254, 0.2);
+            border-radius: 8px;
+            color: #ffffff;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #00f0ff;
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.2);
+            background: rgba(0, 242, 254, 0.05);
+        }
+
+        .checkout-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 0.85rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 800;
+            font-size: 0.85rem;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .btn-pay {
+            background: linear-gradient(135deg, #a855f7, #00f0ff);
+            color: #020409;
+        }
+
+        .btn-pay:hover {
+            transform: scale(1.02);
+            box-shadow: 0 10px 30px rgba(168, 85, 247, 0.3);
+        }
+
+        .btn-cancel {
+            background: transparent;
+            color: #00f0ff;
+            border: 2px solid rgba(0, 242, 254, 0.3);
+        }
+
+        .btn-cancel:hover {
+            border-color: #00f0ff;
+            background: rgba(0, 242, 254, 0.1);
+        }
+
+        .success-screen {
+            display: none;
+            text-align: center;
+            animation: slideInUp 0.6s ease-out;
+        }
+
+        .success-screen.active {
+            display: block;
+        }
+
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 1.5rem;
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            animation: popIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes popIn {
+            0% {
+                transform: scale(0);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.1);
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .success-message {
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: #22c55e;
+            margin-bottom: 1rem;
+            letter-spacing: -0.02em;
+        }
+
+        .success-details {
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            text-align: left;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid rgba(34, 197, 94, 0.2);
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            color: #a0aec0;
+            font-size: 0.9rem;
+        }
+
+        .detail-value {
+            color: #ffffff;
+            font-weight: 800;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .success-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+            justify-content: center;
+        }
+
+        .btn-download {
+            background: linear-gradient(135deg, #a855f7, #00f0ff);
+            color: #020409;
+            padding: 0.85rem 2rem;
+            border-radius: 8px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s;
+        }
+
+        .btn-download:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(168, 85, 247, 0.3);
+        }
+
+        .btn-home {
+            background: transparent;
+            color: #00f0ff;
+            border: 2px solid rgba(0, 242, 254, 0.3);
+            padding: 0.85rem 2rem;
+            border-radius: 8px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-home:hover {
+            border-color: #00f0ff;
+            background: rgba(0, 242, 254, 0.1);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(0, 242, 254, 0.2);
+            border-top-color: #00f0ff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 2rem auto;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+            display: none;
+        }
+
+        .error-message.active {
+            display: block;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 2rem;
+            color: #00f0ff;
+            text-decoration: none;
+            font-weight: 800;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+
+        .back-link:hover {
+            color: #a855f7;
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.8rem;
+            }
+
+            .packages-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .checkout-buttons {
+                flex-direction: column;
+            }
+
+            .success-actions {
+                flex-direction: column;
+            }
+
+            .btn-download,
+            .btn-home {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Premium Vendor Access</h1>
+        <p>Unlock your potential with XP Arena's exclusive vendor packages</p>
+    </header>
+
+    <div class="container">
+        <a href="index.html" class="back-link">← Back to Home</a>
+
+        <!-- Packages Grid -->
+        <div class="packages-grid" id="packagesGrid">
+            <!-- Loaded dynamically -->
+        </div>
+
+        <!-- Checkout Section -->
+        <div class="checkout-section" id="checkoutSection">
+            <div class="checkout-header">
+                <h2>Complete Your Purchase</h2>
+                <p id="checkoutSubtitle">Prepare for your vendor journey</p>
+            </div>
+
+            <form id="checkoutForm">
+                <div class="form-group">
+                    <label class="form-label">Your Name</label>
+                    <input type="text" class="form-input" id="buyerName" placeholder="Enter your full name" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Selected Package</label>
+                    <input type="text" class="form-input" id="selectedPackage" disabled>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Amount (₦)</label>
+                    <input type="text" class="form-input" id="selectedPrice" disabled>
+                </div>
+
+                <div class="error-message" id="errorMessage"></div>
+
+                <div class="checkout-buttons">
+                    <button type="submit" class="btn btn-pay" id="payBtn">Pay Now</button>
+                    <button type="button" class="btn btn-cancel" id="cancelBtn">Cancel</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Loading Screen -->
+        <div class="loading" id="loadingScreen">
+            <div class="spinner"></div>
+            <p style="color: #a0aec0; margin-top: 1rem;">Processing your payment...</p>
+        </div>
+
+        <!-- Success Screen -->
+        <div class="success-screen" id="successScreen">
+            <div class="success-icon">✓</div>
+            <div class="success-message">Welcome to Premium!</div>
+            <p style="color: #a0aec0; margin-bottom: 1.5rem;">Your vendor account has been activated successfully.</p>
+
+            <div class="success-details">
+                <div class="detail-row">
+                    <span class="detail-label">Vendor ID</span>
+                    <span class="detail-value" id="successVendorId">VND-XXXX-XXXX</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Valid Until</span>
+                    <span class="detail-value" id="successExpiry">Loading...</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Package</span>
+                    <span class="detail-value" id="successPackage">Loading...</span>
+                </div>
+            </div>
+
+            <div class="success-actions">
+                <button class="btn-download" onclick="downloadCard()">Download Card</button>
+                <button class="btn-home" onclick="window.location.href='index.html'">Back to Home</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://js.paystack.co/v1/inline.js"></script>
+    <script>
+        const PAYSTACK_PUBLIC_KEY = 'pk_live_2734df5e5115659a8cc452acdcbd0aba42fd545c';
+        let packages = [];
+        let selectedPackage = null;
+        let currentPurchaseId = null;
+
+        // Fetch packages on load
+        async function loadPackages() {
+            try {
+                const response = await fetch('/api/vault/public/packages');
+                if (!response.ok) throw new Error('Failed to load packages');
+                packages = await response.json();
+                renderPackages();
+            } catch (err) {
+                console.error('Failed to load packages:', err);
+                showError('Failed to load vendor packages. Please try again.');
+            }
+        }
+
+        function renderPackages() {
+            const grid = document.getElementById('packagesGrid');
+            grid.innerHTML = packages.map(pkg => `
+                <div class="package-card ${pkg.duration_days === 30 ? 'popular' : ''}">
+                    ${pkg.duration_days === 30 ? '<div class="package-badge">Most Popular</div>' : ''}
+                    <div class="package-duration">${pkg.duration_days} Day${pkg.duration_days > 1 ? 's' : ''}</div>
+                    <div class="package-name">${pkg.description}</div>
+                    <div class="package-price"><span class="package-currency">₦</span> ${pkg.price_naira.toLocaleString()}</div>
+                    <ul class="package-features">
+                        <li>Full vendor access</li>
+                        <li>Create sensitivity keys</li>
+                        <li>View analytics</li>
+                        <li>${pkg.duration_days} days validity</li>
+                    </ul>
+                    <button class="select-btn" onclick="selectPackage('${pkg.package_type}', ${pkg.duration_days}, ${pkg.price_naira})">
+                        Select Plan
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function selectPackage(type, days, price) {
+            selectedPackage = { type, days, price };
+            document.getElementById('selectedPackage').value = `${days}-Day Package`;
+            document.getElementById('selectedPrice').value = `₦${price.toLocaleString()}`;
+            document.getElementById('checkoutSubtitle').textContent = `Complete your ${days}-day vendor access`;
+            document.getElementById('packagesGrid').style.display = 'none';
+            document.getElementById('checkoutSection').classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        document.getElementById('cancelBtn').addEventListener('click', () => {
+            document.getElementById('checkoutSection').classList.remove('active');
+            document.getElementById('packagesGrid').style.display = 'grid';
+            document.getElementById('checkoutForm').reset();
+        });
+
+        document.getElementById('checkoutForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const buyerName = document.getElementById('buyerName').value.trim();
+            if (!buyerName) {
+                showError('Please enter your name');
+                return;
+            }
+
+            if (!selectedPackage) {
+                showError('Please select a package first');
+                return;
+            }
+
+            showLoading();
+
+            try {
+                // Create purchase record
+                const createRes = await fetch('/api/vault/purchase/create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        buyerName,
+                        packageType: selectedPackage.type,
+                        price: selectedPackage.price
+                    })
+                });
+
+                if (!createRes.ok) throw new Error('Failed to create purchase');
+                const purchase = await createRes.json();
+                currentPurchaseId = purchase.purchase_id;
+
+                // Initiate Paystack payment
+                PaystackPop.setup({
+                    key: PAYSTACK_PUBLIC_KEY,
+                    email: `vendor+${Date.now()}@xp-arena.pro`,
+                    amount: selectedPackage.price * 100,
+                    ref: purchase.purchase_id,
+                    currency: 'NGN',
+                    onClose: () => {
+                        hideLoading();
+                        showError('Payment was cancelled');
+                    },
+                    onSuccess: (response) => {
+                        verifyPayment(response.reference);
+                    }
+                });
+
+                PaystackPop.openIframe();
+            } catch (err) {
+                hideLoading();
+                console.error('Payment initiation error:', err);
+                showError(err.message || 'Failed to initiate payment');
+            }
+        });
+
+        async function verifyPayment(reference) {
+            showLoading();
+
+            try {
+                const verifyRes = await fetch('/api/vault/purchase/verify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        purchaseId: currentPurchaseId,
+                        reference
+                    })
+                });
+
+                if (!verifyRes.ok) throw new Error('Payment verification failed');
+                const result = await verifyRes.json();
+
+                // Show success
+                hideLoading();
+                showSuccess(result);
+            } catch (err) {
+                hideLoading();
+                console.error('Verification error:', err);
+                showError('Payment verified but account setup failed. Contact support.');
+            }
+        }
+
+        function showSuccess(data) {
+            const expiryDate = new Date(data.expiresAt).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+
+            document.getElementById('successVendorId').textContent = data.vendorId;
+            document.getElementById('successExpiry').textContent = expiryDate;
+            document.getElementById('successPackage').textContent = `${selectedPackage.days}-Day Access`;
+
+            document.getElementById('checkoutSection').classList.remove('active');
+            document.getElementById('packagesGrid').style.display = 'none';
+            document.getElementById('successScreen').classList.add('active');
+        }
+
+        function downloadCard() {
+            if (!currentPurchaseId) return;
+            window.open(`/api/vault/purchase/card/${currentPurchaseId}`, '_blank');
+        }
+
+        function showLoading() {
+            document.getElementById('loadingScreen').classList.add('active');
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingScreen').classList.remove('active');
+        }
+
+        function showError(message) {
+            const errorEl = document.getElementById('errorMessage');
+            errorEl.textContent = message;
+            errorEl.classList.add('active');
+            setTimeout(() => {
+                errorEl.classList.remove('active');
+            }, 5000);
+        }
+
+        // Load packages when page loads
+        window.addEventListener('DOMContentLoaded', loadPackages);
+    </script>
+</body>
+</html>
