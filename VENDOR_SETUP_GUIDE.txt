@@ -1,0 +1,145 @@
+VENDOR PURCHASE SYSTEM - COMPLETE SETUP GUIDE
+==============================================
+
+1. DATABASE MIGRATION (Do This First!)
+--------------------------------------
+Run this SQL on your TiDB database:
+
+SET FOREIGN_KEY_CHECKS = 0;
+
+CREATE TABLE IF NOT EXISTS vendor_packages (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    package_type VARCHAR(50) UNIQUE NOT NULL,
+    duration_days INT NOT NULL,
+    price_naira INT NOT NULL,
+    description VARCHAR(255),
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX (package_type)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS vendor_purchases (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    purchase_id VARCHAR(100) UNIQUE NOT NULL,
+    vendor_id VARCHAR(50) UNIQUE NOT NULL,
+    buyer_name VARCHAR(100) NOT NULL,
+    package_type VARCHAR(50) NOT NULL,
+    price_naira INT NOT NULL,
+    paystack_reference VARCHAR(200),
+    payment_status ENUM('pending', 'success', 'failed') DEFAULT 'pending',
+    activated BOOLEAN DEFAULT FALSE,
+    purchased_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    expires_at DATETIME DEFAULT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (package_type) REFERENCES vendor_packages(package_type) ON DELETE RESTRICT,
+    INDEX (vendor_id),
+    INDEX (purchase_id),
+    INDEX (paystack_reference),
+    INDEX (payment_status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT IGNORE INTO vendor_packages (package_type, duration_days, price_naira, description) VALUES
+('1day', 1, 500, '1-Day Vendor Access Pack'),
+('3days', 3, 1500, '3-Day Vendor Access Pack'),
+('7days', 7, 3000, '7-Day Vendor Access Pack'),
+('30days', 30, 9000, '30-Day Vendor Access Pack');
+
+SET FOREIGN_KEY_CHECKS = 1;
+
+2. WHAT'S BEEN FIXED
+--------------------
+✓ Premium page now available at /premium.html
+✓ Index.html updated - "Get Premium Vendor Access" button now links to premium.html
+✓ All API endpoints ready for purchases
+✓ Paystack integration built-in (your keys already set)
+
+3. ADMIN LOGIN ISSUE - HOW IT WORKS
+-----------------------------------
+"AXP-9090" is a TRIGGER for admin mode, NOT the password.
+
+Steps to login as admin:
+1. Go to index.html
+2. Type "AXP-9090" in the vault input
+3. System switches to "ADMIN_MODE · READY"
+4. Enter your ADMIN_SECRET password
+5. Login succeeds
+
+SET ADMIN_SECRET in environment:
+  Add to .env.development.local:
+  ADMIN_SECRET=your_admin_password_here
+
+4. PAYSTACK SETUP - NO SUBSCRIPTION PLAN NEEDED
+------------------------------------------------
+You only need your API keys - no subscription plan required.
+
+For Testing (Sandbox):
+- Get keys from: https://dashboard.paystack.com/settings/api-keys
+- Set in environment:
+  PAYSTACK_PUBLIC_KEY=pk_test_xxxx
+  PAYSTACK_SECRET_KEY=sk_test_xxxx
+
+For Production (Live - which you have):
+- Keys already set:
+  PAYSTACK_PUBLIC_KEY=pk_live_2734df5e5115659a8cc452acdcbd0aba42fd545c
+  PAYSTACK_SECRET_KEY=(already configured)
+
+How it works:
+- Each vendor purchase = one-time charge (not a subscription)
+- Payment modal opens automatically
+- Payment verified by system
+- Vendor account auto-created
+- NO subscription plan needed in Paystack
+
+5. VENDOR PURCHASE FLOW
+-----------------------
+User → Premium Page → Select Bundle → Enter Name → Paystack Payment → 
+Vendor Card Generated → Auto-Downloaded
+
+Bundles:
+- 1 Day: ₦500
+- 3 Days: ₦1,500
+- 7 Days: ₦3,000
+- 30 Days: ₦9,000
+
+6. VENDOR CARD FEATURES
+-----------------------
+Auto-generated card includes:
+- Vendor Name (from purchase)
+- Vendor ID (unique: VND-NAME-XXXXX)
+- Package Duration
+- Expiration Date
+- QR Code (links to verification)
+- Print-friendly format
+
+7. AUTO-EXPIRY
+--------------
+Vendors automatically become inactive when:
+- Expiration date passes
+- Status changes to inactive
+- Can't login or generate codes
+- Can purchase again to reactivate
+
+8. TEST IT
+----------
+Visit: http://localhost:3001/premium.html
+
+Try a purchase with Paystack test card:
+- Card: 4084084084084081
+- Exp: Any future date
+- CVV: 408
+
+9. PRODUCTION CHECKLIST
+-----------------------
+□ Run SQL migration on TiDB database
+□ Set ADMIN_SECRET environment variable
+□ Verify PAYSTACK_PUBLIC_KEY and PAYSTACK_SECRET_KEY are set
+□ Test premium page loads correctly
+□ Test a full purchase flow
+□ Verify vendor card is generated
+□ Deploy to production
+
+Questions?
+Contact support or check:
+- Paystack docs: https://paystack.com/docs
+- Database setup: See FINAL_PRODUCTION_DB_SETUP.sql
