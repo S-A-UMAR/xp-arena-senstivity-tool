@@ -2594,18 +2594,19 @@ router.post('/purchase/verify', async (req, res) => {
         const expiresAt = new Date();
         expiresAt.setDate(expiresAt.getDate() + purchase.duration_days);
 
+        const vendorId = purchase.vendor_id;
+        const accessKey = `AXP-${vendorId.substring(4)}-${Math.floor(1000 + Math.random() * 9000)}`.toUpperCase();
+        const hashed = await bcrypt.hash(accessKey, 10);
+        const lookupKey = getLookupKey(accessKey);
+
         // Update purchase as successful
         await db.run(`
             UPDATE vendor_purchases
-            SET payment_status = 'success', paystack_reference = ?, activated = TRUE
+            SET payment_status = 'success', paystack_reference = ?, activated = TRUE, access_key_plain = ?
             WHERE purchase_id = ?
-        `, [reference, purchaseId]);
+        `, [reference, accessKey, purchaseId]);
 
         // Create vendor record in vendors table
-        const vendorId = purchase.vendor_id;
-        const hashed = await bcrypt.hash(`${vendorId}-${reference}`.substring(0, 20), 10);
-        const lookupKey = getLookupKey(`${vendorId}:${reference}`).substring(0, 20);
-
         await db.run(`
             INSERT INTO vendors (
                 org_id, vendor_id, access_key, lookup_key, brand_config, active_until, status
@@ -2637,6 +2638,7 @@ router.post('/purchase/verify', async (req, res) => {
             success: true,
             purchaseId,
             vendorId,
+            accessKey,
             expiresAt: expiresAt.toISOString()
         });
     } catch (err) {
@@ -2667,19 +2669,11 @@ router.get('/purchase/card/:purchaseId', async (req, res) => {
             return fail(res, 'XP_VENDOR_NOT_FOUND', 'Vendor profile not found', 404);
         }
 
-        const brandConfig = jsonOrObject(vendor.brand_config, {});
-        const expiryDate = new Date(vendor.active_until).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-        });
+        const expiryDate = vendor.active_until
+            ? new Date(vendor.active_until).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+            : 'NEVER';
 
-        // Generate QR code URL (using QR code API)
-        const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(
-            `https://xp-arena.pro/verify?vendor=${purchase.vendor_id}`
-        )}`;
-
-        // Create HTML card
+        // Create HTML card with matching admin panel design
         const cardHtml = `
 <!DOCTYPE html>
 <html lang="en">
@@ -2687,154 +2681,461 @@ router.get('/purchase/card/:purchaseId', async (req, res) => {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${purchase.buyer_name} - Vendor Card</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;900&family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Outfit', 'Arial', sans-serif;
             background: #020409;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
             padding: 20px;
         }
-        .card {
+        
+        .card-container {
             width: 100%;
             max-width: 500px;
-            background: linear-gradient(135deg, rgba(168, 85, 247, 0.1) 0%, rgba(0, 242, 254, 0.05) 100%);
-            border: 2px solid rgba(0, 242, 254, 0.3);
-            border-radius: 16px;
-            padding: 2rem;
-            text-align: center;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
-        }
-        .card-header {
-            margin-bottom: 2rem;
-            border-bottom: 2px solid rgba(0, 242, 254, 0.2);
-            padding-bottom: 1.5rem;
-        }
-        .card-title {
-            font-size: 1.5rem;
-            font-weight: 900;
-            color: #ffffff;
-            margin-bottom: 0.5rem;
-            letter-spacing: -0.02em;
-        }
-        .card-subtitle {
-            font-size: 0.85rem;
-            color: #a0aec0;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-        .card-body {
             margin-bottom: 2rem;
         }
-        .info-row {
-            margin-bottom: 1.5rem;
+
+        #vendorCardContainer {
+            background: linear-gradient(155deg, #050a14 0%, #07101e 55%, #080f1c 100%);
+            border: 1.5px solid rgba(255,180,0,0.5);
+            border-radius: 20px;
+            padding: 0;
+            position: relative;
+            overflow: hidden;
+            box-shadow:
+                0 0 0 1px rgba(255,180,0,0.1),
+                0 0 40px rgba(255,180,0,0.08),
+                0 30px 80px rgba(0,0,0,0.8);
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
         }
-        .info-label {
-            font-size: 0.7rem;
-            color: #718096;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            margin-bottom: 0.5rem;
-            display: block;
+
+        /* Dot-grid overlay */
+        .dot-grid {
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(circle, rgba(255,255,255,0.055) 1px, transparent 1px);
+            background-size: 22px 22px;
+            pointer-events: none;
+            z-index: 0;
         }
-        .info-value {
+
+        /* Top glow orb */
+        .glow-orb {
+            position: absolute;
+            top: -50px;
+            right: -40px;
+            width: 220px;
+            height: 220px;
+            background: radial-gradient(circle, rgba(255,180,0,0.18) 0%, rgba(0,229,255,0.05) 50%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Gold shimmer top edge */
+        .shimmer-top {
+            height: 2.5px;
+            background: linear-gradient(90deg, transparent, #ffd700, #00e5ff, #ffd700, transparent);
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Gold shimmer bottom edge */
+        .shimmer-bottom {
+            height: 2.5px;
+            background: linear-gradient(90deg, transparent, #00e5ff, #ffd700, transparent);
+            position: relative;
+            z-index: 2;
+        }
+
+        .card-content {
+            padding: 1.5rem 1.5rem 1.25rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .key-badge {
+            width: 46px;
+            height: 46px;
+            background: rgba(255,180,0,0.1);
+            border: 1.5px solid rgba(255,180,0,0.45);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            flex-shrink: 0;
+            box-shadow: 0 0 16px rgba(255,180,0,0.12);
+        }
+
+        .header-title-sub {
+            font-size: 0.55rem;
+            color: rgba(255,180,0,0.8);
+            letter-spacing: 0.2em;
+            margin-bottom: 2px;
+        }
+
+        .header-title-main {
             font-size: 1.1rem;
-            font-weight: 800;
-            color: #00f0ff;
-            font-family: 'JetBrains Mono', monospace;
+            font-weight: 900;
+            color: #fff;
+            letter-spacing: 0.04em;
+            line-height: 1;
         }
+
+        .tier-badge {
+            font-size: 0.6rem;
+            font-weight: 900;
+            letter-spacing: 0.15em;
+            padding: 5px 12px;
+            border-radius: 50px;
+            background: rgba(168,85,247,0.15);
+            color: #c084fc;
+            border: 1px solid rgba(168,85,247,0.5);
+            box-shadow: 0 0 12px rgba(168,85,247,0.2);
+        }
+
         .divider {
             height: 1px;
-            background: rgba(0, 242, 254, 0.2);
-            margin: 2rem 0;
+            background: linear-gradient(90deg, transparent, rgba(255,180,0,0.5), rgba(0,229,255,0.2), transparent);
+            margin-bottom: 1rem;
         }
-        .qr-section {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 1rem;
+
+        .node-id-box {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,180,0,0.2);
+            border-radius: 12px;
+            padding: 0.85rem 1rem;
+            margin-bottom: 0.75rem;
         }
-        .qr-code {
-            width: 150px;
-            height: 150px;
-            border: 2px solid rgba(0, 242, 254, 0.3);
-            border-radius: 8px;
-            padding: 8px;
-            background: white;
+
+        .box-label {
+            font-size: 0.52rem;
+            color: rgba(255,180,0,0.75);
+            letter-spacing: 0.18em;
+            margin-bottom: 4px;
         }
-        .qr-label {
-            font-size: 0.7rem;
-            color: #718096;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
+
+        .box-value {
+            font-size: 1.2rem;
+            font-weight: 900;
+            color: #fff;
+            letter-spacing: 0.06em;
         }
-        .validity {
-            background: rgba(34, 197, 94, 0.1);
-            border: 1px solid rgba(34, 197, 94, 0.3);
-            border-radius: 8px;
-            padding: 1rem;
-            margin-top: 1.5rem;
+
+        .access-phrase-box {
+            background: linear-gradient(135deg, rgba(255,180,0,0.15) 0%, rgba(0,229,255,0.08) 100%);
+            border: 1.5px solid rgba(255,180,0,0.45);
+            border-radius: 12px;
+            padding: 0.85rem 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .access-phrase-label {
+            font-size: 0.52rem;
+            color: rgba(255,255,255,0.45);
+            letter-spacing: 0.18em;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .access-phrase-value {
+            font-size: 1.25rem;
+            font-weight: 900;
+            letter-spacing: 0.06em;
+            background: linear-gradient(90deg,#ffd700,#00e5ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.6rem;
+            margin-bottom: 1rem;
+        }
+
+        .stat-box {
+            background: rgba(255,255,255,0.03);
+            border-radius: 10px;
+            padding: 0.7rem 0.8rem;
+        }
+
+        .stat-box.expiry {
+            border: 1px solid rgba(255,215,0,0.15);
+            border-top: 2px solid rgba(255,215,0,0.6);
+        }
+
+        .stat-box.limit {
+            border: 1px solid rgba(0,229,255,0.15);
+            border-top: 2px solid rgba(0,229,255,0.6);
+        }
+
+        .stat-box.status {
+            border: 1px solid rgba(52,211,153,0.15);
+            border-top: 2px solid rgba(52,211,153,0.6);
+        }
+
+        .stat-box.network {
+            border: 1px solid rgba(167,139,250,0.15);
+            border-top: 2px solid rgba(167,139,250,0.6);
+        }
+
+        .stat-label {
+            font-size: 0.48rem;
+            color: rgba(255,255,255,0.35);
+            letter-spacing: 0.15em;
+            margin-bottom: 4px;
+        }
+
+        .stat-value {
             font-size: 0.85rem;
-            color: #22c55e;
+            font-weight: 900;
+            letter-spacing: 0.04em;
         }
+
+        .footer-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .footer-meta {
+            font-size: 0.48rem;
+            color: rgba(255,255,255,0.3);
+            line-height: 1.7;
+            letter-spacing: 0.06em;
+        }
+
+        .barcode {
+            display: flex;
+            align-items: flex-end;
+            gap: 1px;
+            height: 28px;
+            opacity: 0.45;
+        }
+
+        .barcode-bar {
+            background: #fff;
+        }
+
+        .btn-download {
+            display: block;
+            width: 100%;
+            padding: 1rem;
+            border-radius: 14px;
+            border: none;
+            cursor: pointer;
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            font-size: 0.8rem;
+            font-weight: 900;
+            letter-spacing: 0.15em;
+            background: linear-gradient(135deg, #ffd700, #f59e0b);
+            color: #070d1a;
+            box-shadow: 0 8px 28px rgba(255,180,0,0.4), 0 0 0 1px rgba(255,180,0,0.3);
+            transition: filter 0.2s, box-shadow 0.2s;
+            margin-bottom: 0.75rem;
+            text-align: center;
+            text-decoration: none;
+        }
+
+        .btn-download:hover {
+            filter: brightness(1.08);
+            box-shadow: 0 12px 36px rgba(255,180,0,0.55), 0 0 0 1px rgba(255,180,0,0.5);
+        }
+
         .print-hint {
-            margin-top: 1.5rem;
+            margin-top: 1rem;
             font-size: 0.75rem;
             color: #718096;
+            text-align: center;
         }
+
         @media print {
             body { background: white; }
-            .card { box-shadow: none; }
-            .print-hint { display: none; }
+            .btn-download, .print-hint { display: none; }
+            #vendorCardContainer { box-shadow: none; }
         }
     </style>
 </head>
 <body>
-    <div class="card">
-        <div class="card-header">
-            <div class="card-title">AXP VENDOR</div>
-            <div class="card-subtitle">Premium Access Card</div>
+    <div class="card-container">
+        <div id="vendorCardContainer">
+            <!-- Dot-grid overlay -->
+            <div class="dot-grid"></div>
+            <!-- Top glow orb -->
+            <div class="glow-orb"></div>
+
+            <!-- Gold shimmer top edge -->
+            <div class="shimmer-top"></div>
+
+            <div class="card-content">
+                <!-- Header -->
+                <div class="header-row">
+                    <div class="header-left">
+                        <div class="key-badge">🔑</div>
+                        <div>
+                            <div class="header-title-sub">AXP_NEURAL_NETWORK</div>
+                            <div class="header-title-main">VENDOR_ID_CARD</div>
+                        </div>
+                    </div>
+                    <div class="tier-badge">PREMIUM</div>
+                </div>
+
+                <div class="divider"></div>
+
+                <!-- Assigned Node ID -->
+                <div class="node-id-box">
+                    <div class="box-label">ASSIGNED_NODE_ID</div>
+                    <div class="box-value">${purchase.vendor_id}</div>
+                </div>
+
+                <!-- Secure Access Phrase -->
+                <div class="access-phrase-box">
+                    <div class="access-phrase-label">SECURE_ACCESS_PHRASE</div>
+                    <div class="access-phrase-value">${purchase.access_key_plain || 'PENDING_ACTIVATION'}</div>
+                </div>
+
+                <!-- Stats Grid -->
+                <div class="stats-grid">
+                    <div class="stat-box expiry">
+                        <div class="stat-label">EXPIRY_DATE</div>
+                        <div class="stat-value" style="color:#ffd700;">${expiryDate}</div>
+                    </div>
+                    <div class="stat-box limit">
+                        <div class="stat-label">GEN_LIMIT</div>
+                        <div class="stat-value" style="color:#00e5ff;">UNLIMITED</div>
+                    </div>
+                    <div class="stat-box status">
+                        <div class="stat-label">NODE_STATUS</div>
+                        <div class="stat-value" style="color:#34d399;">● ACTIVE</div>
+                    </div>
+                    <div class="stat-box network">
+                        <div class="stat-label">NETWORK_ID</div>
+                        <div class="stat-value" style="color:#a78bfa; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${purchase.buyer_name.toUpperCase()}</div>
+                    </div>
+                </div>
+
+                <!-- Footer Meta -->
+                <div class="footer-row">
+                    <div class="footer-meta">
+                        ISSUED_ON: <span style="color:rgba(255,255,255,0.5);">${new Date(purchase.purchased_at || Date.now()).toISOString().split('T')[0]}</span><br>
+                        AUTH_LEVEL: <span style="color:rgba(0,229,255,0.7);">VENDOR_PORTAL</span>
+                    </div>
+                    <!-- Styled Barcode -->
+                    <div class="barcode">
+                        <div class="barcode-bar" style="width:2px; height:100%;"></div>
+                        <div class="barcode-bar" style="width:1px; height:70%;"></div>
+                        <div class="barcode-bar" style="width:3px; height:100%;"></div>
+                        <div class="barcode-bar" style="width:1px; height:55%;"></div>
+                        <div class="barcode-bar" style="width:2px; height:85%;"></div>
+                        <div class="barcode-bar" style="width:1px; height:100%;"></div>
+                        <div class="barcode-bar" style="width:1px; height:60%;"></div>
+                        <div class="barcode-bar" style="width:3px; height:100%;"></div>
+                        <div class="barcode-bar" style="width:1px; height:75%;"></div>
+                        <div class="barcode-bar" style="width:2px; height:100%;"></div>
+                        <div class="barcode-bar" style="width:1px; height:50%;"></div>
+                        <div class="barcode-bar" style="width:2px; height:90%;"></div>
+                        <div class="barcode-bar" style="width:1px; height:100%;"></div>
+                        <div class="barcode-bar" style="width:3px; height:65%;"></div>
+                        <div class="barcode-bar" style="width:1px; height:100%;"></div>
+                        <div class="barcode-bar" style="width:2px; height:80%;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gold shimmer bottom edge -->
+            <div class="shimmer-bottom"></div>
         </div>
+    </div>
 
-        <div class="card-body">
-            <div class="info-row">
-                <span class="info-label">Vendor Name</span>
-                <div class="info-value">${purchase.buyer_name}</div>
-            </div>
-
-            <div class="info-row">
-                <span class="info-label">Vendor ID</span>
-                <div class="info-value">${purchase.vendor_id}</div>
-            </div>
-
-            <div class="info-row">
-                <span class="info-label">Package</span>
-                <div class="info-value">${purchase.duration_days}-Day Access</div>
-            </div>
-
-            <div class="divider"></div>
-
-            <div class="qr-section">
-                <span class="qr-label">Verification Code</span>
-                <img src="${qrCodeUrl}" alt="Vendor QR Code" class="qr-code">
-            </div>
-
-            <div class="validity">
-                <strong>Valid until:</strong> ${expiryDate}
-            </div>
-
-            <div class="print-hint">
-                Print or save this card for your records.
-            </div>
+    <div style="width:100%; max-width:500px;">
+        <button id="downloadCardBtn" class="btn-download" onclick="downloadVendorCard()">⬇ DOWNLOAD_IDENTITY_CARD</button>
+        <div class="print-hint">
+            Print or save this card for your records.
         </div>
     </div>
 
     <script>
-        // Auto-print on load (optional)
-        // window.print();
+        async function downloadVendorCard() {
+            const btn = document.getElementById('downloadCardBtn');
+            const container = document.getElementById('vendorCardContainer');
+            const vid = "${purchase.vendor_id}";
+
+            btn.textContent = 'GENERATING_IMAGE...';
+            btn.disabled = true;
+
+            try {
+                if (typeof html2canvas === 'undefined') {
+                    throw new Error('Image generator library is still loading. Please try again in a moment.');
+                }
+
+                const EXPORT_SCALE = 3;
+
+                // Freeze all animations/transforms on the original card
+                const frozen = [];
+                [container, ...container.querySelectorAll('*')].forEach(function(el) {
+                    frozen.push({ el: el, animation: el.style.animation, transition: el.style.transition, transform: el.style.transform });
+                    el.style.animation  = 'none';
+                    el.style.transition = 'none';
+                    el.style.transform  = 'none';
+                });
+
+                // Let the browser paint the frozen frame
+                await new Promise(function(r) { requestAnimationFrame(function() { requestAnimationFrame(r); }); });
+
+                const canvas = await html2canvas(container, {
+                    backgroundColor: '#050a14',
+                    scale: EXPORT_SCALE,
+                    useCORS: true,
+                    allowTaint: true,
+                    logging: false,
+                });
+
+                // Restore animation state
+                frozen.forEach(function(item) {
+                    item.el.style.animation  = item.animation;
+                    item.el.style.transition = item.transition;
+                    item.el.style.transform  = item.transform;
+                });
+
+                const link = document.createElement('a');
+                link.download = 'AXP_NODE_' + vid + '.png';
+                link.href = canvas.toDataURL('image/png', 1.0);
+                link.click();
+
+                btn.textContent = 'DOWNLOAD_SUCCESSFUL';
+                setTimeout(function() {
+                    btn.textContent = 'DOWNLOAD_IDENTITY_CARD';
+                    btn.disabled = false;
+                }, 3000);
+            } catch (err) {
+                console.error(err);
+                alert('GENERATION_FAILED: ' + err.message);
+                btn.textContent = 'DOWNLOAD_IDENTITY_CARD';
+                btn.disabled = false;
+            }
+        }
     </script>
 </body>
 </html>
@@ -2850,3 +3151,4 @@ router.get('/purchase/card/:purchaseId', async (req, res) => {
 });
 
 module.exports = router;
+

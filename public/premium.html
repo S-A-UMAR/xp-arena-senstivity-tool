@@ -557,6 +557,10 @@
                     <span class="detail-value" id="successVendorId">VND-XXXX-XXXX</span>
                 </div>
                 <div class="detail-row">
+                    <span class="detail-label">Vendor Code (Access Key)</span>
+                    <span class="detail-value" id="successAccessKey" style="color: #ffd700; font-family: monospace; font-size: 1.1rem; font-weight: bold;">Loading...</span>
+                </div>
+                <div class="detail-row">
                     <span class="detail-label">Valid Until</span>
                     <span class="detail-value" id="successExpiry">Loading...</span>
                 </div>
@@ -732,6 +736,7 @@
             });
 
             document.getElementById('successVendorId').textContent = data.vendorId;
+            document.getElementById('successAccessKey').textContent = data.accessKey || 'Check downloaded card';
             document.getElementById('successExpiry').textContent = expiryDate;
             document.getElementById('successPackage').textContent = `${selectedPackage.days}-Day Access`;
 

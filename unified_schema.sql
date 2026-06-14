@@ -147,12 +147,47 @@ CREATE TABLE IF NOT EXISTS share_tokens (
     INDEX (expires_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
--- 12. Schema Migrations Table (Tracks applied schema updates)
+-- 12. Vendor Packages Table
+CREATE TABLE IF NOT EXISTS vendor_packages (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    package_type VARCHAR(50) UNIQUE NOT NULL,
+    duration_days INT NOT NULL,
+    price_naira INT NOT NULL,
+    description VARCHAR(255),
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+-- 13. Vendor Purchases Table
+CREATE TABLE IF NOT EXISTS vendor_purchases (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    purchase_id VARCHAR(100) UNIQUE NOT NULL,
+    vendor_id VARCHAR(50) UNIQUE NOT NULL,
+    buyer_name VARCHAR(100) NOT NULL,
+    package_type VARCHAR(50) NOT NULL,
+    price_naira INT NOT NULL,
+    paystack_reference VARCHAR(200),
+    payment_status ENUM('pending', 'success', 'failed') DEFAULT 'pending',
+    activated BOOLEAN DEFAULT FALSE,
+    access_key_plain VARCHAR(100) DEFAULT NULL,
+    expires_at DATETIME DEFAULT NULL,
+    purchased_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (package_type) REFERENCES vendor_packages(package_type) ON DELETE RESTRICT,
+    INDEX (vendor_id),
+    INDEX (purchase_id),
+    INDEX (paystack_reference),
+    INDEX (payment_status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+-- 14. Schema Migrations Table (Tracks applied schema updates)
 CREATE TABLE IF NOT EXISTS schema_migrations (
     version VARCHAR(50) PRIMARY KEY,
     description VARCHAR(255) NOT NULL,
     applied_at DATETIME DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
 
 -- ############################################################################
 -- # SEED INITIAL SYSTEM DATA
@@ -164,6 +199,11 @@ INSERT IGNORE INTO organizations (org_id, org_name, plan_tier) VALUES ('XP-CORE-
 -- Provision XP-ADMIN vendor from environment secret in migrate.js (ADMIN_SECRET / SEED_VENDOR_KEY).
 
 INSERT IGNORE INTO system_settings (setting_key, setting_value) VALUES ('global_sensitivity_offset', '1.0');
+INSERT IGNORE INTO vendor_packages (package_type, duration_days, price_naira, description) VALUES
+('1day', 1, 500, '1-Day Vendor Access Pack'),
+('3days', 3, 1500, '3-Day Vendor Access Pack'),
+('7days', 7, 3000, '7-Day Vendor Access Pack'),
+('30days', 30, 9000, '30-Day Vendor Access Pack');
 INSERT IGNORE INTO schema_migrations (version, description) VALUES ('2026-03-result-share-hardening', 'Share token, feedback metadata, presets/cache, and admin vendor provisioning alignment');
 INSERT IGNORE INTO schema_migrations (version, description) VALUES ('2026-03-shared-v1-hardening', 'Versioned migrations, revocable share links, result i18n cleanup, and admin provisioning upgrades');
 

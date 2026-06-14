@@ -86,45 +86,61 @@ async function migrate() {
 
         // Post-seed normalization: hash admin vendor key and set lookup_key
         try {
+            const safeQuery = async (sql) => {
+                try {
+                    await connection.query(sql);
+                } catch (e) {
+                    if (!e.message.includes('already exists') && 
+                        !e.message.includes('Duplicate column') && 
+                        !e.message.includes('Duplicate key') &&
+                        !e.message.includes('Multiple primary key') &&
+                        !e.message.includes('unsupported add column') &&
+                        !e.message.includes('Duplicate entry')) {
+                        console.warn(`[Migration warning] on "${sql.substring(0, 60)}...": ${e.message}`);
+                    }
+                }
+            };
+
             // Align schema via ALTERs (TiDB compatible: split column add and index/unique)
-            await connection.query(`ALTER TABLE vendors ADD COLUMN IF NOT EXISTS org_id VARCHAR(50) NULL`);
-            await connection.query(`ALTER TABLE vendors MODIFY COLUMN tier ENUM('normal','gold','premium','pro','elite','platinum','nexus') DEFAULT 'normal'`);
-            await connection.query(`ALTER TABLE vendors ADD COLUMN IF NOT EXISTS lookup_key VARCHAR(20) NULL`);
-            await connection.query(`ALTER TABLE vendors ADD COLUMN IF NOT EXISTS active_until DATETIME NULL`);
-            await connection.query(`ALTER TABLE vendors ADD COLUMN IF NOT EXISTS webhook_url VARCHAR(500) NULL`);
-            await connection.query(`ALTER TABLE sensitivity_keys ADD COLUMN IF NOT EXISTS lookup_key VARCHAR(16) UNIQUE NOT NULL`);
-            await connection.query(`ALTER TABLE sensitivity_keys ADD COLUMN IF NOT EXISTS creator_advice TEXT NULL`);
-            await connection.query(`ALTER TABLE vendors ADD COLUMN IF NOT EXISTS usage_limit INT NULL`);
+            await safeQuery(`ALTER TABLE vendors ADD COLUMN IF NOT EXISTS org_id VARCHAR(50) NULL`);
+            await safeQuery(`ALTER TABLE vendors MODIFY COLUMN tier ENUM('normal','gold','premium','pro','elite','platinum','nexus') DEFAULT 'normal'`);
+            await safeQuery(`ALTER TABLE vendors ADD COLUMN IF NOT EXISTS lookup_key VARCHAR(20) NULL`);
+            await safeQuery(`ALTER TABLE vendors ADD COLUMN IF NOT EXISTS active_until DATETIME NULL`);
+            await safeQuery(`ALTER TABLE vendors ADD COLUMN IF NOT EXISTS webhook_url VARCHAR(500) NULL`);
+            await safeQuery(`ALTER TABLE sensitivity_keys ADD COLUMN IF NOT EXISTS lookup_key VARCHAR(16) UNIQUE NOT NULL`);
+            await safeQuery(`ALTER TABLE sensitivity_keys ADD COLUMN IF NOT EXISTS creator_advice TEXT NULL`);
+            await safeQuery(`ALTER TABLE vendors ADD COLUMN IF NOT EXISTS usage_limit INT NULL`);
+            await safeQuery(`ALTER TABLE vendor_purchases ADD COLUMN IF NOT EXISTS access_key_plain VARCHAR(100) NULL`);
             
             // Add foreign key for org_id if it doesn't exist
-            try { await connection.query(`ALTER TABLE vendors ADD CONSTRAINT fk_vendor_org FOREIGN KEY (org_id) REFERENCES organizations(org_id) ON DELETE SET NULL`); } catch(e) {}
+            await safeQuery(`ALTER TABLE vendors ADD CONSTRAINT fk_vendor_org FOREIGN KEY (org_id) REFERENCES organizations(org_id) ON DELETE SET NULL`);
             
             // Add unique constraint for lookup_key
-            try { await connection.query(`ALTER TABLE vendors ADD UNIQUE INDEX IF NOT EXISTS idx_vendor_lookup (lookup_key)`); } catch(e) {}
+            await safeQuery(`ALTER TABLE vendors ADD UNIQUE INDEX IF NOT EXISTS idx_vendor_lookup (lookup_key)`);
             
-            await connection.query(`ALTER TABLE sensitivity_keys ADD COLUMN IF NOT EXISTS lookup_key VARCHAR(16) NOT NULL`);
-            await connection.query(`ALTER TABLE sensitivity_keys ADD COLUMN IF NOT EXISTS creator_advice TEXT NULL`);
-            await connection.query(`ALTER TABLE sensitivity_keys ADD COLUMN IF NOT EXISTS custom_results_json JSON NULL`);
-            await connection.query(`ALTER TABLE sensitivity_keys ADD COLUMN IF NOT EXISTS usage_limit INT NULL`);
-            await connection.query(`ALTER TABLE sensitivity_keys ADD COLUMN IF NOT EXISTS current_usage INT DEFAULT 0`);
-            await connection.query(`ALTER TABLE sensitivity_keys ADD COLUMN IF NOT EXISTS expires_at DATETIME NULL`);
+            await safeQuery(`ALTER TABLE sensitivity_keys ADD COLUMN IF NOT EXISTS lookup_key VARCHAR(16) NOT NULL`);
+            await safeQuery(`ALTER TABLE sensitivity_keys ADD COLUMN IF NOT EXISTS creator_advice TEXT NULL`);
+            await safeQuery(`ALTER TABLE sensitivity_keys ADD COLUMN IF NOT EXISTS custom_results_json JSON NULL`);
+            await safeQuery(`ALTER TABLE sensitivity_keys ADD COLUMN IF NOT EXISTS usage_limit INT NULL`);
+            await safeQuery(`ALTER TABLE sensitivity_keys ADD COLUMN IF NOT EXISTS current_usage INT DEFAULT 0`);
+            await safeQuery(`ALTER TABLE sensitivity_keys ADD COLUMN IF NOT EXISTS expires_at DATETIME NULL`);
             
-            try { await connection.query(`ALTER TABLE sensitivity_keys ADD UNIQUE INDEX IF NOT EXISTS idx_key_lookup (lookup_key)`); } catch(e) {}
-
-            await connection.query(`ALTER TABLE code_activity ADD COLUMN IF NOT EXISTS lookup_key VARCHAR(16) NOT NULL`);
-            await connection.query(`ALTER TABLE code_activity ADD COLUMN IF NOT EXISTS feedback_rating INT NULL`);
-            await connection.query(`ALTER TABLE code_activity ADD COLUMN IF NOT EXISTS feedback_comment TEXT NULL`);
-            await connection.query(`ALTER TABLE code_activity ADD COLUMN IF NOT EXISTS feedback_tag VARCHAR(64) NULL`);
-            await connection.query(`ALTER TABLE code_activity ADD COLUMN IF NOT EXISTS feedback_source VARCHAR(32) NULL`);
-            await connection.query(`ALTER TABLE code_activity ADD COLUMN IF NOT EXISTS feedback_fingerprint VARCHAR(64) NULL`);
-            await connection.query(`ALTER TABLE code_activity ADD INDEX IF NOT EXISTS idx_lookup_key (lookup_key)`);
-            await connection.query(`ALTER TABLE code_activity ADD INDEX IF NOT EXISTS idx_feedback_fingerprint (feedback_fingerprint)`);
-            await connection.query(`INSERT IGNORE INTO organizations (org_id, org_name) VALUES ('XP-CORE-ORG', 'AXP GLOBAL')`);
-            await connection.query(`INSERT IGNORE INTO system_settings (setting_key, setting_value) VALUES ('global_sensitivity_offset', '1.0')`);
-
-            await connection.query(`ALTER TABLE organizations ADD COLUMN IF NOT EXISTS admin_email VARCHAR(255) DEFAULT 'admin@xp-arena.pro'`);
-            await connection.query(`ALTER TABLE organizations ADD COLUMN IF NOT EXISTS status ENUM('active', 'trial', 'suspended') DEFAULT 'active'`);
-            await connection.query(`ALTER TABLE organizations ADD COLUMN IF NOT EXISTS plan_tier ENUM('basic', 'pro', 'enterprise') DEFAULT 'pro'`);
+            await safeQuery(`ALTER TABLE sensitivity_keys ADD UNIQUE INDEX IF NOT EXISTS idx_key_lookup (lookup_key)`);
+ 
+            await safeQuery(`ALTER TABLE code_activity ADD COLUMN IF NOT EXISTS lookup_key VARCHAR(16) NOT NULL`);
+            await safeQuery(`ALTER TABLE code_activity ADD COLUMN IF NOT EXISTS feedback_rating INT NULL`);
+            await safeQuery(`ALTER TABLE code_activity ADD COLUMN IF NOT EXISTS feedback_comment TEXT NULL`);
+            await safeQuery(`ALTER TABLE code_activity ADD COLUMN IF NOT EXISTS feedback_tag VARCHAR(64) NULL`);
+            await safeQuery(`ALTER TABLE code_activity ADD COLUMN IF NOT EXISTS feedback_source VARCHAR(32) NULL`);
+            await safeQuery(`ALTER TABLE code_activity ADD COLUMN IF NOT EXISTS feedback_fingerprint VARCHAR(64) NULL`);
+            await safeQuery(`ALTER TABLE code_activity ADD INDEX IF NOT EXISTS idx_lookup_key (lookup_key)`);
+            await safeQuery(`ALTER TABLE code_activity ADD INDEX IF NOT EXISTS idx_feedback_fingerprint (feedback_fingerprint)`);
+            await safeQuery(`INSERT IGNORE INTO organizations (org_id, org_name) VALUES ('XP-CORE-ORG', 'AXP GLOBAL')`);
+            await safeQuery(`INSERT IGNORE INTO system_settings (setting_key, setting_value) VALUES ('global_sensitivity_offset', '1.0')`);
+ 
+            await safeQuery(`ALTER TABLE organizations ADD COLUMN IF NOT EXISTS admin_email VARCHAR(255) DEFAULT 'admin@xp-arena.pro'`);
+            await safeQuery(`ALTER TABLE organizations ADD COLUMN IF NOT EXISTS status ENUM('active', 'trial', 'suspended') DEFAULT 'active'`);
+            await safeQuery(`ALTER TABLE organizations ADD COLUMN IF NOT EXISTS plan_tier ENUM('basic', 'pro', 'enterprise') DEFAULT 'pro'`);
 
             await connection.query(`CREATE TABLE IF NOT EXISTS vendor_presets (
                 id INT AUTO_INCREMENT PRIMARY KEY,
