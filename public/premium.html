@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Premium Vendor Access - XP Arena</title>
+    <meta name="description" content="Unlock full vendor access on XP Arena. Create sensitivity profiles, share calibration keys, and grow your community.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800;900&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -512,6 +516,11 @@
                 </div>
 
                 <div class="form-group">
+                    <label class="form-label">Email Address</label>
+                    <input type="email" class="form-input" id="buyerEmail" placeholder="your@email.com — receipt will be sent here" required>
+                </div>
+
+                <div class="form-group">
                     <label class="form-label">Selected Package</label>
                     <input type="text" class="form-input" id="selectedPackage" disabled>
                 </div>
@@ -573,14 +582,20 @@
 
         // Fetch packages on load
         async function loadPackages() {
+            const grid = document.getElementById('packagesGrid');
+            grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:#718096;padding:3rem;font-size:0.9rem;">Loading packages...</div>';
             try {
                 const response = await fetch('/api/vault/public/packages');
-                if (!response.ok) throw new Error('Failed to load packages');
+                if (!response.ok) throw new Error(`Server error ${response.status}`);
                 packages = await response.json();
+                if (!packages || packages.length === 0) {
+                    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;border:1px solid rgba(0,242,254,0.15);border-radius:16px;"><div style="font-size:2rem;margin-bottom:1rem;">⚡</div><div style="color:#a0aec0;font-size:0.95rem;">No vendor packages are available right now.<br>Check back soon or contact the admin.</div></div>';
+                    return;
+                }
                 renderPackages();
             } catch (err) {
                 console.error('Failed to load packages:', err);
-                showError('Failed to load vendor packages. Please try again.');
+                grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:3rem;border:1px solid rgba(239,68,68,0.25);border-radius:16px;"><div style="font-size:2rem;margin-bottom:1rem;">⚠️</div><div style="color:#ef4444;font-size:0.9rem;">Could not load packages: ${err.message}<br><button onclick="loadPackages()" style="margin-top:1rem;padding:0.5rem 1.5rem;background:rgba(0,242,254,0.1);border:1px solid rgba(0,242,254,0.3);color:#00f0ff;border-radius:8px;cursor:pointer;font-weight:700;">Retry</button></div></div>`;
             }
         }
 
@@ -625,20 +640,16 @@
             e.preventDefault();
 
             const buyerName = document.getElementById('buyerName').value.trim();
-            if (!buyerName) {
-                showError('Please enter your name');
-                return;
-            }
+            const buyerEmail = document.getElementById('buyerEmail').value.trim();
 
-            if (!selectedPackage) {
-                showError('Please select a package first');
-                return;
-            }
+            if (!buyerName) { showError('Please enter your name'); return; }
+            if (!buyerEmail || !buyerEmail.includes('@')) { showError('Please enter a valid email address'); return; }
+            if (!selectedPackage) { showError('Please select a package first'); return; }
 
             showLoading();
 
             try {
-                // Create purchase record
+                // Create purchase record in DB
                 const createRes = await fetch('/api/vault/purchase/create', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -649,31 +660,41 @@
                     })
                 });
 
-                if (!createRes.ok) throw new Error('Failed to create purchase');
+                if (!createRes.ok) {
+                    const errData = await createRes.json().catch(() => ({}));
+                    throw new Error(errData.message || 'Failed to create purchase record');
+                }
                 const purchase = await createRes.json();
                 currentPurchaseId = purchase.purchase_id;
 
-                // Initiate Paystack payment
-                PaystackPop.setup({
+                // Open Paystack popup — correct inline.js v1 pattern
+                const handler = PaystackPop.setup({
                     key: PAYSTACK_PUBLIC_KEY,
-                    email: `vendor+${Date.now()}@xp-arena.pro`,
-                    amount: selectedPackage.price * 100,
+                    email: buyerEmail,
+                    amount: selectedPackage.price * 100, // Paystack expects kobo
                     ref: purchase.purchase_id,
                     currency: 'NGN',
+                    metadata: {
+                        custom_fields: [
+                            { display_name: 'Buyer Name', variable_name: 'buyer_name', value: buyerName },
+                            { display_name: 'Package', variable_name: 'package', value: `${selectedPackage.days}-Day` }
+                        ]
+                    },
                     onClose: () => {
                         hideLoading();
-                        showError('Payment was cancelled');
+                        showError('Payment window closed — your order is saved. Try again to complete payment.');
                     },
-                    onSuccess: (response) => {
+                    callback: (response) => {
+                        // Paystack calls `callback` on success (not `onSuccess`) in inline v1
                         verifyPayment(response.reference);
                     }
                 });
 
-                PaystackPop.openIframe();
+                handler.openIframe();
             } catch (err) {
                 hideLoading();
                 console.error('Payment initiation error:', err);
-                showError(err.message || 'Failed to initiate payment');
+                showError(err.message || 'Failed to initiate payment. Please try again.');
             }
         });
 
